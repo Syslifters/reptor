@@ -26,7 +26,9 @@ paths['project_notes_base'] = urljoin(paths['project_base'], 'notes/') \
 endpoints = dict()
 for k, v in paths.items():
     try:
-        endpoints[k] = urljoin(config['server'], v)
+        # Note: On first start, without this check config['server] throws keyerror
+        if "server" in config:
+            endpoints[k] = urljoin(config['server'], v)
     except TypeError:
         endpoints[k] = None
 
