@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-import os
-import logging
 import argparse
-import sys
 import importlib
+import logging
+import sys
 
-from glob import glob
 from inspect import cleandoc
 from collections import OrderedDict
 
+import settings
 from utils.conf import config
 from utils.string_operations import truncate
 from classes.ToolBase import ToolBase
@@ -19,10 +18,6 @@ from classes.UploadBase import UploadBase
 log = logging.getLogger('reptor')
 logging.basicConfig(format='%(message)s')
 log.setLevel(logging.INFO)
-MODULE_DIRS = [
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'modules/'),
-]
-NEWLINE = '\n'
 
 subcommand_groups = OrderedDict({
     ConfBase: ('configuration', list()),
@@ -30,16 +25,20 @@ subcommand_groups = OrderedDict({
     ToolBase: ('tool output processing', list()),
     'other': ('other', list()),
 })
-
 # TODO better error message if settings are missing
 if __name__ == "__main__":
     # Dynamic module import
     # later imports overwrite earlier imports
     # suggested loading procedure: inofficial plugins, official plugins, user plugins
     module_paths = list()
-    for modules_dir in MODULE_DIRS:
-        for subpath in ['*/__init__.py', '*.py']:
-            module_paths.extend(glob(os.path.join(modules_dir, subpath)))
+    for modules_path in settings.MODULE_DIRS.glob("*"):
+        if "__pycache__" not in modules_path.name:
+            if modules_path.is_dir():
+                module_main_file = modules_path / f"{modules_path.name}.py"
+                if module_main_file.is_file():
+                    module_paths.append(str(module_main_file))
+            else:
+                module_paths.append(str(modules_path))
 
     short_help_tools = "\n\nparsing tool outputs:"
     short_help_other = "\n\nother:"
@@ -56,7 +55,7 @@ if __name__ == "__main__":
             continue
         module.name = module.loader.__name__.lower()
         module.description = cleandoc(module.loader.__doc__)
-        module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(NEWLINE)[0], length=50)}"
+        module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(settings.NEWLINE)[0], length=50)}"
 
         # Add short_help to tool help message
         if module.loader.__base__ in subcommand_groups:
@@ -72,7 +71,7 @@ if __name__ == "__main__":
     description = ""
     for short_help_class, short_help_group_meta in subcommand_groups.items():
         description += f"\n{short_help_group_meta[0]}:\n"
-        description += f"{NEWLINE.join(short_help_group_meta[1])}\n"
+        description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
 
     # Argument parser
     parser = argparse.ArgumentParser(
