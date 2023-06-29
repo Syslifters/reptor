@@ -1,7 +1,7 @@
-from classes.ToolBase import ToolBase
+from classes.Base import Base
 
 
-class SimpleList(ToolBase):
+class SimpleList(Base):
     """
     format list output
 
