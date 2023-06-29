@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+
+import os
+from utils.conf import config
+from utils.string_operations import truncate
+from classes.ToolBase import ToolBase
+from classes.ConfBase import ConfBase
+from classes.UploadBase import UploadBase
+import logging
+import argparse
+from glob import glob
+import sys
+import importlib
+from inspect import cleandoc
+from collections import OrderedDict
+
+log = logging.getLogger('reptor')
+logging.basicConfig(format='%(message)s')
+log.setLevel(logging.INFO)
+MODULE_DIRS = [
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), 'modules/'),
+]
+NEWLINE = '\n'
+
+subcommand_groups = OrderedDict({
+    ConfBase: ('configuration', list()),
+    UploadBase: ('upload', list()),
+    ToolBase: ('tool output processing', list()),
+    'other': ('other', list()),
+})
+
+# TODO better error message if settings are missing
+if __name__ == "__main__":
+    # Dynamic module import
+    # later imports overwrite earlier imports
+    # suggested loading procedure: inofficial plugins, official plugins, user plugins
+    module_paths = list()
+    for modules_dir in MODULE_DIRS:
+        for subpath in ['*/__init__.py', '*.py']:
+            module_paths.extend(glob(os.path.join(modules_dir, subpath)))
+
+    short_help_tools = "\n\nparsing tool outputs:"
+    short_help_other = "\n\nother:"
+    loaded_modules = dict()
+    for module in module_paths:
+        spec = importlib.util.spec_from_file_location(
+            "module.name", module)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["module.name"] = module
+        spec.loader.exec_module(module)
+
+        # Add some metadata
+        if not hasattr(module, 'loader'):
+            continue
+        module.name = module.loader.__name__.lower()
+        module.description = cleandoc(module.loader.__doc__)
+        module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(NEWLINE)[0], length=50)}"
+
+        # Add short_help to tool help message
+        if module.loader.__base__ in subcommand_groups:
+            subcommand_groups[module.loader.__base__][1].append(
+                module.short_help)
+        else:
+            subcommand_groups['other'][1].append(
+                module.short_help)
+
+        loaded_modules[module.name] = module
+
+    # Argument parser description
+    description = ""
+    for short_help_class, short_help_group_meta in subcommand_groups.items():
+        description += f"\n{short_help_group_meta[0]}:\n"
+        description += f"{NEWLINE.join(short_help_group_meta[1])}\n"
+
+    # Argument parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    subparsers = parser.add_subparsers(
+        dest='command', description=description, help=argparse.SUPPRESS)
+
+    # Dynamically add module options
+    for name, module in loaded_modules.items():
+        module.subparser = subparsers.add_parser(name,
+                                                 description=module.description,
+                                                 formatter_class=argparse.RawTextHelpFormatter)
+        module.loader.add_arguments(module.subparser)
+
+    # Static module options
+    note_subparser = subparsers.add_parser('note')
+    file_subparser = subparsers.add_parser('file')
+    file_subparser.add_argument("file", nargs="*",
+                                type=argparse.FileType("r"),
+                                help="files to upload; leave empty for stdin")
+    file_subparser.add_argument("-fn", "--filename",
+                                help="filename if file provided via stdin")
+
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+    parser.add_argument("-n", "--notename")
+    parser.add_argument("-nt", "--no-timestamp", help="do not prepent timestamp to note",
+                        action="store_true")
+
+    config_parser = parser.add_argument_group('configuration')
+    config_parser.add_argument("-s", "--server")
+    config_parser.add_argument("-t", "--token", help="SysReptor API token")
+    config_parser.add_argument("-f", "--force-unlock", help="force unlock notes and sections",
+                               action="store_true")
+    private_or_project_parser = config_parser.add_mutually_exclusive_group()
+    private_or_project_parser.add_argument(
+        "-p", "--project-id", help="SysReptor project ID")
+    private_or_project_parser.add_argument("--private-note", help="add notes to private notes",
+                                           action="store_true")
+
+    # Parse main parser arguments also if provided in subparser
+    previous_unknown = None
+    args, unknown = parser.parse_known_args()
+    while len(unknown) and unknown != previous_unknown:
+        args, unknown = parser.parse_known_args(unknown, args)
+        previous_unknown = unknown
+
+    if args.verbose:
+        log.setLevel(logging.DEBUG)
+
+    # Override conf from config file by CLI
+    args_dict = vars(args)
+    for k in ['server', 'project_id', 'session_id']:
+        config[k] = args_dict.get(k) or config.get(k, '')
+    # Add cli options to config/cli
+    config['cli'] = args_dict
+
+    # Subcommands
+    if args.command in loaded_modules:
+        module = loaded_modules[args.command]
+        module.loader(**config['cli']).run()
