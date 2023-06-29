@@ -1,37 +1,19 @@
-import requests
-from posixpath import join as urljoin
 import contextlib
 import logging
-from http.client import responses
-from utils.conf import config
+
 from datetime import datetime
+from posixpath import join as urljoin
+from http.client import responses
+
+import requests
+
+from lib.api.clients import NotesApi
+from lib.api.errors import LockedException
+from utils.conf import config
 
 log = logging.getLogger('reptor')
+
 # TODO refactor this file 🤷
-
-class LockedException(Exception):
-    pass
-
-
-paths = dict()
-paths['private_base'] = "api/v1/pentestusers/self/"
-paths['private_notes_base'] = urljoin(paths['private_base'], 'notes/')
-
-paths['project_base'] = f"api/v1/pentestprojects/{config.get('project_id')}/" \
-    if config.get('project_id') else None
-paths['project_notes_base'] = urljoin(paths['project_base'], 'notes/') \
-    if paths['project_base'] else None
-
-
-endpoints = dict()
-for k, v in paths.items():
-    try:
-        # Note: On first start, without this check config['server] throws keyerror
-        if "server" in config:
-            endpoints[k] = urljoin(config['server'], v)
-    except TypeError:
-        endpoints[k] = None
-
 
 @contextlib.contextmanager
 def _lock_note(endpoint):
@@ -65,54 +47,26 @@ def _lock_note(endpoint):
                  'Content-Type': 'application/json'},
         cookies={'sessionid': config['token']})
 
-
 def create_note(title="CLI Note", private_note=False, parent_id=None, order=None, icon=None):
-    if private_note:
-        endpoint = endpoints['private_notes_base']
-    else:
-        endpoint = endpoints['project_notes_base']
-
-    r = requests.post(
-        endpoint,
-        headers={'Referer': endpoint,
-                 'Content-Type': 'application/json'},
-        cookies={'sessionid': config['token']},
-        json={
+    # Todo: Next step is to remove the create_note and work with the NotesAPI directly
+    notes_api : NotesApi = NotesApi()
+    note = notes_api.create({
             "order": order,
             "parent": parent_id,
             "title": title,
-        }
-    )
-    r.raise_for_status()
-    note = r.json()
+        })
+
     if icon:
-        set_note_icon(urljoin(endpoint, f"{note.get('id')}/"), icon)
+        notes_api.set_icon(note.get('id'), icon)
+
     return note
 
-
-def set_note_icon(endpoint, icon):
-    requests.put(
-        endpoint,
-        headers={'Referer': endpoint,
-                 'Content-Type': 'application/json'},
-        cookies={'sessionid': config['token']},
-        json={
-            "icon_emoji": icon
-        }
-    )
-
-
-def _get_notes_list(private_note=False):
-    if private_note:
-        endpoint = endpoints['private_notes_base']
-    else:
-        endpoint = endpoints['project_notes_base']
-
-    r = requests.get(
-        endpoint,
-        cookies={'sessionid': config['token'], })
+def _get_notes_list():
+    notes = None
     try:
-        r.raise_for_status()
+        notes_api : NotesApi = NotesApi()
+        notes = notes_api.get_list()
+        r = notes_api.response
     except requests.HTTPError as e:
         try:
             detail = r.json()['detail']
@@ -120,33 +74,28 @@ def _get_notes_list(private_note=False):
             detail = None
         raise Exception(
             f'{r.status_code} {responses[r.status_code]}{f" {chr(34)}{detail}{chr(34)}" if detail else ""}') from e
-    return r.json()
-
+    return notes
 
 def _get_note_by_title(title, parent_notename=None, icon=None):
-    private_note = False
-    if config['cli'].get('private_note'):
-        private_note = True
+    note_api : NotesApi = NotesApi()
     parent_id = None
     if parent_notename:
         note, _ = _get_note_by_title(parent_notename)
         parent_id = note.get('id')
-    notes_list = _get_notes_list(private_note=private_note)
+    notes_list = _get_notes_list()
 
     for note in reversed(notes_list):
         if note.get('title') == title and note.get('parent') == parent_id:
             break
     else:
         # Note does not exist. Create.
-        note = create_note(title,
-                           parent_id=parent_id,
-                           private_note=private_note,
-                           icon=icon)
-    if private_note:
-        return note, urljoin(endpoints['private_notes_base'], note.get('id'))
-    else:
-        return note, urljoin(endpoints['project_notes_base'], note.get('id'))
+        note = note_api.create({
+            "parent": parent_id,
+            "title": title,
+            "icon":icon
+        })
 
+    return note, note_api.get_endpoint_by_id(note.get("id"))
 
 def write_note(notename, content, parent_notename=None, force_unlock=False, icon=None):
     _, note_endpoint = _get_note_by_title(
@@ -180,7 +129,6 @@ def write_note(notename, content, parent_notename=None, force_unlock=False, icon
             raise requests.HTTPError(
                 f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)') from e
     log.info(f"Note written to \"{notename or 'Uploads'}\".")
-
 
 def upload_file(filename, notename, content, parent_notename=None, caption=None):
     # Lock during upload to prevent unnecessary uploads and for endpoint setup
