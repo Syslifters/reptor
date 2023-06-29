@@ -4,32 +4,26 @@ import argparse
 import importlib
 import logging
 import sys
+import typing
 
 from inspect import cleandoc
-from collections import OrderedDict
 
 import settings
 from utils.conf import config
 from utils.string_operations import truncate
-from classes.ToolBase import ToolBase
-from classes.ConfBase import ConfBase
-from classes.UploadBase import UploadBase
 
 log = logging.getLogger('reptor')
 logging.basicConfig(format='%(message)s')
 log.setLevel(logging.INFO)
 
-subcommand_groups = OrderedDict({
-    ConfBase: ('configuration', list()),
-    UploadBase: ('upload', list()),
-    ToolBase: ('tool output processing', list()),
-    'other': ('other', list()),
-})
-# TODO better error message if settings are missing
-if __name__ == "__main__":
-    # Dynamic module import
-    # later imports overwrite earlier imports
-    # suggested loading procedure: inofficial plugins, official plugins, user plugins
+
+
+def load_modules_files():
+    """Loads a File and Folder based Modules from the ./modules folder in reptor
+
+    Returns:
+        typing.List: Holds absolute paths to each Module file
+    """
     module_paths = list()
     for modules_path in settings.MODULE_DIRS.glob("*"):
         if "__pycache__" not in modules_path.name:
@@ -39,9 +33,14 @@ if __name__ == "__main__":
                     module_paths.append(str(module_main_file))
             else:
                 module_paths.append(str(modules_path))
+    return module_paths
 
-    short_help_tools = "\n\nparsing tool outputs:"
-    short_help_other = "\n\nother:"
+def import_modules(module_paths : typing.List):
+    """Loads each module
+
+    Returns:
+        typing.Dict: Dictionary holding each module name
+    """
     loaded_modules = dict()
     for module in module_paths:
         spec = importlib.util.spec_from_file_location(
@@ -58,18 +57,25 @@ if __name__ == "__main__":
         module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(settings.NEWLINE)[0], length=50)}"
 
         # Add short_help to tool help message
-        if module.loader.__base__ in subcommand_groups:
-            subcommand_groups[module.loader.__base__][1].append(
+        if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
+            settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
                 module.short_help)
         else:
-            subcommand_groups['other'][1].append(
+            settings.SUBCOMMANDS_GROUPS['other'][1].append(
                 module.short_help)
 
         loaded_modules[module.name] = module
+    return loaded_modules
 
+def create_parsers():
+    """Creates the description in the help and the parsers to be used
+
+    Returns:
+        parser,subparsers: ArgumentParser and SubParser
+    """
     # Argument parser description
     description = ""
-    for short_help_class, short_help_group_meta in subcommand_groups.items():
+    for short_help_class, short_help_group_meta in settings.SUBCOMMANDS_GROUPS.items():
         description += f"\n{short_help_group_meta[0]}:\n"
         description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
 
@@ -80,21 +86,14 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(
         dest='command', description=description, help=argparse.SUPPRESS)
 
-    # Dynamically add module options
-    for name, module in loaded_modules.items():
-        module.subparser = subparsers.add_parser(name,
-                                                 description=module.description,
-                                                 formatter_class=argparse.RawTextHelpFormatter)
-        module.loader.add_arguments(module.subparser)
+    return parser, subparsers
 
-    # Static module options
+def add_config_parse_options(parser : argparse.ArgumentParser):
+    """Creates the configuration arguments
 
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
-    parser.add_argument("-n", "--notename")
-    parser.add_argument("-nt", "--no-timestamp", help="do not prepent timestamp to note",
-                        action="store_true")
-
+    Args:
+        parser (argparse.ArgumentParser): main parser
+    """
     config_parser = parser.add_argument_group('configuration')
     config_parser.add_argument("-s", "--server")
     config_parser.add_argument("-t", "--token", help="SysReptor API token")
@@ -105,6 +104,35 @@ if __name__ == "__main__":
         "-p", "--project-id", help="SysReptor project ID")
     private_or_project_parser.add_argument("--private-note", help="add notes to private notes",
                                            action="store_true")
+
+# TODO better error message if settings are missing
+if __name__ == "__main__":
+
+    # Dynamic module import
+    # later imports overwrite earlier imports
+    # suggested loading procedure: inofficial plugins, official plugins, user plugins
+    module_paths = load_modules_files()
+
+    loaded_modules = import_modules(module_paths)
+
+    parser, subparsers = create_parsers()
+
+    # Dynamically add module options
+    for name, module in loaded_modules.items():
+        module.subparser = subparsers.add_parser(name,
+                                                 description=module.description,
+                                                 formatter_class=argparse.RawTextHelpFormatter)
+        module.loader.add_arguments(module.subparser)
+
+    # Static module options
+    add_config_parse_options(parser)
+
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+    parser.add_argument("-n", "--notename")
+    parser.add_argument("-nt", "--no-timestamp", help="do not prepent timestamp to note",
+                        action="store_true")
+
 
     # Parse main parser arguments also if provided in subparser
     previous_unknown = None
