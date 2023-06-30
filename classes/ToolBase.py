@@ -1,7 +1,8 @@
 import sys
 import logging
-from utils.api import write_note
+from api.NotesAPI import NotesAPI
 from classes.Base import Base
+from utils.conf import config
 
 log = logging.getLogger('reptor')
 
@@ -14,6 +15,8 @@ class ToolBase(Base):
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
+        self.no_timestamp = config['cli'].get('no_timestamp')
+        self.force_unlock = config['cli'].get('force_unlock')
 
     @classmethod
     def add_arguments(cls, parser):
@@ -47,9 +50,13 @@ class ToolBase(Base):
         if not self.formatted_input:
             self.format()
         notename = self.notename or self.__class__.__name__.lower()
-        parent = 'Uploads' if notename != 'Uploads' else None
-        write_note(
+        parent_notename = 'Uploads' if notename != 'Uploads' else None
+
+        NotesAPI().write_note(
             notename=notename,
-            parent=parent,
+            parent_notename=parent_notename,
             content=self.formatted_input,
-            icon=self.note_icon)
+            icon=self.note_icon,
+            no_timestamp=self.no_timestamp,
+            force_unlock=self.force_unlock,
+        )

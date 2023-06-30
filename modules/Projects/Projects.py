@@ -1,5 +1,6 @@
 from classes.Base import Base
-from lib.api.clients import ProjectsApi
+from api.ProjectsAPI import ProjectsAPI
+
 
 class Projects(Base):
     """
@@ -17,10 +18,9 @@ class Projects(Base):
     def add_arguments(cls, parser):
         super().add_arguments(parser)
 
-
     def run(self):
-        projects_api : ProjectsApi = ProjectsApi()
-        projects = projects_api.get_list()
+        projects_api: ProjectsAPI = ProjectsAPI()
+        projects = projects_api.get_projects()
 
         print(f"{'Project Name':<30}      ID")
         print(f"{'_':_<80}")
@@ -29,7 +29,8 @@ class Projects(Base):
             if project['readonly']:
                 archived = "(Archived)"
 
-            print(f"{project['name']:<30}      {project['id']}      {archived}")
+            print(
+                f"{project['name']:<30}      {project['id']}      {archived}")
             print(f"{'_':_<80}")
 
 
