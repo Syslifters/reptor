@@ -13,5 +13,5 @@ class ProjectsAPI(APIClient):
     def get_projects(self):
         """Gets list of projects
         """
-        self.get(self.base_endpoint)
-        return self.response.json()['results']
+        response = self.get(self.base_endpoint)
+        return response.json()['results']
