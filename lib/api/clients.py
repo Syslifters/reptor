@@ -71,7 +71,7 @@ class APIClient:
         """
         url = self._get_full_endpoint_url()
         self.get(url)
-        return self.response.json()['results']
+        return self.response.json()
 
 
     def post(self, data, url = None):

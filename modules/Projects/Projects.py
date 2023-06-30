@@ -24,7 +24,7 @@ class Projects(Base):
 
         print(f"{'Project Name':<30}      ID")
         print(f"{'_':_<80}")
-        for project in projects:
+        for project in projects['results']:
             archived = ""
             if project['readonly']:
                 archived = "(Archived)"
