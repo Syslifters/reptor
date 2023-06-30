@@ -1,12 +1,11 @@
 
 import typing
-
-from datetime import datetime
 from posixpath import join as urljoin
 
 import requests
 
-import utils.conf
+from utils.conf import config
+
 
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods
@@ -19,14 +18,10 @@ class APIClient:
     item_id : str = None # Can be a Note ID, Project ID, Finding ID, User ID etc
 
     def __init__(self) -> None:
-        if "server" in utils.conf.config:
-            self.server = utils.conf.config['server']
-
-        if "project_id" in utils.conf.config:
-            self.project_id = utils.conf.config['project_id']
-
-        if "token" in utils.conf.config:
-            self.token = utils.conf.config['token']
+        self.server = config.get('server')
+        self.project_id = config.get('project_id')
+        self.token = config.get('token')
+        self.verify = not config.get('insecure', False)
 
     def _get_headers(self) -> typing.Dict:
         return {'Referer': self.endpoint,
@@ -50,7 +45,7 @@ class APIClient:
             url,
             headers=self._get_headers(),
             cookies={'sessionid': self.token},
-            verify=False # Todo: Should be a CLI param for people with self-hosted version
+            verify=self.verify,
         )
         self.response.raise_for_status()
 
@@ -88,7 +83,7 @@ class APIClient:
             headers=self._get_headers(),
             cookies={'sessionid': self.token},
             json=data,
-            verify=False # Todo: Should be a CLI param for people with self-hosted version
+            verify=self.verify,
         )
         self.response.raise_for_status()
 
@@ -106,7 +101,7 @@ class APIClient:
             headers=self._get_headers(),
             cookies={'sessionid': self.token},
             json=data,
-            verify=False # Todo: Should be a CLI param for people with self-hosted version
+            verify=self.verify,
         )
         self.response.raise_for_status()
 

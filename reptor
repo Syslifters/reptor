@@ -99,6 +99,8 @@ def add_config_parse_options(parser : argparse.ArgumentParser):
     config_parser.add_argument("-t", "--token", help="SysReptor API token")
     config_parser.add_argument("-f", "--force-unlock", help="force unlock notes and sections",
                                action="store_true")
+    config_parser.add_argument("--insecure", help="do not verify server certificate",
+                               action="store_true")
     private_or_project_parser = config_parser.add_mutually_exclusive_group()
     private_or_project_parser.add_argument(
         "-p", "--project-id", help="SysReptor project ID")
@@ -146,7 +148,7 @@ if __name__ == "__main__":
 
     # Override conf from config file by CLI
     args_dict = vars(args)
-    for k in ['server', 'project_id', 'session_id']:
+    for k in ['server', 'project_id', 'session_id', 'insecure']:
         config[k] = args_dict.get(k) or config.get(k, '')
     # Add cli options to config/cli
     config['cli'] = args_dict
