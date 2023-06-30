@@ -24,6 +24,7 @@ class NotesAPI(APIClient):
 
     def __init__(self) -> None:
         super().__init__()
+
         if self.private_note:
             self.base_endpoint = urljoin(
                 self.server, f"api/v1/pentestusers/self/notes/")
