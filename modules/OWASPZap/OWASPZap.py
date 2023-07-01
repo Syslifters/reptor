@@ -1,4 +1,3 @@
-import re
 import typing
 
 from xml.etree import ElementTree
@@ -31,9 +30,15 @@ class OWASPZap(ToolBase):
                                         action="store_true",
                                         default=False)
 
+        """Todo:
+        - Create toggle for instance include or not
+        - Create fields inclusion by list i.e --fields=description,solution,references
+        - Create blacklist i.e --blacklist=risk,confidence
+        """
 
 
-    def parse_json(self,data) -> typing.List[str]:
+
+    def parse_json(self,data) -> typing.List[Site]:
         raise NotImplementedError
 
     def parse_xml(self,data) -> typing.List[Site]:
@@ -64,11 +69,11 @@ class OWASPZap(ToolBase):
         super().parse()
 
         if self.arg_type_json:
-            zap_scan = self.parse_json(self.raw_input)
+            parsed_input = self.parse_json(self.raw_input)
         elif self.arg_type_xml:
-            zap_scan = self.parse_xml(self.raw_input)
+            parsed_input = self.parse_xml(self.raw_input)
 
-        self.parsed_input = zap_scan
+        self.parsed_input = parsed_input
 
     def format(self):
         super().format()
