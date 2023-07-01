@@ -1,11 +1,18 @@
-# Nikto Module
+# OWASP Module
 
-The module supports Raw, XML and JSON Input from nikto.
+The module supports XML and JSON Input from OWASP Zap Scanner Results Reports.
 
-However, multiple targets are not supported in JSON. This is due to nikto's implementation.
+In OWASP ZAP 2.12.0 click on `Report` -> `Generate Report`.
 
-If you have problems with your table, please ensure that you style your table
-in CSS within your report template.
+In the Popup click on the tab `Template` and choose one of the following:
+
+- Traditional XML Report
+- Traditional XML Report with Requests and Responses
+- Traditional JSON Report
+- Traditional JSON Report with Requests and Responses
+
+>Note: Consider using the filter option to reduce the output to only include High & Medium risks
+
 
 # Unit Tests
 
