@@ -13,14 +13,24 @@ class Projects(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.arg_search = kwargs.get('search')
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
+        project_parser = parser.add_argument_group()
+        project_parser.add_argument("--search",
+                                        help="Search for term",
+                                        action="store",
+                                        default=None)
+
 
     def run(self):
         projects_api: ProjectsAPI = ProjectsAPI()
-        projects = projects_api.get_projects()
+        if not self.arg_search:
+            projects = projects_api.get_projects()
+        else:
+            projects = projects_api.search(self.arg_search)
 
         print(f"{'Project Name':<30}      ID")
         print(f"{'_':_<80}")
