@@ -105,7 +105,7 @@ class OWASPZap(ToolBase):
                 | Risk | {alert.riskdesc} |
                 | Confidence | {alert.confidencedesc} |
                 | Number of Affected Instances | {alert.count} |
-                | CWE | {alert.cweid} |
+                | CWE | [{alert.cweid}](https://cwe.mitre.org/data/definitions/{alert.cweid}.html) |
 
                 ### Description
                 {alert.desc}
