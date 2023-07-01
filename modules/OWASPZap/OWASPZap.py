@@ -114,9 +114,16 @@ class OWASPZap(ToolBase):
                 {alert.solution}
 
                 ### References
-                {alert.reference}
-
                 """
+
+                if alert.reference:
+                    for reference in alert.reference.splitlines():
+                        alert_output += f"""
+                        - [{reference}]({reference})
+                """
+                else:
+                    alert_output += "None"
+
                 output.append(alert_output)
 
         self.formatted_input = "\n".join(output)
