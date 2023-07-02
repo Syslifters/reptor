@@ -13,17 +13,15 @@ class Projects(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.arg_search = kwargs.get('search')
+        self.arg_search = kwargs.get("search")
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
         project_parser = parser.add_argument_group()
-        project_parser.add_argument("--search",
-                                        help="Search for term",
-                                        action="store",
-                                        default=None)
-
+        project_parser.add_argument(
+            "--search", help="Search for term", action="store", default=None
+        )
 
     def run(self):
         projects_api: ProjectsAPI = ProjectsAPI()
@@ -36,11 +34,10 @@ class Projects(Base):
         print(f"{'_':_<80}")
         for project in projects:
             archived = ""
-            if project['readonly']:
+            if project.readonly:
                 archived = "(Archived)"
 
-            print(
-                f"{project['name']:<30}      {project['id']}      {archived}")
+            print(f"{project.name:<30}      {project.name}      {archived}")
             print(f"{'_':_<80}")
 
 

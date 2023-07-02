@@ -110,7 +110,7 @@ class FindingTemplate(BaseModel):
 
 
 class Note(BaseModel):
-    lock_info: str = None
+    lock_info: bool = False
     title: str = None
     text: str = None
     checked: bool = False
