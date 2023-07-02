@@ -6,15 +6,15 @@ import typing
 
 @dataclass
 class BaseModel:
-    id: str = None
-    created: datetime.datetime = None
-    updated: datetime.datetime = None
+    id: str = ""
+    created: datetime.datetime | None = None
+    updated: datetime.datetime | None = None
 
-    def __init__(self, data: str = None):
+    def __init__(self, data: typing.Dict | None = None):
         if data:
             self._fill_from_api(data)
 
-    def _fill_from_api(self, data: str):
+    def _fill_from_api(self, data: typing.Dict):
         """Fills Model from API return JSON data
 
         Args:
@@ -61,18 +61,18 @@ class BaseModel:
 
 
 class User(BaseModel):
-    username: str = None
-    name: str = None
-    title_before: str = None
-    first_name: str = None
-    middle_name: str = None
-    last_name: str = None
-    title_after: str = None
+    username: str = ""
+    name: str = ""
+    title_before: str = ""
+    first_name: str = ""
+    middle_name: str = ""
+    last_name: str = ""
+    title_after: str = ""
     is_active: bool = False
     roles: typing.List[str] = []
-    email: str = None
-    phone: str = None
-    mobile: str = None
+    email: str = ""
+    phone: str = ""
+    mobile: str = ""
     scope: typing.List[str] = []
     is_superuser: bool = False
     is_designer: bool = False
@@ -87,60 +87,63 @@ class User(BaseModel):
 
 
 class FindingData(BaseModel):
-    title: str = None
-    cvss: str = None
-    summary: str = None
-    description: str = None
-    precondition: str = None
-    impact: str = None
-    recommendation: str = None
-    short_recommendation: str = None
+    title: str = ""
+    cvss: str = ""
+    summary: str = ""
+    description: str = ""
+    precondition: str = ""
+    impact: str = ""
+    recommendation: str = ""
+    short_recommendation: str = ""
     references: typing.List[str] = []
     affected_components: typing.List[str] = []
-    owasp_top10_2021: str = None
-    wstg_category: str = None
-    retest_notes: str = None
-    retest_status: str = None
-    evidence: str = None
+    owasp_top10_2021: str = ""
+    wstg_category: str = ""
+    retest_notes: str = ""
+    retest_status: str = ""
+    evidence: str = ""
 
 
 class FindingTemplate(BaseModel):
-    details: str = None
+    details: str = ""
     lock_info: bool = False
-    usage_count: int = None
-    source: str = None
+    usage_count: int = 0
+    source: str = ""
     tags: typing.List[str] = []
-    language: str = None
-    status: str = None
-    data: FindingData = None
+    language: str = ""
+    status: str = ""
+    data: FindingData | None = None
 
     custom_attributes: typing.List[dict] = []
 
 
 class Note(BaseModel):
     lock_info: bool = False
-    title: str = None
-    text: str = None
+    title: str = ""
+    text: str = ""
     checked: bool = False
-    icon_emoji: str = None
-    status_emoji: str = None
-    order: int = None
-    parent: str = None
+    icon_emoji: str = ""
+    status_emoji: str = ""
+    order: int = 0
+    parent: str = ""
 
 
 class ProjectType(BaseModel):
-    source: str = None
-    scope: str = None
-    name: str = None
-    language: str = None
+    source: str = ""
+    scope: str = ""
+    name: str = ""
+    language: str = ""
 
 
 class Project(BaseModel):
-    name: str = None
-    project_type: str = None  # Todo: should be ProjectType but API returns no object, but ID str instead
-    language: str = None
+    name: str = ""
+
+    # Todo: should be ProjectType but API returns no object, but ID str instead
+    project_type: str = ""
+
+    language: str = ""
     tags: typing.List[str] = []
     readonly: bool = False
-    source: str = None
-    copy_of: str = None
+    source: str = ""
+    copy_of: str = ""
     members: typing.List[User] = []

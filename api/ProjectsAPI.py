@@ -31,7 +31,7 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def search(self, search_term: str = None) -> typing.List[Project]:
+    def search(self, search_term: str | None = None) -> typing.List[Project]:
         """Searches for search term"""
         if not search_term:
             raise ValueError("search_term is missing")
@@ -43,7 +43,7 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def export(self, project_id: str = None):
+    def export(self, project_id: str | None = None):
         if project_id:
             self.project_id = project_id
 
