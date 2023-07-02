@@ -15,6 +15,11 @@ class BaseModel:
             self._fill_from_api(data)
 
     def _fill_from_api(self, data: str):
+        """Fills Model from API return JSON data
+
+        Args:
+            data (str): API Return Data
+        """
         basemodel_class_type_hints = typing.get_type_hints(BaseModel)
         current_class_type_hints = typing.get_type_hints(self)
         combined_class_type_hints = {
@@ -50,6 +55,9 @@ class BaseModel:
                 else:
                     # Fill each attribute
                     self.__setattr__(attr[0], data[attr[0]])
+
+    def _to_api_json(self):
+        ...
 
 
 class User(BaseModel):

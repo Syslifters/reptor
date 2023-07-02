@@ -1,3 +1,2 @@
-
 class LockedException(Exception):
     pass

@@ -1,4 +1,5 @@
 import typing
+import pathlib
 from posixpath import join as urljoin
 
 from api.APIClient import APIClient
@@ -10,7 +11,7 @@ class ProjectsAPI(APIClient):
         super().__init__()
 
         self.base_endpoint = urljoin(self.server, f"api/v1/pentestprojects/")
-        self.object_endpoint = urljoin(f"api/v1/pentestprojects/{self.project_id}")
+        self.object_endpoint = urljoin(self.base_endpoint, f"{self.project_id}")
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
@@ -41,3 +42,19 @@ class ProjectsAPI(APIClient):
         for item in response.json()["results"]:
             return_data.append(Project(item))
         return return_data
+
+    def export(self, project_id: str = None):
+        if project_id:
+            self.project_id = project_id
+
+        if not project_id:
+            raise ValueError
+
+        filepath = pathlib.Path().cwd()
+        file_name = filepath / f"{project_id}.tar.gz"
+        print(f"Writing to: {file_name}")
+
+        url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
+        data = self.post(url)
+        with open(file_name, "wb") as f:
+            f.write(data.content)
