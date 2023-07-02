@@ -1,26 +1,30 @@
-from api.APIClient import APIClient
+import typing
 from posixpath import join as urljoin
+
+from api.APIClient import APIClient
+from api.models import FindingTemplate
 
 
 class TemplatesAPI(APIClient):
-
     def __init__(self) -> None:
         super().__init__()
 
         self.base_endpoint = urljoin(self.server, f"api/v1/findingtemplates/")
-        self.object_endpoint = urljoin(
-            f"api/v1/findingtemplates/{self.project_id}")
+        self.object_endpoint = urljoin(f"api/v1/findingtemplates/{self.project_id}")
 
-
-    def get_templates(self):
-        """Gets list of Templates
-        """
+    def get_templates(self) -> typing.List[FindingTemplate]:
+        """Gets list of Templates"""
         response = self.get(self.base_endpoint)
-        return response.json()['results']
+        return_data = list()
+        for item in response.json()["results"]:
+            return_data.append(FindingTemplate(item))
+        return return_data
 
-    def search(self, search_term):
-        """Searches through the templates
-        """
+    def search(self, search_term) -> typing.List[FindingTemplate]:
+        """Searches through the templates"""
 
-        response = self.get(urljoin(self.base_endpoint, f"?search={search_term}") )
-        return response.json()['results']
+        response = self.get(urljoin(self.base_endpoint, f"?search={search_term}"))
+        return_data = list()
+        for item in response.json()["results"]:
+            return_data.append(FindingTemplate(item))
+        return return_data
