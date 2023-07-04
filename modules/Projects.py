@@ -1,5 +1,11 @@
+from rich import box
+from rich.table import Table
+
 from core.modules.Base import Base
 from api.ProjectsAPI import ProjectsAPI
+
+from core.console import reptor_console
+from core.logger import reptor_logger
 
 
 class Projects(Base):
@@ -34,7 +40,7 @@ class Projects(Base):
         projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
 
         if self.arg_export:
-            print("Exporting Project to current folder")
+            reptor_logger.success("Exporting Project to current folder")
             projects_api.export(self.config.get_project_id())
             return
 
@@ -43,15 +49,24 @@ class Projects(Base):
         else:
             projects = projects_api.search(self.arg_search)
 
-        print(f"{'Project Name':<30}      ID")
-        print(f"{'_':_<80}")
+        table = Table(show_header=True, header_style="bold yellow")
+        table.caption = "Your Projects"
+        table.row_styles = ["none", "dim"]
+        table.border_style = "bright_yellow"
+        table.box = box.SQUARE
+        table.pad_edge = False
+        table.add_column("Title")
+        table.add_column("ID")
+        table.add_column("Archived", justify="right")
+
         for project in projects:
             archived = ""
             if project.readonly:
-                archived = "(Archived)"
+                archived = "[red]Yes[/red]"
 
-            print(f"{project.name:<30}      {project.id}      {archived}")
-            print(f"{'_':_<80}")
+            table.add_row(project.name, project.id, archived)
+
+        reptor_console.print(table)
 
 
 loader = Projects
