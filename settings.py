@@ -9,6 +9,8 @@ BASE_DIR = pathlib.Path(__file__).parent
 
 
 MODULE_DIRS = BASE_DIR / "modules"
+MODULE_DIRS_COMMUNITY = BASE_DIR / "community"
+MODULE_DIRS_USER = pathlib.Path.home() / ".sysreptor" / "modules"
 
 NEWLINE = "\n"
 

@@ -22,6 +22,7 @@ log.setLevel(logging.INFO)
 
 class Reptor(ReptorProtocol):
     _config: Config
+    _module_paths: typing.Any = list()
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
@@ -44,14 +45,14 @@ class Reptor(ReptorProtocol):
         self._config = Config()
         self._config.load_config()
 
-    def _load_system_modules(self):
+    def _load_module_paths(self, directory):
         """Loads a File and Folder based Modules from the ./modules folder in reptor
 
         Returns:
             typing.List: Holds absolute paths to each Module file
         """
         module_paths = list()
-        for modules_path in settings.MODULE_DIRS.glob("*"):
+        for modules_path in directory.glob("*"):
             if "__pycache__" not in modules_path.name:
                 if modules_path.is_dir():
                     module_main_file = modules_path / f"{modules_path.name}.py"
@@ -59,10 +60,37 @@ class Reptor(ReptorProtocol):
                         module_paths.append(str(module_main_file))
                 else:
                     module_paths.append(str(modules_path))
+
+        self._module_paths += module_paths
+
         return module_paths
 
-    def _load_community_modules(self) -> None:
-        ...
+    def _load_system_modules(self):
+        """Loads the official modules of syslifters"""
+        self._load_module_paths(settings.MODULE_DIRS)
+
+    def _load_community_modules(self):
+        """If the user enabled community modules, these are loaded AFTER
+        the system modules. Hence overwriting the system modules
+        """
+        self._load_module_paths(settings.MODULE_DIRS_COMMUNITY)
+
+    def _load_user_modules(self):
+        """Finally the user can have their own "private" modules or
+        overwrite any of the official or community modules.
+        """
+        self._load_module_paths(settings.MODULE_DIRS_USER)
+
+    def _load_module_loading_sequence(self):
+        """The module loading hierachy is as follows
+        System Modules -> Community Modules -> User Modules
+        This allows the User to overwrite any Community Modules
+        and Community Modules can overwrite System Modules
+        """
+        self._load_system_modules()
+        if self._config.get("community", False):
+            self._load_community_modules()
+        self._load_user_modules()
 
     def _import_modules(self, module_paths: typing.List):
         """Loads each module
@@ -200,9 +228,11 @@ class Reptor(ReptorProtocol):
         return args
 
     def run(self) -> None:
-        module_paths = self._load_system_modules()
+        """The run method actually starts the cli application"""
 
-        loaded_modules = self._import_modules(module_paths)
+        self._load_module_loading_sequence()
+
+        loaded_modules = self._import_modules(self._module_paths)
 
         parser, sub_parsers = self._create_parsers()
 
