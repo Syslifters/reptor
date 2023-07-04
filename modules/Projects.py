@@ -1,4 +1,4 @@
-from classes.Base import Base
+from core.modules.Base import Base
 from api.ProjectsAPI import ProjectsAPI
 
 

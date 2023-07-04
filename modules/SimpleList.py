@@ -1,4 +1,4 @@
-from classes.ToolBase import ToolBase
+from core.modules.ToolBase import ToolBase
 
 
 class SimpleList(ToolBase):

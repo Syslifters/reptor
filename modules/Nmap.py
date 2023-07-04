@@ -1,4 +1,4 @@
-from classes.ToolBase import ToolBase
+from core.modules.ToolBase import ToolBase
 
 
 class Nmap(ToolBase):
@@ -19,21 +19,21 @@ class Nmap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.oG = kwargs.get('oG')
-        self.oX = kwargs.get('oX')
-        self.notename = 'nmap scan'
-        self.note_icon = '👁️‍🗨️'
+        self.oG = kwargs.get("oG")
+        self.oX = kwargs.get("oX")
+        self.notename = "nmap scan"
+        self.note_icon = "👁️‍🗨️"
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
         nmap_output_parser = parser.add_mutually_exclusive_group()
-        nmap_output_parser.add_argument("-oG",
-                                        help="nmap Grepable output format",
-                                        action="store_true")
-        nmap_output_parser.add_argument("-oX",
-                                        help="nmap XML output format",
-                                        action="store_true")
+        nmap_output_parser.add_argument(
+            "-oG", help="nmap Grepable output format", action="store_true"
+        )
+        nmap_output_parser.add_argument(
+            "-oX", help="nmap XML output format", action="store_true"
+        )
 
     def _parse_grepable(self, raw_input):
         parsed_input = list()
@@ -41,18 +41,20 @@ class Nmap(ToolBase):
             if line.startswith("#") or "Ports:" not in line:
                 continue
             ip, ports = line.split("Ports:")
-            ip = ip.split(' ')[1]
-            ports = ports.split(',')
+            ip = ip.split(" ")[1]
+            ports = ports.split(",")
             for port in ports:
-                port, status, protocol, _, service, _, version, _ = port.strip().split('/')
+                port, status, protocol, _, service, _, version, _ = port.strip().split(
+                    "/"
+                )
                 if status == "open":
                     parsed_input.append(
                         {
                             "ip": ip,
                             "port": port,
                             "protocol": protocol,
-                            "service": service.replace('|', '/'),
-                            "version": version.replace('|', '/')
+                            "service": service.replace("|", "/"),
+                            "version": version.replace("|", "/"),
                         }
                     )
         return parsed_input
@@ -61,7 +63,7 @@ class Nmap(ToolBase):
         super().parse()
         if self.oX:
             # TODO parse XML
-            raise TypeError('nmap -oX format (XML) not yet implemented')
+            raise TypeError("nmap -oX format (XML) not yet implemented")
         else:
             # Default: -oG
             self.parsed_input = self._parse_grepable(self.raw_input)
@@ -72,13 +74,14 @@ class Nmap(ToolBase):
         lines = list()
         headings = ["Host", "Port", "Service", "Version"]
         lines.append(f"| {' | '.join(headings)} |")
-        lines.append("| ------- "*len(headings)+"|")
+        lines.append("| ------- " * len(headings) + "|")
 
         for port in self.parsed_input:
             lines.append(
-                f"| {port['ip']} | {port['port']}/{port['protocol']} | {port['service'] or 'n/a'} | {port['version'] or 'n/a'} |")
+                f"| {port['ip']} | {port['port']}/{port['protocol']} | {port['service'] or 'n/a'} | {port['version'] or 'n/a'} |"
+            )
 
-        lines.extend(['', ': nmap scan results'])
+        lines.extend(["", ": nmap scan results"])
         self.formatted_input = "\n".join(lines)
 
 

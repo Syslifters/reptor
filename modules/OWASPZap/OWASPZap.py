@@ -2,9 +2,10 @@ import typing
 
 from xml.etree import ElementTree
 
-from classes.ToolBase import ToolBase
+from core.modules.ToolBase import ToolBase
 
 from modules.OWASPZap.models import Site, Alert, Instance
+
 
 class OWASPZap(ToolBase):
     """
@@ -13,22 +14,20 @@ class OWASPZap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = 'OWASP Zap'
-        self.arg_type_json = kwargs.get('json')
-        self.arg_type_xml = kwargs.get('xml')
+        self.notename = "OWASP Zap"
+        self.arg_type_json = kwargs.get("json")
+        self.arg_type_xml = kwargs.get("xml")
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
         simplelist_parser = parser.add_mutually_exclusive_group()
-        simplelist_parser.add_argument("--json",
-                                        help="Loads JSON File",
-                                        action="store_true",
-                                        default=False)
-        simplelist_parser.add_argument("--xml",
-                                        help="Loads JSON File",
-                                        action="store_true",
-                                        default=False)
+        simplelist_parser.add_argument(
+            "--json", help="Loads JSON File", action="store_true", default=False
+        )
+        simplelist_parser.add_argument(
+            "--xml", help="Loads JSON File", action="store_true", default=False
+        )
 
         """Todo:
         - Create toggle for instance include or not
@@ -36,13 +35,10 @@ class OWASPZap(ToolBase):
         - Create blacklist i.e --blacklist=risk,confidence
         """
 
-
-
-    def parse_json(self,data) -> typing.List[Site]:
+    def parse_json(self, data) -> typing.List[Site]:
         raise NotImplementedError
 
-    def parse_xml(self,data) -> typing.List[Site]:
-
+    def parse_xml(self, data) -> typing.List[Site]:
         root = ElementTree.fromstring(data)
         return_data = list()
         for owasp_scan in root:
@@ -64,10 +60,9 @@ class OWASPZap(ToolBase):
 
         return return_data
 
-
     def parse(self):
         super().parse()
-
+        parsed_input = list()
         if self.arg_type_json:
             parsed_input = self.parse_json(self.raw_input)
         elif self.arg_type_xml:
@@ -80,7 +75,7 @@ class OWASPZap(ToolBase):
 
         output = list()
 
-        owasp_scan_sites : typing.List[Site] = self.parsed_input
+        owasp_scan_sites: typing.List[Site] = self.parsed_input
 
         for site in owasp_scan_sites:
             site_output = f"""
@@ -101,7 +96,6 @@ class OWASPZap(ToolBase):
             output.append(site_output)
 
             for alert in site.alerts:
-
                 alert_output = f"""
 
                 ### {alert.name}
@@ -132,5 +126,6 @@ class OWASPZap(ToolBase):
                 output.append(alert_output)
 
         self.formatted_input = "\n".join(output)
+
 
 loader = OWASPZap

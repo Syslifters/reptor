@@ -1,7 +1,7 @@
 import typing
 from xml.etree import ElementTree
 
-from classes.ToolBase import ToolBase
+from core.modules.ToolBase import ToolBase
 from modules.Nikto.models import NiktoScan, ScanDetails, Item, Statistics
 
 
@@ -23,29 +23,25 @@ class Nikto(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = 'Nikto'
-        self.arg_type_json = kwargs.get('json')
-        self.arg_type_xml = kwargs.get('xml')
+        self.notename = "Nikto"
+        self.arg_type_json = kwargs.get("json")
+        self.arg_type_xml = kwargs.get("xml")
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
         simplelist_parser = parser.add_mutually_exclusive_group()
-        simplelist_parser.add_argument("--json",
-                                        help="Loads JSON File",
-                                        action="store_true",
-                                        default=False)
-        simplelist_parser.add_argument("--xml",
-                                        help="Loads JSON File",
-                                        action="store_true",
-                                        default=False)
+        simplelist_parser.add_argument(
+            "--json", help="Loads JSON File", action="store_true", default=False
+        )
+        simplelist_parser.add_argument(
+            "--xml", help="Loads JSON File", action="store_true", default=False
+        )
 
-
-    def parse_json(self,data) -> typing.List[NiktoScan]:
+    def parse_json(self, data) -> typing.List[NiktoScan]:
         raise NotImplementedError
 
-
-    def parse_xml(self,data) -> typing.List[NiktoScan]:
+    def parse_xml(self, data) -> typing.List[NiktoScan]:
         """Parses XML file from Nikto, tested with version 2.5.0
 
         Args:
@@ -57,7 +53,6 @@ class Nikto(ToolBase):
         root = ElementTree.fromstring(data)
         return_data = list()
         for niktoscan in root:
-
             nikto = NiktoScan()
             nikto.parse(niktoscan)
 
@@ -79,10 +74,8 @@ class Nikto(ToolBase):
 
         return return_data
 
-
-    def parse_raw(self,data) -> typing.List[NiktoScan]:
+    def parse_raw(self, data) -> typing.List[NiktoScan]:
         raise NotImplementedError
-
 
     def parse(self):
         super().parse()
@@ -101,7 +94,7 @@ class Nikto(ToolBase):
 
         output = list()
 
-        nikto_scans : typing.List[NiktoScan] = self.parsed_input
+        nikto_scans: typing.List[NiktoScan] = self.parsed_input
 
         for nikto_scan in nikto_scans:
             nikto_output = f"""
@@ -133,7 +126,6 @@ class Nikto(ToolBase):
             | Endpoint | Method | Description | References |
             | :----- | :--- | :----- | :---- |"""
 
-
             output.append(nikto_output)
 
             for item in nikto_scan.scandetails.items:
@@ -149,9 +141,10 @@ class Nikto(ToolBase):
                     endpoint = "/"
                     description = item.description
 
-                item_output = f"| {endpoint} | {method} | {description} | {references} |"
+                item_output = (
+                    f"| {endpoint} | {method} | {description} | {references} |"
+                )
                 output.append(item_output)
-
 
         self.formatted_input = "\n".join(output)
 

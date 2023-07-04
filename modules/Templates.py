@@ -1,4 +1,4 @@
-from classes.Base import Base
+from core.modules.Base import Base
 from api.TemplatesAPI import TemplatesAPI
 
 
@@ -34,8 +34,11 @@ class Templates(Base):
         print(f"{'_':_<80}")
         for template in templates:
             finding = template.data
-            print(f"{finding.title:<30} {template.id}")
-            print(f"{'_':_<80}")
+            if finding:
+                print(f"{finding.title:<30} {template.id}")
+                print(f"{'_':_<80}")
+            else:
+                print(f"Template has no finding date.")
 
 
 loader = Templates

@@ -1,4 +1,4 @@
-from classes.Base import Base
+from core.modules.Base import Base
 from api.NotesAPI import NotesAPI
 
 
@@ -25,8 +25,7 @@ class Notes(Base):
         print(f"{'Title':<30} ID")
         print(f"{'_':_<80}")
         for note in notes:
-            print(
-                f"{note['title']:<30} {note['id']}")
+            print(f"{note['title']:<30} {note['id']}")
             print(f"{'_':_<80}")
 
 

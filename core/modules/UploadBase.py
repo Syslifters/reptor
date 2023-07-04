@@ -1,4 +1,4 @@
-from classes.Base import Base
+from .Base import Base
 
 
 class UploadBase(Base):

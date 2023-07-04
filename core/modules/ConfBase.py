@@ -1,4 +1,5 @@
-from classes.Base import Base
+from .Base import Base
+
 
 class ConfBase(Base):
     pass

@@ -1,4 +1,5 @@
-from classes.Base import Base
+from core.modules.Base import Base
+
 
 class Dummy(Base):
     """
@@ -6,6 +7,7 @@ class Dummy(Base):
     """
 
     def __init__(self):
-        print('init')
+        print("init")
+
 
 loader = Dummy

@@ -9,13 +9,15 @@ import typing
 from inspect import cleandoc
 
 import settings
-from utils.conf import config
+
+from core.conf import Config
+from core.reptor import Reptor
+
 from utils.string_operations import truncate
 
-log = logging.getLogger('reptor')
-logging.basicConfig(format='%(message)s')
+log = logging.getLogger("reptor")
+logging.basicConfig(format="%(message)s")
 log.setLevel(logging.INFO)
-
 
 
 def load_modules_files():
@@ -35,7 +37,8 @@ def load_modules_files():
                 module_paths.append(str(modules_path))
     return module_paths
 
-def import_modules(module_paths : typing.List):
+
+def import_modules(module_paths: typing.List):
     """Loads each module
 
     Returns:
@@ -43,14 +46,13 @@ def import_modules(module_paths : typing.List):
     """
     loaded_modules = dict()
     for module in module_paths:
-        spec = importlib.util.spec_from_file_location(
-            "module.name", module)
+        spec = importlib.util.spec_from_file_location("module.name", module)
         module = importlib.util.module_from_spec(spec)
         sys.modules["module.name"] = module
         spec.loader.exec_module(module)
 
         # Add some metadata
-        if not hasattr(module, 'loader'):
+        if not hasattr(module, "loader"):
             continue
         module.name = module.loader.__name__.lower()
         module.description = cleandoc(module.loader.__doc__)
@@ -59,13 +61,14 @@ def import_modules(module_paths : typing.List):
         # Add short_help to tool help message
         if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
             settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
-                module.short_help)
+                module.short_help
+            )
         else:
-            settings.SUBCOMMANDS_GROUPS['other'][1].append(
-                module.short_help)
+            settings.SUBCOMMANDS_GROUPS["other"][1].append(module.short_help)
 
         loaded_modules[module.name] = module
     return loaded_modules
+
 
 def create_parsers():
     """Creates the description in the help and the parsers to be used
@@ -81,34 +84,48 @@ def create_parsers():
 
     # Argument parser
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
     subparsers = parser.add_subparsers(
-        dest='command', description=description, help=argparse.SUPPRESS)
+        dest="command", description=description, help=argparse.SUPPRESS
+    )
 
     return parser, subparsers
 
-def add_config_parse_options(parser : argparse.ArgumentParser):
+
+def add_config_parse_options(parser: argparse.ArgumentParser):
     """Creates the configuration arguments
 
     Args:
         parser (argparse.ArgumentParser): main parser
     """
-    config_parser = parser.add_argument_group('configuration')
+    config_parser = parser.add_argument_group("configuration")
     config_parser.add_argument("-s", "--server")
     config_parser.add_argument("-t", "--token", help="SysReptor API token")
-    config_parser.add_argument("-f", "--force-unlock", help="force unlock notes and sections",
-                               action="store_true")
-    config_parser.add_argument("--insecure", help="do not verify server certificate",
-                               action="store_true")
+    config_parser.add_argument(
+        "-f",
+        "--force-unlock",
+        help="force unlock notes and sections",
+        action="store_true",
+    )
+    config_parser.add_argument(
+        "--insecure", help="do not verify server certificate", action="store_true"
+    )
     private_or_project_parser = config_parser.add_mutually_exclusive_group()
     private_or_project_parser.add_argument(
-        "-p", "--project-id", help="SysReptor project ID")
-    private_or_project_parser.add_argument("--private-note", help="add notes to private notes",
-                                           action="store_true")
+        "-p", "--project-id", help="SysReptor project ID"
+    )
+    private_or_project_parser.add_argument(
+        "--private-note", help="add notes to private notes", action="store_true"
+    )
+
 
 # TODO better error message if settings are missing
+
+
 if __name__ == "__main__":
+    reptor = Reptor()
 
     # Dynamic module import
     # later imports overwrite earlier imports
@@ -121,20 +138,26 @@ if __name__ == "__main__":
 
     # Dynamically add module options
     for name, module in loaded_modules.items():
-        module.subparser = subparsers.add_parser(name,
-                                                 description=module.description,
-                                                 formatter_class=argparse.RawTextHelpFormatter)
+        module.subparser = subparsers.add_parser(
+            name,
+            description=module.description,
+            formatter_class=argparse.RawTextHelpFormatter,
+        )
         module.loader.add_arguments(module.subparser)
 
     # Static module options
     add_config_parse_options(parser)
 
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
+    parser.add_argument(
+        "-v", "--verbose", help="increase output verbosity", action="store_true"
+    )
     parser.add_argument("-n", "--notename")
-    parser.add_argument("-nt", "--no-timestamp", help="do not prepent timestamp to note",
-                        action="store_true")
-
+    parser.add_argument(
+        "-nt",
+        "--no-timestamp",
+        help="do not prepent timestamp to note",
+        action="store_true",
+    )
 
     # Parse main parser arguments also if provided in subparser
     previous_unknown = None
@@ -148,12 +171,15 @@ if __name__ == "__main__":
 
     # Override conf from config file by CLI
     args_dict = vars(args)
-    for k in ['server', 'project_id', 'session_id', 'insecure']:
-        config[k] = args_dict.get(k) or config.get(k, '')
+    config = Config()
+    for k in ["server", "project_id", "session_id", "insecure"]:
+        config.set(k, args_dict.get(k) or config.get(k, ""))
     # Add cli options to config/cli
-    config['cli'] = args_dict
+    config.set("cli", args_dict)
 
     # Subcommands
     if args.command in loaded_modules:
         module = loaded_modules[args.command]
-        module.loader(**config['cli']).run()
+        module.loader(**config.get("cli")).run()
+
+    reptor.run(config)
