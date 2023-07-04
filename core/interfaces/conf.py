@@ -4,6 +4,10 @@ from abc import abstractmethod
 
 class ConfigProtocol(typing.Protocol):
     @abstractmethod
+    def get_config_from_user(self):
+        ...
+
+    @abstractmethod
     def get(self, key: str, value: typing.Optional[typing.Any] = None) -> typing.Any:
         ...
 

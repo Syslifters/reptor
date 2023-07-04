@@ -72,8 +72,11 @@ class Reptor(ReptorProtocol):
         """
         loaded_modules = dict()
         for module in module_paths:
-            spec = importlib.util.spec_from_file_location("module.name", module)
-            module = importlib.util.module_from_spec(spec)
+            # type: ignore
+            spec = importlib.util.spec_from_file_location("module.name", module)  # type: ignore
+
+            # type: ignore
+            module = importlib.util.module_from_spec(spec)  # type: ignore
             sys.modules["module.name"] = module
             spec.loader.exec_module(module)
 
