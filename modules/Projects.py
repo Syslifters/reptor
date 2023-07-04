@@ -15,7 +15,6 @@ class Projects(Base):
         super().__init__(reptor, **kwargs)
         self.arg_search = kwargs.get("search")
         self.arg_export = kwargs.get("export")
-        self.arg_project_id = kwargs.get("project_id")
 
     @classmethod
     def add_arguments(cls, parser):
@@ -30,20 +29,13 @@ class Projects(Base):
             action="store_true",
             default=None,
         )
-        project_parser.add_argument(
-            "-p",
-            "--project_id",
-            help="Project ID to use with --export",
-            action="store",
-            default=None,
-        )
 
     def run(self):
         projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
 
         if self.arg_export:
             print("Exporting Project to current folder")
-            projects_api.export(self.arg_project_id)
+            projects_api.export(self.config.get_project_id())
             return
 
         if not self.arg_search:
