@@ -5,24 +5,30 @@ import requests
 import settings
 
 from core.reptor import Reptor
+from core.interfaces.conf import ConfigProtocol
 
 
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods"""
 
-    server: str = None  # From config file the server we talk to
-    project_id: str = None  # From config, if a project is set
-    token: str = None  # Auth Token for the API...
-    endpoint: str | None = (
-        None  # is defined in the sub classes, depending on Project ID & Item ID
-    )
-    item_id: str = None  # Can be a Note ID, Project ID, Finding ID, User ID etc
+    _config: ConfigProtocol
+    base_endpoint: str
+    endpoint: str
+    item_id: str
+    force_unlock: bool
 
     def __init__(self) -> None:
-        self.server = config.get("server")
-        self.project_id = config.get("project_id")
-        self.token = config.get("token")
-        self.verify = not config.get("insecure", False)
+        self._config = Reptor.instance.get_config()
+        self.verify = not self._config.get("insecure", False)
+
+    def _get_server(self) -> str:
+        return self._config.get("server")
+
+    def _get_project_id(self) -> str:
+        return self._config.get("project_id")
+
+    def _get_cli_overwrite(self) -> typing.Any:
+        return self._config.get("cli")
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
@@ -32,27 +38,42 @@ class APIClient:
         headers["User-Agent"] = settings.USER_AGENT
         return headers
 
-    def get(self, url):
-        """Sends a get request"""
+    def get(self, url: str) -> requests.models.Response:
+        """Sends a get request
+
+        Args:
+            url (str): Endpoint URL
+
+        Returns:
+            requests.models.Response: Returns requests Response Object
+        """
         response = requests.get(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self.token},
+            cookies={"sessionid": self._config.get("token")},
             verify=self.verify,
         )
         response.raise_for_status()
         return response
 
-    def post(self, url, data=None, files=None, json_content=True):
+    def post(
+        self, url: str, data=None, files=None, json_content: bool = True
+    ) -> requests.models.Response:
         """Sends a post requests, requires some json data
 
         Args:
-            data (_type_): _description_
+            url (str): Endpoint URL
+            data (_type_, optional): _description_. Defaults to None.
+            files (_type_, optional): _description_. Defaults to None.
+            json_content (bool, optional): _description_. Defaults to True.
+
+        Returns:
+            requests.models.Response: Requests Responde Object
         """
         response = requests.post(
             url,
             headers=self._get_headers(json_content=json_content),
-            cookies={"sessionid": self.token},
+            cookies={"sessionid": self._config.get("token")},
             json=data,
             files=files,
             verify=self.verify,
@@ -60,16 +81,20 @@ class APIClient:
         response.raise_for_status()
         return response
 
-    def put(self, url, data):
+    def put(self, url: str, data: object) -> requests.models.Response:
         """Sends a put requests, requires some json data
 
         Args:
-            data (_type_): _description_
+            url (str): Endpoint URL
+            data (object): JSON Data
+
+        Returns:
+            requests.models.Response: requests Respone Object
         """
         response = requests.put(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self.token},
+            cookies={"sessionid": self._config.get("token")},
             json=data,
             verify=self.verify,
         )

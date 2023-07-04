@@ -1,6 +1,8 @@
 import contextlib
 import logging
 import sys
+import typing
+
 from datetime import datetime
 from os.path import basename
 from posixpath import join as urljoin
@@ -26,18 +28,19 @@ class NotesAPI(APIClient):
 
         if self.private_note:
             self.base_endpoint = urljoin(
-                self.server, f"api/v1/pentestusers/self/notes/"
+                self._get_server(), f"api/v1/pentestusers/self/notes/"
             )
-        elif self.project_id:
+        elif self._get_project_id():
             self.base_endpoint = urljoin(
-                self.server, f"api/v1/pentestprojects/{self.project_id}/notes/"
+                self._get_server(),
+                f"api/v1/pentestprojects/{self._get_project_id()}/notes/",
             )
         else:
             raise AttributeError("No project ID specified.")
 
     @property
     def private_note(self):
-        return config["cli"].get("private_note")
+        return self._get_cli_overwrite().get("private_note")
 
     def get_notes(self):
         """Gets list of notes"""
@@ -46,7 +49,7 @@ class NotesAPI(APIClient):
 
     def create_note(
         self, title="CLI Note", parent_id=None, order=None, icon=None
-    ) -> any:
+    ) -> typing.Any:
         note = self.post(
             self.base_endpoint,
             {
@@ -135,6 +138,9 @@ class NotesAPI(APIClient):
         no_timestamp=False,
         force_unlock=False,
     ):
+        if not files:
+            return
+
         for file in files:
             if file.name == "<stdin>":
                 log.info("Reading from stdin...")

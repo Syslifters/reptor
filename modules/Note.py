@@ -1,4 +1,4 @@
-from classes.UploadBase import UploadBase
+from core.modules.UploadBase import UploadBase
 from api.NotesAPI import NotesAPI
 
 

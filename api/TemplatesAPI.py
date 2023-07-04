@@ -9,8 +9,10 @@ class TemplatesAPI(APIClient):
     def __init__(self) -> None:
         super().__init__()
 
-        self.base_endpoint = urljoin(self.server, f"api/v1/findingtemplates/")
-        self.object_endpoint = urljoin(f"api/v1/findingtemplates/{self.project_id}")
+        self.base_endpoint = urljoin(self._get_server(), f"api/v1/findingtemplates/")
+        self.object_endpoint = urljoin(
+            f"api/v1/findingtemplates/{self._get_project_id()}"
+        )
 
     def get_templates(self) -> typing.List[FindingTemplate]:
         """Gets list of Templates"""

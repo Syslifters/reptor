@@ -10,8 +10,8 @@ class ProjectsAPI(APIClient):
     def __init__(self) -> None:
         super().__init__()
 
-        self.base_endpoint = urljoin(self.server, f"api/v1/pentestprojects/")
-        self.object_endpoint = urljoin(self.base_endpoint, f"{self.project_id}")
+        self.base_endpoint = urljoin(self._get_server(), f"api/v1/pentestprojects/")
+        self.object_endpoint = urljoin(self.base_endpoint, f"{self._get_project_id()}")
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
