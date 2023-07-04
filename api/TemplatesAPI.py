@@ -9,9 +9,11 @@ class TemplatesAPI(APIClient):
     def __init__(self, reptor) -> None:
         super().__init__(reptor)
 
-        self.base_endpoint = urljoin(self._get_server(), f"api/v1/findingtemplates/")
+        self.base_endpoint = urljoin(
+            self._config.get_server(), f"api/v1/findingtemplates/"
+        )
         self.object_endpoint = urljoin(
-            f"api/v1/findingtemplates/{self._get_project_id()}"
+            f"api/v1/findingtemplates/{self._config.get_project_id()}"
         )
 
     def get_templates(self) -> typing.List[FindingTemplate]:

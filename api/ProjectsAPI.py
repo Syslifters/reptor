@@ -7,11 +7,17 @@ from api.models import Project
 
 
 class ProjectsAPI(APIClient):
+    project_id: str  # This is a local overwrite to quickly check other projects
+
     def __init__(self, reptor) -> None:
         super().__init__(reptor)
 
-        self.base_endpoint = urljoin(self._get_server(), f"api/v1/pentestprojects/")
-        self.object_endpoint = urljoin(self.base_endpoint, f"{self._get_project_id()}")
+        self.base_endpoint = urljoin(
+            self._config.get_server(), f"api/v1/pentestprojects/"
+        )
+        self.object_endpoint = urljoin(
+            self.base_endpoint, f"{self._config.get_project_id()}"
+        )
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects

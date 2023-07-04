@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 
-import argparse
 import logging
 
-import settings
-
-from core.conf import Config
 from core.reptor import Reptor
 
 
@@ -13,120 +9,9 @@ log = logging.getLogger("reptor")
 logging.basicConfig(format="%(message)s")
 log.setLevel(logging.INFO)
 
-
-def add_config_parse_options(parser: argparse.ArgumentParser):
-    """Creates the configuration arguments
-
-    Args:
-        parser (argparse.ArgumentParser): main parser
-    """
-    config_parser = parser.add_argument_group("configuration")
-    config_parser.add_argument("-s", "--server")
-    config_parser.add_argument("-t", "--token", help="SysReptor API token")
-    config_parser.add_argument(
-        "-f",
-        "--force-unlock",
-        help="force unlock notes and sections",
-        action="store_true",
-    )
-    config_parser.add_argument(
-        "--insecure", help="do not verify server certificate", action="store_true"
-    )
-    private_or_project_parser = config_parser.add_mutually_exclusive_group()
-    private_or_project_parser.add_argument(
-        "-p", "--project-id", help="SysReptor project ID"
-    )
-    private_or_project_parser.add_argument(
-        "--private-note", help="add notes to private notes", action="store_true"
-    )
-
-
-def create_parsers():
-    """Creates the description in the help and the parsers to be used
-
-    Returns:
-        parser,subparsers: ArgumentParser and SubParser
-    """
-    # Argument parser description
-    description = ""
-    for (
-        short_help_class,
-        short_help_group_meta,
-    ) in settings.SUBCOMMANDS_GROUPS.items():
-        description += f"\n{short_help_group_meta[0]}:\n"
-        description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
-
-    # Argument parser
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-
-    subparsers = parser.add_subparsers(
-        dest="command", description=description, help=argparse.SUPPRESS
-    )
-
-    return parser, subparsers
-
-
 # TODO better error message if settings are missing
-
 
 if __name__ == "__main__":
     reptor = Reptor()
 
-    # Dynamic module import
-    # later imports overwrite earlier imports
-    # suggested loading procedure: inofficial plugins, official plugins, user plugins
-    module_paths = reptor._load_system_modules()
-
-    loaded_modules = reptor._import_modules(module_paths)
-
-    parser, subparsers = create_parsers()
-
-    # Dynamically add module options
-    for name, module in loaded_modules.items():
-        module.subparser = subparsers.add_parser(
-            name,
-            description=module.description,
-            formatter_class=argparse.RawTextHelpFormatter,
-        )
-        module.loader.add_arguments(module.subparser)
-
-    # Static module options
-    add_config_parse_options(parser)
-
-    parser.add_argument(
-        "-v", "--verbose", help="increase output verbosity", action="store_true"
-    )
-    parser.add_argument("-n", "--notename")
-    parser.add_argument(
-        "-nt",
-        "--no-timestamp",
-        help="do not prepent timestamp to note",
-        action="store_true",
-    )
-
-    # Parse main parser arguments also if provided in subparser
-    previous_unknown = None
-    args, unknown = parser.parse_known_args()
-    while len(unknown) and unknown != previous_unknown:
-        args, unknown = parser.parse_known_args(unknown, args)
-        previous_unknown = unknown
-
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-
-    # Override conf from config file by CLI
-    args_dict = vars(args)
-    config = Config()
-    for k in ["server", "project_id", "session_id", "insecure"]:
-        config.set(k, args_dict.get(k) or config.get(k, ""))
-    # Add cli options to config/cli
-    config.set("cli", args_dict)
-
-    reptor.run(config)
-
-    # Subcommands
-    if args.command in loaded_modules:
-        module = loaded_modules[args.command]
-        module.loader(reptor, **config.get("cli")).run()
+    reptor.run()
