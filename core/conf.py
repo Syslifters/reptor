@@ -6,6 +6,7 @@ import yaml
 import settings
 
 from .interfaces.conf import ConfigProtocol
+from .logger import reptor_logger
 
 
 class Config(ConfigProtocol):
@@ -57,6 +58,12 @@ class Config(ConfigProtocol):
 
     def load_config(self):
         """Loads config file from user home directory"""
+        if not settings.PERSONAL_SYSREPTOR_HOME.exists():
+            reptor_logger.highlight(
+                "No .sysreptor folder found in home directory...Creating one"
+            )
+            # exist_ok=True because logger might be faster, when creating log file and parents=True
+            settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
         try:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 self._raw_config = yaml.safe_load(f.read())
