@@ -23,6 +23,9 @@ log.setLevel(logging.INFO)
 class Reptor(ReptorProtocol):
     _config: Config
     _module_paths: typing.Any = list()
+    _loaded_modules: dict = dict()
+    _parser: argparse.ArgumentParser
+    _sub_parsers: argparse._SubParsersAction
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
@@ -45,7 +48,7 @@ class Reptor(ReptorProtocol):
         self._config = Config()
         self._config.load_config()
 
-    def _load_module_paths(self, directory):
+    def _load_module_from_path(self, directory):
         """Loads a File and Folder based Modules from the ./modules folder in reptor
 
         Returns:
@@ -67,22 +70,22 @@ class Reptor(ReptorProtocol):
 
     def _load_system_modules(self):
         """Loads the official modules of syslifters"""
-        self._load_module_paths(settings.MODULE_DIRS)
+        self._load_module_from_path(settings.MODULE_DIRS)
 
     def _load_community_modules(self):
         """If the user enabled community modules, these are loaded AFTER
         the system modules. Hence overwriting the system modules
         """
-        self._load_module_paths(settings.MODULE_DIRS_COMMUNITY)
+        self._load_module_from_path(settings.MODULE_DIRS_COMMUNITY)
 
     def _load_user_modules(self):
         """Finally the user can have their own "private" modules or
         overwrite any of the official or community modules.
         """
-        self._load_module_paths(settings.MODULE_DIRS_USER)
+        self._load_module_from_path(settings.MODULE_DIRS_USER)
 
-    def _load_module_loading_sequence(self):
-        """The module loading hierachy is as follows
+    def _run_module_loading_sequence(self):
+        """The module loading hierachy is as followed
         System Modules -> Community Modules -> User Modules
         This allows the User to overwrite any Community Modules
         and Community Modules can overwrite System Modules
@@ -92,18 +95,16 @@ class Reptor(ReptorProtocol):
             self._load_community_modules()
         self._load_user_modules()
 
-    def _import_modules(self, module_paths: typing.List):
+    def _import_modules(self):
         """Loads each module
 
         Returns:
             typing.Dict: Dictionary holding each module name
         """
-        loaded_modules = dict()
-        for module in module_paths:
-            # type: ignore
+
+        for module in self._module_paths:
             spec = importlib.util.spec_from_file_location("module.name", module)  # type: ignore
 
-            # type: ignore
             module = importlib.util.module_from_spec(spec)  # type: ignore
             sys.modules["module.name"] = module
             spec.loader.exec_module(module)
@@ -123,8 +124,7 @@ class Reptor(ReptorProtocol):
             else:
                 settings.SUBCOMMANDS_GROUPS["other"][1].append(module.short_help)
 
-            loaded_modules[module.name] = module
-        return loaded_modules
+            self._loaded_modules[module.name] = module
 
     def _create_parsers(self):
         """Creates the description in the help and the parsers to be used
@@ -142,33 +142,31 @@ class Reptor(ReptorProtocol):
             description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
 
         # Argument parser
-        parser = argparse.ArgumentParser(
+        self._parser = argparse.ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
-        subparsers = parser.add_subparsers(
+        self._sub_parsers = self._parser.add_subparsers(
             dest="command", description=description, help=argparse.SUPPRESS
         )
 
-        return parser, subparsers
-
-    def _dynamically_add_module_options(self, loaded_modules, sub_parsers):
+    def _dynamically_add_module_options(self):
         # Dynamically add module options
-        for name, module in loaded_modules.items():
-            module.subparser = sub_parsers.add_parser(
+        for name, module in self._loaded_modules.items():
+            module.subparser = self._sub_parsers.add_parser(
                 name,
                 description=module.description,
                 formatter_class=argparse.RawTextHelpFormatter,
             )
             module.loader.add_arguments(module.subparser)
 
-    def _add_config_parse_options(self, parser: argparse.ArgumentParser):
+    def _add_config_parse_options(self):
         """Creates the configuration arguments
 
         Args:
             parser (argparse.ArgumentParser): main parser
         """
-        config_parser = parser.add_argument_group("configuration")
+        config_parser = self._parser.add_argument_group("configuration")
         config_parser.add_argument("-s", "--server")
         config_parser.add_argument("-t", "--token", help="SysReptor API token")
         config_parser.add_argument(
@@ -188,30 +186,30 @@ class Reptor(ReptorProtocol):
             "--private-note", help="add notes to private notes", action="store_true"
         )
 
-    def _configure_global_arguments(self, parser):
+    def _configure_global_arguments(self):
         """Enables the parameters
         - project_id
         - verbose
         - insecure
         """
-        parser.add_argument(
+        self._parser.add_argument(
             "-v", "--verbose", help="increase output verbosity", action="store_true"
         )
-        parser.add_argument("-n", "--notename")
-        parser.add_argument(
+        self._parser.add_argument("-n", "--notename")
+        self._parser.add_argument(
             "-nt",
             "--no-timestamp",
             help="do not prepent timestamp to note",
             action="store_true",
         )
-        return parser
+        return self._parser
 
-    def _parse_main_arguments_with_subparser(self, parser):
+    def _parse_main_arguments_with_subparser(self):
         # Parse main parser arguments also if provided in subparser
         previous_unknown = None
-        args, unknown = parser.parse_known_args()
+        args, unknown = self._parser.parse_known_args()
         while len(unknown) and unknown != previous_unknown:
-            args, unknown = parser.parse_known_args(unknown, args)
+            args, unknown = self._parser.parse_known_args(unknown, args)
             previous_unknown = unknown
 
         if args.verbose:
@@ -230,21 +228,21 @@ class Reptor(ReptorProtocol):
     def run(self) -> None:
         """The run method actually starts the cli application"""
 
-        self._load_module_loading_sequence()
+        self._run_module_loading_sequence()
 
-        loaded_modules = self._import_modules(self._module_paths)
+        self._import_modules()
 
-        parser, sub_parsers = self._create_parsers()
+        self._create_parsers()
 
-        self._dynamically_add_module_options(loaded_modules, sub_parsers)
+        self._dynamically_add_module_options()
 
         # Static module options
-        self._add_config_parse_options(parser)
+        self._add_config_parse_options()
 
-        parser = self._configure_global_arguments(parser)
-        args = self._parse_main_arguments_with_subparser(parser)
+        self._configure_global_arguments()
+        args = self._parse_main_arguments_with_subparser()
 
         # Subcommands
-        if args.command in loaded_modules:
-            module = loaded_modules[args.command]
+        if args.command in self._loaded_modules:
+            module = self._loaded_modules[args.command]
             module.loader(self, **self._config.get("cli")).run()
