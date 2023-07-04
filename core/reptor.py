@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import pathlib
 import sys
 import typing
 
@@ -8,16 +9,19 @@ import logging
 from inspect import cleandoc
 
 import settings
-from core.conf import Config
-
-from utils.string_operations import truncate
-
 from .interfaces.reptor import ReptorProtocol
 
+from core.conf import Config
+from core.logger import reptor_logger
+from utils.string_operations import truncate
 
-log = logging.getLogger("reptor")
-logging.basicConfig(format="%(message)s")
-log.setLevel(logging.INFO)
+
+root_logger = logging.getLogger("root")
+
+# Todo:
+# - Respect Community setting in Help Output (Community modules should only be shown when community is enabled)
+# - Refactor Global and Configuration arguments
+# - Refactor Output
 
 
 class Reptor(ReptorProtocol):
@@ -34,6 +38,10 @@ class Reptor(ReptorProtocol):
 
     def __init__(self) -> None:
         self._load_config()
+        self.logger = reptor_logger
+
+        # Todo: Debate if always write to file or togglable
+        self.logger.add_file_log()
 
     def get_config(self) -> Config:
         """Use this to access the current config
@@ -48,12 +56,13 @@ class Reptor(ReptorProtocol):
         self._config = Config()
         self._config.load_config()
 
-    def _load_module_from_path(self, directory):
+    def _load_module_from_path(self, directory: pathlib.Path):
         """Loads a File and Folder based Modules from the ./modules folder in reptor
 
         Returns:
             typing.List: Holds absolute paths to each Module file
         """
+        self.logger.debug(f"Loading Modules from folder: {directory}")
         module_paths = list()
         for modules_path in directory.glob("*"):
             if "__pycache__" not in modules_path.name:
@@ -66,7 +75,7 @@ class Reptor(ReptorProtocol):
 
         self._module_paths += module_paths
 
-        return module_paths
+        self.logger.debug(f"Found Module Paths: {module_paths}")
 
     def _load_system_modules(self):
         """Loads the official modules of syslifters"""
@@ -90,6 +99,7 @@ class Reptor(ReptorProtocol):
         This allows the User to overwrite any Community Modules
         and Community Modules can overwrite System Modules
         """
+        self.logger.info("Loading modules...")
         self._load_system_modules()
         if self._config.get("community", False):
             self._load_community_modules()
@@ -193,7 +203,13 @@ class Reptor(ReptorProtocol):
         - insecure
         """
         self._parser.add_argument(
-            "-v", "--verbose", help="increase output verbosity", action="store_true"
+            "-v",
+            "--verbose",
+            help="increase output verbosity (> INFO)",
+            action="store_true",
+        )
+        self._parser.add_argument(
+            "--debug", help="sets logging to DEBUG", action="store_true"
         )
         self._parser.add_argument("-n", "--notename")
         self._parser.add_argument(
@@ -215,7 +231,12 @@ class Reptor(ReptorProtocol):
             previous_unknown = unknown
 
         if args.verbose:
-            log.setLevel(logging.DEBUG)
+            reptor_logger.logger.setLevel(logging.INFO)
+            root_logger.setLevel(logging.INFO)
+
+        if args.debug:
+            reptor_logger.logger.setLevel(logging.DEBUG)
+            root_logger.setLevel(logging.DEBUG)
 
         # Override conf from config file by CLI
         args_dict = vars(args)
@@ -225,10 +246,23 @@ class Reptor(ReptorProtocol):
         # Add cli options to config/cli
         config.set("cli", args_dict)
 
+        self.logger.debug(f"Parsed args: {args}")
         return args
 
     def run(self) -> None:
         """The run method actually starts the cli application"""
+        # Todo: Refactor the order when the parsers are available. Otherwise
+        # with the current direction we don't have --debug and -verbose output
+        # until we hit self._parse_main_arguments_with_subparser()
+        self.logger.success("Reptor is starting...")
+
+        # Todo: remove current hack for debug and verbose logging
+        if "-v" in sys.argv or "--verbose" in sys.argv:
+            reptor_logger.logger.setLevel(logging.INFO)
+            root_logger.setLevel(logging.INFO)
+        if "--debug" in sys.argv:
+            reptor_logger.logger.setLevel(logging.DEBUG)
+            root_logger.setLevel(logging.DEBUG)
 
         self._run_module_loading_sequence()
 

@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
-
-import logging
-
 from core.reptor import Reptor
-
-
-log = logging.getLogger("reptor")
-logging.basicConfig(format="%(message)s")
-log.setLevel(logging.INFO)
 
 # TODO better error message if settings are missing
 
