@@ -1,10 +1,11 @@
-import os
+import pathlib
 import typing
 
 import yaml
-from .interfaces.conf import ConfigProtocol
 
-CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".sysreptor/config.yaml")
+import settings
+
+from .interfaces.conf import ConfigProtocol
 
 
 class Config(ConfigProtocol):
@@ -51,7 +52,7 @@ class Config(ConfigProtocol):
     def load_config(self):
         """Loads config file from user home directory"""
         try:
-            with open(CONFIG_PATH, "r") as f:
+            with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 self._raw_config = yaml.safe_load(f.read())
         except FileNotFoundError:
             pass
@@ -89,8 +90,8 @@ class Config(ConfigProtocol):
     def _write_to_file(self):
         """Writes config file as yaml file"""
         if self._raw_config:
-            os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-            with open(CONFIG_PATH, "w") as f:
+            settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
+            with open(settings.PERSONAL_CONFIG_FILE, "w") as f:
                 yaml.dump(self._raw_config, f, encoding="utf-8")
         else:
             raise ValueError("No config is currently set")

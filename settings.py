@@ -7,10 +7,12 @@ from core.modules.UploadBase import UploadBase
 
 BASE_DIR = pathlib.Path(__file__).parent
 
+PERSONAL_SYSREPTOR_HOME = pathlib.Path.home() / ".sysreptor"
+PERSONAL_CONFIG_FILE = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
 MODULE_DIRS = BASE_DIR / "modules"
 MODULE_DIRS_COMMUNITY = BASE_DIR / "community"
-MODULE_DIRS_USER = pathlib.Path.home() / ".sysreptor" / "modules"
+MODULE_DIRS_USER = PERSONAL_SYSREPTOR_HOME / "modules"
 
 NEWLINE = "\n"
 

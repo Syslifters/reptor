@@ -47,7 +47,7 @@ class ToolBase(Base):
     def load(self):
         self.raw_input = sys.stdin.read()
 
-    def parse_xml(self, xml_root):
+    def parse_xml(self, xml_root: ElementTree.Element):
         ...
 
     def parse_json(self):
@@ -61,15 +61,15 @@ class ToolBase(Base):
             self.load()
 
         if self.input_format == "xml":
-            if not self.file_path:
+            if not self.file_path and self.raw_input:
                 xml_root = ElementTree.fromstring(self.raw_input)
             else:
                 xml_root = ElementTree.parse(self.file_path).getroot()
             self.parse_xml(xml_root)
 
-        if self.input_format == "json":
+        elif self.input_format == "json":
             self.parse_json()
-        if self.input_format == "csv":
+        elif self.input_format == "csv":
             self.parse_csv()
 
     def format(self):
