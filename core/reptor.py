@@ -24,7 +24,8 @@ class Reptor:
 
     def _load_config(self) -> None:
         """Load the config into Reptor"""
-        ...
+        self._config = Config()
+        self._config.load_config()
 
     def _load_system_modules(self) -> None:
         """Loads the official modules"""

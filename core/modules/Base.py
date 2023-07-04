@@ -8,7 +8,7 @@ class Base:
 
     def __init__(self, **kwargs):
         self.notename = kwargs.get("notename")
-        self.reptor = Reptor.instance
+        self.reptor = Reptor()
         self.config = self.reptor.get_config()
 
     @classmethod
