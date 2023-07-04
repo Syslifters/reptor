@@ -94,3 +94,15 @@ class Config(ConfigProtocol):
                 yaml.dump(self._raw_config, f, encoding="utf-8")
         else:
             raise ValueError("No config is currently set")
+
+    def get_server(self) -> str:
+        return self.get("server")
+
+    def get_token(self) -> str:
+        return self.get("token")
+
+    def get_project_id(self) -> str:
+        return self.get("project_id")
+
+    def get_cli_overwrite(self) -> typing.Dict:
+        return self.get("cli")

@@ -1,97 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
-import importlib
 import logging
-import sys
-import typing
-
-from inspect import cleandoc
 
 import settings
 
 from core.conf import Config
 from core.reptor import Reptor
 
-from utils.string_operations import truncate
 
 log = logging.getLogger("reptor")
 logging.basicConfig(format="%(message)s")
 log.setLevel(logging.INFO)
-
-
-def load_modules_files():
-    """Loads a File and Folder based Modules from the ./modules folder in reptor
-
-    Returns:
-        typing.List: Holds absolute paths to each Module file
-    """
-    module_paths = list()
-    for modules_path in settings.MODULE_DIRS.glob("*"):
-        if "__pycache__" not in modules_path.name:
-            if modules_path.is_dir():
-                module_main_file = modules_path / f"{modules_path.name}.py"
-                if module_main_file.is_file():
-                    module_paths.append(str(module_main_file))
-            else:
-                module_paths.append(str(modules_path))
-    return module_paths
-
-
-def import_modules(module_paths: typing.List):
-    """Loads each module
-
-    Returns:
-        typing.Dict: Dictionary holding each module name
-    """
-    loaded_modules = dict()
-    for module in module_paths:
-        spec = importlib.util.spec_from_file_location("module.name", module)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules["module.name"] = module
-        spec.loader.exec_module(module)
-
-        # Add some metadata
-        if not hasattr(module, "loader"):
-            continue
-        module.name = module.loader.__name__.lower()
-        module.description = cleandoc(module.loader.__doc__)
-        module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(settings.NEWLINE)[0], length=50)}"
-
-        # Add short_help to tool help message
-        if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
-            settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
-                module.short_help
-            )
-        else:
-            settings.SUBCOMMANDS_GROUPS["other"][1].append(module.short_help)
-
-        loaded_modules[module.name] = module
-    return loaded_modules
-
-
-def create_parsers():
-    """Creates the description in the help and the parsers to be used
-
-    Returns:
-        parser,subparsers: ArgumentParser and SubParser
-    """
-    # Argument parser description
-    description = ""
-    for short_help_class, short_help_group_meta in settings.SUBCOMMANDS_GROUPS.items():
-        description += f"\n{short_help_group_meta[0]}:\n"
-        description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
-
-    # Argument parser
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-
-    subparsers = parser.add_subparsers(
-        dest="command", description=description, help=argparse.SUPPRESS
-    )
-
-    return parser, subparsers
 
 
 def add_config_parse_options(parser: argparse.ArgumentParser):
@@ -121,6 +41,33 @@ def add_config_parse_options(parser: argparse.ArgumentParser):
     )
 
 
+def create_parsers():
+    """Creates the description in the help and the parsers to be used
+
+    Returns:
+        parser,subparsers: ArgumentParser and SubParser
+    """
+    # Argument parser description
+    description = ""
+    for (
+        short_help_class,
+        short_help_group_meta,
+    ) in settings.SUBCOMMANDS_GROUPS.items():
+        description += f"\n{short_help_group_meta[0]}:\n"
+        description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
+
+    # Argument parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    subparsers = parser.add_subparsers(
+        dest="command", description=description, help=argparse.SUPPRESS
+    )
+
+    return parser, subparsers
+
+
 # TODO better error message if settings are missing
 
 
@@ -130,9 +77,9 @@ if __name__ == "__main__":
     # Dynamic module import
     # later imports overwrite earlier imports
     # suggested loading procedure: inofficial plugins, official plugins, user plugins
-    module_paths = load_modules_files()
+    module_paths = reptor._load_system_modules()
 
-    loaded_modules = import_modules(module_paths)
+    loaded_modules = reptor._import_modules(module_paths)
 
     parser, subparsers = create_parsers()
 
@@ -177,9 +124,9 @@ if __name__ == "__main__":
     # Add cli options to config/cli
     config.set("cli", args_dict)
 
+    reptor.run(config)
+
     # Subcommands
     if args.command in loaded_modules:
         module = loaded_modules[args.command]
-        module.loader(**config.get("cli")).run()
-
-    reptor.run(config)
+        module.loader(reptor, **config.get("cli")).run()

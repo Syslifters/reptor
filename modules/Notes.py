@@ -11,15 +11,15 @@ class Notes(Base):
         reptor notes
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, reptor, **kwargs):
+        super().__init__(reptor, **kwargs)
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
 
     def run(self):
-        notes_api: NotesAPI = NotesAPI()
+        notes_api: NotesAPI = NotesAPI(self.reptor)
         notes = notes_api.get_notes()
 
         print(f"{'Title':<30} ID")

@@ -23,24 +23,24 @@ class NotesAPI(APIClient):
         APIClient (_type_): _description_
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, reptor) -> None:
+        super().__init__(reptor)
 
         if self.private_note:
             self.base_endpoint = urljoin(
-                self._get_server(), f"api/v1/pentestusers/self/notes/"
+                self._config.get_server(), f"api/v1/pentestusers/self/notes/"
             )
-        elif self._get_project_id():
+        elif self._config.get_project_id():
             self.base_endpoint = urljoin(
-                self._get_server(),
-                f"api/v1/pentestprojects/{self._get_project_id()}/notes/",
+                self._config.get_server(),
+                f"api/v1/pentestprojects/{self._config.get_project_id()}/notes/",
             )
         else:
             raise AttributeError("No project ID specified.")
 
     @property
     def private_note(self):
-        return self._get_cli_overwrite().get("private_note")
+        return self._config.get_cli_overwrite().get("private_note")
 
     def get_notes(self):
         """Gets list of notes"""

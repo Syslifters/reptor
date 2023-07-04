@@ -9,8 +9,8 @@ class Conf(ConfBase):
     enter config interactively and store to file
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, reptor, **kwargs):
+        super().__init__(reptor, **kwargs)
         self.list = kwargs.get("list")
         self.modules = kwargs.get("modules")
 

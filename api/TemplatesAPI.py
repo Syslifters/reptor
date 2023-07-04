@@ -6,8 +6,8 @@ from api.models import FindingTemplate
 
 
 class TemplatesAPI(APIClient):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, reptor) -> None:
+        super().__init__(reptor)
 
         self.base_endpoint = urljoin(self._get_server(), f"api/v1/findingtemplates/")
         self.object_endpoint = urljoin(

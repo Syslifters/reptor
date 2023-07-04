@@ -7,8 +7,8 @@ from api.models import Project
 
 
 class ProjectsAPI(APIClient):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, reptor) -> None:
+        super().__init__(reptor)
 
         self.base_endpoint = urljoin(self._get_server(), f"api/v1/pentestprojects/")
         self.object_endpoint = urljoin(self.base_endpoint, f"{self._get_project_id()}")

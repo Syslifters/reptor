@@ -10,3 +10,19 @@ class ConfigProtocol(typing.Protocol):
     @abstractmethod
     def set(self) -> None:
         ...
+
+    @abstractmethod
+    def get_server(self) -> str:
+        ...
+
+    @abstractmethod
+    def get_token(self) -> str:
+        ...
+
+    @abstractmethod
+    def get_project_id(self) -> str:
+        ...
+
+    @abstractmethod
+    def get_cli_overwrite(self) -> typing.Dict:
+        ...

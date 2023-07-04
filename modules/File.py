@@ -40,7 +40,7 @@ class File(UploadBase):
         force_unlock = self.config.get("cli").get("force_unlock")
         no_timestamp = self.config.get("cli").get("no_timestamp")
 
-        NotesAPI().upload_file(
+        NotesAPI(self.reptor).upload_file(
             files=files,
             filename=filename,
             caption=filename,

@@ -4,8 +4,8 @@ import requests
 
 import settings
 
-from core.reptor import Reptor
 from core.interfaces.conf import ConfigProtocol
+from core.interfaces.reptor import ReptorProtocol
 
 
 class APIClient:
@@ -17,18 +17,9 @@ class APIClient:
     item_id: str
     force_unlock: bool
 
-    def __init__(self) -> None:
-        self._config = Reptor.instance.get_config()
+    def __init__(self, reptor: ReptorProtocol) -> None:
+        self._config = reptor.get_config()
         self.verify = not self._config.get("insecure", False)
-
-    def _get_server(self) -> str:
-        return self._config.get("server")
-
-    def _get_project_id(self) -> str:
-        return self._config.get("project_id")
-
-    def _get_cli_overwrite(self) -> typing.Any:
-        return self._config.get("cli")
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
@@ -50,7 +41,7 @@ class APIClient:
         response = requests.get(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self._config.get("token")},
+            cookies={"sessionid": self._config.get_token()},
             verify=self.verify,
         )
         response.raise_for_status()
@@ -73,7 +64,7 @@ class APIClient:
         response = requests.post(
             url,
             headers=self._get_headers(json_content=json_content),
-            cookies={"sessionid": self._config.get("token")},
+            cookies={"sessionid": self._config.get_token()},
             json=data,
             files=files,
             verify=self.verify,
@@ -94,7 +85,7 @@ class APIClient:
         response = requests.put(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self._config.get("token")},
+            cookies={"sessionid": self._config.get_token()},
             json=data,
             verify=self.verify,
         )

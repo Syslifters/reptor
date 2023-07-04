@@ -11,8 +11,8 @@ class Projects(Base):
         reptor projects
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, reptor, **kwargs):
+        super().__init__(reptor, **kwargs)
         self.arg_search = kwargs.get("search")
         self.arg_export = kwargs.get("export")
         self.arg_project_id = kwargs.get("project_id")
@@ -39,7 +39,7 @@ class Projects(Base):
         )
 
     def run(self):
-        projects_api: ProjectsAPI = ProjectsAPI()
+        projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
 
         if self.arg_export:
             print("Exporting Project to current folder")

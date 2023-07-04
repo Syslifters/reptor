@@ -1,14 +1,14 @@
-from core.reptor import Reptor
-from core.conf import Config
+from core.interfaces.conf import ConfigProtocol
+from core.interfaces.reptor import ReptorProtocol
 
 
 class Base:
-    config: Config
-    reptor: Reptor
+    config: ConfigProtocol
+    reptor: ReptorProtocol
 
-    def __init__(self, **kwargs):
+    def __init__(self, reptor: ReptorProtocol, **kwargs):
         self.notename = kwargs.get("notename")
-        self.reptor = Reptor()
+        self.reptor = reptor
         self.config = self.reptor.get_config()
 
     @classmethod

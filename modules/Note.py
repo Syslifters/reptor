@@ -23,7 +23,7 @@ class Note(UploadBase):
         force_unlock = self.config.get("cli").get("force_unlock")
         no_timestamp = self.config.get("cli").get("no_timestamp")
 
-        NotesAPI().write_note(
+        NotesAPI(self.reptor).write_note(
             notename=notename,
             parent_notename=parent_notename,
             icon=icon,

@@ -2,7 +2,6 @@ import sys
 import logging
 from api.NotesAPI import NotesAPI
 from .Base import Base
-from core.reptor import Reptor
 
 log = logging.getLogger("reptor")
 
@@ -15,8 +14,8 @@ class ToolBase(Base):
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
-        self.no_timestamp = Reptor.instance._config.get("cli").get("no_timestamp")
-        self.force_unlock = Reptor.instance._config.get("cli").get("force_unlock")
+        self.no_timestamp = self.config.get("cli").get("no_timestamp")
+        self.force_unlock = self.config.get("cli").get("force_unlock")
 
     @classmethod
     def add_arguments(cls, parser):
@@ -52,7 +51,7 @@ class ToolBase(Base):
         notename = self.notename or self.__class__.__name__.lower()
         parent_notename = "Uploads" if notename != "Uploads" else None
 
-        NotesAPI().write_note(
+        NotesAPI(self.reptor).write_note(
             notename=notename,
             parent_notename=parent_notename,
             content=self.formatted_input,
