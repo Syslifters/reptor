@@ -16,6 +16,11 @@ class Config(ConfigProtocol):
         "community": False,
     }
 
+    """These keys are ignored when writing the config to a file
+    By default this should be cli and insecure
+    """
+    _ignored_keys_in_config = ["cli", "insecure"]
+
     def __new__(cls):
         """Make the Config Singleton
 
@@ -112,7 +117,9 @@ class Config(ConfigProtocol):
             settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
             with open(settings.PERSONAL_CONFIG_FILE, "w") as f:
                 filtered_config = {
-                    k: v for k, v in self._raw_config.items() if k not in ["cli"]
+                    k: v
+                    for k, v in self._raw_config.items()
+                    if k not in self._ignored_keys_in_config
                 }
                 yaml.dump(filtered_config, f, encoding="utf-8")
         else:
