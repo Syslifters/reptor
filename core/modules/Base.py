@@ -8,6 +8,7 @@ class Base:
 
     def __init__(self, reptor: ReptorProtocol, **kwargs):
         self.notename = kwargs.get("notename")
+        self.file_path = kwargs.get("file", "")
         self.reptor = reptor
         self.config = self.reptor.get_config()
 

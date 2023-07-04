@@ -1,8 +1,9 @@
 import typing
 
+
 class Instance:
     uri: str
-    method : str
+    method: str
     param: str
     attack: str
     evidence: str
@@ -13,53 +14,57 @@ class Instance:
     # responsebody: str # Careful with this!
 
     def parse(self, data):
-        self.uri    = data.find("uri").text
-        self.method     = data.find("method").text
-        self.param  = data.find("param").text
-        self.attack     = data.find("attack").text
-        self.evidence   = data.find("evidence").text
-        self.otherinfo  = data.find("otherinfo").text
-        self.requestheader  = data.find("requestheader").text
-        self.requestbody    = data.find("requestbody").text
-        self.responseheader     = data.find("responseheader").text
+        self.uri = data.find("uri").text
+        self.method = data.find("method").text
+        self.param = data.find("param").text
+        self.attack = data.find("attack").text
+        self.evidence = data.find("evidence").text
+        self.otherinfo = data.find("otherinfo").text
+        if data.find("requestheader"):
+            self.requestheader = data.find("requestheader").text
+        if data.find("requestbody"):
+            self.requestbody = data.find("requestbody").text
+        if data.find("responseheader"):
+            self.responseheader = data.find("responseheader").text
 
 
 class Alert:
     pluginid: str
-    alertRef : str
+    alertRef: str
     name: str
-    riskcode : int
-    confidence : int
+    riskcode: int
+    confidence: int
     riskdesc: str
-    confidencedesc : str
+    confidencedesc: str
     desc: str
-    count : int
+    count: int
     solution: str
     otherinfo: str
     reference: str
     cweid: int
     wascid: int
     sourceid: int
-    instances : typing.List[Instance] = list()
+    instances: typing.List[Instance] = list()
 
     def parse(self, data):
-        self.pluginid  = data.find("pluginid").text
-        self.alertRef  = data.find("alertRef").text
-        self.name  = data.find("name").text
-        self.riskcode  = data.find("riskcode").text
-        self.confidence  = data.find("confidence").text
-        self.riskdesc  = data.find("riskdesc").text
-        self.confidencedesc  = data.find("confidencedesc").text
-        self.desc  = data.find("desc").text
-        self.count  = data.find("count").text
-        self.solution  = data.find("solution").text
-        self.reference  = data.find("reference").text
-        self.cweid  = data.find("cweid").text
-        self.wascid  = data.find("wascid").text
-        self.sourceid  = data.find("sourceid").text
+        self.pluginid = data.find("pluginid").text
+        self.alertRef = data.find("alertRef").text
+        self.name = data.find("name").text
+        self.riskcode = data.find("riskcode").text
+        self.confidence = data.find("confidence").text
+        self.riskdesc = data.find("riskdesc").text
+        self.confidencedesc = data.find("confidencedesc").text
+        self.desc = data.find("desc").text
+        self.count = data.find("count").text
+        self.solution = data.find("solution").text
+        self.reference = data.find("reference").text
+        self.cweid = data.find("cweid").text
+        self.wascid = data.find("wascid").text
+        self.sourceid = data.find("sourceid").text
+
 
 class Site:
-    name : str
+    name: str
     host: str
     port: str
     ssl: bool
@@ -67,7 +72,7 @@ class Site:
     alerts: typing.List[Alert] = list()
 
     def parse(self, data):
-        self.name  = data.get("name")
-        self.host  = data.get("host")
-        self.port  = data.get("port")
-        self.ssl  = data.get("ssl")
+        self.name = data.get("name")
+        self.host = data.get("host")
+        self.port = data.get("port")
+        self.ssl = data.get("ssl")

@@ -12,34 +12,14 @@ class OWASPZap(ToolBase):
     Parses OWASPZap XML and JSON reports
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, reptor, **kwargs):
+        super().__init__(reptor, **kwargs)
         self.notename = "OWASP Zap"
-        self.arg_type_json = kwargs.get("json")
-        self.arg_type_xml = kwargs.get("xml")
 
-    @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
-        simplelist_parser = parser.add_mutually_exclusive_group()
-        simplelist_parser.add_argument(
-            "--json", help="Loads JSON File", action="store_true", default=False
-        )
-        simplelist_parser.add_argument(
-            "--xml", help="Loads JSON File", action="store_true", default=False
-        )
-
-        """Todo:
-        - Create toggle for instance include or not
-        - Create fields inclusion by list i.e --fields=description,solution,references
-        - Create blacklist i.e --blacklist=risk,confidence
-        """
-
-    def parse_json(self, data) -> typing.List[Site]:
+    def parse_json(self, data):
         raise NotImplementedError
 
-    def parse_xml(self, data) -> typing.List[Site]:
-        root = ElementTree.fromstring(data)
+    def parse_xml(self, root):
         return_data = list()
         for owasp_scan in root:
             site = Site()
@@ -58,17 +38,7 @@ class OWASPZap(ToolBase):
 
             return_data.append(site)
 
-        return return_data
-
-    def parse(self):
-        super().parse()
-        parsed_input = list()
-        if self.arg_type_json:
-            parsed_input = self.parse_json(self.raw_input)
-        elif self.arg_type_xml:
-            parsed_input = self.parse_xml(self.raw_input)
-
-        self.parsed_input = parsed_input
+        self.parsed_input = return_data
 
     def format(self):
         super().format()

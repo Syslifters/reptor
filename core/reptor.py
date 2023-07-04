@@ -202,6 +202,8 @@ class Reptor(ReptorProtocol):
             help="do not prepent timestamp to note",
             action="store_true",
         )
+
+        self._parser.add_argument("-file", "--file", help="Local file to read")
         return self._parser
 
     def _parse_main_arguments_with_subparser(self):
