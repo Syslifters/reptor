@@ -7,8 +7,8 @@ import typing
 @dataclass
 class BaseModel:
     id: str = ""
-    created: datetime.datetime | None = None
-    updated: datetime.datetime | None = None
+    created: datetime.datetime = datetime.datetime.now()
+    updated: datetime.datetime = datetime.datetime.now()
 
     def __init__(self, data: typing.Dict | None = None):
         if data:
