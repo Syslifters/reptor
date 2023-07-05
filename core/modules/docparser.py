@@ -14,6 +14,7 @@ class MODULE_TYPE(StrEnum):
 
 class ModuleDocs:
     _type: typing.Literal["CORE", "COMMUNITY", "PRIVATE"] = MODULE_TYPE.CORE
+    _overwrites = None
 
     name: str = ""
     author: str = ""
@@ -43,6 +44,23 @@ class ModuleDocs:
 
     def set_private(self):
         self._type = MODULE_TYPE.PRIVATE
+
+    @property
+    def space_label(self) -> str:
+        if self.is_private():
+            return MODULE_TYPE.PRIVATE.capitalize()
+        if self.is_core():
+            return MODULE_TYPE.CORE.capitalize()
+        if self.is_community():
+            return MODULE_TYPE.COMMUNITY.capitalize()
+
+        return ""
+
+    def set_overwrites_module(self, module):
+        self._overwrites = module
+
+    def get_overwritten_module(self):
+        return self._overwrites
 
 
 class DocParser:

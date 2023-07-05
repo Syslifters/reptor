@@ -106,10 +106,10 @@ class Reptor(ReptorProtocol):
         self._load_user_modules()
 
     def _import_modules(self):
-        """Loads each module
+        """Loads each module from _module_paths
 
         Returns:
-            typing.Dict: Dictionary holding each module name
+            typing.Dict: Dictionary holding each module meta information
         """
 
         for module_path in self._module_paths:
@@ -122,12 +122,15 @@ class Reptor(ReptorProtocol):
             sys.modules["module.name"] = module
             spec.loader.exec_module(module)
 
-            # Add some metadata
+            # Check if the Module is Valid
             if not hasattr(module, "loader"):
                 continue
+
+            # Configure metadata
             module.description = cleandoc(module.loader.__doc__)
             module_docs = DocParser.parse(module.description)
             module_docs.name = module.loader.__name__.lower()
+            module_docs.path = module_path
 
             # Check what type of module it is and mark it as such
             if str(settings.MODULE_DIRS) in module_path:
@@ -137,14 +140,32 @@ class Reptor(ReptorProtocol):
             if str(settings.MODULE_DIRS_USER) in module_path:
                 module_docs.set_private()
 
-            # Add short_help to tool help message
+            # Add it to the correct commands group
             if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
+                # check if the module is already in the list,
+                # if so a later loaded module, from community or private
+                # needs to overwrite it
+
+                for index, existing_module in enumerate(
+                    settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1]
+                ):
+                    if existing_module.name == module_docs.name:
+                        # we have the case of an overwrite
+                        # save the overwritten module details
+                        module_docs.set_overwrites_module(existing_module)
+
+                        # remove the original item
+                        settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].pop(
+                            index
+                        )
+                # add the module data to the end
                 settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
                     module_docs
                 )
             else:
                 settings.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
 
+            # because it is a dictionary, an overwritten module is automatically overwritten
             self._loaded_modules[module_docs.name] = module
 
     def _create_parsers(self):

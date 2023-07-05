@@ -44,23 +44,35 @@ class Modules(Base):
         )
 
     def _list(self):
-        table = make_table(["Name", "Short Help", "Space", "Author", "Version", "Tags"])
+        table = make_table(
+            [
+                "Name",
+                "Short Help",
+                "Space",
+                "Overwrites",
+                "Author",
+                "Version",
+                "Tags",
+            ]
+        )
 
-        # Todo: Adjust with once community and private modules are respected
         for tool in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
             color = "blue"
-            space = "Core"
             if tool.is_community():
-                space = "Community"
                 color = "green"
             elif tool.is_private():
-                space = "User"
                 color = "magenta"
+
+            overwritten_module = tool.get_overwritten_module()
+            overwrites_name = ""
+            if overwritten_module:
+                overwrites_name = f"[red]{overwritten_module.name}({overwritten_module.space_label})[/red]"
 
             table.add_row(
                 f"[{color}]{tool.name}[/{color}]",
                 f"[{color}]{tool.short_help}[/{color}]",
-                f"[{color}]{space}[/{color}]",
+                f"[{color}]{tool.space_label}[/{color}]",
+                overwrites_name,
                 f"[{color}]{tool.author}[/{color}]",
                 f"[{color}]{tool.version}[/{color}]",
                 f"[{color}]{','.join(tool.tags)}[/{color}]",
