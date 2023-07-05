@@ -7,11 +7,11 @@ from utils.table import make_table
 
 class Templates(Base):
     """
-    Queries Server for Finding Templates
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
 
-
-    Sample commands:
-        reptor templates
+    Short Help:
+    Queries Finding Templates from API
     """
 
     def __init__(self, **kwargs):
@@ -39,7 +39,9 @@ class Templates(Base):
             if finding:
                 table.add_row(finding.title, template.id)
             else:
-                print(f"Template has no finding date.")
+                reptor_console.print(
+                    f"Template [yellow]{template.id}[/yellow] has no finding data."
+                )
 
         reptor_console.print(table)
 

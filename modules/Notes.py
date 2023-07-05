@@ -7,11 +7,11 @@ from utils.table import make_table
 
 class Notes(Base):
     """
-    Queries Server for Notes
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
 
-
-    Sample commands:
-        reptor notes
+    Short Help:
+    Queries Notes from API
     """
 
     def __init__(self, *kwargs):

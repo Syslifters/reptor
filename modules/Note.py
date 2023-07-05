@@ -4,7 +4,11 @@ from api.NotesAPI import NotesAPI
 
 class Note(UploadBase):
     """
-    upload as note
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
+
+    Short Help:
+    Uploads a note
     """
 
     @classmethod

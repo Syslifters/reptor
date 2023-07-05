@@ -7,7 +7,11 @@ from api.NotesAPI import NotesAPI
 
 class File(UploadBase):
     """
-    upload as file
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
+
+    Short Help:
+    Uploads a file
     """
 
     @classmethod

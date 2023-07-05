@@ -9,11 +9,11 @@ from utils.table import make_table
 
 class Projects(Base):
     """
-    Queries Server for Projects
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
 
-
-    Sample commands:
-        reptor projects
+    Short Help:
+    Queries Projects from API
     """
 
     def __init__(self, **kwargs):

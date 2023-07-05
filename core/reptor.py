@@ -183,7 +183,7 @@ class Reptor(ReptorProtocol):
             description += f"\n{short_help_group_meta[0]}:\n"
 
             for item in short_help_group_meta[1]:
-                description += f"{item.name} {item.short_help}{settings.NEWLINE}"
+                description += f"{item.name:<21} {item.short_help}{settings.NEWLINE}"
 
         # Argument parser
         self._parser = argparse.ArgumentParser(
