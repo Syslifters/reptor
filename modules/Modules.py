@@ -44,7 +44,7 @@ class Modules(Base):
             "--new", help="Create a new module", action="store", default=None
         )
 
-    def _list(self):
+    def _list(self, modules):
         if self.arg_verbose:
             table = make_table(
                 [
@@ -70,7 +70,7 @@ class Modules(Base):
             "Module Colors: [blue]Core[/blue], [green]Community[/green], [magenta]Private[/magenta], [red]Overwrites other module[/red] "
         )
 
-        for tool in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
+        for tool in modules:
             color = "blue"
             if tool.is_community():
                 color = "green"
@@ -106,13 +106,24 @@ class Modules(Base):
         reptor_console.print(table)
 
     def _search(self):
-        ...
+        self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        results = list()
+        for module in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
+            if self.arg_search in module.tags:
+                results.append(module)
+                continue
+
+            if self.arg_search in module.name:
+                results.append(module)
+                continue
+
+        self._list(results)
 
     def run(self):
         if self.arg_search:
             self._search()
         else:
-            self._list()
+            self._list(settings.SUBCOMMANDS_GROUPS[ToolBase][1])
 
 
 loader = Modules

@@ -12,14 +12,14 @@ import settings
 from .interfaces.reptor import ReptorProtocol
 
 from core.conf import Config
-from core.logger import reptor_logger
+from core.logger import reptor_logger, ReptorAdapter
+from core.console import reptor_console, Console
 from core.modules.docparser import DocParser, ModuleDocs
 
 
 root_logger = logging.getLogger("root")
 
 # Todo:
-# - Respect Community setting in Help Output (Community modules should only be shown when community is enabled)
 # - Refactor Global and Configuration arguments
 # - Refactor Output
 
@@ -31,6 +31,9 @@ class Reptor(ReptorProtocol):
     _parser: argparse.ArgumentParser
     _sub_parsers: argparse._SubParsersAction
 
+    logger: ReptorAdapter = reptor_logger
+    console: Console = reptor_console
+
     def __new__(cls):
         if not hasattr(cls, "instance"):
             cls.instance = super(Reptor, cls).__new__(cls)
@@ -38,7 +41,6 @@ class Reptor(ReptorProtocol):
 
     def __init__(self) -> None:
         self._load_config()
-        self.logger = reptor_logger
 
         # Todo: Debate if always write to file or togglable
         self.logger.add_file_log()
@@ -163,6 +165,7 @@ class Reptor(ReptorProtocol):
                     module_docs
                 )
             else:
+                # Todo: Other section shouldn't be left out, maybe refactor logic above to easily reuse
                 settings.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
 
             # because it is a dictionary, an overwritten module is automatically overwritten
@@ -182,6 +185,7 @@ class Reptor(ReptorProtocol):
         ) in settings.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
 
+            item: ModuleDocs
             for item in short_help_group_meta[1]:
                 description += f"{item.name:<21} {item.short_help}{settings.NEWLINE}"
 
