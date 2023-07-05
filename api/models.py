@@ -112,7 +112,7 @@ class FindingTemplate(BaseModel):
     tags: typing.List[str] = []
     language: str = ""
     status: str = ""
-    data: FindingData | None = None
+    data: FindingData = None
 
     custom_attributes: typing.List[dict] = []
 
