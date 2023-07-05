@@ -143,3 +143,6 @@ class Config(ConfigProtocol):
 
     def get_cli_overwrite(self) -> typing.Dict:
         return self.get("cli")
+
+    def get_community_enabled(self) -> bool:
+        return self.get("community")

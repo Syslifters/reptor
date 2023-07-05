@@ -30,3 +30,7 @@ class ConfigProtocol(typing.Protocol):
     @abstractmethod
     def get_cli_overwrite(self) -> typing.Dict:
         ...
+
+    @abstractmethod
+    def get_community_enabled(self) -> bool:
+        ...

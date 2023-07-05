@@ -254,7 +254,7 @@ class Reptor(ReptorProtocol):
         # Todo: Refactor the order when the parsers are available. Otherwise
         # with the current direction we don't have --debug and -verbose output
         # until we hit self._parse_main_arguments_with_subparser()
-        self.logger.success("Reptor is starting...")
+        self.logger.info("Reptor is starting...")
 
         # Todo: remove current hack for debug and verbose logging
         if "-v" in sys.argv or "--verbose" in sys.argv:
