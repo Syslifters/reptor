@@ -2,23 +2,29 @@ import typing
 from xml.etree import ElementTree
 
 from core.modules.ToolBase import ToolBase
-from modules.Nikto.models import NiktoScan, ScanDetails, Item, Statistics
+from community.Nikto.models import NiktoScan, ScanDetails, Item, Statistics
 
 
 class Nikto(ToolBase):
     """
+    Author: Richard Schwabe
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
+    License: MIT
+    Tags: web,owasp
+
+    Short Help:
     Formats Nikto output (Raw, XML, JSON)
 
-    Note: Multiple Targets are not supported in JSON
+    Description:
 
-    Sample commands:
+    Multiple Targets are not supported in JSON
 
-        # Format
-        cat nikto-raw-output.txt | reptor simplelist -c format
+    cat nikto-raw-output.txt | reptor simplelist -c format
 
-        cat nikto-result.xml | python reptor simplelist --xml
+    cat nikto-result.xml | python reptor simplelist --xml
 
-        cat nikto-result.json | python reptor simplelist --json
+    cat nikto-result.json | python reptor simplelist --json
     """
 
     def __init__(self, **kwargs):

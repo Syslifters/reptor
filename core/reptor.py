@@ -112,10 +112,13 @@ class Reptor(ReptorProtocol):
             typing.Dict: Dictionary holding each module name
         """
 
-        for module in self._module_paths:
-            spec = importlib.util.spec_from_file_location("module.name", module)  # type: ignore
+        for module_path in self._module_paths:
+            spec = importlib.util.spec_from_file_location("module.name", module_path)  # type: ignore
+
+            self.logger.debug(module_path)
 
             module = importlib.util.module_from_spec(spec)  # type: ignore
+
             sys.modules["module.name"] = module
             spec.loader.exec_module(module)
 
@@ -125,6 +128,15 @@ class Reptor(ReptorProtocol):
             module.description = cleandoc(module.loader.__doc__)
             module_docs = DocParser.parse(module.description)
             module_docs.name = module.loader.__name__.lower()
+
+            # Check what type of module it is and mark it as such
+            if str(settings.MODULE_DIRS) in module_path:
+                module_docs.set_core()
+            if str(settings.MODULE_DIRS_COMMUNITY) in module_path:
+                module_docs.set_community()
+            if str(settings.MODULE_DIRS_USER) in module_path:
+                module_docs.set_private()
+
             # Add short_help to tool help message
             if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
                 settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(

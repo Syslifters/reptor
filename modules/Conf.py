@@ -1,5 +1,3 @@
-import settings
-
 from core.modules.ConfBase import ConfBase
 from core.console import reptor_console
 

@@ -4,14 +4,21 @@ from core.modules.ToolBase import ToolBase
 
 class Sslyze(ToolBase):
     """
+    Author: Syslifters
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
+    License: MIT
+    Tags: ssl,web
+
+    Short Help:
     format sslyze JSON output
 
-    Sample commands:
-        target="app1.example.com:443{127.0.0.1} app2.example.com:443{127.0.0.2}"
-        sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --http_get --hide_rejected_ciphers --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.txt | reptor sslyze
+    Description:
+    target="app1.example.com:443{127.0.0.1} app2.example.com:443{127.0.0.2}"
+    sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --http_get --hide_rejected_ciphers --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.txt | reptor sslyze
 
-        # Format and upload
-        cat sslyze_result.txt | reptor ssylyze -c upload
+    # Format and upload
+    cat sslyze_result.txt | reptor ssylyze -c upload
     """
 
     def __init__(self, **kwargs):

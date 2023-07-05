@@ -1,8 +1,20 @@
-from inspect import cleandoc
+import pathlib
 import re
+import typing
+
+from enum import StrEnum
+from inspect import cleandoc
+
+
+class MODULE_TYPE(StrEnum):
+    CORE = "CORE"
+    COMMUNITY = "COMMUNITY"
+    PRIVATE = "PRIVATE"
 
 
 class ModuleDocs:
+    _type: typing.Literal["CORE", "COMMUNITY", "PRIVATE"] = MODULE_TYPE.CORE
+
     name: str = ""
     author: str = ""
     version: str = ""
@@ -11,6 +23,26 @@ class ModuleDocs:
     tags: list = []
     short_help: str = ""
     description: str = ""
+
+    path: pathlib.Path | None = None
+
+    def is_community(self) -> bool:
+        return self._type == MODULE_TYPE.COMMUNITY
+
+    def is_core(self) -> bool:
+        return self._type == MODULE_TYPE.CORE
+
+    def is_private(self) -> bool:
+        return self._type == MODULE_TYPE.PRIVATE
+
+    def set_community(self):
+        self._type = MODULE_TYPE.COMMUNITY
+
+    def set_core(self):
+        self._type = MODULE_TYPE.CORE
+
+    def set_private(self):
+        self._type = MODULE_TYPE.PRIVATE
 
 
 class DocParser:

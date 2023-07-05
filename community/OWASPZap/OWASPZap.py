@@ -4,7 +4,7 @@ from xml.etree import ElementTree
 
 from core.modules.ToolBase import ToolBase
 
-from modules.OWASPZap.models import Site, Alert, Instance
+from community.OWASPZap.models import Site, Alert, Instance
 
 
 class OWASPZap(ToolBase):
@@ -13,7 +13,7 @@ class OWASPZap(ToolBase):
     Version: 1.0
     Website: https://github.com/Syslifters/reptor
     License: MIT
-    Tags: owasp, zap
+    Tags: web,owasp,zap
 
     Short Help:
     Parses OWASPZap XML and JSON reports

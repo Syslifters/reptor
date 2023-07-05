@@ -30,6 +30,7 @@ class Modules(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
+        self.arg_new_module = kwargs.get("new")
 
     @classmethod
     def add_arguments(cls, parser):
@@ -38,18 +39,31 @@ class Modules(Base):
         project_parser.add_argument(
             "--search", help="Search for term", action="store", default=None
         )
+        project_parser.add_argument(
+            "--new", help="Create a new module", action="store", default=None
+        )
 
     def _list(self):
-        table = make_table(["Name", "Short Help", "Author", "Version", "Tags"])
+        table = make_table(["Name", "Short Help", "Space", "Author", "Version", "Tags"])
 
         # Todo: Adjust with once community and private modules are respected
         for tool in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
+            color = "blue"
+            space = "Core"
+            if tool.is_community():
+                space = "Community"
+                color = "green"
+            elif tool.is_private():
+                space = "User"
+                color = "magenta"
+
             table.add_row(
-                tool.name,
-                tool.short_help,
-                tool.author,
-                tool.version,
-                ",".join(tool.tags),
+                f"[{color}]{tool.name}[/{color}]",
+                f"[{color}]{tool.short_help}[/{color}]",
+                f"[{color}]{space}[/{color}]",
+                f"[{color}]{tool.author}[/{color}]",
+                f"[{color}]{tool.version}[/{color}]",
+                f"[{color}]{','.join(tool.tags)}[/{color}]",
             )
 
         reptor_console.print(table)
