@@ -7,6 +7,8 @@ import settings
 from core.interfaces.conf import ConfigProtocol
 from core.interfaces.reptor import ReptorProtocol
 
+from core.logger import reptor_logger
+
 
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods"""
@@ -27,6 +29,8 @@ class APIClient:
             headers["Content-Type"] = "application/json"
         headers["Referer"] = self.base_endpoint
         headers["User-Agent"] = settings.USER_AGENT
+        headers["Authorization"] = f"Bearer {self._config.get_token()}"
+        reptor_logger.debug(headers)
         return headers
 
     def get(self, url: str) -> requests.models.Response:
@@ -41,7 +45,6 @@ class APIClient:
         response = requests.get(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self._config.get_token()},
             verify=self.verify,
         )
         response.raise_for_status()
@@ -64,7 +67,6 @@ class APIClient:
         response = requests.post(
             url,
             headers=self._get_headers(json_content=json_content),
-            cookies={"sessionid": self._config.get_token()},
             json=data,
             files=files,
             verify=self.verify,
@@ -85,7 +87,6 @@ class APIClient:
         response = requests.put(
             url,
             headers=self._get_headers(),
-            cookies={"sessionid": self._config.get_token()},
             json=data,
             verify=self.verify,
         )
