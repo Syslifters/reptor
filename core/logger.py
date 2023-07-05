@@ -57,6 +57,10 @@ class ReptorAdapter(logging.LoggerAdapter):
     def fail(self, msg, color="red", *args, **kwargs):
         self._print(msg, color, *args, **kwargs)
 
+    def fail_with_exit(self, msg, color="red", *args, **kwargs):
+        self._print(msg, color, *args, **kwargs)
+        exit(1)
+
     def success(self, msg, color="green", *args, **kwargs):
         self._print(msg, color, *args, **kwargs)
 

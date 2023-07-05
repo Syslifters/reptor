@@ -1,6 +1,9 @@
 from core.modules.Base import Base
 from api.NotesAPI import NotesAPI
 
+from core.console import reptor_console
+from utils.table import make_table
+
 
 class Notes(Base):
     """
@@ -22,11 +25,10 @@ class Notes(Base):
         notes_api: NotesAPI = NotesAPI(self.reptor)
         notes = notes_api.get_notes()
 
-        print(f"{'Title':<30} ID")
-        print(f"{'_':_<80}")
+        table = make_table(["Title", "ID"])
         for note in notes:
-            print(f"{note['title']:<30} {note['id']}")
-            print(f"{'_':_<80}")
+            table.add_row(note.title, note.id)
+        reptor_console.print(table)
 
 
 loader = Notes
