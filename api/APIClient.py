@@ -30,7 +30,7 @@ class APIClient:
         headers["Referer"] = self.base_endpoint
         headers["User-Agent"] = settings.USER_AGENT
         headers["Authorization"] = f"Bearer {self._config.get_token()}"
-        reptor_logger.debug(headers)
+        reptor_logger.debug(f"HTTP Headers: {headers}")
         return headers
 
     def get(self, url: str) -> requests.models.Response:
