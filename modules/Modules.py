@@ -31,6 +31,7 @@ class Modules(Base):
         super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
         self.arg_new_module = kwargs.get("new")
+        self.arg_verbose = kwargs.get("verbose")
 
     @classmethod
     def add_arguments(cls, parser):
@@ -44,16 +45,29 @@ class Modules(Base):
         )
 
     def _list(self):
-        table = make_table(
-            [
-                "Name",
-                "Short Help",
-                "Space",
-                "Overwrites",
-                "Author",
-                "Version",
-                "Tags",
-            ]
+        if self.arg_verbose:
+            table = make_table(
+                [
+                    "Name",
+                    "Short Help",
+                    "Space",
+                    "Overwrites",
+                    "Author",
+                    "Version",
+                    "Tags",
+                ]
+            )
+        else:
+            table = make_table(
+                [
+                    "Name",
+                    "Short Help",
+                    "Tags",
+                ]
+            )
+
+        reptor_console.print(
+            "Module Colors: [blue]Core[/blue], [green]Community[/green], [magenta]Private[/magenta], [red]Overwrites other module[/red] "
         )
 
         for tool in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
@@ -63,20 +77,31 @@ class Modules(Base):
             elif tool.is_private():
                 color = "magenta"
 
+            tool_name = f"[{color}]{tool.name}[/{color}]"
+
             overwritten_module = tool.get_overwritten_module()
             overwrites_name = ""
             if overwritten_module:
                 overwrites_name = f"[red]{overwritten_module.name}({overwritten_module.space_label})[/red]"
+                tool_name = f"[red]{tool.name}({tool.space_label})\nOverwrites: {overwritten_module.space_label}[/red]"
+                color = "red"
 
-            table.add_row(
-                f"[{color}]{tool.name}[/{color}]",
-                f"[{color}]{tool.short_help}[/{color}]",
-                f"[{color}]{tool.space_label}[/{color}]",
-                overwrites_name,
-                f"[{color}]{tool.author}[/{color}]",
-                f"[{color}]{tool.version}[/{color}]",
-                f"[{color}]{','.join(tool.tags)}[/{color}]",
-            )
+            if self.arg_verbose:
+                table.add_row(
+                    f"[{color}]{tool.name}[/{color}]",
+                    f"[{color}]{tool.short_help}[/{color}]",
+                    f"[{color}]{tool.space_label}[/{color}]",
+                    overwrites_name,
+                    f"[{color}]{tool.author}[/{color}]",
+                    f"[{color}]{tool.version}[/{color}]",
+                    f"[{color}]{','.join(tool.tags)}[/{color}]",
+                )
+            else:
+                table.add_row(
+                    f"{tool_name}",
+                    f"[{color}]{tool.short_help}[/{color}]",
+                    f"[{color}]{','.join(tool.tags)}[/{color}]",
+                )
 
         reptor_console.print(table)
 
