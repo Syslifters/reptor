@@ -41,7 +41,7 @@ class Modules(Base):
             "--search", help="Search for term", action="store", default=None
         )
         project_parser.add_argument(
-            "--new", help="Create a new module", action="store", default=None
+            "--new", help="Create a new module", action="store_true", default=False
         )
 
     def _list(self, modules):
@@ -106,6 +106,7 @@ class Modules(Base):
         reptor_console.print(table)
 
     def _search(self):
+        """Searches modules"""
         self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
         results = list()
         for module in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
@@ -119,9 +120,50 @@ class Modules(Base):
 
         self._list(results)
 
+    def _create_new_module(self):
+        """Goes through a few questions to generate a new Module.
+
+        The user must at least answer the module Name.
+
+        It should always be a directory based module, because of templates.
+
+        The user can then go on and develop their own module.
+        """
+
+        # Todo: Finalise this to make it as easy as possible for new modules to be created by anyone
+        # think Django's manage.py startapp or npm init
+
+        introduction = """
+        Please answer the following questions.
+
+        Based on the answer we will create a raw module for you to work on.
+
+        You will find the new module in your ~/.sysrepter/modules folder.
+        Once you are happy with it you should offer it as a community module!
+
+        Let's get started
+        """
+
+        self.reptor.console.print(introduction)
+
+        module_name = (
+            input("Module Name (No spaces, try to use the tool name): ")
+            .strip()
+            .split(" ")[0]
+        )
+
+        author = input("Author Name: ")[:25]
+        tags = input("Tags (only first: 5 Tags), i.e owasp,web,scanner: ").split(",")[
+            :5
+        ]
+
+        tool_based = input("Is it based on a tool output? [N,y]:")[:1].lower() == "y"
+
     def run(self):
         if self.arg_search:
             self._search()
+        elif self.arg_new_module:
+            self._create_new_module()
         else:
             self._list(settings.SUBCOMMANDS_GROUPS[ToolBase][1])
 
