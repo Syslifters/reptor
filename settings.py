@@ -5,16 +5,16 @@ from core.modules.ToolBase import ToolBase
 from core.modules.ConfBase import ConfBase
 from core.modules.UploadBase import UploadBase
 
-BASE_DIR = pathlib.Path(__file__).parent
+BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
 
-PERSONAL_SYSREPTOR_HOME = pathlib.Path.home() / ".sysreptor"
-PERSONAL_CONFIG_FILE = PERSONAL_SYSREPTOR_HOME / "config.yaml"
+PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
+PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
-MODULE_DIRS = BASE_DIR / "modules"
-MODULE_DIRS_COMMUNITY = BASE_DIR / "community"
-MODULE_DIRS_USER = PERSONAL_SYSREPTOR_HOME / "modules"
+MODULE_DIRS: pathlib.Path = BASE_DIR / "modules"
+MODULE_DIRS_COMMUNITY: pathlib.Path = BASE_DIR / "community"
+MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
 
-LOG_FOLDER = PERSONAL_SYSREPTOR_HOME / "logs"
+LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 
 NEWLINE = "\n"
 

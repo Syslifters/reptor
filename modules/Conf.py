@@ -2,9 +2,10 @@ import settings
 
 from core.modules.ConfBase import ConfBase
 from core.modules.ToolBase import ToolBase
+from core.console import reptor_console
+from core.modules.docparser import ModuleDocs
 
 from utils.table import make_table
-from core.console import reptor_console
 
 
 class Conf(ConfBase):
@@ -46,8 +47,18 @@ class Conf(ConfBase):
 
             reptor_console.print(table)
         elif self.arg_modules:
+            table = make_table(["Name", "Short Help", "Author", "Version", "Tags"])
+            # Todo: Adjust with once community and private modules are respected
             for tool in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
-                print(tool)
+                table.add_row(
+                    tool.name,
+                    tool.short_help,
+                    tool.author,
+                    tool.version,
+                    ",".join(tool.tags),
+                )
+
+            reptor_console.print(table)
         else:
             self.config.get_config_from_user()
 

@@ -13,7 +13,7 @@ from .interfaces.reptor import ReptorProtocol
 
 from core.conf import Config
 from core.logger import reptor_logger
-from utils.string_operations import truncate
+from core.modules.docparser import DocParser, ModuleDocs
 
 
 root_logger = logging.getLogger("root")
@@ -122,19 +122,18 @@ class Reptor(ReptorProtocol):
             # Add some metadata
             if not hasattr(module, "loader"):
                 continue
-            module.name = module.loader.__name__.lower()
             module.description = cleandoc(module.loader.__doc__)
-            module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(settings.NEWLINE)[0], length=50)}"
-
+            module_docs = DocParser.parse(module.description)
+            module_docs.name = module.loader.__name__.lower()
             # Add short_help to tool help message
             if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
                 settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
-                    module.short_help
+                    module_docs
                 )
             else:
-                settings.SUBCOMMANDS_GROUPS["other"][1].append(module.short_help)
+                settings.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
 
-            self._loaded_modules[module.name] = module
+            self._loaded_modules[module_docs.name] = module
 
     def _create_parsers(self):
         """Creates the description in the help and the parsers to be used
@@ -149,7 +148,9 @@ class Reptor(ReptorProtocol):
             short_help_group_meta,
         ) in settings.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
-            description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
+
+            for item in short_help_group_meta[1]:
+                description += f"{item.name} {item.short_help}{settings.NEWLINE}"
 
         # Argument parser
         self._parser = argparse.ArgumentParser(

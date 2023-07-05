@@ -9,7 +9,21 @@ from modules.OWASPZap.models import Site, Alert, Instance
 
 class OWASPZap(ToolBase):
     """
+    Author: Richard Schwabe
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
+    License: MIT
+    Tags: owasp, zap
+
+    Short Help:
     Parses OWASPZap XML and JSON reports
+
+    Description:
+    Parses OWASPZap generated reports in either XML or JSON
+
+    Make sure you verify what type of findings you export.
+
+    Recommended settings are to only export Medium and higher findings
     """
 
     def __init__(self, **kwargs):
