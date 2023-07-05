@@ -20,7 +20,8 @@ class APIClient:
     force_unlock: bool
 
     def __init__(self, reptor: ReptorProtocol) -> None:
-        self._config = reptor.get_config()
+        self.reptor = reptor
+        self._config = self.reptor.get_config()
         self.verify = not self._config.get("insecure", False)
 
     def _get_headers(self, json_content=False) -> typing.Dict:

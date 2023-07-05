@@ -11,8 +11,8 @@ log = logging.getLogger("reptor")
 
 
 class ToolBase(Base):
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.call = kwargs.get("call")
         self.note_icon = "🛠️"
         self.raw_input = None

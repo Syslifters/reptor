@@ -281,4 +281,4 @@ class Reptor(ReptorProtocol):
         # Subcommands
         if args.command in self._loaded_modules:
             module = self._loaded_modules[args.command]
-            module.loader(self, **self._config.get("cli")).run()
+            module.loader(reptor=self, **self._config.get("cli")).run()

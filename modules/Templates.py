@@ -14,8 +14,8 @@ class Templates(Base):
         reptor templates
     """
 
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
 
     @classmethod

@@ -14,8 +14,8 @@ class Notes(Base):
         reptor notes
     """
 
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, *kwargs):
+        super().__init__(*kwargs)
 
     @classmethod
     def add_arguments(cls, parser):

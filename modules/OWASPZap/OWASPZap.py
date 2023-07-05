@@ -12,8 +12,8 @@ class OWASPZap(ToolBase):
     Parses OWASPZap XML and JSON reports
     """
 
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.notename = "OWASP Zap"
 
     def parse_json(self, data):
