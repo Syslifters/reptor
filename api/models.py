@@ -6,6 +6,9 @@ import typing
 
 @dataclass
 class BaseModel:
+    """
+    Base Model
+    """
     id: str = ""
     created: datetime.datetime = datetime.datetime.now()
     updated: datetime.datetime = datetime.datetime.now()
@@ -61,6 +64,32 @@ class BaseModel:
 
 
 class User(BaseModel):
+    """
+    Attributes:
+        username:
+        name:
+        title_before:
+        first_name:
+        middle_name:
+        last_name:
+        title_after:
+        is_active:
+        roles:
+        email:
+        phone:
+        mobile:
+        scope:
+        is_superuser:
+        is_designer:
+        is_template_editor:
+        is_guest:
+        is_user_manager:
+        is_system_user:
+        is_global_archiver:
+        is_mfa_enabled:
+        can_login_local:
+        can_login_sso:
+    """
     username: str = ""
     name: str = ""
     title_before: str = ""
@@ -87,6 +116,24 @@ class User(BaseModel):
 
 
 class FindingData(BaseModel):
+    """
+    Attributes:
+        title:
+        cvss:
+        summary:
+        description:
+        precondition:
+        impact:
+        recommendation:
+        short_recommendation:
+        references:
+        affected_components:
+        owasp_top10_2021:
+        wstg_category:
+        retest_notes:
+        retest_status:
+        evidence:
+    """
     title: str = ""
     cvss: str = ""
     summary: str = ""
@@ -105,6 +152,18 @@ class FindingData(BaseModel):
 
 
 class FindingTemplate(BaseModel):
+    """
+    Attributes:
+        details:
+        lock_info:
+        usage_count:
+        source:
+        tags:
+        language:
+        status:
+        data:
+        custom_attributes:
+    """
     details: str = ""
     lock_info: bool = False
     usage_count: int = 0
@@ -118,6 +177,17 @@ class FindingTemplate(BaseModel):
 
 
 class Note(BaseModel):
+    """
+    Attributes:
+        lock_info:
+        title:
+        text:
+        checked:
+        icon_emoji:
+        status_emoji:
+        order:
+        parent:
+    """
     lock_info: bool = False
     title: str = ""
     text: str = ""
@@ -129,6 +199,13 @@ class Note(BaseModel):
 
 
 class ProjectType(BaseModel):
+    """
+    Attributes:
+        source:
+        scope:
+        name:
+        language:
+    """
     source: str = ""
     scope: str = ""
     name: str = ""
@@ -136,6 +213,17 @@ class ProjectType(BaseModel):
 
 
 class Project(BaseModel):
+    """
+    Attributes:
+        name:
+        project_type:
+        language:
+        tags:
+        readonly:
+        source:
+        copy_of:
+        members:
+    """
     name: str = ""
 
     # Todo: should be ProjectType but API returns no object, but ID str instead
