@@ -13,8 +13,6 @@ from reptor.api.errors import LockedException
 from reptor.api.models import Note
 from reptor.utils.file_operations import guess_filetype
 
-from reptor.core.logger import reptor_logger
-
 
 class NotesAPI(APIClient):
     """Interacts with Notes Endpoints
@@ -36,7 +34,7 @@ class NotesAPI(APIClient):
                 f"api/v1/pentestprojects/{self._config.get_project_id()}/notes/",
             )
         else:
-            reptor_logger.fail_with_exit(
+            self.reptor.logger.fail_with_exit(
                 "Either specify a project ID (-p|--project_id) or use --private-note"
             )
 
@@ -86,7 +84,7 @@ class NotesAPI(APIClient):
         If no notename defined, content gets appended to 'Uploads' note
         """
         if not content:
-            reptor_logger.info("Reading from stdin...")
+            self.reptor.logger.info("Reading from stdin...")
             content = sys.stdin.read()
 
         note = self.get_note_by_title(
@@ -111,12 +109,12 @@ class NotesAPI(APIClient):
             self.reptor.logger.debug(
                 f"We are sending data with a lenght of: {len(note_text)}"
             )
-            url = urljoin(self.base_endpoint, note.id, '')
+            url = urljoin(self.base_endpoint, note.id, "")
             r = self.put(url, {"text": note_text})
 
             try:
                 r.raise_for_status()
-                reptor_logger.info(f'Note written to "{notename}".')
+                self.reptor.logger.info(f'Note written to "{notename}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
@@ -134,8 +132,7 @@ class NotesAPI(APIClient):
                 break
         else:
             # Note does not exist. Create.
-            note = self.create_note(
-                title=title, parent_id=parent_id, icon=icon)
+            note = self.create_note(title=title, parent_id=parent_id, icon=icon)
 
         return note
 
@@ -155,7 +152,7 @@ class NotesAPI(APIClient):
 
         for file in files:
             if file.name == "<stdin>":
-                reptor_logger.info("Reading from stdin...")
+                self.reptor.logger.info("Reading from stdin...")
             else:
                 filename = basename(file.name)
             content = file.buffer.read()
@@ -164,13 +161,11 @@ class NotesAPI(APIClient):
                 filename = f"data.{filetype}"
 
             if not content:
-                reptor_logger.warning(
-                    f"{file.name} is empty. Will not upload.")
+                self.reptor.logger.warning(f"{file.name} is empty. Will not upload.")
                 continue
 
             # Lock during upload to prevent unnecessary uploads and for endpoint setup
-            note = self.get_note_by_title(
-                notename, parent_notename=parent_notename)
+            note = self.get_note_by_title(notename, parent_notename=parent_notename)
             if self.private_note:
                 url = urljoin(self.base_endpoint, "upload/")
             else:
@@ -180,11 +175,9 @@ class NotesAPI(APIClient):
             ) if not force_unlock else contextlib.nullcontext():
                 # TODO this might be streamed
                 files = {"file": (filename, content)}
-                response_json = self.post(
-                    url, files=files, json_content=False).json()
+                response_json = self.post(url, files=files, json_content=False).json()
                 is_image = (
-                    True if response_json.get(
-                        "resource_type") == "image" else False
+                    True if response_json.get("resource_type") == "image" else False
                 )
                 if is_image:
                     file_path = f"/images/name/{response_json['name']}"
@@ -216,8 +209,7 @@ class NotesAPI(APIClient):
         if r.status_code == 200 or r.status_code == 403:
             if r.status_code != 200:
                 if self.force_unlock:
-                    raise LockedException(
-                        "Cannot force unlock. Locked by other user.")
+                    raise LockedException("Cannot force unlock. Locked by other user.")
                 else:
                     raise LockedException(
                         "The section you want to write to is locked. "

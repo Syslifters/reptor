@@ -1,5 +1,5 @@
 import json
-from reptor.core.modules.ToolBase import ToolBase
+from reptor.lib.modules.ToolBase import ToolBase
 
 
 class Sslyze(ToolBase):
@@ -244,8 +244,7 @@ class Sslyze(ToolBase):
             is not None
         )
         result_misconfigs["downgrade"] = (
-            commands_results.get("fallback", dict()).get(
-                "supports_fallback_scsv", True)
+            commands_results.get("fallback", dict()).get("supports_fallback_scsv", True)
             is not True
         )
         result_misconfigs["client_renegotiation"] = commands_results.get(
@@ -277,10 +276,8 @@ class Sslyze(ToolBase):
                 target_data = self.get_server_info(target)
                 target_data["protocols"] = self.get_weak_ciphers(target)
                 target_data["certinfo"] = self.get_certinfo(target)
-                target_data["vulnerabilities"] = self.get_vulnerabilities(
-                    target)
-                target_data["misconfigurations"] = self.get_misconfigurations(
-                    target)
+                target_data["vulnerabilities"] = self.get_vulnerabilities(target)
+                target_data["misconfigurations"] = self.get_misconfigurations(target)
 
                 parsed.append(target_data)
         self.parsed_input = parsed
@@ -373,8 +370,7 @@ class Sslyze(ToolBase):
             # Weak ciphers
             if any(
                 [
-                    v.get("weak_ciphers", list()) +
-                    v.get("insecure_ciphers", list())
+                    v.get("weak_ciphers", list()) + v.get("insecure_ciphers", list())
                     for k, v in target["protocols"].items()
                 ]
             ):

@@ -2,8 +2,8 @@ import typing
 
 from django.template.loader import render_to_string
 
-from reptor.community.OWASPZap.models import Alert, Instance, Site
-from reptor.core.modules.ToolBase import ToolBase
+from reptor.modules.community.OWASPZap.models import Alert, Instance, Site
+from reptor.lib.modules.ToolBase import ToolBase
 
 
 class OWASPZap(ToolBase):
@@ -57,8 +57,7 @@ class OWASPZap(ToolBase):
         super().format()
 
         owasp_scan_sites: typing.List[Site] = self.parsed_input
-        rendered = render_to_string("owaspzap_default.md", {
-                                    "data": owasp_scan_sites})
+        rendered = render_to_string("owaspzap_default.md", {"data": owasp_scan_sites})
 
         self.formatted_input = rendered
         # for site in owasp_scan_sites:

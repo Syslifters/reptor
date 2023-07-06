@@ -1,8 +1,7 @@
-from reptor.core.modules.Base import Base
+from reptor.lib.modules.Base import Base
 from reptor.api.ProjectsAPI import ProjectsAPI
 
-from reptor.core.console import reptor_console
-from reptor.core.logger import reptor_logger
+from reptor.lib.console import reptor_console
 
 from reptor.utils.table import make_table
 
@@ -39,7 +38,7 @@ class Projects(Base):
         projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
 
         if self.arg_export:
-            reptor_logger.success("Exporting Project to current folder")
+            self.reptor.logger.success("Exporting Project to current folder")
             projects_api.export(self.config.get_project_id())
             return
 

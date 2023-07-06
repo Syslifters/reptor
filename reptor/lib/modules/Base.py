@@ -1,7 +1,7 @@
-from reptor.core.interfaces.conf import ConfigProtocol
-from reptor.core.interfaces.reptor import ReptorProtocol
+from reptor.lib.interfaces.conf import ConfigProtocol
+from reptor.lib.interfaces.reptor import ReptorProtocol
 
-from reptor.core.logger import reptor_logger, ReptorAdapter
+from reptor.lib.logger import reptor_logger, ReptorAdapter
 
 
 class Base:

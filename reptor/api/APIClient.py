@@ -4,10 +4,8 @@ import requests
 
 from reptor import settings
 
-from reptor.core.interfaces.conf import ConfigProtocol
-from reptor.core.interfaces.reptor import ReptorProtocol
-
-from reptor.core.logger import reptor_logger
+from reptor.lib.interfaces.conf import ConfigProtocol
+from reptor.lib.interfaces.reptor import ReptorProtocol
 
 
 class APIClient:
@@ -31,7 +29,7 @@ class APIClient:
         headers["Referer"] = self.base_endpoint
         headers["User-Agent"] = settings.USER_AGENT
         headers["Authorization"] = f"Bearer {self._config.get_token()}"
-        reptor_logger.debug(f"HTTP Headers: {headers}")
+        self.reptor.logger.debug(f"HTTP Headers: {headers}")
         return headers
 
     def get(self, url: str) -> requests.models.Response:

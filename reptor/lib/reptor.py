@@ -9,10 +9,10 @@ from inspect import cleandoc
 import django
 from django.conf import settings as django_settings
 
-from reptor.core.conf import Config
-from reptor.core.console import Console, reptor_console
-from reptor.core.logger import ReptorAdapter, reptor_logger
-from reptor.core.modules.docparser import DocParser, ModuleDocs
+from reptor.lib.conf import Config
+from reptor.lib.console import Console, reptor_console
+from reptor.lib.logger import ReptorAdapter, reptor_logger
+from reptor.lib.modules.docparser import DocParser, ModuleDocs
 from reptor.utils.markdown import convert_markdown_to_console
 from reptor import settings
 
@@ -80,9 +80,13 @@ class Reptor(ReptorProtocol):
 
         self.logger.debug(f"Found Module Paths: {module_paths}")
 
-    def _load_system_modules(self):
-        """Loads the official modules of syslifters"""
-        self._load_module_from_path(settings.MODULE_DIRS)
+    def _load_core_modules(self):
+        """Loads the core modules for reptor to function"""
+        self._load_module_from_path(settings.MODULE_DIRS_CORE)
+
+    def _load_syslifter_modules(self):
+        """Loads the official modules created by syslifter"""
+        self._load_module_from_path(settings.MODULE_DIRS_OFFICIAL)
 
     def _load_community_modules(self):
         """If the user enabled community modules, these are loaded AFTER
@@ -103,7 +107,8 @@ class Reptor(ReptorProtocol):
         and Community Modules can overwrite System Modules
         """
         self.logger.info("Loading modules...")
-        self._load_system_modules()
+        self._load_core_modules()
+        self._load_syslifter_modules()
         if self._config.get("community", False):
             self._load_community_modules()
         self._load_user_modules()
@@ -146,7 +151,9 @@ class Reptor(ReptorProtocol):
             module_docs.path = module_path
 
             # Check what type of module it is and mark it as such
-            if str(settings.MODULE_DIRS) in module_path:
+            if str(settings.MODULE_DIRS_CORE) in module_path:
+                module_docs.set_core()
+            if str(settings.MODULE_DIRS_OFFICIAL) in module_path:
                 module_docs.set_core()
             if str(settings.MODULE_DIRS_COMMUNITY) in module_path:
                 module_docs.set_community()

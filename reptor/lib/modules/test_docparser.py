@@ -1,6 +1,6 @@
 import unittest
 
-from reptor.core.modules.docparser import DocParser
+from reptor.lib.modules.docparser import DocParser
 
 
 class TestModelsParsing(unittest.TestCase):
@@ -27,11 +27,9 @@ class TestModelsParsing(unittest.TestCase):
 
         self.assertTrue(module_docs.author, "Willy Wonka")
         self.assertTrue(module_docs.version, "1.5")
-        self.assertTrue(module_docs.website,
-                        "https://github.com/Syslifters/reptor")
+        self.assertTrue(module_docs.website, "https://github.com/Syslifters/reptor")
         self.assertTrue(module_docs.license, "MIT")
-        self.assertTrue(module_docs.short_help,
-                        "Parses OWASPZap XML and JSON reports")
+        self.assertTrue(module_docs.short_help, "Parses OWASPZap XML and JSON reports")
 
         self.assertTrue(
             module_docs.description,

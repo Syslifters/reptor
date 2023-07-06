@@ -1,7 +1,7 @@
-from reptor.core.modules.Base import Base
+from reptor.lib.modules.Base import Base
 from reptor.api.TemplatesAPI import TemplatesAPI
 
-from reptor.core.console import reptor_console
+from reptor.lib.console import reptor_console
 from reptor.utils.table import make_table
 
 

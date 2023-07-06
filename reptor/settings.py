@@ -2,9 +2,9 @@ import pathlib
 
 
 from collections import OrderedDict
-from reptor.core.modules.ToolBase import ToolBase
-from reptor.core.modules.ConfBase import ConfBase
-from reptor.core.modules.UploadBase import UploadBase
+from reptor.lib.modules.ToolBase import ToolBase
+from reptor.lib.modules.ConfBase import ConfBase
+from reptor.lib.modules.UploadBase import UploadBase
 
 
 BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
@@ -13,7 +13,9 @@ PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
 PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
 MODULE_DIRS: pathlib.Path = BASE_DIR / "modules"
-MODULE_DIRS_COMMUNITY: pathlib.Path = BASE_DIR / "community"
+MODULE_DIRS_CORE: pathlib.Path = MODULE_DIRS / "core"
+MODULE_DIRS_OFFICIAL: pathlib.Path = MODULE_DIRS / "syslifter"
+MODULE_DIRS_COMMUNITY: pathlib.Path = MODULE_DIRS / "community"
 MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
 
 LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"

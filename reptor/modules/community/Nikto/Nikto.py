@@ -1,15 +1,20 @@
 import typing
 from xml.etree import ElementTree
 
-from reptor.core.modules.ToolBase import ToolBase
-from reptor.community.Nikto.models import NiktoScan, ScanDetails, Item, Statistics
+from reptor.lib.modules.ToolBase import ToolBase
+from reptor.modules.community.Nikto.models import (
+    NiktoScan,
+    ScanDetails,
+    Item,
+    Statistics,
+)
 
 
 class Nikto(ToolBase):
     """
-    Author: Richard Schwabe  
-    Version: 1.0  
-    Website: https://github.com/Syslifters/reptor  
+    Author: Richard Schwabe
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
     License: MIT
     Tags: web,owasp
 

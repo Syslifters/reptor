@@ -1,8 +1,8 @@
 from reptor import settings
-from reptor.core.modules.Base import Base
-from reptor.core.modules.ToolBase import ToolBase
-from reptor.core.console import reptor_console
-from reptor.core.modules.docparser import ModuleDocs
+from reptor.lib.modules.Base import Base
+from reptor.lib.modules.ToolBase import ToolBase
+from reptor.lib.console import reptor_console
+from reptor.lib.modules.docparser import ModuleDocs
 
 from reptor.utils.table import make_table
 
@@ -107,8 +107,7 @@ class Modules(Base):
 
     def _search(self):
         """Searches modules"""
-        self.reptor.console.print(
-            f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
         results = list()
         for module in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
             if self.arg_search in module.tags:
@@ -158,8 +157,7 @@ class Modules(Base):
             :5
         ]
 
-        tool_based = input("Is it based on a tool output? [N,y]:")[
-            :1].lower() == "y"
+        tool_based = input("Is it based on a tool output? [N,y]:")[:1].lower() == "y"
 
     def run(self):
         if self.arg_search:

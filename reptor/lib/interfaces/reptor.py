@@ -2,8 +2,8 @@ import typing
 from abc import abstractmethod
 
 from .conf import ConfigProtocol
-from reptor.core.logger import ReptorAdapter
-from reptor.core.console import Console
+from reptor.lib.logger import ReptorAdapter
+from reptor.lib.console import Console
 
 
 class ReptorProtocol(typing.Protocol):

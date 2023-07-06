@@ -6,14 +6,12 @@ from enum import Enum
 from inspect import cleandoc
 
 
-class MODULE_TYPE(Enum):
-    CORE = "CORE"
-    COMMUNITY = "COMMUNITY"
-    PRIVATE = "PRIVATE"
-
-
 class ModuleDocs:
-    _type: typing.Literal["CORE", "COMMUNITY", "PRIVATE"] = MODULE_TYPE.CORE
+    TYPE_CORE = "CORE"
+    TYPE_COMMUNITY = "COMMUNITY"
+    TYPE_PRIVATE = "PRIVATE"
+
+    _type: typing.Literal["CORE", "COMMUNITY", "PRIVATE"] = TYPE_CORE
     _overwrites = None
 
     name: str = ""
@@ -28,31 +26,31 @@ class ModuleDocs:
     path: pathlib.Path = None
 
     def is_community(self) -> bool:
-        return self._type == MODULE_TYPE.COMMUNITY
+        return self._type == self.TYPE_COMMUNITY
 
     def is_core(self) -> bool:
-        return self._type == MODULE_TYPE.CORE
+        return self._type == self.TYPE_CORE
 
     def is_private(self) -> bool:
-        return self._type == MODULE_TYPE.PRIVATE
+        return self._type == self.TYPE_PRIVATE
 
     def set_community(self):
-        self._type = MODULE_TYPE.COMMUNITY
+        self._type = self.TYPE_COMMUNITY
 
     def set_core(self):
-        self._type = MODULE_TYPE.CORE
+        self._type = self.TYPE_CORE
 
     def set_private(self):
-        self._type = MODULE_TYPE.PRIVATE
+        self._type = self.TYPE_PRIVATE
 
     @property
     def space_label(self) -> str:
         if self.is_private():
-            return MODULE_TYPE.PRIVATE.capitalize()
+            return self.TYPE_PRIVATE.capitalize()
         if self.is_core():
-            return MODULE_TYPE.CORE.capitalize()
+            return self.TYPE_CORE.capitalize()
         if self.is_community():
-            return MODULE_TYPE.COMMUNITY.capitalize()
+            return self.TYPE_COMMUNITY.capitalize()
 
         return ""
 

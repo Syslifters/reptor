@@ -1,4 +1,4 @@
-from reptor.core.modules.ToolBase import ToolBase
+from reptor.lib.modules.ToolBase import ToolBase
 
 
 class Nmap(ToolBase):
