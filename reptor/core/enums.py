@@ -1,8 +1,9 @@
-from enum import StrEnum
+from enum import StrEnum, auto
+
 
 class RISK_RATING(StrEnum):
-    INFO : str = "INFO"
-    LOW : str = "LOW"
-    MEDIUM : str = "MEDIUM"
-    HIGH : str = "HIGH"
-    CRITICAL : str = "CRITICAL"
+    INFO = auto()
+    LOW = auto()
+    MEDIUM = auto()
+    HIGH = auto()
+    CRITICAL = auto()
