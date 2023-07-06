@@ -7,6 +7,8 @@ import typing
 import logging
 
 from inspect import cleandoc
+import django
+from django.conf import settings as django_settings
 
 import settings
 from .interfaces.reptor import ReptorProtocol
@@ -127,6 +129,14 @@ class Reptor(ReptorProtocol):
             # Check if the Module is Valid
             if not hasattr(module, "loader"):
                 continue
+
+            # Todo: This is dirty proof of concept
+            # needs a more elegant solution
+            module_path_obj = pathlib.Path(module_path)
+            if module_path_obj.parent.name not in ["modules", "community"]:
+                settings.TEMPLATES[0]["DIRS"].append(
+                    module_path_obj.parent / "templates"
+                )
 
             # Configure metadata
             module.description = cleandoc(module.loader.__doc__)
@@ -306,6 +316,8 @@ class Reptor(ReptorProtocol):
 
         self._import_modules()
 
+        django_settings.configure(settings, DEBUG=True)
+        django.setup()
         self._create_parsers()
 
         self._dynamically_add_module_options()

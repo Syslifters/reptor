@@ -44,6 +44,7 @@ class Alert:
     cweid: int
     wascid: int
     sourceid: int
+
     instances: typing.List[Instance] = list()
 
     def parse(self, data):
@@ -61,6 +62,10 @@ class Alert:
         self.cweid = data.find("cweid").text
         self.wascid = data.find("wascid").text
         self.sourceid = data.find("sourceid").text
+
+    @property
+    def references_as_list_items(self):
+        return self.reference.splitlines()
 
 
 class Site:

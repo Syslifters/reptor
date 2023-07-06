@@ -94,10 +94,12 @@ class NotesAPI(APIClient):
             notename, parent_notename=parent_notename, icon=icon
         )
 
+        self.reptor.logger.debug(f"Working with note: {note.id}")
+
         with self._auto_lock_note(
-            note["id"]
+            note.id
         ) if not force_unlock else contextlib.nullcontext():
-            note_text = note["text"] + "\n\n"
+            note_text = note.text + "\n\n"
             if not no_timestamp:
                 note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
                 if "\n" in content:
@@ -107,9 +109,12 @@ class NotesAPI(APIClient):
                     note_text += ": "
 
             note_text += content
-
-            url = urljoin(self.base_endpoint, note["id"])
+            self.reptor.logger.debug(
+                f"We are sending data with a lenght of: {len(note_text)}"
+            )
+            url = urljoin(self.base_endpoint, note.id)
             r = self.put(url, {"text": note_text})
+
             try:
                 r.raise_for_status()
             except HTTPError as e:
@@ -126,11 +131,12 @@ class NotesAPI(APIClient):
         notes_list = self.get_notes()
 
         for note in reversed(notes_list):
-            if note.get("title") == title and note.get("parent") == parent_id:
+            if note.title == title and note.parent == parent_id:
                 break
         else:
             # Note does not exist. Create.
             note = self.create_note(title=title, parent_id=parent_id, icon=icon)
+
         return note
 
     def upload_file(
@@ -171,7 +177,7 @@ class NotesAPI(APIClient):
             else:
                 url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
             with self._auto_lock_note(
-                note["id"]
+                note.id
             ) if not force_unlock else contextlib.nullcontext():
                 # TODO this might be streamed
                 files = {"file": (filename, content)}

@@ -37,10 +37,8 @@ class ToolBase(Base):
     def run(self):
         if self.call == "parse":
             self.parse()
-            print(self.parsed_input)
         elif self.call == "format":
             self.format()
-            print(self.formatted_input)
         elif self.call == "upload":
             self.upload()
 

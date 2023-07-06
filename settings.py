@@ -1,9 +1,11 @@
 import pathlib
 
+
 from collections import OrderedDict
 from core.modules.ToolBase import ToolBase
 from core.modules.ConfBase import ConfBase
 from core.modules.UploadBase import UploadBase
+
 
 BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
 
@@ -28,3 +30,16 @@ SUBCOMMANDS_GROUPS = OrderedDict(
         "other": ("other", list()),
     }
 )
+
+# Django Related Setup
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+    },
+]
+
+INSTALLED_APPS = []
+LOGGING_CONFIG = []
+LOGGING = []
+FORCE_SCRIPT_NAME = ""

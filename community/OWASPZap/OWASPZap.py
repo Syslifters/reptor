@@ -1,6 +1,9 @@
 import typing
 
 from xml.etree import ElementTree
+from django.template.loader import render_to_string
+
+import settings
 
 from core.modules.ToolBase import ToolBase
 
@@ -57,59 +60,59 @@ class OWASPZap(ToolBase):
     def format(self):
         super().format()
 
-        output = list()
-
         owasp_scan_sites: typing.List[Site] = self.parsed_input
+        rendered = render_to_string("owaspzap_default.md", {"data": owasp_scan_sites})
 
-        for site in owasp_scan_sites:
-            site_output = f"""
+        self.formatted_input = rendered
+        # for site in owasp_scan_sites:
+        #     site_output = f"""
 
-            # OWASPZap Scan
+        #     # OWASPZap Scan
 
-            ## Site Details
-            | Target | Information |
-            | :--- | :--- |
-            | Site | {site.name} |
-            | Host | {site.host} |
-            | Port | {site.port} |
-            | SSL ? | {'Yes' if site.ssl.lower().startswith("t") else 'No'} |
+        #     ## Site Details
+        #     | Target | Information |
+        #     | :--- | :--- |
+        #     | Site | {site.name} |
+        #     | Host | {site.host} |
+        #     | Port | {site.port} |
+        #     | SSL ? | {'Yes' if site.ssl.lower().startswith("t") else 'No'} |
 
-            ## Alerts
-            """
+        #     ## Alerts
+        #     """
 
-            output.append(site_output)
+        #     output.append(site_output)
 
-            for alert in site.alerts:
-                alert_output = f"""
+        #     for alert in site.alerts:
+        #         alert_output = f"""
 
-                ### {alert.name}
-                | Target | Information |
-                | :--- | :--- |
-                | Risk | {alert.riskdesc} |
-                | Confidence | {alert.confidencedesc} |
-                | Number of Affected Instances | {alert.count} |
-                | CWE | [{alert.cweid}](https://cwe.mitre.org/data/definitions/{alert.cweid}.html) |
+        #         ### {alert.name}
+        #         | Target | Information |
+        #         | :--- | :--- |
+        #         | Risk | {alert.riskdesc} |
+        #         | Confidence | {alert.confidencedesc} |
+        #         | Number of Affected Instances | {alert.count} |
+        #         | CWE | [{alert.cweid}](https://cwe.mitre.org/data/definitions/{alert.cweid}.html) |
 
-                ### Description
-                {alert.desc}
+        #         ### Description
+        #         {alert.desc}
 
-                ### Solution
-                {alert.solution}
+        #         ### Solution
+        #         {alert.solution}
 
-                ### References
-                """
+        #         ### References
+        #         """
 
-                if alert.reference:
-                    for reference in alert.reference.splitlines():
-                        alert_output += f"""
-                        - [{reference}]({reference})
-                """
-                else:
-                    alert_output += "None"
+        #         if alert.reference:
+        #             for reference in alert.reference.splitlines():
+        #                 alert_output += f"""
+        #                 - [{reference}]({reference})
+        #         """
+        #         else:
+        #             alert_output += "None"
 
-                output.append(alert_output)
+        #         output.append(alert_output)
 
-        self.formatted_input = "\n".join(output)
+        # self.formatted_input = "\n".join(output)
 
 
 loader = OWASPZap
