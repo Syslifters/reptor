@@ -2,7 +2,6 @@ import pathlib
 import re
 import typing
 
-from enum import Enum
 from inspect import cleandoc
 
 
@@ -23,7 +22,7 @@ class ModuleDocs:
     short_help: str = ""
     description: str = ""
 
-    path: pathlib.Path = None
+    path: pathlib.Path = None  # type: ignore
 
     def is_community(self) -> bool:
         return self._type == self.TYPE_COMMUNITY
