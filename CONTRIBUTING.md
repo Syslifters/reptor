@@ -15,4 +15,3 @@ If you use external dependencies, you must copy their license text and add it to
 # Credits
 ## Special thanks for all the people who had helped this project so far:
 * [Richard Schwabe](https://github.com/richardschwabe)
-*

