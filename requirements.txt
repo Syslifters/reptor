@@ -1,5 +1,7 @@
+asgiref==3.7.2
 certifi==2023.5.7
 charset-normalizer==3.1.0
+Django==4.2.3
 idna==3.4
 markdown-it-py==3.0.0
 mdurl==0.1.2
@@ -7,5 +9,6 @@ Pygments==2.15.1
 PyYAML==6.0
 requests==2.31.0
 rich==13.4.2
+sqlparse==0.4.4
 termcolor==2.3.0
 urllib3==2.0.3

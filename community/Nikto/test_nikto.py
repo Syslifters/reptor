@@ -1,11 +1,10 @@
 import unittest
 from xml.etree import ElementTree
 
-from modules.Nikto.models import NiktoScan
+from community.Nikto.models import NiktoScan
 
 
 class TestXMLParseMethods(unittest.TestCase):
-
     def test_nikto_scan(self):
         xml_sample = """<?xml version="1.0" ?>
 <!DOCTYPE niktoscans SYSTEM "/var/lib/nikto/docs/nikto.dtd">
@@ -14,15 +13,18 @@ class TestXMLParseMethods(unittest.TestCase):
     </niktoscan>
 </niktoscans>"""
 
-
         root = ElementTree.fromstring(xml_sample)
 
         nikto_scan = NiktoScan()
 
         nikto_scan.parse(root[0])
 
-        self.assertEqual("-host targets.txt -Format xml -output multiple-nikto.xml", nikto_scan.options)
+        self.assertEqual(
+            "-host targets.txt -Format xml -output multiple-nikto.xml",
+            nikto_scan.options,
+        )
         self.assertEqual("2.5.0", nikto_scan.version)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

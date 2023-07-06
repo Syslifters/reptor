@@ -11,8 +11,8 @@ log = logging.getLogger("reptor")
 
 
 class ToolBase(Base):
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.call = kwargs.get("call")
         self.note_icon = "🛠️"
         self.raw_input = None
@@ -37,10 +37,8 @@ class ToolBase(Base):
     def run(self):
         if self.call == "parse":
             self.parse()
-            print(self.parsed_input)
         elif self.call == "format":
             self.format()
-            print(self.formatted_input)
         elif self.call == "upload":
             self.upload()
 

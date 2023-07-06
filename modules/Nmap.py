@@ -3,18 +3,24 @@ from core.modules.ToolBase import ToolBase
 
 class Nmap(ToolBase):
     """
-    format nmap output
+    Author: Syslifters
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
+    License: MIT
+    Tags: network,scanning,infrastructure
 
-    Sample commands:
+    Short Help:
+    Formats nmap output
 
-        target=127.0.0.1
-        sudo nmap -Pn -n -sV -oG - -p 1-65535 $target
+    Description:
+    target=127.0.0.1
+    sudo nmap -Pn -n -sV -oG - -p 1-65535 $target
 
-        sudo -v  # Elevate privileges for non-interactive
-        sudo -n nmap -Pn -n -sV -oG - -p 80,440 $target | tee nmap_result.txt | reptor nmap
+    sudo -v  # Elevate privileges for non-interactive
+    sudo -n nmap -Pn -n -sV -oG - -p 80,440 $target | tee nmap_result.txt | reptor nmap
 
-        # Format and upload
-        cat nmap_result.txt | reptor nmap -c upload
+    # Format and upload
+    cat nmap_result.txt | reptor nmap -c upload
     """
 
     def __init__(self, **kwargs):

@@ -1,20 +1,22 @@
 import pathlib
 
+
 from collections import OrderedDict
 from core.modules.ToolBase import ToolBase
 from core.modules.ConfBase import ConfBase
 from core.modules.UploadBase import UploadBase
 
-BASE_DIR = pathlib.Path(__file__).parent
 
-PERSONAL_SYSREPTOR_HOME = pathlib.Path.home() / ".sysreptor"
-PERSONAL_CONFIG_FILE = PERSONAL_SYSREPTOR_HOME / "config.yaml"
+BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
 
-MODULE_DIRS = BASE_DIR / "modules"
-MODULE_DIRS_COMMUNITY = BASE_DIR / "community"
-MODULE_DIRS_USER = PERSONAL_SYSREPTOR_HOME / "modules"
+PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
+PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
-LOG_FOLDER = PERSONAL_SYSREPTOR_HOME / "logs"
+MODULE_DIRS: pathlib.Path = BASE_DIR / "modules"
+MODULE_DIRS_COMMUNITY: pathlib.Path = BASE_DIR / "community"
+MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
+
+LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 
 NEWLINE = "\n"
 
@@ -28,3 +30,16 @@ SUBCOMMANDS_GROUPS = OrderedDict(
         "other": ("other", list()),
     }
 )
+
+# Django Related Setup
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+    },
+]
+
+INSTALLED_APPS = []
+LOGGING_CONFIG = []
+LOGGING = []
+FORCE_SCRIPT_NAME = ""

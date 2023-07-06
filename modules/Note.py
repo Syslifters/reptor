@@ -4,7 +4,11 @@ from api.NotesAPI import NotesAPI
 
 class Note(UploadBase):
     """
-    upload as note
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
+
+    Short Help:
+    Uploads a note
     """
 
     @classmethod
@@ -12,7 +16,7 @@ class Note(UploadBase):
         super().add_arguments(parser)
 
     def run(self):
-        notename = self.config.get("cli").get("notename")
+        notename = self.config.get_cli_overwrite().get("notename")
         parent_notename = None
         icon = None
         if notename:
@@ -20,15 +24,15 @@ class Note(UploadBase):
         else:
             notename = "Uploads"
             icon = "📤"
-        force_unlock = self.config.get("cli").get("force_unlock")
-        no_timestamp = self.config.get("cli").get("no_timestamp")
+        force_unlock = self.config.get_cli_overwrite().get("force_unlock")
+        no_timestamp = self.config.get_cli_overwrite().get("no_timestamp")
 
         NotesAPI(self.reptor).write_note(
             notename=notename,
             parent_notename=parent_notename,
             icon=icon,
-            force_unlock=force_unlock,
-            no_timestamp=no_timestamp,
+            force_unlock=force_unlock,  # type: ignore
+            no_timestamp=no_timestamp,  # type: ignore
         )
 
 

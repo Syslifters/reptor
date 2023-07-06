@@ -7,19 +7,21 @@ import typing
 import logging
 
 from inspect import cleandoc
+import django
+from django.conf import settings as django_settings
 
 import settings
 from .interfaces.reptor import ReptorProtocol
 
 from core.conf import Config
-from core.logger import reptor_logger
-from utils.string_operations import truncate
+from core.logger import reptor_logger, ReptorAdapter
+from core.console import reptor_console, Console
+from core.modules.docparser import DocParser, ModuleDocs
 
 
 root_logger = logging.getLogger("root")
 
 # Todo:
-# - Respect Community setting in Help Output (Community modules should only be shown when community is enabled)
 # - Refactor Global and Configuration arguments
 # - Refactor Output
 
@@ -31,6 +33,9 @@ class Reptor(ReptorProtocol):
     _parser: argparse.ArgumentParser
     _sub_parsers: argparse._SubParsersAction
 
+    logger: ReptorAdapter = reptor_logger
+    console: Console = reptor_console
+
     def __new__(cls):
         if not hasattr(cls, "instance"):
             cls.instance = super(Reptor, cls).__new__(cls)
@@ -38,7 +43,6 @@ class Reptor(ReptorProtocol):
 
     def __init__(self) -> None:
         self._load_config()
-        self.logger = reptor_logger
 
         # Todo: Debate if always write to file or togglable
         self.logger.add_file_log()
@@ -106,35 +110,76 @@ class Reptor(ReptorProtocol):
         self._load_user_modules()
 
     def _import_modules(self):
-        """Loads each module
+        """Loads each module from _module_paths
 
         Returns:
-            typing.Dict: Dictionary holding each module name
+            typing.Dict: Dictionary holding each module meta information
         """
 
-        for module in self._module_paths:
-            spec = importlib.util.spec_from_file_location("module.name", module)  # type: ignore
+        for module_path in self._module_paths:
+            spec = importlib.util.spec_from_file_location("module.name", module_path)  # type: ignore
+
+            self.logger.debug(module_path)
 
             module = importlib.util.module_from_spec(spec)  # type: ignore
+
             sys.modules["module.name"] = module
             spec.loader.exec_module(module)
 
-            # Add some metadata
+            # Check if the Module is Valid
             if not hasattr(module, "loader"):
                 continue
-            module.name = module.loader.__name__.lower()
-            module.description = cleandoc(module.loader.__doc__)
-            module.short_help = f"{module.name}{max(1,(15-len(module.name)))*' '}{truncate(module.description.split(settings.NEWLINE)[0], length=50)}"
 
-            # Add short_help to tool help message
+            # Todo: This is dirty proof of concept
+            # needs a more elegant solution
+            module_path_obj = pathlib.Path(module_path)
+            if module_path_obj.parent.name not in ["modules", "community"]:
+                settings.TEMPLATES[0]["DIRS"].append(
+                    module_path_obj.parent / "templates"
+                )
+
+            # Configure metadata
+            module.description = cleandoc(module.loader.__doc__)
+            module_docs = DocParser.parse(module.description)
+            module_docs.name = module.loader.__name__.lower()
+            module_docs.path = module_path
+
+            # Check what type of module it is and mark it as such
+            if str(settings.MODULE_DIRS) in module_path:
+                module_docs.set_core()
+            if str(settings.MODULE_DIRS_COMMUNITY) in module_path:
+                module_docs.set_community()
+            if str(settings.MODULE_DIRS_USER) in module_path:
+                module_docs.set_private()
+
+            # Add it to the correct commands group
             if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
+                # check if the module is already in the list,
+                # if so a later loaded module, from community or private
+                # needs to overwrite it
+
+                for index, existing_module in enumerate(
+                    settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1]
+                ):
+                    if existing_module.name == module_docs.name:
+                        # we have the case of an overwrite
+                        # save the overwritten module details
+                        module_docs.set_overwrites_module(existing_module)
+
+                        # remove the original item
+                        settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].pop(
+                            index
+                        )
+                # add the module data to the end
                 settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
-                    module.short_help
+                    module_docs
                 )
             else:
-                settings.SUBCOMMANDS_GROUPS["other"][1].append(module.short_help)
+                # Todo: Other section shouldn't be left out, maybe refactor logic above to easily reuse
+                settings.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
 
-            self._loaded_modules[module.name] = module
+            # because it is a dictionary, an overwritten module is automatically overwritten
+            self._loaded_modules[module_docs.name] = module
 
     def _create_parsers(self):
         """Creates the description in the help and the parsers to be used
@@ -149,7 +194,10 @@ class Reptor(ReptorProtocol):
             short_help_group_meta,
         ) in settings.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
-            description += f"{settings.NEWLINE.join(short_help_group_meta[1])}\n"
+
+            item: ModuleDocs
+            for item in short_help_group_meta[1]:
+                description += f"{item.name:<21} {item.short_help}{settings.NEWLINE}"
 
         # Argument parser
         self._parser = argparse.ArgumentParser(
@@ -254,7 +302,7 @@ class Reptor(ReptorProtocol):
         # Todo: Refactor the order when the parsers are available. Otherwise
         # with the current direction we don't have --debug and -verbose output
         # until we hit self._parse_main_arguments_with_subparser()
-        self.logger.success("Reptor is starting...")
+        self.logger.info("Reptor is starting...")
 
         # Todo: remove current hack for debug and verbose logging
         if "-v" in sys.argv or "--verbose" in sys.argv:
@@ -268,6 +316,8 @@ class Reptor(ReptorProtocol):
 
         self._import_modules()
 
+        django_settings.configure(settings, DEBUG=True)
+        django.setup()
         self._create_parsers()
 
         self._dynamically_add_module_options()
@@ -281,4 +331,4 @@ class Reptor(ReptorProtocol):
         # Subcommands
         if args.command in self._loaded_modules:
             module = self._loaded_modules[args.command]
-            module.loader(self, **self._config.get("cli")).run()
+            module.loader(reptor=self, **self._config.get("cli")).run()

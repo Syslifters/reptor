@@ -54,3 +54,9 @@ $ cat test_data/sslyze.txt | python3 reptor nmap
 ```
 $ cat test_data/sslyze.txt | python3 reptor nmap -c upload
 ```
+
+## Unit Tests
+
+```
+python -m unittest discover -v -s modules
+```

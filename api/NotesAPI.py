@@ -11,9 +11,10 @@ from requests import HTTPError
 
 from api.APIClient import APIClient
 from api.errors import LockedException
+from api.models import Note
 from utils.file_operations import guess_filetype
 
-log = logging.getLogger("reptor")
+from core.logger import reptor_logger
 
 
 class NotesAPI(APIClient):
@@ -36,20 +37,25 @@ class NotesAPI(APIClient):
                 f"api/v1/pentestprojects/{self._config.get_project_id()}/notes/",
             )
         else:
-            raise AttributeError("No project ID specified.")
+            reptor_logger.fail_with_exit(
+                "Either specify a project ID (-p|--project_id) or use --private-note"
+            )
 
     @property
     def private_note(self):
         return self._config.get_cli_overwrite().get("private_note")
 
-    def get_notes(self):
+    def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""
         response = self.get(self.base_endpoint)
-        return response.json()
+        notes = list()
+        for note_data in response.json():
+            notes.append(Note(note_data))
+        return notes
 
     def create_note(
         self, title="CLI Note", parent_id=None, order=None, icon=None
-    ) -> typing.Any:
+    ) -> Note:
         note = self.post(
             self.base_endpoint,
             {
@@ -60,7 +66,7 @@ class NotesAPI(APIClient):
         ).json()
         if icon:
             self.set_icon(note.get("id"), icon)
-        return note
+        return Note(note)
 
     def set_icon(self, notes_id: str, icon: str):
         url = urljoin(self.base_endpoint, f"{notes_id}/")
@@ -81,17 +87,19 @@ class NotesAPI(APIClient):
         If no notename defined, content gets appended to 'Uploads' note
         """
         if not content:
-            log.info("Reading from stdin...")
+            reptor_logger.info("Reading from stdin...")
             content = sys.stdin.read()
 
         note = self.get_note_by_title(
             notename, parent_notename=parent_notename, icon=icon
         )
 
+        self.reptor.logger.debug(f"Working with note: {note.id}")
+
         with self._auto_lock_note(
-            note["id"]
+            note.id
         ) if not force_unlock else contextlib.nullcontext():
-            note_text = note["text"] + "\n\n"
+            note_text = note.text + "\n\n"
             if not no_timestamp:
                 note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
                 if "\n" in content:
@@ -101,30 +109,34 @@ class NotesAPI(APIClient):
                     note_text += ": "
 
             note_text += content
-
-            url = urljoin(self.base_endpoint, note["id"])
+            self.reptor.logger.debug(
+                f"We are sending data with a lenght of: {len(note_text)}"
+            )
+            url = urljoin(self.base_endpoint, note.id)
             r = self.put(url, {"text": note_text})
+
             try:
                 r.raise_for_status()
+                reptor_logger.info(f'Note written to "{notename}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
                 ) from e
-        log.info(f'Note written to "{notename}".')
 
-    def get_note_by_title(self, title, parent_notename=None, icon=None):
+    def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
         parent_id = None
         if parent_notename:
             note = self.get_note_by_title(parent_notename)
-            parent_id = note.get("id")
+            parent_id = note.id
         notes_list = self.get_notes()
 
         for note in reversed(notes_list):
-            if note.get("title") == title and note.get("parent") == parent_id:
+            if note.title == title and note.parent == parent_id:
                 break
         else:
             # Note does not exist. Create.
             note = self.create_note(title=title, parent_id=parent_id, icon=icon)
+
         return note
 
     def upload_file(
@@ -143,7 +155,7 @@ class NotesAPI(APIClient):
 
         for file in files:
             if file.name == "<stdin>":
-                log.info("Reading from stdin...")
+                reptor_logger.info("Reading from stdin...")
             else:
                 filename = basename(file.name)
             content = file.buffer.read()
@@ -152,7 +164,7 @@ class NotesAPI(APIClient):
                 filename = f"data.{filetype}"
 
             if not content:
-                log.warning(f"{file.name} is empty. Will not upload.")
+                reptor_logger.warning(f"{file.name} is empty. Will not upload.")
                 continue
 
             # Lock during upload to prevent unnecessary uploads and for endpoint setup
@@ -165,7 +177,7 @@ class NotesAPI(APIClient):
             else:
                 url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
             with self._auto_lock_note(
-                note["id"]
+                note.id
             ) if not force_unlock else contextlib.nullcontext():
                 # TODO this might be streamed
                 files = {"file": (filename, content)}

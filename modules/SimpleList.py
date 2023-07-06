@@ -52,8 +52,7 @@ class SimpleList(ToolBase):
             # that require another argument to be present
             # parser.error("--level requires that you set --header")
             # current solution:
-            print("--level requires --header to be present")
-            exit()
+            self.logger.fail_with_exit("--level requires --header to be present")
 
         parsed_input = {
             "header": self.arg_header,

@@ -1,24 +1,23 @@
-from rich import box
-from rich.table import Table
-
 from core.modules.Base import Base
 from api.ProjectsAPI import ProjectsAPI
 
 from core.console import reptor_console
 from core.logger import reptor_logger
 
+from utils.table import make_table
+
 
 class Projects(Base):
     """
-    Queries Server for Projects
+    Author: Syslifters
+    Website: https://github.com/Syslifters/reptor
 
-
-    Sample commands:
-        reptor projects
+    Short Help:
+    Queries Projects from API
     """
 
-    def __init__(self, reptor, **kwargs):
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
         self.arg_export = kwargs.get("export")
 
@@ -49,15 +48,7 @@ class Projects(Base):
         else:
             projects = projects_api.search(self.arg_search)
 
-        table = Table(show_header=True, header_style="bold yellow")
-        table.caption = "Your Projects"
-        table.row_styles = ["none", "dim"]
-        table.border_style = "bright_yellow"
-        table.box = box.SQUARE
-        table.pad_edge = False
-        table.add_column("Title")
-        table.add_column("ID")
-        table.add_column("Archived", justify="right")
+        table = make_table(["Title", "ID", "Archived"])
 
         for project in projects:
             archived = ""
