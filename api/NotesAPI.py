@@ -1,5 +1,4 @@
 import contextlib
-import logging
 import sys
 import typing
 
@@ -112,7 +111,7 @@ class NotesAPI(APIClient):
             self.reptor.logger.debug(
                 f"We are sending data with a lenght of: {len(note_text)}"
             )
-            url = urljoin(self.base_endpoint, note.id)
+            url = urljoin(self.base_endpoint, note.id, '')
             r = self.put(url, {"text": note_text})
 
             try:
@@ -171,9 +170,6 @@ class NotesAPI(APIClient):
             note = self.get_note_by_title(notename, parent_notename=parent_notename)
             if self.private_note:
                 url = urljoin(self.base_endpoint, "upload/")
-                raise TypeError(
-                    "Uploading files to private notes is currently not supported"
-                )  # TODO fix this as soon as new sysreptor version deployed
             else:
                 url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
             with self._auto_lock_note(
