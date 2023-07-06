@@ -1,9 +1,0 @@
-#!/usr/bin/env python3
-from core.reptor import Reptor
-
-# TODO better error message if settings are missing
-
-if __name__ == "__main__":
-    reptor = Reptor()
-
-    reptor.run()

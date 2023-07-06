@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "reptor"
+version = "0.1"
+authors = [
+  { name="Richard Schwabe" },
+  { name="Aron Molnar", email="aron@syslifters.com" }
+]
+maintainers = [
+  {name = 'Syslifters', email = 'hello@syslifters.com'}
+]
+description = "reptor takes pentesting tool outputs, transforms them to markdown and integrates into the pentest reporting tool SysReptor."
+readme = "README.md"
+license = {file = 'LICENSE'}
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+reptor = 'reptor.__main__:run'
+
+[project.urls]
+"Homepage" = "https://github.com/Syslifters/reptor/blob/main/README.md"
+"Documentation" = "https://github.com/Syslifters/reptor/blob/main/README.md"
+"Bug Tracker" = "https://github.com/Syslifters/reptor/issues"
+"Source" = "https://github.com/syslifters/reptor"
