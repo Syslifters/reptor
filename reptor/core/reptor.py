@@ -13,6 +13,7 @@ from reptor.core.conf import Config
 from reptor.core.console import Console, reptor_console
 from reptor.core.logger import ReptorAdapter, reptor_logger
 from reptor.core.modules.docparser import DocParser, ModuleDocs
+from reptor.utils.markdown import convert_markdown_to_console
 from reptor import settings
 
 from .interfaces.reptor import ReptorProtocol
@@ -116,7 +117,8 @@ class Reptor(ReptorProtocol):
 
         for module_path in self._module_paths:
             spec = importlib.util.spec_from_file_location(
-                "module.name", module_path)  # type: ignore
+                "module.name", module_path
+            )  # type: ignore
 
             self.logger.debug(module_path)
 
@@ -200,8 +202,7 @@ class Reptor(ReptorProtocol):
 
         # Argument parser
         self._parser = argparse.ArgumentParser(
-            prog='reptor',
-            formatter_class=argparse.RawDescriptionHelpFormatter
+            prog="reptor", formatter_class=argparse.RawDescriptionHelpFormatter
         )
 
         self._sub_parsers = self._parser.add_subparsers(
@@ -297,6 +298,11 @@ class Reptor(ReptorProtocol):
         self.logger.debug(f"Parsed args: {args}")
         return args
 
+    def _print_title(self):
+        """Prints a parsed & converted markdown text from title.md in the root directory"""
+        with open(settings.BASE_DIR / "title.md", "r", encoding="utf-8") as f:
+            reptor_console.print(convert_markdown_to_console(f.read()))
+
     def run(self) -> None:
         """The run method actually starts the cli application"""
         # Todo: Refactor the order when the parsers are available. Otherwise
@@ -332,3 +338,7 @@ class Reptor(ReptorProtocol):
         if args.command in self._loaded_modules:
             module = self._loaded_modules[args.command]
             module.loader(reptor=self, **self._config.get("cli")).run()
+        else:
+            # This is called when the user uses python -m reptor or any other way
+            # but provides no arguments at all
+            self._print_title()
