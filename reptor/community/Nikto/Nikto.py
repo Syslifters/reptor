@@ -7,12 +7,6 @@ from reptor.community.Nikto.models import NiktoScan, ScanDetails, Item, Statisti
 
 class Nikto(ToolBase):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: web,owasp
-
     Short Help:
     Formats Nikto output (Raw, XML, JSON)
 
@@ -25,6 +19,13 @@ class Nikto(ToolBase):
     cat nikto-result.xml | python reptor simplelist --xml
 
     cat nikto-result.json | python reptor simplelist --json
+    """
+    """
+    Author: Richard Schwabe
+    Version: 1.0
+    Website: https://github.com/Syslifters/reptor
+    License: MIT
+    Tags: web,owasp
     """
 
     def __init__(self, **kwargs):
