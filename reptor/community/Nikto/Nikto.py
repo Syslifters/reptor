@@ -7,9 +7,9 @@ from reptor.community.Nikto.models import NiktoScan, ScanDetails, Item, Statisti
 
 class Nikto(ToolBase):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
+    Author: Richard Schwabe  
+    Version: 1.0  
+    Website: https://github.com/Syslifters/reptor  
     License: MIT
     Tags: web,owasp
 
