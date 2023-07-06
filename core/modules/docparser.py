@@ -2,11 +2,11 @@ import pathlib
 import re
 import typing
 
-from enum import StrEnum
+from enum import Enum
 from inspect import cleandoc
 
 
-class MODULE_TYPE(StrEnum):
+class MODULE_TYPE(Enum):
     CORE = "CORE"
     COMMUNITY = "COMMUNITY"
     PRIVATE = "PRIVATE"
