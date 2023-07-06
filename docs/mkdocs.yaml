@@ -6,6 +6,7 @@ site_dir: ./site/ # Where to put the HTML files
 nav:
   - Home: index.md
   - API Models: api-models.md
+  - Core Modules: core-modules.md
 
 theme:
   name: material
@@ -14,7 +15,7 @@ theme:
     - content.code.annotate
     - search.share
     #- navigation.expand
-  palette: 
+  palette:
     - scheme: default
   theme:
   icon:
@@ -36,7 +37,7 @@ plugins:
   #      fill: "#001827"
   #      text: "#F9FDFF"
   #    cards_font: Exo
-  - tooltips
+  # - tooltips
   - search
   - mkdocstrings:
       handlers:

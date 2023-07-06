@@ -1,5 +1,11 @@
-These are models returned for endpoints by the SysReptor API.  
+These are models returned for endpoints by the SysReptor API.
 Please note that the SysReptor API is still unstable and might change in the future.
+
+The Base Model provides the fields:
+
+- id
+- created
+- updated
 
 ::: api.models.User
 
