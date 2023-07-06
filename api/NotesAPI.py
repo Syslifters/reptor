@@ -117,11 +117,11 @@ class NotesAPI(APIClient):
 
             try:
                 r.raise_for_status()
+                reptor_logger.info(f'Note written to "{notename}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
                 ) from e
-        reptor_logger.info(f'Note written to "{notename}".')
 
     def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
         parent_id = None
