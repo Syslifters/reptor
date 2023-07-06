@@ -1,13 +1,9 @@
 import typing
 
-from xml.etree import ElementTree
 from django.template.loader import render_to_string
 
-import settings
-
+from community.OWASPZap.models import Alert, Instance, Site
 from core.modules.ToolBase import ToolBase
-
-from community.OWASPZap.models import Site, Alert, Instance
 
 
 class OWASPZap(ToolBase):
