@@ -84,8 +84,8 @@ class Reptor(ReptorProtocol):
         """Loads the core modules for reptor to function"""
         self._load_module_from_path(settings.MODULE_DIRS_CORE)
 
-    def _load_syslifter_modules(self):
-        """Loads the official modules created by syslifter"""
+    def _load_syslifters_modules(self):
+        """Loads the official modules created by syslifters"""
         self._load_module_from_path(settings.MODULE_DIRS_OFFICIAL)
 
     def _load_community_modules(self):
@@ -108,7 +108,9 @@ class Reptor(ReptorProtocol):
         """
         self.logger.info("Loading modules...")
         self._load_core_modules()
-        self._load_syslifter_modules()
+        self._load_syslifters_modules()
+        # Todo: Add Importers
+        # Todo : Add Exporters
         if self._config.get("community", False):
             self._load_community_modules()
         self._load_user_modules()

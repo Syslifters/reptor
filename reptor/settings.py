@@ -14,8 +14,10 @@ PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
 MODULE_DIRS: pathlib.Path = BASE_DIR / "modules"
 MODULE_DIRS_CORE: pathlib.Path = MODULE_DIRS / "core"
-MODULE_DIRS_OFFICIAL: pathlib.Path = MODULE_DIRS / "syslifter"
+MODULE_DIRS_OFFICIAL: pathlib.Path = MODULE_DIRS / "syslifters"
 MODULE_DIRS_COMMUNITY: pathlib.Path = MODULE_DIRS / "community"
+MODULE_DIRS_IMPORTERS: pathlib.Path = MODULE_DIRS / "importers"
+MODULE_DIRS_EXPORTERS: pathlib.Path = MODULE_DIRS / "exporters"
 MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
 
 LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
