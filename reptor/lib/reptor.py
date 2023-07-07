@@ -100,6 +100,12 @@ class Reptor(ReptorProtocol):
         """
         self._load_module_from_path(settings.MODULE_DIRS_USER)
 
+    def _load_importers(self):
+        """Finally the user can have their own "private" modules or
+        overwrite any of the official or community modules.
+        """
+        self._load_module_from_path(settings.MODULE_DIRS_IMPORTERS)
+
     def _run_module_loading_sequence(self):
         """The module loading hierachy is as followed
         System Modules -> Community Modules -> User Modules
@@ -109,10 +115,12 @@ class Reptor(ReptorProtocol):
         self.logger.info("Loading modules...")
         self._load_core_modules()
         self._load_syslifters_modules()
-        # Todo: Add Importers
-        # Todo : Add Exporters
         if self._config.get("community", False):
             self._load_community_modules()
+
+        self._load_importers()
+        # Todo : Add Exporters
+
         self._load_user_modules()
 
     def _import_modules(self):
