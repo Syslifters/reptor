@@ -33,7 +33,7 @@ class TemplatesAPI(APIClient):
             return_data.append(FindingTemplate(item))
         return return_data
 
-    def upload_new_template(self, template: FindingTemplate) -> FindingTemplate | None:
+    def upload_new_template(self, template: FindingTemplate) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
         Args:

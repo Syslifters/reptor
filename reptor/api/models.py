@@ -33,7 +33,10 @@ class BaseModel:
         for attr in combined_class_type_hints.items():
             if attr[0] in data:
                 # Check if one of our models, then proceed recursively
-                model_class = attr[1].__name__
+                try:
+                    model_class = attr[1]._name
+                except AttributeError:
+                    model_class = attr[1].__name__
                 is_list = False
                 if model_class == "List":
                     model_class = attr[1].__args__[0].__name__
