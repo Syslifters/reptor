@@ -18,8 +18,8 @@ class ToolBase(Base):
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
-        self.no_timestamp = self.config.get("cli").get("no_timestamp")
-        self.force_unlock = self.config.get("cli").get("force_unlock")
+        self.no_timestamp = self.config.get("cli", dict()).get("no_timestamp")
+        self.force_unlock = self.config.get("cli", dict()).get("force_unlock")
 
         self.input_format = kwargs.get("format")
 
@@ -37,8 +37,10 @@ class ToolBase(Base):
     def run(self):
         if self.call == "parse":
             self.parse()
+            self.reptor.logger.display(self.parsed_input)
         elif self.call == "format":
             self.format()
+            self.reptor.logger.display(self.formatted_input)
         elif self.call == "upload":
             self.upload()
 

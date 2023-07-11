@@ -1,7 +1,9 @@
 import typing
 
+from reptor.lib.modules.ModelBase import ModelBase
 
-class Instance:
+
+class Instance(ModelBase):
     uri: str
     method: str
     param: str
@@ -28,7 +30,7 @@ class Instance:
             self.responseheader = data.find("responseheader").text
 
 
-class Alert:
+class Alert(ModelBase):
     pluginid: str
     alertRef: str
     name: str
@@ -68,7 +70,7 @@ class Alert:
         return self.reference.splitlines()
 
 
-class Site:
+class Site(ModelBase):
     name: str
     host: str
     port: str

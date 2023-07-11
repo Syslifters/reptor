@@ -1,9 +1,7 @@
-from reptor import settings
+from reptor import subcommands
+from reptor.lib.console import reptor_console
 from reptor.lib.modules.Base import Base
 from reptor.lib.modules.ToolBase import ToolBase
-from reptor.lib.console import reptor_console
-from reptor.lib.modules.docparser import ModuleDocs
-
 from reptor.utils.table import make_table
 
 
@@ -107,9 +105,10 @@ class Modules(Base):
 
     def _search(self):
         """Searches modules"""
-        self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        self.reptor.console.print(
+            f"\nSearching for: [red]{self.arg_search}[/red]\n")
         results = list()
-        for module in settings.SUBCOMMANDS_GROUPS[ToolBase][1]:
+        for module in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
             if self.arg_search in module.tags:
                 results.append(module)
                 continue
@@ -157,7 +156,8 @@ class Modules(Base):
             :5
         ]
 
-        tool_based = input("Is it based on a tool output? [N,y]:")[:1].lower() == "y"
+        tool_based = input("Is it based on a tool output? [N,y]:")[
+            :1].lower() == "y"
 
     def run(self):
         if self.arg_search:
@@ -165,7 +165,7 @@ class Modules(Base):
         elif self.arg_new_module:
             self._create_new_module()
         else:
-            self._list(settings.SUBCOMMANDS_GROUPS[ToolBase][1])
+            self._list(subcommands.SUBCOMMANDS_GROUPS[ToolBase][1])
 
 
 loader = Modules

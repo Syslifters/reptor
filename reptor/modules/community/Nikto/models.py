@@ -1,8 +1,10 @@
-import typing
 import datetime
+import typing
+
+from reptor.lib.modules.ModelBase import ModelBase
 
 
-class Item:
+class Item(ModelBase):
     method : str = "GET"
     description : str
     uri : str
@@ -18,7 +20,8 @@ class Item:
         self.references  = data.find("references").text
         self.method      = data.get("method")
 
-class ScanDetails:
+
+class ScanDetails(ModelBase):
     targetip : str
     targethostname : str
     targetport: str
@@ -51,7 +54,8 @@ class ScanDetails:
     def set_items(self, items: typing.List[Item]):
         self.items = items
 
-class Statistics:
+
+class Statistics(ModelBase):
     elapsed : int
     errors : int
     checks : int
@@ -69,7 +73,8 @@ class Statistics:
         self.checks          = data.get("checks")
         self.errors          = data.get("errors")
 
-class NiktoScan:
+
+class NiktoScan(ModelBase):
     options : str
     version : str
     scandetails : ScanDetails

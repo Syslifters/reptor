@@ -9,12 +9,12 @@ from inspect import cleandoc
 import django
 from django.conf import settings as django_settings
 
+from reptor import settings, subcommands
 from reptor.lib.conf import Config
 from reptor.lib.console import Console, reptor_console
 from reptor.lib.logger import ReptorAdapter, reptor_logger
 from reptor.lib.modules.docparser import DocParser, ModuleDocs
 from reptor.utils.markdown import convert_markdown_to_console
-from reptor import settings
 
 from .interfaces.reptor import ReptorProtocol
 
@@ -171,13 +171,13 @@ class Reptor(ReptorProtocol):
                 module_docs.set_private()
 
             # Add it to the correct commands group
-            if module.loader.__base__ in settings.SUBCOMMANDS_GROUPS:
+            if module.loader.__base__ in subcommands.SUBCOMMANDS_GROUPS:
                 # check if the module is already in the list,
                 # if so a later loaded module, from community or private
                 # needs to overwrite it
 
                 for index, existing_module in enumerate(
-                    settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1]
+                    subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1]
                 ):
                     if existing_module.name == module_docs.name:
                         # we have the case of an overwrite
@@ -185,16 +185,16 @@ class Reptor(ReptorProtocol):
                         module_docs.set_overwrites_module(existing_module)
 
                         # remove the original item
-                        settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].pop(
+                        subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1].pop(
                             index
                         )
                 # add the module data to the end
-                settings.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
+                subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
                     module_docs
                 )
             else:
                 # Todo: Other section shouldn't be left out, maybe refactor logic above to easily reuse
-                settings.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
+                subcommands.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
 
             # because it is a dictionary, an overwritten module is automatically overwritten
             self._loaded_modules[module_docs.name] = module
@@ -210,7 +210,7 @@ class Reptor(ReptorProtocol):
         for (
             short_help_class,
             short_help_group_meta,
-        ) in settings.SUBCOMMANDS_GROUPS.items():
+        ) in subcommands.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
 
             item: ModuleDocs

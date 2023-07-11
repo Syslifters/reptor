@@ -1,8 +1,7 @@
-from reptor import settings
+from reptor import subcommands
 from reptor.lib.modules.Base import Base
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.lib.console import reptor_console
-from reptor.lib.modules.docparser import ModuleDocs
 
 from reptor.utils.table import make_table
 
@@ -74,11 +73,11 @@ class Importers(Base):
 
     def run(self):
         if self.arg_search:
-            self._search(settings.SUBCOMMANDS_GROUPS[BaseImporter][1])
+            self._search(subcommands.SUBCOMMANDS_GROUPS[BaseImporter][1])
         elif self.arg_new_module:
             self._create_new_importer()
         else:
-            self._list(settings.SUBCOMMANDS_GROUPS[BaseImporter][1])
+            self._list(subcommands.SUBCOMMANDS_GROUPS[BaseImporter][1])
 
 
 loader = Importers
