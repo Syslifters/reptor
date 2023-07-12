@@ -30,25 +30,40 @@ class Nmap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.oG = kwargs.get("oG")
-        self.oX = kwargs.get("oX")
         self.notename = "nmap scan"
         self.note_icon = "👁️‍🗨️"
+        if self.input_format == 'raw':
+            self.input_format = 'grepable'
 
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
-        nmap_output_parser = parser.add_mutually_exclusive_group()
-        nmap_output_parser.add_argument(
-            "-oG", help="nmap Grepable output format", action="store_true"
+        # Find input_format_group
+        for group in parser._mutually_exclusive_groups:
+            if group.title == 'input_format_group':
+                break
+        else:
+            return
+
+        group.add_argument(
+            "-oX",
+            help="nmap XML output format, same as --xml",
+            action="store_const",
+            dest="format",
+            const="xml"
         )
-        nmap_output_parser.add_argument(
-            "-oX", help="nmap XML output format", action="store_true"
+        group.add_argument(
+            "-oG",
+            "--grepable",
+            help="nmap Grepable output format",
+            action="store_const",
+            dest="format",
+            const="grepable"
         )
 
-    def _parse_grepable(self, raw_input):
-        parsed_input = list()
-        for line in raw_input.splitlines():
+    def parse_grepable(self):
+        self.parsed_input = list()
+        for line in self.raw_input.splitlines():
             if line.startswith("#") or "Ports:" not in line:
                 continue
             ip, ports = line.split("Ports:")
@@ -67,17 +82,16 @@ class Nmap(ToolBase):
                         "service": service.replace("|", "/"),
                         "version": version.replace("|", "/"),
                     })
-                    parsed_input.append(s)
-        return parsed_input
+                    self.parsed_input.append(s)
+
+    def parse_xml(self):
+        # TODO parse XML
+        raise TypeError("nmap -oX format (XML) not yet implemented")
 
     def parse(self):
         super().parse()
-        if self.oX:
-            # TODO parse XML
-            raise TypeError("nmap -oX format (XML) not yet implemented")
-        else:
-            # Default: -oG
-            self.parsed_input = self._parse_grepable(self.raw_input)
+        if self.input_format == "grepable":
+            self.parse_grepable()
 
     def format(self):
         super().format()

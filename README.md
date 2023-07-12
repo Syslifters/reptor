@@ -43,7 +43,7 @@ Reading from stdin...
 ```
 
 ```
-$ cat test_data/nmap_output.txt | python3 reptor nmap -c upload
+$ cat test_data/nmap_output.txt | python3 reptor nmap -upload
 ```
 
 ### sslyze
@@ -52,7 +52,7 @@ $ cat test_data/sslyze.txt | python3 reptor nmap
 ```
 
 ```
-$ cat test_data/sslyze.txt | python3 reptor nmap -c upload
+$ cat test_data/sslyze.txt | python3 reptor nmap -upload
 ```
 
 ## Unit Tests

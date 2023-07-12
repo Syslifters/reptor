@@ -28,13 +28,15 @@ class OWASPZap(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = "OWASP Zap"
+        if self.input_format == 'raw':
+            self.input_format = 'json'
 
-    def parse_json(self, data):
-        raise NotImplementedError
+    # def parse_json(self):
+    #    raise NotImplementedError
 
-    def parse_xml(self, root):
+    def parse_xml(self):
         return_data = list()
-        for owasp_scan in root:
+        for owasp_scan in self.xml_root:
             site = Site()
             site.parse(owasp_scan)
 

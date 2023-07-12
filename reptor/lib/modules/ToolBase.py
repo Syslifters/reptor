@@ -13,7 +13,7 @@ log = logging.getLogger("reptor")
 class ToolBase(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.call = kwargs.get("call")
+        self.action = kwargs.get("action")
         self.note_icon = "🛠️"
         self.raw_input = None
         self.parsed_input = None
@@ -26,35 +26,62 @@ class ToolBase(Base):
     @classmethod
     def add_arguments(cls, parser):
         super().add_arguments(parser)
-        parser.add_argument(
-            "-c", "--call", default="format", choices=["parse", "format", "upload"]
+        action_group = parser.add_mutually_exclusive_group()
+        action_group.title = 'action_group'
+        action_group.add_argument(
+            "-parse", "--parse", action='store_const', dest='action', const='parse', default='format',
+        )
+        action_group.add_argument(
+            "-format", "--format", action='store_const', dest='action', const='format', default='format',
+        )
+        action_group.add_argument(
+            "-upload", "--upload", action='store_const', dest='action', const='upload', default='format',
         )
 
-        parser.add_argument(
-            "-format", "--format", choices=["xml", "json", "csv", "raw"], default="raw"
-        )
+        input_format_group = parser.add_mutually_exclusive_group()
+        input_format_group.title = 'input_format_group'
+        # Add parsing options only if implemented by modules
+        if cls.parse_xml != ToolBase.parse_xml:
+            input_format_group.add_argument(
+                "-xml", "--xml", action='store_const', dest='format', const='xml', default='raw',
+            )
+        if cls.parse_json != ToolBase.parse_json:
+            input_format_group.add_argument(
+                "-json", "--json", action='store_const', dest='format', const='json', default='raw',
+            )
+        if cls.parse_csv != ToolBase.parse_csv:
+            input_format_group.add_argument(
+                "-csv", "--csv", action='store_const', dest='format', const='csv', default='raw',
+            )
 
     def run(self):
-        if self.call == "parse":
+        if self.action == "parse":
             self.parse()
             self.reptor.logger.display(self.parsed_input)
-        elif self.call == "format":
+        elif self.action == "format":
             self.format()
             self.reptor.logger.display(self.formatted_input)
-        elif self.call == "upload":
+        elif self.action == "upload":
             self.upload()
 
     def load(self):
         self.raw_input = sys.stdin.read()
 
-    def parse_xml(self, xml_root: ElementTree.Element):
-        ...
+    def parse_xml(self):
+        raise NotImplementedError(
+            'Parse xml data is not implemented for this plugin.')
 
     def parse_json(self):
-        ...
+        raise NotImplementedError(
+            'Parse json data is not implemented for this plugin.')
 
     def parse_csv(self):
-        ...
+        raise NotImplementedError(
+            'Parse csv data is not implemented for this plugin.')
+
+    def parse_raw(self):
+        raise NotImplementedError(
+            'Parse raw data is not implemented for this plugin.')
 
     def parse(self):
         if not self.raw_input and not self.file_path:
@@ -62,11 +89,10 @@ class ToolBase(Base):
 
         if self.input_format == "xml":
             if not self.file_path and self.raw_input:
-                xml_root = ElementTree.fromstring(self.raw_input)
+                self.xml_root = ElementTree.fromstring(self.raw_input)
             else:
-                xml_root = ElementTree.parse(self.file_path).getroot()
-            self.parse_xml(xml_root)
-
+                self.xml_root = ElementTree.parse(self.file_path).getroot()
+            self.parse_xml()
         elif self.input_format == "json":
             self.parse_json()
         elif self.input_format == "csv":

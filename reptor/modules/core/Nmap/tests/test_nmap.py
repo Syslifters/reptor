@@ -25,6 +25,7 @@ class NmapTests(unittest.TestCase):
         return super().setUp()
 
     def _load_grepable_data(self):
+        self.nmap.input_format = 'grepable'
         filepath = os.path.join(
             os.path.dirname(__file__), './data/grepable.txt')
         with open(filepath, 'r') as f:

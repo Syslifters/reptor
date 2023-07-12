@@ -37,17 +37,7 @@ class Nikto(ToolBase):
         self.notename = "Nikto"
         self.arg_type_json = kwargs.get("json")
         self.arg_type_xml = kwargs.get("xml")
-
-    @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
-        simplelist_parser = parser.add_mutually_exclusive_group()
-        simplelist_parser.add_argument(
-            "--json", help="Loads JSON File", action="store_true", default=False
-        )
-        simplelist_parser.add_argument(
-            "--xml", help="Loads JSON File", action="store_true", default=False
-        )
+        # TODO check format variable
 
     def parse_json(self, data) -> typing.List[NiktoScan]:
         raise NotImplementedError
