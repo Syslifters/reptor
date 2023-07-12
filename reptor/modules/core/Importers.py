@@ -32,8 +32,8 @@ class Importers(Base):
         self.arg_new_module = kwargs.get("new")
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         project_parser = parser.add_argument_group()
         project_parser.add_argument(
             "--search", help="Search for term", action="store", default=None
@@ -55,7 +55,8 @@ class Importers(Base):
 
     def _search(self, importers):
         """Searches modules"""
-        self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        self.reptor.console.print(
+            f"\nSearching for: [red]{self.arg_search}[/red]\n")
         results = list()
         for item in importers:
             if self.arg_search in item.tags:

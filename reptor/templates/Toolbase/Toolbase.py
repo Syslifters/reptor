@@ -25,7 +25,7 @@ class MYMODULENAME(ToolBase):
         self.arg_foo = kwargs.get("foo")
 
     @classmethod
-    def add_arguments(cls, parser):
+    def add_arguments(cls, parser, plugin_filepath=None):
         """Any arguments added in here are accessible via kwargs in the constructor"""
         super().add_arguments(
             parser

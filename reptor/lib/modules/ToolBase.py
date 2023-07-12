@@ -1,8 +1,12 @@
-import sys
+import glob
 import logging
-
+import os
+import sys
 from xml.etree import ElementTree
 
+from django.template.loader import render_to_string
+
+from reptor import settings
 from reptor.api.NotesAPI import NotesAPI
 
 from .Base import Base
@@ -11,6 +15,7 @@ log = logging.getLogger("reptor")
 
 
 class ToolBase(Base):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
@@ -22,10 +27,47 @@ class ToolBase(Base):
         self.force_unlock = self.config.get("cli", dict()).get("force_unlock")
 
         self.input_format = kwargs.get("format")
+        self.template = kwargs.get("template", self.template)
+
+        if self.templates_path:
+            settings.TEMPLATES[0]["DIRS"] = (self.templates_path, )
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def set_template_vars(cls, plugin_path):
+        cls.templates_path = os.path.normpath(
+            os.path.join(plugin_path, 'templates'))
+        if os.path.isdir(cls.templates_path):
+            cls.templates = [os.path.basename(f).rsplit('.', 1)[0] for f in glob.glob(
+                os.path.join(cls.templates_path, "*.md"))]
+        else:
+            cls.templates_path = None
+            cls.templates = []
+
+        if cls.templates:
+            # Choose default template
+            if len(cls.templates) == 1:
+                cls.template = cls.templates[0]
+            else:
+                default_templates = [
+                    t for t in cls.templates if 'default' in t]
+                try:
+                    cls.template = default_templates[0]
+                except IndexError:
+                    cls.template = cls.templates[0]
+
+    @classmethod
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
+        cls.set_template_vars(os.path.dirname(plugin_filepath))
+        if cls.templates:
+            parser.add_argument(
+                '-t', '--template',
+                action="store",
+                default=cls.template,
+                choices=cls.templates,
+                help="Template for output formatting"
+            )
+
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = 'action_group'
         action_group.add_argument(
@@ -101,6 +143,9 @@ class ToolBase(Base):
     def format(self):
         if not self.parsed_input:
             self.parse()
+
+        self.formatted_input = render_to_string(f"{self.template}.md", {
+            "data": self.parsed_input})
 
     def upload(self):
         if not self.formatted_input:

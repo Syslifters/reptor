@@ -12,7 +12,7 @@ class BaseImporter:
         self.reptor = reptor
 
     @classmethod
-    def add_arguments(cls, parser):
+    def add_arguments(cls, parser, plugin_filepath=None):
         ...
 
     def convert_to_sysreptor_template(self) -> typing.Dict:
@@ -25,7 +25,8 @@ class BaseImporter:
         return new_finding
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
-        updated_template = TemplatesAPI(self.reptor).upload_new_template(new_finding)
+        updated_template = TemplatesAPI(
+            self.reptor).upload_new_template(new_finding)
         if updated_template:
             self.reptor.logger.display(f"Uploaded {updated_template.id}")
         else:

@@ -1,6 +1,3 @@
-import typing
-
-from django.template.loader import render_to_string
 
 from reptor.lib.modules.ToolBase import ToolBase
 from reptor.modules.core.Nmap.models import Service
@@ -36,8 +33,8 @@ class Nmap(ToolBase):
             self.input_format = 'grepable'
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         # Find input_format_group
         for group in parser._mutually_exclusive_groups:
             if group.title == 'input_format_group':
@@ -92,13 +89,6 @@ class Nmap(ToolBase):
         super().parse()
         if self.input_format == "grepable":
             self.parse_grepable()
-
-    def format(self):
-        super().format()
-        nmap_services: typing.List[Service] = self.parsed_input
-
-        self.formatted_input = render_to_string("nmap_table.md", {
-            "data": nmap_services})
 
 
 loader = Nmap

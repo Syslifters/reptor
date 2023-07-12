@@ -20,6 +20,7 @@ class NmapTests(unittest.TestCase):
     def setUp(self) -> None:
         reptor = Reptor()
         reptor._load_config()
+        Nmap.set_template_vars(os.path.dirname(templates_path))
         self.nmap = Nmap(reptor=reptor)
 
         return super().setUp()

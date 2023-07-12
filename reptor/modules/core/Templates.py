@@ -19,8 +19,8 @@ class Templates(Base):
         self.arg_search = kwargs.get("search")
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         templates_parsers = parser.add_argument_group()
         templates_parsers.add_argument(
             "--search", help="Search for term", action="store", default=None

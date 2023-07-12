@@ -23,8 +23,8 @@ class SimpleList(ToolBase):
         self.arg_header_level = kwargs.get("level")
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         simplelist_parser = parser.add_argument_group()
         simplelist_parser.add_argument(
             "--num", help="Create as numeric list", action="store_true", default=False
@@ -52,7 +52,8 @@ class SimpleList(ToolBase):
             # that require another argument to be present
             # parser.error("--level requires that you set --header")
             # current solution:
-            self.logger.fail_with_exit("--level requires --header to be present")
+            self.logger.fail_with_exit(
+                "--level requires --header to be present")
 
         parsed_input = {
             "header": self.arg_header,

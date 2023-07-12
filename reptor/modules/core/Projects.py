@@ -21,8 +21,8 @@ class Projects(Base):
         self.arg_export = kwargs.get("export")
 
     @classmethod
-    def add_arguments(cls, parser):
-        super().add_arguments(parser)
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         project_parser = parser.add_argument_group()
         project_parser.add_argument(
             "--search", help="Search for term", action="store", default=None

@@ -146,14 +146,6 @@ class Reptor(ReptorProtocol):
             if not hasattr(module, "loader"):
                 continue
 
-            # Todo: This is dirty proof of concept
-            # needs a more elegant solution
-            module_path_obj = pathlib.Path(module_path)
-            if module_path_obj.parent.name not in ["modules", "community"]:
-                settings.TEMPLATES[0]["DIRS"].append(
-                    module_path_obj.parent / "templates"
-                )
-
             # Configure metadata
             module.description = cleandoc(module.loader.__doc__)
             module_docs = DocParser.parse(module.description)
@@ -234,7 +226,8 @@ class Reptor(ReptorProtocol):
                 description=module.description,
                 formatter_class=argparse.RawTextHelpFormatter,
             )
-            module.loader.add_arguments(module.subparser)
+            module.loader.add_arguments(
+                module.subparser, plugin_filepath=''.join(module.__file__))
 
     def _add_config_parse_options(self):
         """Creates the configuration arguments

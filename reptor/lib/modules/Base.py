@@ -16,7 +16,7 @@ class Base:
         self.config = self.reptor.get_config()
 
     @classmethod
-    def add_arguments(cls, parser):
+    def add_arguments(cls, parser, plugin_filepath=None):
         pass
 
     def run(self):
