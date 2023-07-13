@@ -68,13 +68,13 @@ class Reptor(ReptorProtocol):
         self.logger.debug(f"Loading Modules from folder: {directory}")
         module_paths = list()
         for modules_path in directory.glob("*"):
-            if "__pycache__" not in modules_path.name:
-                if modules_path.is_dir():
-                    module_main_file = modules_path / f"{modules_path.name}.py"
-                    if module_main_file.is_file():
-                        module_paths.append(str(module_main_file))
-                else:
-                    module_paths.append(str(modules_path))
+            if "__pycache__" in modules_path.name:
+                continue
+            if modules_path.is_dir():
+                for modules_file in modules_path.glob('*.py'):
+                    module_paths.append(str(modules_file))
+            elif modules_path.suffix == '.py':
+                module_paths.append(str(modules_path))
 
         self._module_paths += module_paths
 
