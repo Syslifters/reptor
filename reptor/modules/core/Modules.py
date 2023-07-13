@@ -1,4 +1,7 @@
-from reptor import subcommands
+import os
+import shutil
+
+from reptor import settings, subcommands
 from reptor.lib.console import reptor_console
 from reptor.lib.modules.Base import Base
 from reptor.lib.modules.ToolBase import ToolBase
@@ -27,23 +30,44 @@ class Modules(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.arg_search = kwargs.get("search")
-        self.arg_new_module = kwargs.get("new")
-        self.arg_verbose = kwargs.get("verbose")
+        self.search = kwargs.get("search")
+        self.new_module_name = kwargs.get("new_module_name")
+        self.copy_module_name = kwargs.get("copy_module_name")
+        self.verbose = kwargs.get("verbose")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
-        project_parser = parser.add_argument_group()
-        project_parser.add_argument(
-            "--search", help="Search for term", action="store", default=None
+
+        action_group = parser.add_mutually_exclusive_group()
+        action_group.title = 'action_group'
+        action_group.add_argument(
+            "-search", "--search",
+            metavar='SEARCHTERM',
+            action='store',
+            dest='search',
+            const='',
+            nargs='?',
+            help="Search for term"
         )
-        project_parser.add_argument(
-            "--new", help="Create a new module", action="store_true", default=False
+        action_group.add_argument(
+            "-new", "--new",
+            metavar="PLUGINNAME",
+            nargs='?',
+            dest='new_module_name',
+            const='',
+            help="Create a new module"
+        )
+        action_group.add_argument(
+            "-copy", "--copy",
+            metavar="PLUGINNAME",
+            action='store',
+            dest='copy_module_name',
+            help="Copy module to home directory"
         )
 
     def _list(self, modules):
-        if self.arg_verbose:
+        if self.verbose:
             table = make_table(
                 [
                     "Name",
@@ -84,7 +108,7 @@ class Modules(Base):
                 tool_name = f"[red]{tool.name}({tool.space_label})\nOverwrites: {overwritten_module.space_label}[/red]"
                 color = "red"
 
-            if self.arg_verbose:
+            if self.verbose:
                 table.add_row(
                     f"[{color}]{tool.name}[/{color}]",
                     f"[{color}]{tool.short_help}[/{color}]",
@@ -105,17 +129,20 @@ class Modules(Base):
 
     def _search(self):
         """Searches modules"""
-        self.reptor.console.print(
-            f"\nSearching for: [red]{self.arg_search}[/red]\n")
-        results = list()
-        for module in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
-            if self.arg_search in module.tags:
-                results.append(module)
-                continue
+        if self.search:
+            self.reptor.console.print(
+                f"\nSearching for: [red]{self.search}[/red]\n")
+            results = list()
+            for module in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
+                if self.search in module.tags:
+                    results.append(module)
+                    continue
 
-            if self.arg_search in module.name:
-                results.append(module)
-                continue
+                if self.search in module.name:
+                    results.append(module)
+                    continue
+        else:
+            results = subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]
 
         self._list(results)
 
@@ -145,11 +172,15 @@ class Modules(Base):
 
         self.reptor.console.print(introduction)
 
-        module_name = (
-            input("Module Name (No spaces, try to use the tool name): ")
-            .strip()
-            .split(" ")[0]
-        )
+        if self.new_module_name:
+            module_name = self.new_module_name.strip().split(" ")[0]
+            print(f"Module Name: {module_name}")
+        else:
+            module_name = (
+                input("Module Name (No spaces, try to use the tool name): ")
+            ).strip().split(" ")[0]
+
+        module_name.strip().split(" ")[0]
 
         author = input("Author Name: ")[:25]
         tags = input("Tags (only first: 5 Tags), i.e owasp,web,scanner: ").split(",")[
@@ -159,13 +190,29 @@ class Modules(Base):
         tool_based = input("Is it based on a tool output? [N,y]:")[
             :1].lower() == "y"
 
+    def _copy_module(self, dest=settings.MODULE_DIRS_USER):
+        # Check if module exists and get its path
+        try:
+            plugin_path = os.path.dirname(
+                settings.LOADED_MODULES[self.copy_module_name].__file__)
+            plugin_dirname = os.path.basename(plugin_path)
+        except KeyError:
+            raise ValueError(
+                f"Plugin '{self.copy_module_name}' does not exist.")
+        
+        # Copy module
+        dest = os.path.join(dest, plugin_dirname)
+        shutil.copytree(plugin_path, dest)
+
+
     def run(self):
-        if self.arg_search:
-            self._search()
-        elif self.arg_new_module:
+        if self.new_module_name is not None:
             self._create_new_module()
+        elif self.copy_module_name is not None:
+            self._copy_module()
         else:
-            self._list(subcommands.SUBCOMMANDS_GROUPS[ToolBase][1])
+            self._search()
+            # self._list(subcommands.SUBCOMMANDS_GROUPS[ToolBase][1])
 
 
 loader = Modules

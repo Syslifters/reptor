@@ -123,7 +123,7 @@ class Reptor(ReptorProtocol):
 
         self._load_user_modules()
 
-    def _import_modules(self):
+    def _load_modules(self):
         """Loads each module from _module_paths
 
         Returns:
@@ -191,6 +191,7 @@ class Reptor(ReptorProtocol):
 
             # because it is a dictionary, an overwritten module is automatically overwritten
             self._loaded_modules[module_docs.name] = module
+        settings.LOADED_MODULES = self._loaded_modules
 
     def _create_parsers(self):
         """Creates the description in the help and the parsers to be used
@@ -228,7 +229,7 @@ class Reptor(ReptorProtocol):
                 formatter_class=argparse.RawTextHelpFormatter,
             )
             module.loader.add_arguments(
-                module.subparser, plugin_filepath=''.join(module.__file__))
+                module.subparser, plugin_filepath=module.__file__)
 
     def _add_config_parse_options(self):
         """Creates the configuration arguments
@@ -331,7 +332,7 @@ class Reptor(ReptorProtocol):
 
         self._run_module_loading_sequence()
 
-        self._import_modules()
+        self._load_modules()
 
         django_settings.configure(settings, DEBUG=True)
         django.setup()

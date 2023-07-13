@@ -1,5 +1,7 @@
 import pathlib
 
+LOADED_MODULES: list = list()
+
 BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
 
 PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
