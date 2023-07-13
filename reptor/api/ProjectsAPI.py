@@ -50,18 +50,33 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def export(self, project_id: Optional[str] = None):
+    def export(self, project_id: Optional[str] = None, file_name: pathlib.Path = None):
         if project_id:
             self.project_id = project_id
 
         if not project_id:
             raise ValueError
 
-        filepath = pathlib.Path().cwd()
-        file_name = filepath / f"{project_id}.tar.gz"
-        print(f"Writing to: {file_name}")
+        if not file_name:
+            filepath = pathlib.Path().cwd()
+            file_name = filepath / f"{project_id}.tar.gz"
 
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
         data = self.post(url)
         with open(file_name, "wb") as f:
             f.write(data.content)
+
+    def duplicate(self, project_id: Optional[str] = None):
+        if project_id:
+            self.project_id = project_id
+
+        if not project_id:
+            raise ValueError
+
+        url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
+        data = self.post(url).json()
+        try:
+            data['id']
+        except KeyError:
+            self.reptor.logger.error(f"Duplication failed.")
+        return data

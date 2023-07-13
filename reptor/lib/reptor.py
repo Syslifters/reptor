@@ -302,7 +302,7 @@ class Reptor(ReptorProtocol):
         # Override conf from config file by CLI
         args_dict = vars(args)
         config = Config()
-        for k in ["server", "project_id", "session_id", "insecure"]:
+        for k in ["server", "project_id", "token", "insecure"]:
             config.set(k, args_dict.get(k) or config.get(k, ""))
         # Add cli options to config/cli
         config.set("cli", args_dict)

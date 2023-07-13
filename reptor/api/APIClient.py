@@ -26,7 +26,6 @@ class APIClient:
         headers = dict()
         if json_content:
             headers["Content-Type"] = "application/json"
-        headers["Referer"] = self.base_endpoint
         headers["User-Agent"] = settings.USER_AGENT
         headers["Authorization"] = f"Bearer {self._config.get_token()}"
         self.reptor.logger.debug(f"HTTP Headers: {headers}")
