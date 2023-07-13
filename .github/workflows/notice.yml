@@ -6,6 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - run: pip install pip-licenses
+    - run: pip-licenses
+    - run: pip install .
     - run: bash ./generate_notice.sh
     - uses: EndBug/add-and-commit@v9.1.3
       with:
