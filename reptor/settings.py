@@ -13,6 +13,8 @@ MODULE_DIRS_IMPORTERS: pathlib.Path = MODULE_DIRS / "importers"
 MODULE_DIRS_EXPORTERS: pathlib.Path = MODULE_DIRS / "exporters"
 MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
 
+MODULE_TEMPLATES_DIR_NAME: pathlib.Path = "templates"
+
 LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 
 NEWLINE = "\n"

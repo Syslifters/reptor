@@ -29,19 +29,30 @@ class ToolBase(Base):
         self.input_format = kwargs.get("format")
         self.template = kwargs.get("template", self.template)
 
-        if self.templates_path:
-            settings.TEMPLATES[0]["DIRS"] = (self.templates_path, )
+        if self.template_paths:
+            settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
     @classmethod
     def set_template_vars(cls, plugin_path):
-        cls.templates_path = os.path.normpath(
-            os.path.join(plugin_path, 'templates'))
-        if os.path.isdir(cls.templates_path):
-            cls.templates = [os.path.basename(f).rsplit('.', 1)[0] for f in glob.glob(
-                os.path.join(cls.templates_path, "*.md"))]
-        else:
-            cls.templates_path = None
-            cls.templates = []
+        template_paths = list()
+        # Get template paths from plugin and userdir
+        user_plugin_path = os.path.join(
+            settings.MODULE_DIRS_USER, os.path.basename(plugin_path))
+        for path in [user_plugin_path, plugin_path]:  # Keep order: user templates override
+            path = os.path.normpath(os.path.join(
+                path, settings.MODULE_TEMPLATES_DIR_NAME))
+            if path not in template_paths:
+                template_paths.append(path)
+
+        # Add to paths if template paths exist
+        cls.template_paths = [p for p in template_paths if os.path.isdir(p)]
+
+        # Get template names from paths
+        cls.templates = list()
+        for path in cls.template_paths:
+            templates = [os.path.basename(f).rsplit('.', 1)[0] for f in glob.glob(
+                os.path.join(path, "*.md"))]
+            cls.templates.extend([t for t in templates if t not in cls.templates])
 
         if cls.templates:
             # Choose default template

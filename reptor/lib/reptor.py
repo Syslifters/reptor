@@ -184,6 +184,7 @@ class Reptor(ReptorProtocol):
                 subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
                     module_docs
                 )
+                
             else:
                 # Todo: Other section shouldn't be left out, maybe refactor logic above to easily reuse
                 subcommands.SUBCOMMANDS_GROUPS["other"][1].append(module_docs)
