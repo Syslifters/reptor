@@ -10,7 +10,7 @@ from reptor.api.models import Project
 class ProjectsAPI(APIClient):
     project_id: str  # This is a local overwrite to quickly check other projects
 
-    def __init__(self, reptor) -> None:
+    def __init__(self, reptor, project_id: str = None) -> None:
         super().__init__(reptor)
 
         self.base_endpoint = urljoin(
@@ -19,6 +19,13 @@ class ProjectsAPI(APIClient):
         self.object_endpoint = urljoin(
             self.base_endpoint, f"{self._config.get_project_id()}"
         )
+        if project_id:
+            self.project_id = project_id
+        else:
+            self.project_id = self._config.get_project_id()
+
+        if not self.project_id:
+            raise ValueError("No project ID. Wanna run 'reptor conf'?")
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
@@ -50,29 +57,20 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def export(self, project_id: Optional[str] = None, file_name: pathlib.Path = None):
-        if project_id:
-            self.project_id = project_id
-
-        if not project_id:
-            raise ValueError
+    def export(self, file_name: pathlib.Path = None):
+        if not self.project_id:
+            raise ValueError("No project ID. Wanna run 'reptor conf'?")
 
         if not file_name:
             filepath = pathlib.Path().cwd()
-            file_name = filepath / f"{project_id}.tar.gz"
+            file_name = filepath / f"{self.project_id}.tar.gz"
 
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
         data = self.post(url)
         with open(file_name, "wb") as f:
             f.write(data.content)
 
-    def duplicate(self, project_id: Optional[str] = None):
-        if project_id:
-            self.project_id = project_id
-
-        if not project_id:
-            raise ValueError
-
+    def duplicate(self):
         url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
         data = self.post(url).json()
         try:
@@ -80,3 +78,8 @@ class ProjectsAPI(APIClient):
         except KeyError:
             self.reptor.logger.error(f"Duplication failed.")
         return data
+
+    def get_findings(self):
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
+        findings = self.get(url).json()
+        return findings

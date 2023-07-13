@@ -35,26 +35,21 @@ class Projects(Base):
         )
         project_parser.add_argument(
             "-export", "--export",
-            metavar="PROJECTID",
             help="Export project to tar.gz file",
-            action="store",
-            const='',
-            nargs='?',
+            action="store_true",
+            dest='export',
         )
         project_parser.add_argument(
             "-duplicate", "--duplicate",
-            metavar="PROJECTID",
             help="Duplicate project",
-            action="store",
-            const='',
-            nargs='?',
+            action="store_true",
+            dest='duplicate',
         )
 
     def _export_project(self):
-        project_id = self.export or self.config.get_project_id()
         filepath = pathlib.Path().cwd()
-        file_name = filepath / f"{project_id}.tar.gz"
-        self.projects_api.export(project_id, file_name=file_name)
+        file_name = filepath / f"{self.projects_api.project_id}.tar.gz"
+        self.projects_api.export(file_name=file_name)
         self.reptor.logger.success(f"Written to: {file_name}")
 
     def _search_project(self):
@@ -74,17 +69,16 @@ class Projects(Base):
         reptor_console.print(table)
 
     def _duplicate_project(self):
-        project_id = self.export or self.config.get_project_id()
-        new_project = self.projects_api.duplicate(project_id)
+        new_project = self.projects_api.duplicate()
         project_title = new_project['name']
         project_id = new_project['id']
         self.reptor.logger.success(
             f"Duplicated to '{project_title}' ({project_id})")
 
     def run(self):
-        if self.export is not None:
+        if self.export:
             self._export_project()
-        elif self.duplicate is not None:
+        elif self.duplicate:
             self._duplicate_project()
         else:
             self._search_project()
