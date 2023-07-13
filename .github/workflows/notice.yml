@@ -11,7 +11,6 @@ jobs:
         python-version: '3.8'
         cache: 'pip'
     - run: pip install pip-licenses
-    - run: pip-licenses
     - run: pip install .
     - run: bash ./generate_notice.sh
     - uses: EndBug/add-and-commit@v9.1.3
