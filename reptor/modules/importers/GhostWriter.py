@@ -18,7 +18,9 @@ class GhostWriter(BaseImporter):
 
     """
 
-    def convert_to_sysreptor_template(self):
+    mapping = {}
+
+    def next_findings_batch(self):
         ...
 
 

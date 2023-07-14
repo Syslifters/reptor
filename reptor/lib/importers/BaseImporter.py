@@ -7,6 +7,7 @@ from reptor.api.TemplatesAPI import TemplatesAPI
 
 class BaseImporter:
     reptor: ReptorProtocol
+    mapping: typing.Dict
 
     def __init__(self, reptor: ReptorProtocol, **kwargs) -> None:
         self.reptor = reptor
@@ -15,18 +16,21 @@ class BaseImporter:
     def add_arguments(cls, parser, plugin_filepath=None):
         ...
 
-    def convert_to_sysreptor_template(self) -> typing.Dict:
-        """Implement this and call self.import_finding(mapped_data)"""
-        return {}
+    def next_findings_batch(self):
+        """Implement this to yield the next findings to process"""
+        return None
 
     def _create_finding_item(self, raw_data: typing.Dict) -> FindingTemplate:
-        new_finding = FindingTemplate(raw_data)
-        new_finding.data = FindingData(raw_data)
+        remapped_data = dict()
+        for key, value in self.mapping:
+            remapped_data[value] = raw_data[key]
+
+        new_finding = FindingTemplate(remapped_data)
+        new_finding.data = FindingData(remapped_data)
         return new_finding
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
-        updated_template = TemplatesAPI(
-            self.reptor).upload_new_template(new_finding)
+        updated_template = TemplatesAPI(self.reptor).upload_new_template(new_finding)
         if updated_template:
             self.reptor.logger.display(f"Uploaded {updated_template.id}")
         else:
@@ -36,6 +40,11 @@ class BaseImporter:
                 self.reptor.logger.fail_with_exit("Aborting...")
 
     def run(self):
-        normalized_data = self.convert_to_sysreptor_template()
-        new_finding = self._create_finding_item(normalized_data)
-        self._upload_finding_templates(new_finding)
+        if not self.mapping:
+            self.reptor.logger.fail_with_exit("You need to provide a mapping.")
+
+        for external_finding in self.next_findings_batch():
+            new_finding = self._create_finding_item(external_finding)
+            if not new_finding:
+                continue
+            self._upload_finding_templates(new_finding)
