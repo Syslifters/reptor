@@ -15,6 +15,8 @@ PLUGIN_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "plugins"
 
 PLUGIN_TEMPLATES_DIR_NAME: str = "templates"
 
+PLUGIN_TOOLBASE_TEMPLATE_FOLDER: pathlib.Path = BASE_DIR / "templates" / "Toolbase"
+
 LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 
 NEWLINE = "\n"

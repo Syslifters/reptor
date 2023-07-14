@@ -170,7 +170,7 @@ class Plugins(Base):
         You will find the new plugin in your ~/.sysrepter/plugins folder.
         Once you are happy with it you should offer it as a community plugin!
 
-        Let's get started
+        Let's get started...
         """
 
         self.reptor.console.print(introduction)
@@ -187,12 +187,48 @@ class Plugins(Base):
 
         plugin_name.strip().split(" ")[0]
 
-        author = input("Author Name: ")[:25]
+        author = input("Author Name: ")[:25] or "Unknown"
         tags = input("Tags (only first: 5 Tags), i.e owasp,web,scanner: ").split(",")[
             :5
         ]
 
-        tool_based = input("Is it based on a tool output? [N,y]:")[:1].lower() == "y"
+        # Create the folder
+        new_plugin_folder = pathlib.Path(settings.PLUGIN_DIRS_USER / plugin_name)
+
+        try:
+            new_plugin_folder.mkdir(parents=True)
+        except FileExistsError:
+            self.reptor.logger.highlight(
+                "A plugin with this name already exists in your home directory."
+            )
+            overwrite = input("Do you want to continue? [N/y]: ") or "n"
+
+            if overwrite[0].lower() != "y":
+                self.reptor.logger.fail_with_exit("Aborting...")
+
+        shutil.copytree(
+            settings.PLUGIN_TOOLBASE_TEMPLATE_FOLDER,
+            new_plugin_folder / "",
+            dirs_exist_ok=True,
+        )
+
+        # Now rename some stuff and replace some placeholders
+        new_plugin_file = new_plugin_folder / f"{plugin_name.capitalize()}.py"
+        pathlib.Path(new_plugin_folder / "Toolbase.py").rename(new_plugin_file)
+
+        with open(new_plugin_file, "r+") as f:
+            contents = f.read()
+            contents = contents.replace("MYMODULENAME", plugin_name.capitalize())
+            contents = contents.replace("AUTHOR_NAME", author)
+            contents = contents.replace("TAGS_LIST", ",".join(tags))
+
+            f.seek(0)
+            f.write(contents)
+            f.truncate()
+
+        self.reptor.logger.success(
+            f"New plugin created. Happy coding! ({new_plugin_folder})"
+        )
 
     def _copy_plugin(self, dest=settings.PLUGIN_DIRS_USER):
         # Check if plugin exists and get its path
@@ -218,7 +254,6 @@ class Plugins(Base):
             self._copy_plugin()
         else:
             self._search()
-            # self._list(subcommands.SUBCOMMANDS_GROUPS[ToolBase][1])
 
 
 loader = Plugins
