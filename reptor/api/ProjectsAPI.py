@@ -75,7 +75,7 @@ class ProjectsAPI(APIClient):
         duplicated_project = self.post(url).json()
         return Project(duplicated_project)
 
-    def get_findings(self) -> typing.List(FindingData):
+    def get_findings(self) -> typing.List[FindingData]:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         response = self.get(url)
 
