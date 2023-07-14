@@ -198,7 +198,9 @@ class Plugins(Base):
         # Check if plugin exists and get its path
         try:
             plugin_path = os.path.dirname(
-                settings.LOADED_PLUGINS[self.copy_plugin_name].__file__
+                self.reptor.plugin_manager.LOADED_PLUGINS[
+                    self.copy_plugin_name
+                ].__file__
             )
             plugin_dirname = os.path.basename(plugin_path)
         except KeyError:

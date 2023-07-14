@@ -31,7 +31,7 @@ class PluginManager:
         self._reptor.logger.info("Loading modules...")
         self._load_core_modules()
         self._load_syslifters_modules()
-        if self._reptor._config.get("community", False):
+        if self._reptor.get_config().get("community", False):
             self._load_community_modules()
 
         self._load_importers()
@@ -102,10 +102,9 @@ class PluginManager:
         # for various tools: plugins
 
         for plugin_path in self._plugin_paths:
-            spec = importlib.util.spec_from_file_location(
+            spec = importlib.util.spec_from_file_location(  # type: ignore
                 "module.name", plugin_path
-            )  # type: ignore
-
+            )
             self._reptor.logger.debug(plugin_path)
 
             module = importlib.util.module_from_spec(spec)  # type: ignore

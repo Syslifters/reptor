@@ -84,16 +84,16 @@ class Reptor(ReptorProtocol):
             dest="command", description=description, help=argparse.SUPPRESS
         )
 
-    def _dynamically_add_module_options(self):
-        # Dynamically add module options
-        for name, module in self.plugin_manager.LOADED_PLUGINS.items():
-            module.subparser = self._sub_parsers.add_parser(
+    def _dynamically_add_plugin_options(self):
+        # Dynamically add plugin options
+        for name, plugin in self.plugin_manager.LOADED_PLUGINS.items():
+            plugin.subparser = self._sub_parsers.add_parser(
                 name,
-                description=module.description,
+                description=plugin.description,
                 formatter_class=argparse.RawTextHelpFormatter,
             )
-            module.loader.add_arguments(
-                module.subparser, plugin_filepath=module.__file__
+            plugin.loader.add_arguments(
+                plugin.subparser, plugin_filepath=plugin.__file__
             )
 
     def _add_config_parse_options(self):
@@ -203,7 +203,7 @@ class Reptor(ReptorProtocol):
         django.setup()
         self._create_parsers()
 
-        self._dynamically_add_module_options()
+        self._dynamically_add_plugin_options()
 
         # Static module options
         self._add_config_parse_options()

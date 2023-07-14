@@ -10,6 +10,7 @@ from .conf import ConfigProtocol
 class ReptorProtocol(typing.Protocol):
     logger: ReptorAdapter
     console: Console
+    plugin_manager: typing.Any
 
     @abstractmethod
     def get_config(self) -> ConfigProtocol:
