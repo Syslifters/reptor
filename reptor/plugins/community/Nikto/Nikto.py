@@ -1,8 +1,8 @@
 import typing
 from xml.etree import ElementTree
 
-from reptor.lib.modules.ToolBase import ToolBase
-from reptor.modules.community.Nikto.models import (
+from reptor.lib.plugins.ToolBase import ToolBase
+from reptor.plugins.community.Nikto.models import (
     NiktoScan,
     ScanDetails,
     Item,

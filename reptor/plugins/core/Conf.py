@@ -1,4 +1,4 @@
-from reptor.lib.modules.ConfBase import ConfBase
+from reptor.lib.plugins.ConfBase import ConfBase
 from reptor.lib.console import reptor_console
 
 from reptor.utils.table import make_table

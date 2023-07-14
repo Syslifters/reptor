@@ -1,5 +1,5 @@
 from reptor import subcommands
-from reptor.lib.modules.Base import Base
+from reptor.lib.plugins.Base import Base
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.lib.console import reptor_console
 

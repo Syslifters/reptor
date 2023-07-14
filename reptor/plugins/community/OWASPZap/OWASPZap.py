@@ -2,8 +2,8 @@ import typing
 
 from django.template.loader import render_to_string
 
-from reptor.lib.modules.ToolBase import ToolBase
-from reptor.modules.community.OWASPZap.models import Alert, Instance, Site
+from reptor.lib.plugins.ToolBase import ToolBase
+from reptor.plugins.community.OWASPZap.models import Alert, Instance, Site
 
 
 class OWASPZap(ToolBase):
@@ -28,8 +28,8 @@ class OWASPZap(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = "OWASP Zap"
-        if self.input_format == 'raw':
-            self.input_format = 'json'
+        if self.input_format == "raw":
+            self.input_format = "json"
 
     # def parse_json(self):
     #    raise NotImplementedError
@@ -54,5 +54,6 @@ class OWASPZap(ToolBase):
             return_data.append(site)
 
         self.parsed_input = return_data
+
 
 loader = OWASPZap

@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from reptor.lib.modules.UploadBase import UploadBase
+from reptor.lib.plugins.UploadBase import UploadBase
 from reptor.api.NotesAPI import NotesAPI
 
 

@@ -1,5 +1,5 @@
 import json
-from reptor.lib.modules.ToolBase import ToolBase
+from reptor.lib.plugins.ToolBase import ToolBase
 
 
 class Sslyze(ToolBase):

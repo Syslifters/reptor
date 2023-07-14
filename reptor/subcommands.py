@@ -1,9 +1,9 @@
 from collections import OrderedDict
 
 from reptor.lib.importers.BaseImporter import BaseImporter
-from reptor.lib.modules.ConfBase import ConfBase
-from reptor.lib.modules.ToolBase import ToolBase
-from reptor.lib.modules.UploadBase import UploadBase
+from reptor.lib.plugins.ConfBase import ConfBase
+from reptor.lib.plugins.ToolBase import ToolBase
+from reptor.lib.plugins.UploadBase import UploadBase
 
 SUBCOMMANDS_GROUPS = OrderedDict(
     {

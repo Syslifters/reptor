@@ -24,8 +24,8 @@ class ProjectsAPI(APIClient):
         else:
             self.project_id = self._config.get_project_id()
 
-        if not self.project_id:
-            raise ValueError("No project ID. Wanna run 'reptor conf'?")
+        # if not self.project_id:
+        #     self.reptor.logger.fail_with_exit("No project ID. Wanna run 'reptor conf'?")
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
@@ -90,8 +90,7 @@ class ProjectsAPI(APIClient):
         return return_data
 
     def update_finding(self, finding_id: str, data: dict) -> None:
-        url = urljoin(self.base_endpoint,
-                      f"{self.project_id}/findings/{finding_id}/")
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         self.patch(url, data)
 
     def update_project(self, data: dict) -> None:
@@ -99,8 +98,9 @@ class ProjectsAPI(APIClient):
         self.patch(url, data)
 
     def get_enabled_language_codes(self) -> list:
-        url = urljoin(self._config.get_server(), 'api/v1/utils/settings/')
+        url = urljoin(self._config.get_server(), "api/v1/utils/settings/")
         settings = self.get(url).json()
-        languages = [l['code'] for l in settings.get(
-            'languages', list()) if l['enabled'] == True]
+        languages = [
+            l["code"] for l in settings.get("languages", list()) if l["enabled"] == True
+        ]
         return languages

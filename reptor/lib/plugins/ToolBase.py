@@ -15,7 +15,6 @@ log = logging.getLogger("reptor")
 
 
 class ToolBase(Base):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
@@ -37,10 +36,15 @@ class ToolBase(Base):
         template_paths = list()
         # Get template paths from plugin and userdir
         user_plugin_path = os.path.join(
-            settings.MODULE_DIRS_USER, os.path.basename(plugin_path))
-        for path in [user_plugin_path, plugin_path]:  # Keep order: user templates override
-            path = os.path.normpath(os.path.join(
-                path, settings.MODULE_TEMPLATES_DIR_NAME))
+            settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
+        )
+        for path in [
+            user_plugin_path,
+            plugin_path,
+        ]:  # Keep order: user templates override
+            path = os.path.normpath(
+                os.path.join(path, settings.PLUGIN_TEMPLATES_DIR_NAME)
+            )
             if path not in template_paths:
                 template_paths.append(path)
 
@@ -50,8 +54,10 @@ class ToolBase(Base):
         # Get template names from paths
         cls.templates = list()
         for path in cls.template_paths:
-            templates = [os.path.basename(f).rsplit('.', 1)[0] for f in glob.glob(
-                os.path.join(path, "*.md"))]
+            templates = [
+                os.path.basename(f).rsplit(".", 1)[0]
+                for f in glob.glob(os.path.join(path, "*.md"))
+            ]
             cls.templates.extend([t for t in templates if t not in cls.templates])
 
         if cls.templates:
@@ -59,8 +65,7 @@ class ToolBase(Base):
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
             else:
-                default_templates = [
-                    t for t in cls.templates if 'default' in t]
+                default_templates = [t for t in cls.templates if "default" in t]
                 try:
                     cls.template = default_templates[0]
                 except IndexError:
@@ -69,42 +74,74 @@ class ToolBase(Base):
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
-        cls.set_template_vars(os.path.dirname(plugin_filepath))
+        if plugin_filepath:
+            cls.set_template_vars(os.path.dirname(plugin_filepath))
         if cls.templates:
             parser.add_argument(
-                '-t', '--template',
+                "-t",
+                "--template",
                 action="store",
                 default=cls.template,
                 choices=cls.templates,
-                help="Template for output formatting"
+                help="Template for output formatting",
             )
 
         action_group = parser.add_mutually_exclusive_group()
-        action_group.title = 'action_group'
+        action_group.title = "action_group"
         action_group.add_argument(
-            "-parse", "--parse", action='store_const', dest='action', const='parse', default='format',
+            "-parse",
+            "--parse",
+            action="store_const",
+            dest="action",
+            const="parse",
+            default="format",
         )
         action_group.add_argument(
-            "-format", "--format", action='store_const', dest='action', const='format', default='format',
+            "-format",
+            "--format",
+            action="store_const",
+            dest="action",
+            const="format",
+            default="format",
         )
         action_group.add_argument(
-            "-upload", "--upload", action='store_const', dest='action', const='upload', default='format',
+            "-upload",
+            "--upload",
+            action="store_const",
+            dest="action",
+            const="upload",
+            default="format",
         )
 
         input_format_group = parser.add_mutually_exclusive_group()
-        input_format_group.title = 'input_format_group'
+        input_format_group.title = "input_format_group"
         # Add parsing options only if implemented by modules
         if cls.parse_xml != ToolBase.parse_xml:
             input_format_group.add_argument(
-                "-xml", "--xml", action='store_const', dest='format', const='xml', default='raw',
+                "-xml",
+                "--xml",
+                action="store_const",
+                dest="format",
+                const="xml",
+                default="raw",
             )
         if cls.parse_json != ToolBase.parse_json:
             input_format_group.add_argument(
-                "-json", "--json", action='store_const', dest='format', const='json', default='raw',
+                "-json",
+                "--json",
+                action="store_const",
+                dest="format",
+                const="json",
+                default="raw",
             )
         if cls.parse_csv != ToolBase.parse_csv:
             input_format_group.add_argument(
-                "-csv", "--csv", action='store_const', dest='format', const='csv', default='raw',
+                "-csv",
+                "--csv",
+                action="store_const",
+                dest="format",
+                const="csv",
+                default="raw",
             )
 
     def run(self):
@@ -121,20 +158,16 @@ class ToolBase(Base):
         self.raw_input = sys.stdin.read()
 
     def parse_xml(self):
-        raise NotImplementedError(
-            'Parse xml data is not implemented for this plugin.')
+        raise NotImplementedError("Parse xml data is not implemented for this plugin.")
 
     def parse_json(self):
-        raise NotImplementedError(
-            'Parse json data is not implemented for this plugin.')
+        raise NotImplementedError("Parse json data is not implemented for this plugin.")
 
     def parse_csv(self):
-        raise NotImplementedError(
-            'Parse csv data is not implemented for this plugin.')
+        raise NotImplementedError("Parse csv data is not implemented for this plugin.")
 
     def parse_raw(self):
-        raise NotImplementedError(
-            'Parse raw data is not implemented for this plugin.')
+        raise NotImplementedError("Parse raw data is not implemented for this plugin.")
 
     def parse(self):
         if not self.raw_input and not self.file_path:
@@ -155,8 +188,9 @@ class ToolBase(Base):
         if not self.parsed_input:
             self.parse()
 
-        self.formatted_input = render_to_string(f"{self.template}.md", {
-            "data": self.parsed_input})
+        self.formatted_input = render_to_string(
+            f"{self.template}.md", {"data": self.parsed_input}
+        )
 
     def upload(self):
         if not self.formatted_input:

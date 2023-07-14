@@ -2,7 +2,7 @@ import pathlib
 
 from reptor.api.ProjectsAPI import ProjectsAPI
 from reptor.lib.console import reptor_console
-from reptor.lib.modules.Base import Base
+from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
 
 
@@ -27,23 +27,26 @@ class Projects(Base):
         super().add_arguments(parser, plugin_filepath)
         project_parser = parser.add_mutually_exclusive_group()
         project_parser.add_argument(
-            "-search", "--search",
+            "-search",
+            "--search",
             metavar="SEARCHTERM",
             help="Search for term",
             action="store",
             default=None,
         )
         project_parser.add_argument(
-            "-export", "--export",
+            "-export",
+            "--export",
             help="Export project to tar.gz file",
             action="store_true",
-            dest='export',
+            dest="export",
         )
         project_parser.add_argument(
-            "-duplicate", "--duplicate",
+            "-duplicate",
+            "--duplicate",
             help="Duplicate project",
             action="store_true",
-            dest='duplicate',
+            dest="duplicate",
         )
 
     def _export_project(self):
@@ -72,8 +75,7 @@ class Projects(Base):
         duplicated_project = self.projects_api.duplicate()
         project_title = duplicated_project.name
         project_id = duplicated_project.id
-        self.reptor.logger.success(
-            f"Duplicated to '{project_title}' ({project_id})")
+        self.reptor.logger.success(f"Duplicated to '{project_title}' ({project_id})")
 
     def run(self):
         if self.export:

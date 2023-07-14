@@ -1,6 +1,6 @@
 import typing
 
-from reptor.lib.modules.ModelBase import ModelBase
+from reptor.lib.plugins.ModelBase import ModelBase
 
 
 class Instance(ModelBase):

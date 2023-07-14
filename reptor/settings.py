@@ -1,21 +1,19 @@
 import pathlib
 
-LOADED_MODULES: list = list()
-
 BASE_DIR: pathlib.Path = pathlib.Path(__file__).parent
 
 PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
 PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
-MODULE_DIRS: pathlib.Path = BASE_DIR / "modules"
-MODULE_DIRS_CORE: pathlib.Path = MODULE_DIRS / "core"
-MODULE_DIRS_OFFICIAL: pathlib.Path = MODULE_DIRS / "syslifters"
-MODULE_DIRS_COMMUNITY: pathlib.Path = MODULE_DIRS / "community"
-MODULE_DIRS_IMPORTERS: pathlib.Path = MODULE_DIRS / "importers"
-MODULE_DIRS_EXPORTERS: pathlib.Path = MODULE_DIRS / "exporters"
-MODULE_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "modules"
+PLUGIN_DIRS: pathlib.Path = BASE_DIR / "plugins"
+PLUGIN_DIRS_CORE: pathlib.Path = PLUGIN_DIRS / "core"
+PLUGIN_DIRS_OFFICIAL: pathlib.Path = PLUGIN_DIRS / "syslifters"
+PLUGIN_DIRS_COMMUNITY: pathlib.Path = PLUGIN_DIRS / "community"
+PLUGIN_DIRS_IMPORTERS: pathlib.Path = PLUGIN_DIRS / "importers"
+PLUGIN_DIRS_EXPORTERS: pathlib.Path = PLUGIN_DIRS / "exporters"
+PLUGIN_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "plugins"
 
-MODULE_TEMPLATES_DIR_NAME: pathlib.Path = "templates"
+PLUGIN_TEMPLATES_DIR_NAME: str = "templates"
 
 LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 

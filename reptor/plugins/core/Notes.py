@@ -1,4 +1,4 @@
-from reptor.lib.modules.Base import Base
+from reptor.lib.plugins.Base import Base
 from reptor.api.NotesAPI import NotesAPI
 
 from reptor.lib.console import reptor_console
