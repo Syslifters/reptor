@@ -3,6 +3,8 @@ Please note that the SysReptor API is still unstable and might change in the fut
 
 ::: reptor.api.models.User
 
+::: reptor.api.models.Finding
+
 ::: reptor.api.models.FindingData
 
 ::: reptor.api.models.FindingTemplate

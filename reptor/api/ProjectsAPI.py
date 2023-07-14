@@ -4,7 +4,7 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import Project, FindingData
+from reptor.api.models import Project, Finding
 
 
 class ProjectsAPI(APIClient):
@@ -57,6 +57,11 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
+    def get_project(self) -> Project:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/")
+        response = self.get(url)
+        return Project(response.json())
+
     def export(self, file_name: pathlib.Path = None) -> bytes:
         if not self.project_id:
             raise ValueError("No project ID. Wanna run 'reptor conf'?")
@@ -75,11 +80,27 @@ class ProjectsAPI(APIClient):
         duplicated_project = self.post(url).json()
         return Project(duplicated_project)
 
-    def get_findings(self) -> typing.List[FindingData]:
+    def get_findings(self) -> typing.List[Finding]:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         response = self.get(url)
 
         return_data = list()
-        for item in response.json()["results"]:
-            return_data.append(FindingData(item))
+        for item in response.json():
+            return_data.append(Finding(item))
         return return_data
+
+    def update_finding(self, finding_id: str, data: dict) -> None:
+        url = urljoin(self.base_endpoint,
+                      f"{self.project_id}/findings/{finding_id}/")
+        self.patch(url, data)
+
+    def update_project(self, data: dict) -> None:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/")
+        self.patch(url, data)
+
+    def get_enabled_language_codes(self) -> list:
+        url = urljoin(self._config.get_server(), 'api/v1/utils/settings/')
+        settings = self.get(url).json()
+        languages = [l['code'] for l in settings.get(
+            'languages', list()) if l['enabled'] == True]
+        return languages

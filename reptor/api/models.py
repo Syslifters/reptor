@@ -120,6 +120,8 @@ class User(BaseModel):
 
 class FindingData(BaseModel):
     """
+    Custom finding fields will be added as additional attributes.
+
     Attributes:
         title:
         cvss:
@@ -153,6 +155,41 @@ class FindingData(BaseModel):
     retest_status: str = ""
     evidence: str = ""
 
+    def _fill_from_api(self, data: typing.Dict):
+        """Fills Model from reptor.api return JSON data
+        For FindingData, undefined keys should also be set.
+
+        Args:
+            data (str): API Return Data
+        """
+        super()._fill_from_api(data)
+        for key, value in data.items():
+            if not hasattr(self, key):
+                self.__setattr__(key, value)
+                # TODO what about nested data types?
+
+
+class Finding(BaseModel):
+    """
+    Attributes:
+        project:
+        project_type:
+        language:
+        lock_info:
+        template:
+        assignee:
+        status:
+        data:
+    """
+    project: str = ""
+    project_type: str = ""
+    language: str = ""
+    lock_info: bool = False
+    template: str = ""
+    assignee: str = ""
+    status: str = ""
+    data: FindingData = None
+
 
 class FindingTemplate(BaseModel):
     """
@@ -175,8 +212,6 @@ class FindingTemplate(BaseModel):
     language: str = ""
     status: str = ""
     data: FindingData = None
-
-    custom_attributes: typing.List[dict] = []
 
 
 class Note(BaseModel):
