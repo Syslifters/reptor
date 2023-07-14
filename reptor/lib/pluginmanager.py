@@ -13,6 +13,10 @@ from reptor.lib.plugins.DocParser import DocParser
 
 
 class PluginManager:
+    """The  PluginManager is responsible for loading all plugins and making
+    them available to reptor.
+    """
+
     _plugin_paths: typing.List = list()
 
     LOADED_PLUGINS: typing.Dict = dict()
@@ -161,3 +165,5 @@ class PluginManager:
 
             # because it is a dictionary, an overwritten module is automatically overwritten
             self.LOADED_PLUGINS[plugin_docs.name] = module
+
+        self._reptor.logger.debug(self.LOADED_PLUGINS)

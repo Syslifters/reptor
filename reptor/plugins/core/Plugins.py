@@ -1,4 +1,4 @@
-import os
+import pathlib
 import shutil
 
 import reptor.settings as settings
@@ -197,18 +197,19 @@ class Plugins(Base):
     def _copy_plugin(self, dest=settings.PLUGIN_DIRS_USER):
         # Check if plugin exists and get its path
         try:
-            plugin_path = os.path.dirname(
+            plugin = pathlib.Path(
                 self.reptor.plugin_manager.LOADED_PLUGINS[
                     self.copy_plugin_name
                 ].__file__
             )
-            plugin_dirname = os.path.basename(plugin_path)
         except KeyError:
             raise ValueError(f"Plugin '{self.copy_plugin_name}' does not exist.")
 
         # Copy plugin
-        dest = os.path.join(dest, plugin_dirname)
-        shutil.copytree(plugin_path, dest)
+
+        dest = dest / plugin.parent.name
+        self.reptor.logger.debug(f"Trying to copy {plugin.parent} to {dest}")
+        shutil.copytree(plugin.parent, dest)
 
     def run(self):
         if self.new_plugin_name is not None:
