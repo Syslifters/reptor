@@ -58,5 +58,11 @@ $ cat test_data/sslyze.txt | python3 reptor nmap -upload
 ## Unit Tests
 
 ```
-python -m unittest discover -v -s modules
+make test
+```
+
+or specific
+
+```
+python -m unittest discover -v -s reptor/plugins/core/Nmap
 ```
