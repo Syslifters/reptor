@@ -6,7 +6,7 @@ from xml.etree import ElementTree
 
 from django.template.loader import render_to_string
 
-from reptor import settings
+import reptor.settings as settings
 from reptor.api.NotesAPI import NotesAPI
 
 from .Base import Base

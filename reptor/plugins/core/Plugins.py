@@ -1,7 +1,8 @@
 import os
 import shutil
 
-from reptor import settings, subcommands
+import reptor.settings as settings
+import reptor.subcommands as subcommands
 from reptor.lib.console import reptor_console
 from reptor.lib.plugins.Base import Base
 from reptor.lib.plugins.ToolBase import ToolBase

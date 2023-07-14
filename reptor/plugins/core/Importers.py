@@ -1,4 +1,4 @@
-from reptor import subcommands
+import reptor.subcommands as subcommands
 from reptor.lib.plugins.Base import Base
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.lib.console import reptor_console
@@ -55,8 +55,7 @@ class Importers(Base):
 
     def _search(self, importers):
         """Searches modules"""
-        self.reptor.console.print(
-            f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        self.reptor.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
         results = list()
         for item in importers:
             if self.arg_search in item.tags:
