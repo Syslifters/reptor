@@ -90,3 +90,22 @@ class APIClient:
         )
         response.raise_for_status()
         return response
+
+    def patch(self, url: str, data: object) -> requests.models.Response:
+        """Sends a patch requests, requires some json data
+
+        Args:
+            url (str): Endpoint URL
+            data (object): JSON Data
+
+        Returns:
+            requests.models.Response: requests Respone Object
+        """
+        response = requests.patch(
+            url,
+            headers=self._get_headers(),
+            json=data,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+        return response
