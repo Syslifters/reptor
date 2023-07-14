@@ -9,7 +9,7 @@ import reptor.subcommands as subcommands
 from reptor.lib.conf import Config
 from reptor.lib.console import Console, reptor_console
 from reptor.lib.logger import ReptorAdapter, reptor_logger
-from reptor.lib.plugins.DocParser import DocParser, PluginDocs
+from reptor.lib.plugins.DocParser import PluginDocs
 from reptor.utils.markdown import convert_markdown_to_console
 from reptor.lib.pluginmanager import PluginManager
 

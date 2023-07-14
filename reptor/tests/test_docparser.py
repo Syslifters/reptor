@@ -1,6 +1,6 @@
 import unittest
 
-from reptor.lib.modules.docparser import DocParser
+from reptor.lib.plugins.DocParser import DocParser
 
 
 class TestModelsParsing(unittest.TestCase):
