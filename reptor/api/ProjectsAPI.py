@@ -4,7 +4,7 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import Project
+from reptor.api.models import Project, FindingData
 
 
 class ProjectsAPI(APIClient):
@@ -57,7 +57,7 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def export(self, file_name: pathlib.Path = None):
+    def export(self, file_name: pathlib.Path = None) -> bytes:
         if not self.project_id:
             raise ValueError("No project ID. Wanna run 'reptor conf'?")
 
@@ -70,16 +70,16 @@ class ProjectsAPI(APIClient):
         with open(file_name, "wb") as f:
             f.write(data.content)
 
-    def duplicate(self):
+    def duplicate(self) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
-        data = self.post(url).json()
-        try:
-            data['id']
-        except KeyError:
-            self.reptor.logger.error(f"Duplication failed.")
-        return data
+        duplicated_project = self.post(url).json()
+        return Project(duplicated_project)
 
-    def get_findings(self):
+    def get_findings(self) -> typing.List(FindingData):
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        findings = self.get(url).json()
-        return findings
+        response = self.get(url)
+
+        return_data = list()
+        for item in response.json()["results"]:
+            return_data.append(FindingData(item))
+        return return_data

@@ -69,9 +69,9 @@ class Projects(Base):
         reptor_console.print(table)
 
     def _duplicate_project(self):
-        new_project = self.projects_api.duplicate()
-        project_title = new_project['name']
-        project_id = new_project['id']
+        duplicated_project = self.projects_api.duplicate()
+        project_title = duplicated_project.name
+        project_id = duplicated_project.id
         self.reptor.logger.success(
             f"Duplicated to '{project_title}' ({project_id})")
 
