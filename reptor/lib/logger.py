@@ -11,7 +11,7 @@ from termcolor import colored
 from rich.text import Text
 from rich.logging import RichHandler
 
-from reptor import settings
+import reptor.settings as settings
 
 from reptor.lib.console import reptor_console
 

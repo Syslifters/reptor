@@ -2,7 +2,7 @@ import typing
 
 import requests
 
-from reptor import settings
+import reptor.settings as settings
 
 from reptor.lib.interfaces.conf import ConfigProtocol
 from reptor.lib.interfaces.reptor import ReptorProtocol
