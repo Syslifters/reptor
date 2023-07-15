@@ -1,9 +1,14 @@
-from gql import gql, Client
-from gql.transport.aiohttp import AIOHTTPTransport
-
-
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.lib.interfaces.reptor import ReptorProtocol
+
+try:
+    from gql import gql, Client
+    from gql.transport.aiohttp import AIOHTTPTransport
+except ImportError:
+    from reptor.lib.console import reptor_console
+
+    reptor_console.print("[red]To run this importer you need to install gql[/red]")
+    exit(1)
 
 # Todo: This needs a lot of work
 # Consider it a WIP Example
