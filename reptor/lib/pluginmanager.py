@@ -27,12 +27,12 @@ class PluginManager:
         self._reptor = reptor
 
     def run_loading_sequence(self):
-        """The module loading hierachy is as followed
-        System Modules -> Community Modules -> User Modules
-        This allows the User to overwrite any Community Modules
-        and Community Modules can overwrite System Modules
+        """The plugin loading hierachy is as followed
+        System Plugins -> Community Plugins -> User Plugins
+        This allows the User to overwrite any Community Plugins
+        and Community Plugins can overwrite System Plugins
         """
-        self._reptor.logger.info("Loading modules...")
+        self._reptor.logger.info("Loading plugins...")
         self._load_core_modules()
         self._load_syslifters_modules()
         if self._reptor.get_config().get("community", False):

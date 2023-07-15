@@ -205,7 +205,7 @@ class Reptor(ReptorProtocol):
 
         self._dynamically_add_plugin_options()
 
-        # Static module options
+        # Static plugin options
         self._add_config_parse_options()
 
         self._configure_global_arguments()
@@ -213,8 +213,8 @@ class Reptor(ReptorProtocol):
 
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
-            module = self.plugin_manager.LOADED_PLUGINS[args.command]
-            module.loader(reptor=self, **self._config.get("cli")).run()
+            plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
+            plugin.loader(reptor=self, **self._config.get("cli")).run()
         else:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all
