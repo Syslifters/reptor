@@ -20,6 +20,7 @@ dependencies = [
   'certifi >= 2023.5.7',
   'charset-normalizer >= 3.0.0',
   'Django >= 4.2',
+  'gql>=3.4.1',
   'idna >= 3.0',
   'markdown-it-py >= 3.0.0',
   'mdurl >= 0.1.0',
