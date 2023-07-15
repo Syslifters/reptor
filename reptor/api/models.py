@@ -9,6 +9,7 @@ class BaseModel:
     """
     Base Model
     """
+
     id: str = ""
     created: datetime.datetime = datetime.datetime.now()
     updated: datetime.datetime = datetime.datetime.now()
@@ -63,7 +64,11 @@ class BaseModel:
                     self.__setattr__(attr[0], data[attr[0]])
 
     def _to_api_json(self):
-        ...
+        data = {}
+        for key, value in self.__dict__.items():
+            if key not in ["created", "updated"]:
+                data.update({key: value})
+        return data
 
 
 class User(BaseModel):
@@ -93,6 +98,7 @@ class User(BaseModel):
         can_login_local:
         can_login_sso:
     """
+
     username: str = ""
     name: str = ""
     title_before: str = ""
@@ -139,6 +145,7 @@ class FindingData(BaseModel):
         retest_status:
         evidence:
     """
+
     title: str = ""
     cvss: str = ""
     summary: str = ""
@@ -181,6 +188,7 @@ class Finding(BaseModel):
         status:
         data:
     """
+
     project: str = ""
     project_type: str = ""
     language: str = ""
@@ -204,6 +212,7 @@ class FindingTemplate(BaseModel):
         data:
         custom_attributes:
     """
+
     details: str = ""
     lock_info: bool = False
     usage_count: int = 0
@@ -226,6 +235,7 @@ class Note(BaseModel):
         order:
         parent:
     """
+
     lock_info: bool = False
     title: str = ""
     text: str = ""
@@ -244,6 +254,7 @@ class ProjectType(BaseModel):
         name:
         language:
     """
+
     source: str = ""
     scope: str = ""
     name: str = ""
@@ -262,6 +273,7 @@ class Project(BaseModel):
         copy_of:
         members:
     """
+
     name: str = ""
 
     # Todo: should be ProjectType but API returns no object, but ID str instead

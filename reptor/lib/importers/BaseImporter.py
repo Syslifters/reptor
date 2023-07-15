@@ -22,8 +22,18 @@ class BaseImporter:
 
     def _create_finding_item(self, raw_data: typing.Dict) -> FindingTemplate:
         remapped_data = dict()
-        for key, value in self.mapping:
-            remapped_data[value] = raw_data[key]
+        for key, value in self.mapping.items():
+            converted_data = raw_data[key]
+            # check if we have a convert_method and call it
+            # update the value
+            convert_method_name = f"convert_{key}"
+            if hasattr(self, convert_method_name):
+                if callable(getattr(self, convert_method_name)):
+                    converter_method = getattr(self, convert_method_name)
+                    self.reptor.logger.debug(f"Calling: {convert_method_name}")
+                    converted_data = converter_method(raw_data[key])
+
+            remapped_data[value] = converted_data
 
         new_finding = FindingTemplate(remapped_data)
         new_finding.data = FindingData(remapped_data)
@@ -47,4 +57,6 @@ class BaseImporter:
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue
+            self.reptor.logger.display(f"Uploading {new_finding.data.title}")
+            self.reptor.logger.debug(new_finding)
             self._upload_finding_templates(new_finding)

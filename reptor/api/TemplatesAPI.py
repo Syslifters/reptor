@@ -33,7 +33,9 @@ class TemplatesAPI(APIClient):
             return_data.append(FindingTemplate(item))
         return return_data
 
-    def upload_new_template(self, template: FindingTemplate) -> typing.Optional[FindingTemplate]:
+    def upload_new_template(
+        self, template: FindingTemplate
+    ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
         Args:
@@ -42,12 +44,33 @@ class TemplatesAPI(APIClient):
         Returns:
             FindingTemplate: Updated Model with ID etc.
         """
-        res = self.post(self.base_endpoint, data=template._to_api_json())
-        raw_data = res.json()
-        if raw_data:
-            if raw_data["results"]:
-                return FindingTemplate(raw_data["results"][0])
-        self.reptor.logger.fail(
-            f"Could not upload finding with title {template.data.title}"
-        )
-        return None
+        # template.data._to_api_json()
+        return_template = None
+        try:
+            res = self.post(
+                self.base_endpoint, data={"data": {"title": template.data.title}}
+            )
+            raw_data = res.json()
+            self.reptor.logger.debug(raw_data)
+            if raw_data:
+                updated_template = FindingTemplate(raw_data)
+                updated_template.data = template.data
+                updated_data = {
+                    "id": updated_template.id,
+                    "status": "in-progress",
+                    "data": updated_template.data._to_api_json(),
+                }
+                self.reptor.logger.debug(updated_data)
+                res2 = self.put(
+                    f"{self.base_endpoint}{updated_template.id}",
+                    updated_data,
+                )
+                return_template = updated_template
+
+        except Exception as e:
+            self.reptor.logger.fail(
+                f"Could not upload finding with title: {template.data.title}"
+            )
+            self.reptor.logger.fail(f"Error Message Infos: {e}")
+
+        return return_template
