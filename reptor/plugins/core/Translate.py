@@ -14,11 +14,14 @@ except ImportError:
 
 class Translate(Base):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    # Short Help:
     Translate Projects and Templates to other languages
+
+    # Description:
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     SKIP_FINDING_FIELDS = [

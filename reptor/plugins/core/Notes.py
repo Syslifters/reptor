@@ -7,11 +7,14 @@ from reptor.utils.table import make_table
 
 class Notes(Base):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    # Short Help:
     Queries Notes from reptor.api
+
+    # Description:
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     def __init__(self, *kwargs):

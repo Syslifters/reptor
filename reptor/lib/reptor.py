@@ -23,6 +23,19 @@ root_logger = logging.getLogger("root")
 
 
 class Reptor(ReptorProtocol):
+    """The reptor class is the main App.
+
+    It is responsible for the correct loading of plugins via the PluginManager,
+    enabling global arguments and forwarding any plugin calls to the correct
+    plugin.
+
+    Attributes:
+        plugin_manager:
+        logger:
+        console:
+
+    """
+
     _config: Config
     _parser: argparse.ArgumentParser
     _sub_parsers: argparse._SubParsersAction

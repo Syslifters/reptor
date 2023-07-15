@@ -7,11 +7,15 @@ from reptor.api.NotesAPI import NotesAPI
 
 class File(UploadBase):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    # Short Help:
     Uploads a file
+
+
+    # Arguments:
+    * --file        files to upload; leave empty for stdin
+    * --filename|-fn    filename if file provided via stdin
+
+    # Developer Notes:
     """
 
     @classmethod

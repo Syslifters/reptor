@@ -8,22 +8,20 @@ from reptor.utils.table import make_table
 
 class Importers(Base):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: core, import, findings
-
-    Short Help:
+    #Short Help:
     Shows available finding template importers
 
-    Description:
+    # Description:
     Use this module to list importers.
 
     Search for importers based on tags or name
 
     Create a new importer from a template for the community
     or yourself.
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     def __init__(self, **kwargs):

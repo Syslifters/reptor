@@ -8,11 +8,14 @@ from reptor.utils.table import make_table
 
 class Projects(Base):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    # Short Help:
     Queries Projects from reptor.api
+
+    # Description:
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     def __init__(self, **kwargs):

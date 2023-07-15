@@ -5,7 +5,17 @@ site_dir: ./site/ # Where to put the HTML files
 
 nav:
   - Home: index.md
+  - Library :
+    - Overview : lib/overview.md
+    - Reptor : lib/reptor.md
+    - Importers : lib/importers.md
+    - Plugins : lib/plugins.md
+    - Logging : lib/logging.md
+    - Output : lib/console.md
+    - Testing : lib/tests.md
   - API Models: api-models.md
+  - Core Plugins: core-modules.md
+  - Community Plugins: community/nikto.md
 
 theme:
   name: material
@@ -36,7 +46,7 @@ plugins:
   #      fill: "#001827"
   #      text: "#F9FDFF"
   #    cards_font: Exo
-  - tooltips
+  # - tooltips
   - search
   - mkdocstrings:
       handlers:

@@ -11,22 +11,27 @@ from reptor.utils.table import make_table
 
 class Plugins(Base):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: core
-
-    Short Help:
+    # Short Help:
     Allows plugin management & development
 
-    Description:
+    # Description:
     Use this plugin to list your plugins.
 
     Search for plugins based on tags, name or author
 
     Create a new plugin from a template for the community
     or yourself.
+
+    # Arguments:
+
+    * --search    Allows you to search for a specific plugin by name and tag
+    * --copy PLUGINNAME      Copies a plugin to your local folder for development
+    * --new PLUGINNAME  Creates a new plugin based off a template and your input
+    * --verbose   Provides more information about a plugin
+
+    # Developer Notes:
+    You can modify the `_list` method to change the output for search as
+    well as the default output.
     """
 
     def __init__(self, **kwargs):

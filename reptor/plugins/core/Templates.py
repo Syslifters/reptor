@@ -7,11 +7,14 @@ from reptor.utils.table import make_table
 
 class Templates(Base):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    #Short Help:
     Queries Finding Templates from reptor.api
+
+    # Description:
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     def __init__(self, **kwargs):

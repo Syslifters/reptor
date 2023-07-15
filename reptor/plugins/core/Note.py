@@ -4,11 +4,14 @@ from reptor.api.NotesAPI import NotesAPI
 
 class Note(UploadBase):
     """
-    Author: Syslifters
-    Website: https://github.com/Syslifters/reptor
-
-    Short Help:
+    # Short Help:
     Uploads a note
+
+    # Description:
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     @classmethod

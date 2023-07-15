@@ -6,19 +6,17 @@ from reptor.utils.table import make_table
 
 class Conf(ConfBase):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: core, config
-
-    Short Help:
+    # Short Help:
     Interact with reptor configuration
 
-    Description:
+    # Description:
     Offers you a way to write a config file for reptor,
     allows you to quickly see the configuration without touching
     the config file
+
+    # Arguments:
+
+    # Developer Notes:
     """
 
     def __init__(self, **kwargs):

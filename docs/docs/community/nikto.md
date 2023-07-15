@@ -1,2 +1,2 @@
 
-::: reptor.community.Nikto.Nikto.Nikto
+::: reptor.plugins.community.Nikto.Nikto
