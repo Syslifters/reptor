@@ -109,7 +109,8 @@ class PluginManager:
             spec = importlib.util.spec_from_file_location(  # type: ignore
                 "module.name", plugin_path
             )
-            self._reptor.logger.debug(plugin_path)
+
+            # self._reptor.logger.debug(plugin_path)
 
             module = importlib.util.module_from_spec(spec)  # type: ignore
 
@@ -166,4 +167,4 @@ class PluginManager:
             # because it is a dictionary, an overwritten module is automatically overwritten
             self.LOADED_PLUGINS[plugin_docs.name] = module
 
-        self._reptor.logger.debug(self.LOADED_PLUGINS)
+        self._reptor.logger.debug(f"Loaded Plugins are: {self.LOADED_PLUGINS}")

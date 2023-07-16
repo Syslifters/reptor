@@ -30,11 +30,10 @@ class Templates(Base):
         )
 
     def run(self):
-        template_api: TemplatesAPI = TemplatesAPI(self.reptor)
         if not self.arg_search:
-            templates = template_api.get_templates()
+            templates = self.reptor.api.templates.get_templates()
         else:
-            templates = template_api.search(self.arg_search)
+            templates = self.reptor.api.templates.search(self.arg_search)
 
         table = make_table(["Title", "ID"])
         for template in templates:

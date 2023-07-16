@@ -207,7 +207,7 @@ class Translate(Base):
         self.reptor.logger.display(
             f"Translating project name{' (dry run)' if self.dry_run else ''}."
         )
-        from_projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
+        from_projects_api: ProjectsAPI = ProjectsAPI(reptor=self.reptor)
         from_project = from_projects_api.get_project()
         from_project_name = from_project.name
         to_project_title = self._translate(from_project_name)
@@ -220,7 +220,9 @@ class Translate(Base):
             self.reptor.logger.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
-            self.projects_api: ProjectsAPI = ProjectsAPI(self.reptor, to_project_id)
+            self.projects_api: ProjectsAPI = ProjectsAPI(
+                reptor=self.reptor, project_id=to_project_id
+            )
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
                     self.to_lang
@@ -233,7 +235,9 @@ class Translate(Base):
                     f"Error updating project language: {e.response.text}"
                 )
         else:
-            self.projects_api: ProjectsAPI = ProjectsAPI(self.reptor, from_project.id)
+            self.projects_api: ProjectsAPI = ProjectsAPI(
+                reptor=self.reptor, project_id=from_project.id
+            )
 
         self.reptor.logger.display(
             f"Translating findings{' (dry run)' if self.dry_run else ''}."

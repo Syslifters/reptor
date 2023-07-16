@@ -20,7 +20,6 @@ class Projects(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.projects_api: ProjectsAPI = ProjectsAPI(self.reptor)
         self.search = kwargs.get("search")
         self.export = kwargs.get("export")
         self.duplicate = kwargs.get("duplicate")
@@ -54,15 +53,15 @@ class Projects(Base):
 
     def _export_project(self):
         filepath = pathlib.Path().cwd()
-        file_name = filepath / f"{self.projects_api.project_id}.tar.gz"
-        self.projects_api.export(file_name=file_name)
+        file_name = filepath / f"{self.reptor.api.projects.project_id}.tar.gz"
+        self.reptor.api.projects.export(file_name=file_name)
         self.reptor.logger.success(f"Written to: {file_name}")
 
     def _search_project(self):
         if self.search is not None:
-            projects = self.projects_api.search(self.search)
+            projects = self.reptor.api.projects.search(self.search)
         else:
-            projects = self.projects_api.get_projects()
+            projects = self.reptor.api.projects.get_projects()
 
         table = make_table(["Title", "ID", "Archived"])
 
@@ -75,7 +74,7 @@ class Projects(Base):
         reptor_console.print(table)
 
     def _duplicate_project(self):
-        duplicated_project = self.projects_api.duplicate()
+        duplicated_project = self.reptor.api.projects.duplicate()
         project_title = duplicated_project.name
         project_id = duplicated_project.id
         self.reptor.logger.success(f"Duplicated to '{project_title}' ({project_id})")

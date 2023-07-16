@@ -30,7 +30,7 @@ class Note(UploadBase):
         force_unlock = self.reptor.get_config().get_cli_overwrite().get("force_unlock")
         no_timestamp = self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
 
-        NotesAPI(self.reptor).write_note(
+        self.reptor.api.notes.write_note(
             notename=notename,
             parent_notename=parent_notename,
             icon=icon,

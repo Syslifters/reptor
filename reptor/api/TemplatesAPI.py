@@ -6,14 +6,14 @@ from reptor.api.models import FindingTemplate
 
 
 class TemplatesAPI(APIClient):
-    def __init__(self, reptor) -> None:
-        super().__init__(reptor)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         self.base_endpoint = urljoin(
-            self._config.get_server(), f"api/v1/findingtemplates/"
+            self.reptor.get_config().get_server(), f"api/v1/findingtemplates/"
         )
         self.object_endpoint = urljoin(
-            f"api/v1/findingtemplates/{self._config.get_project_id()}"
+            f"api/v1/findingtemplates/{self.reptor.get_config().get_project_id()}"
         )
 
     def get_templates(self) -> typing.List[FindingTemplate]:

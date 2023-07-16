@@ -4,30 +4,34 @@ import requests
 
 import reptor.settings as settings
 
-from reptor.lib.interfaces.conf import ConfigProtocol
 from reptor.lib.interfaces.reptor import ReptorProtocol
+from reptor.lib.console import reptor_console
 
 
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods"""
 
-    _config: ConfigProtocol
+    reptor: ReptorProtocol
     base_endpoint: str
     endpoint: str
     item_id: str
     force_unlock: bool
 
-    def __init__(self, reptor: ReptorProtocol) -> None:
-        self.reptor = reptor
-        self._config = self.reptor.get_config()
-        self.verify = not self._config.get("insecure", False)
+    def __init__(self, **kwargs) -> None:
+        self.reptor = kwargs.get("reptor", None)
+        if not self.reptor:
+            reptor_console.print(
+                "[red]Make sure you access the API via the apimanager (reptor.api)[/red]"
+            )
+            exit(1)
+        self.verify = not self.reptor.get_config().get("insecure", False)
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
         if json_content:
             headers["Content-Type"] = "application/json"
         headers["User-Agent"] = settings.USER_AGENT
-        headers["Authorization"] = f"Bearer {self._config.get_token()}"
+        headers["Authorization"] = f"Bearer {self.reptor.get_config().get_token()}"
         self.reptor.logger.debug(f"HTTP Headers: {headers}")
         return headers
 

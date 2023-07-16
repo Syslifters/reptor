@@ -9,8 +9,8 @@ class BaseImporter:
     reptor: ReptorProtocol
     mapping: typing.Dict
 
-    def __init__(self, reptor: ReptorProtocol, **kwargs) -> None:
-        self.reptor = reptor
+    def __init__(self, **kwargs):
+        self.reptor = kwargs.get("reptor", None)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

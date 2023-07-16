@@ -10,19 +10,19 @@ from reptor.api.models import Project, Finding
 class ProjectsAPI(APIClient):
     project_id: str  # This is a local overwrite to quickly check other projects
 
-    def __init__(self, reptor, project_id: str = None) -> None:
-        super().__init__(reptor)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         self.base_endpoint = urljoin(
-            self._config.get_server(), f"api/v1/pentestprojects/"
+            self.reptor.get_config().get_server(), f"api/v1/pentestprojects/"
         )
         self.object_endpoint = urljoin(
-            self.base_endpoint, f"{self._config.get_project_id()}"
+            self.base_endpoint, f"{self.reptor.get_config().get_project_id()}"
         )
-        if project_id:
-            self.project_id = project_id
+        if kwargs.get("project_id", None):
+            self.project_id = kwargs.get("project_id", "")
         else:
-            self.project_id = self._config.get_project_id()
+            self.project_id = self.reptor.get_config().get_project_id()
 
         # if not self.project_id:
         #     self.reptor.logger.fail_with_exit("No project ID. Wanna run 'reptor conf'?")
@@ -62,7 +62,9 @@ class ProjectsAPI(APIClient):
         response = self.get(url)
         return Project(response.json())
 
-    def export(self, file_name: pathlib.Path = None) -> bytes:
+    def export(
+        self, file_name: typing.Optional[pathlib.Path] = None
+    ) -> typing.Optional[bytes]:
         if not self.project_id:
             raise ValueError("No project ID. Wanna run 'reptor conf'?")
 
@@ -98,7 +100,7 @@ class ProjectsAPI(APIClient):
         self.patch(url, data)
 
     def get_enabled_language_codes(self) -> list:
-        url = urljoin(self._config.get_server(), "api/v1/utils/settings/")
+        url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
         settings = self.get(url).json()
         languages = [
             l["code"] for l in settings.get("languages", list()) if l["enabled"] == True

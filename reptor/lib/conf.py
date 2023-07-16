@@ -34,7 +34,9 @@ class Config(ConfigProtocol):
             cls.instance = super(Config, cls).__new__(cls)
         return cls.instance
 
-    def get(self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = None) -> typing.Any:
+    def get(
+        self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = None
+    ) -> typing.Any:
         """Returns a value from the current config
 
         Args:
@@ -108,9 +110,9 @@ class Config(ConfigProtocol):
         community = input(
             f"Enable Community Plugins?{ f'[Currently: {is_community_enabled}]'} [y/n]: "
         )[:1].lower()
-        if community == 'y':
+        if community == "y":
             self._raw_config["community"] = True
-        elif community == 'n':
+        elif community == "n":
             self._raw_config["community"] = False
 
         self.store_config()
@@ -141,16 +143,16 @@ class Config(ConfigProtocol):
             raise ValueError("No config is currently set")
 
     def get_server(self) -> str:
-        return self.get("server")
+        return self.get("server", "")
 
     def get_token(self) -> str:
-        return self.get("token")
+        return self.get("token", "")
 
     def get_project_id(self) -> str:
-        return self.get("project_id")
+        return self.get("project_id", "")
 
     def get_cli_overwrite(self) -> typing.Dict:
-        return self.get("cli")
+        return self.get("cli", {})
 
     def get_community_enabled(self) -> bool:
-        return self.get("community")
+        return self.get("community", False)

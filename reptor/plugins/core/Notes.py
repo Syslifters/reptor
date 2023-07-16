@@ -17,16 +17,15 @@ class Notes(Base):
     # Developer Notes:
     """
 
-    def __init__(self, *kwargs):
-        super().__init__(*kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
 
     def run(self):
-        notes_api: NotesAPI = NotesAPI(self.reptor)
-        notes = notes_api.get_notes()
+        notes = self.reptor.api.notes.get_notes()
 
         table = make_table(["Title", "ID"])
         for note in notes:

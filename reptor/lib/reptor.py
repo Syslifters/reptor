@@ -12,6 +12,7 @@ from reptor.lib.logger import ReptorAdapter, reptor_logger
 from reptor.lib.plugins.DocParser import PluginDocs
 from reptor.utils.markdown import convert_markdown_to_console
 from reptor.lib.pluginmanager import PluginManager
+from reptor.api.manager import APIManager
 
 from .interfaces.reptor import ReptorProtocol
 from .interfaces.pluginmanager import PluginManagerProtocol
@@ -31,9 +32,10 @@ class Reptor(ReptorProtocol):
     plugin.
 
     Attributes:
-        plugin_manager:
-        logger:
-        console:
+        plugin_manager: AcAPIManagercess any plugins
+        logger: Log to the logger
+        console: Write to console via print
+        api: Access the API via APIManager
 
     """
 
@@ -44,6 +46,7 @@ class Reptor(ReptorProtocol):
 
     logger: ReptorAdapter = reptor_logger
     console: Console = reptor_console
+    _api: APIManager
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
@@ -51,7 +54,9 @@ class Reptor(ReptorProtocol):
         return cls.instance
 
     def __init__(self) -> None:
-        self._load_config()
+        # Load the config
+        self._config = Config()
+        self._config.load_config()
 
         self.plugin_manager = PluginManager(self)
 
@@ -72,10 +77,9 @@ class Reptor(ReptorProtocol):
     def get_plugin_manager(self) -> PluginManagerProtocol:
         return self.plugin_manager
 
-    def _load_config(self) -> None:
-        """Load the config into Reptor"""
-        self._config = Config()
-        self._config.load_config()
+    @property
+    def api(self) -> APIManager:
+        return self._api
 
     def _create_parsers(self):
         """Creates the description in the help and the parsers to be used
@@ -231,9 +235,13 @@ class Reptor(ReptorProtocol):
         self._configure_global_arguments()
         args = self._parse_main_arguments_with_subparser()
 
+        # Configure the API
+        self._api = APIManager(reptor=self)
+
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
             plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
+            self.logger.debug(f"Loading Plugin: {plugin.__name__}")
             plugin.loader(reptor=self, **self._config.get("cli")).run()
         else:
             # This is called when the user uses python -m reptor or any other way

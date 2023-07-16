@@ -21,17 +21,18 @@ class NotesAPI(APIClient):
         APIClient (_type_): _description_
     """
 
-    def __init__(self, reptor) -> None:
-        super().__init__(reptor)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         if self.private_note:
             self.base_endpoint = urljoin(
-                self._config.get_server(), f"api/v1/pentestusers/self/notes/"
+                self.reptor.get_config().get_server(),
+                f"api/v1/pentestusers/self/notes/",
             )
-        elif self._config.get_project_id():
+        elif self.reptor.get_config().get_project_id():
             self.base_endpoint = urljoin(
-                self._config.get_server(),
-                f"api/v1/pentestprojects/{self._config.get_project_id()}/notes/",
+                self.reptor.get_config().get_server(),
+                f"api/v1/pentestprojects/{self.reptor.get_config().get_project_id()}/notes/",
             )
         else:
             self.reptor.logger.fail_with_exit(
@@ -40,7 +41,7 @@ class NotesAPI(APIClient):
 
     @property
     def private_note(self):
-        return self._config.get_cli_overwrite().get("private_note")
+        return self.reptor.get_config().get_cli_overwrite().get("private_note")
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""
