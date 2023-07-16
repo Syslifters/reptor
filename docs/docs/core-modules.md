@@ -1,5 +1,5 @@
 
-# Core Plugins
+## Introduction
 
 These plugins are the foundation of the reptor CLI. If you are unhappy with some of the functionality you can also overwrite these.
 

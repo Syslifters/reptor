@@ -53,16 +53,40 @@ class ReptorAdapter(logging.LoggerAdapter):
         return f"{msg}", kwargs
 
     def display(self, msg, color="blue", *args, **kwargs):
+        """Prints a blue message in console
+
+        Args:
+            msg (_type_): _description_
+            color (str, optional): _description_. Defaults to "blue".
+        """
         self._print(msg, color, *args, **kwargs)
 
     def fail(self, msg, color="red", *args, **kwargs):
+        """Prints a red message
+
+        Args:
+            msg (_type_): _description_
+            color (str, optional): _description_. Defaults to "red".
+        """
         self._print(msg, color, *args, **kwargs)
 
     def fail_with_exit(self, msg, color="red", *args, **kwargs):
+        """Prints a red message and calls sys.exit with a status code of 1
+
+        Args:
+            msg (_type_): _description_
+            color (str, optional): _description_. Defaults to "red".
+        """
         self._print(msg, color, *args, **kwargs)
         exit(1)
 
     def success(self, msg, color="green", *args, **kwargs):
+        """Prints a green message
+
+        Args:
+            msg (_type_): _description_
+            color (str, optional): _description_. Defaults to "green".
+        """
         self._print(msg, color, *args, **kwargs)
 
     def highlight(self, msg, *args, **kwargs):

@@ -11,11 +11,14 @@ nav:
     - Importers : lib/importers.md
     - Plugins : lib/plugins.md
     - Logging : lib/logging.md
-    - Output : lib/console.md
+    - Config : lib/config.md
     - Testing : lib/tests.md
   - API Models: api-models.md
   - Core Plugins: core-modules.md
-  - Community Plugins: community/nikto.md
+  - Community Plugins:
+    - Create Plugin : community/create.md
+    - Nikto : community/nikto.md
+    - OWASPZap : community/owaspzap.md
 
 theme:
   name: material

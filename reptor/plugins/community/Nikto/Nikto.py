@@ -15,15 +15,19 @@ from reptor.plugins.community.Nikto.models import (
 class Nikto(ToolBase):
     """
     Author: Richard Schwabe
+
     Version: 1.0
+
     Website: https://github.com/Syslifters/reptor
+
     License: MIT
+
     Tags: web,owasp
 
-    Short Help:
+    # Short Help:
     Formats Nikto output (Raw, XML, JSON)
 
-    Description:
+    # Description:
 
     Multiple Targets are not supported in JSON
 
