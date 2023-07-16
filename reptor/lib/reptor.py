@@ -100,8 +100,15 @@ class Reptor(ReptorProtocol):
                 description += f"{item.name:<21} {item.short_help}{settings.NEWLINE}"
 
         # Argument parser
+        main_description = """
+            Examples:
+                python -m reptor projects --search "matrix"
+                python -m reptor nikto --xml --file ./nikto_results.xml
+"""
         self._parser = argparse.ArgumentParser(
-            prog="reptor", formatter_class=argparse.RawDescriptionHelpFormatter
+            prog="reptor",
+            description=main_description.strip(),
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
 
         self._sub_parsers = self._parser.add_subparsers(
@@ -109,6 +116,10 @@ class Reptor(ReptorProtocol):
         )
 
     def _dynamically_add_plugin_options(self):
+        """
+        Calls add_arguments on each plugin that is loaded and provides
+        the subparser as well as the plugin file path
+        """
         # Dynamically add plugin options
         for name, plugin in self.plugin_manager.LOADED_PLUGINS.items():
             plugin.subparser = self._sub_parsers.add_parser(
@@ -148,9 +159,10 @@ class Reptor(ReptorProtocol):
 
     def _configure_global_arguments(self):
         """Enables the parameters
-        - project_id
+        - debug
         - verbose
         - insecure
+        - no-timestamp
         """
         self._parser.add_argument(
             "-v",
