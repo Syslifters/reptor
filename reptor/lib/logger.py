@@ -2,6 +2,7 @@ import logging
 import pathlib
 import re
 import sys
+import typing
 
 from datetime import datetime
 from logging import LogRecord
@@ -101,7 +102,7 @@ class ReptorAdapter(logging.LoggerAdapter):
         else:
             self.logger.info(text)
 
-    def add_file_log(self, log_file: pathlib.Path = None):
+    def add_file_log(self, log_file: typing.Union[pathlib.Path, None] = None):
         file_formatter = TermEscapeCodeFormatter(
             "%(asctime)s - %(levelname)s - %(message)s"
         )
