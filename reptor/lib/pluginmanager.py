@@ -43,6 +43,44 @@ class PluginManager:
 
         self._load_user_modules()
 
+    def is_loaded(self, plugin_name: str) -> bool:
+        """Checks if a plugin is loaded
+
+        Args:
+            plugin_name (str): Plugin Name
+
+        Returns:
+            bool: True if found, False if not
+        """
+        if plugin_name in self.LOADED_PLUGINS.keys():
+            return True
+        return False
+
+    def unload(self, plugin_name: str) -> bool:
+        """Unloads a plugin by its name
+
+        Args:
+            plugin_name (str): Plugin Name
+
+        Returns:
+             bool: True if unloaded, otherwise False
+        """
+        if self.is_loaded(plugin_name):
+            del self.LOADED_PLUGINS[plugin_name]
+            return True
+        return False
+
+    def get_plugin_by_name(self, plugin_name: str):
+        """Returns a plugin by its name, if it exists
+        otherwise return is None
+
+        Args:
+            plugin_name (str): Plugin Name
+        """
+        if self.is_loaded(plugin_name):
+            return self.LOADED_PLUGINS[plugin_name]
+        return None
+
     def _load_plugin_from_path(self, directory: pathlib.Path):
         """Loads a File and Folder based Modules from the ./modules folder in reptor
 
