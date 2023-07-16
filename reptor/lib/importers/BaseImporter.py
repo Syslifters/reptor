@@ -30,7 +30,7 @@ class BaseImporter:
             if hasattr(self, convert_method_name):
                 if callable(getattr(self, convert_method_name)):
                     converter_method = getattr(self, convert_method_name)
-                    self.reptor.logger.debug(f"Calling: {convert_method_name}")
+                    self.reptor.get_logger().debug(f"Calling: {convert_method_name}")
                     converted_data = converter_method(raw_data[key])
 
             remapped_data[value] = converted_data
@@ -42,21 +42,21 @@ class BaseImporter:
     def _upload_finding_templates(self, new_finding: FindingTemplate):
         updated_template = TemplatesAPI(self.reptor).upload_new_template(new_finding)
         if updated_template:
-            self.reptor.logger.display(f"Uploaded {updated_template.id}")
+            self.reptor.get_logger().display(f"Uploaded {updated_template.id}")
         else:
-            self.reptor.logger.fail("Do you want to abort? [Y/n]")
+            self.reptor.get_logger().fail("Do you want to abort? [Y/n]")
             abort_answer = input()[:1].lower()
             if abort_answer != "n":
-                self.reptor.logger.fail_with_exit("Aborting...")
+                self.reptor.get_logger().fail_with_exit("Aborting...")
 
     def run(self):
         if not self.mapping:
-            self.reptor.logger.fail_with_exit("You need to provide a mapping.")
+            self.reptor.get_logger().fail_with_exit("You need to provide a mapping.")
 
         for external_finding in self.next_findings_batch():
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue
-            self.reptor.logger.display(f"Uploading {new_finding.data.title}")
-            self.reptor.logger.debug(new_finding)
+            self.reptor.get_logger().display(f"Uploading {new_finding.data.title}")
+            self.reptor.get_logger().debug(new_finding)
             self._upload_finding_templates(new_finding)
