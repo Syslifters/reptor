@@ -31,9 +31,6 @@ class OWASPZap(ToolBase):
         if self.input_format == "raw":
             self.input_format = "json"
 
-    # def parse_json(self):
-    #    raise NotImplementedError
-
     def parse_xml(self):
         return_data = list()
         for owasp_scan in self.xml_root:

@@ -19,7 +19,7 @@ class Note(UploadBase):
         super().add_arguments(parser, plugin_filepath)
 
     def run(self):
-        notename = self.config.get_cli_overwrite().get("notename")
+        notename = self.reptor.get_config().get_cli_overwrite().get("notename")
         parent_notename = None
         icon = None
         if notename:
@@ -27,8 +27,8 @@ class Note(UploadBase):
         else:
             notename = "Uploads"
             icon = "📤"
-        force_unlock = self.config.get_cli_overwrite().get("force_unlock")
-        no_timestamp = self.config.get_cli_overwrite().get("no_timestamp")
+        force_unlock = self.reptor.get_config().get_cli_overwrite().get("force_unlock")
+        no_timestamp = self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
 
         NotesAPI(self.reptor).write_note(
             notename=notename,

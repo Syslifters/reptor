@@ -32,17 +32,17 @@ class Conf(ConfBase):
         )
 
     def _show_config(self):
-        self.logger.display("Configuration Overview")
+        self.reptor.get_logger().display("Configuration Overview")
 
         table = make_table(["Setting", "Value"])
 
-        table.add_row("Server", self.config.get_server())
+        table.add_row("Server", self.reptor.get_config().get_server())
 
-        project_id = self.config.get_project_id()
+        project_id = self.reptor.get_config().get_project_id()
         table.add_row("Project ID", project_id or "Writing globally.")
 
         community_enabled = "[green]Enabled[/green]"
-        if not self.config.get_community_enabled():
+        if not self.reptor.get_config().get_community_enabled():
             community_enabled = "[yellow]Disabled[/yellow]"
         table.add_row("Community Modules", community_enabled)
 
@@ -52,7 +52,7 @@ class Conf(ConfBase):
         if self.arg_show:
             self._show_config()
         else:
-            self.config.get_config_from_user()
+            self.reptor.get_config().get_config_from_user()
 
 
 loader = Conf

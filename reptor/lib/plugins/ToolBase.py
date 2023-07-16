@@ -15,6 +15,15 @@ log = logging.getLogger("reptor")
 
 
 class ToolBase(Base):
+    """The ToolBase provides plugin developers with all functionality that
+    is commonly encountered when writing a plugin.
+
+
+    Attributes:
+        raw_input: Unformatted input, either from stdin or a file
+        template: The .md file to be used during formatting
+    """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
@@ -22,8 +31,12 @@ class ToolBase(Base):
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
-        self.no_timestamp = self.config.get("cli", dict()).get("no_timestamp")
-        self.force_unlock = self.config.get("cli", dict()).get("force_unlock")
+        self.no_timestamp = (
+            self.reptor.get_config().get("cli", dict()).get("no_timestamp")
+        )
+        self.force_unlock = (
+            self.reptor.get_config().get("cli", dict()).get("force_unlock")
+        )
 
         self.input_format = kwargs.get("format")
         self.template = kwargs.get("template", self.template)
@@ -145,6 +158,13 @@ class ToolBase(Base):
             )
 
     def run(self):
+        """
+        The run method is always called by the main reptor application.
+
+        The flow is:
+
+        Parsing -> Formatting -> Uploading
+        """
         if self.action == "parse":
             self.parse()
             self.reptor.logger.display(self.parsed_input)
@@ -155,6 +175,7 @@ class ToolBase(Base):
             self.upload()
 
     def load(self):
+        """Puts the stdin into raw_input"""
         self.raw_input = sys.stdin.read()
 
     def parse_xml(self):
@@ -170,6 +191,15 @@ class ToolBase(Base):
         raise NotImplementedError("Parse raw data is not implemented for this plugin.")
 
     def parse(self):
+        """
+        Directs the input to the correct sub parsing method. For every toolbase
+        plugin it is possible to handle --xml, --csv, --json or raw input.
+
+        Depending on the arguments the corresponding sub parser method is called.
+
+        If you decide not to support one of these, it won't be possible to provide
+        the corresponding argument.
+        """
         if not self.raw_input and not self.file_path:
             self.load()
 
@@ -185,6 +215,14 @@ class ToolBase(Base):
             self.parse_csv()
 
     def format(self):
+        """Checks if `self.parsed_input` is set.
+        If not it starts the parsing process.
+
+        Once there is parsed data it is run through the Django Templating Engine.
+
+        The template is set via `self.template`.
+
+        """
         if not self.parsed_input:
             self.parse()
 
@@ -193,6 +231,7 @@ class ToolBase(Base):
         )
 
     def upload(self):
+        """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
         if not self.formatted_input:
             self.format()
         notename = self.notename or self.__class__.__name__.lower()

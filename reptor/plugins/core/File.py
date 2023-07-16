@@ -33,11 +33,11 @@ class File(UploadBase):
         )
 
     def run(self):
-        files = self.config.get("cli").get("file")
+        files = self.reptor.get_config().get("cli").get("file")
         if not files:
             files = [sys.stdin]
-        filename = self.config.get("cli").get("filename")
-        notename = self.config.get("cli").get("notename")
+        filename = self.reptor.get_config().get("cli").get("filename")
+        notename = self.reptor.get_config().get("cli").get("notename")
         parent_notename = None
         icon = None
         if notename:
@@ -45,8 +45,8 @@ class File(UploadBase):
         else:
             notename = "Uploads"
             icon = "📤"
-        force_unlock = self.config.get("cli").get("force_unlock")
-        no_timestamp = self.config.get("cli").get("no_timestamp")
+        force_unlock = self.reptor.get_config().get("cli").get("force_unlock")
+        no_timestamp = self.reptor.get_config().get("cli").get("no_timestamp")
 
         NotesAPI(self.reptor).upload_file(
             files=files,

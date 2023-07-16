@@ -9,6 +9,8 @@ from reptor.plugins.community.Nikto.models import (
     Statistics,
 )
 
+# Todo: Refactor to global --xml, --json
+
 
 class Nikto(ToolBase):
     """
@@ -37,10 +39,6 @@ class Nikto(ToolBase):
         self.notename = "Nikto"
         self.arg_type_json = kwargs.get("json")
         self.arg_type_xml = kwargs.get("xml")
-        # TODO check format variable
-
-    def parse_json(self, data) -> typing.List[NiktoScan]:
-        raise NotImplementedError
 
     def parse_xml(self, data) -> typing.List[NiktoScan]:
         """Parses XML file from Nikto, tested with version 2.5.0
@@ -81,9 +79,7 @@ class Nikto(ToolBase):
     def parse(self):
         super().parse()
 
-        if self.arg_type_json:
-            nikto_scans = self.parse_json(self.raw_input)
-        elif self.arg_type_xml:
+        if self.arg_type_xml:
             nikto_scans = self.parse_xml(self.raw_input)
         else:
             nikto_scans = self.parse_raw(self.raw_input)

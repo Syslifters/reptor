@@ -14,6 +14,7 @@ from reptor.utils.markdown import convert_markdown_to_console
 from reptor.lib.pluginmanager import PluginManager
 
 from .interfaces.reptor import ReptorProtocol
+from .interfaces.pluginmanager import PluginManagerProtocol
 
 root_logger = logging.getLogger("root")
 
@@ -64,6 +65,12 @@ class Reptor(ReptorProtocol):
             Config: Current Configuration
         """
         return self._config
+
+    def get_logger(self) -> ReptorAdapter:
+        return self.logger
+
+    def get_plugin_manager(self) -> PluginManagerProtocol:
+        return self.plugin_manager
 
     def _load_config(self) -> None:
         """Load the config into Reptor"""
