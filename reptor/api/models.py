@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import datetime
 import sys
 import typing
+import enum
 
 
 @dataclass
@@ -18,18 +19,22 @@ class BaseModel:
         if data:
             self._fill_from_api(data)
 
-    def _fill_from_api(self, data: typing.Dict):
-        """Fills Model from reptor.api return JSON data
-
-        Args:
-            data (str): API Return Data
-        """
+    def _get_combined_class_type_hints(self) -> dict:
         basemodel_class_type_hints = typing.get_type_hints(BaseModel)
         current_class_type_hints = typing.get_type_hints(self)
         combined_class_type_hints = {
             **basemodel_class_type_hints,
             **current_class_type_hints,
         }
+        return combined_class_type_hints
+
+    def _fill_from_api(self, data: typing.Dict):
+        """Fills Model from reptor.api return JSON data
+
+        Args:
+            data (str): API Return Data
+        """
+        combined_class_type_hints = self._get_combined_class_type_hints()
 
         for attr in combined_class_type_hints.items():
             if attr[0] in data:
@@ -38,6 +43,7 @@ class BaseModel:
                     model_class = attr[1]._name
                 except AttributeError:
                     model_class = attr[1].__name__
+
                 is_list = False
                 if model_class == "List":
                     model_class = attr[1].__args__[0].__name__
@@ -49,6 +55,7 @@ class BaseModel:
                     "FindingData",
                     "Note",
                     "Project",
+                    "ProjectDesign",
                 ]:
                     cls = getattr(sys.modules[__name__], model_class)
 
@@ -57,8 +64,12 @@ class BaseModel:
                         for item in data[attr[0]]:
                             item_list.append(cls(item))
                         self.__setattr__(attr[0], item_list)
-                    else:
-                        self.__setattr__(attr[0], cls(data[attr[0]]))
+                elif model_class in ["ProjectDesignField"]:
+                    cls = getattr(sys.modules[__name__], model_class)
+                    self.__setattr__(attr[0], list())
+                    for k, v in data[attr[0]].items():
+                        v['name'] = k
+                        self.__getattribute__(attr[0]).append(cls(v))
                 else:
                     # Fill each attribute
                     self.__setattr__(attr[0], data[attr[0]])
@@ -246,19 +257,68 @@ class Note(BaseModel):
     parent: str = ""
 
 
-class ProjectType(BaseModel):
+class ProjectFieldTypes(enum.Enum):
+    cvss: str = "cvss"
+    string: str = "string"
+    markdown: str = "markdown"
+    list: str = "list"
+    object: str = "object"
+    enum: str = "enum"
+    user: str = "user"
+    combobox: str = "combobox"
+    date: str = "date"
+    number: str = "number"
+    boolean: str = "boolean"
+
+
+class ProjectDesignField(BaseModel):
+    name: str = ""
+    type: ProjectFieldTypes = None
+    label: str = ""
+    origin: str = ""
+    default: str = ""
+    required: bool = False
+    spellcheck: bool = None
+    # Use TypeAlias instead of "typing.List['ProjectDesignField'] = []" due to Python bug
+    # See: https://bugs.python.org/issue44926
+    properties: typing.TypeAlias = "ProjectDesignField"
+    choices: typing.List[dict] = []
+    items: dict = {}
+    suggestions: typing.List[str] = []
+
+    def _fill_from_api(self, data: typing.Dict):
+        if data['type'] == ProjectFieldTypes.list.value:
+            data['items'] = ProjectDesignField(data['items'])
+        elif data['type'] == ProjectFieldTypes.object.value:
+            properties = list()
+            for name, field in data['properties'].items():
+                field['name'] = name
+                properties.append(ProjectDesignField(field))
+            data['properties'] = properties
+
+        attrs = typing.get_type_hints(self).keys()
+        for key, value in data.items():
+            if key in attrs:
+                self.__setattr__(key, value)
+
+
+class ProjectDesign(BaseModel):
     """
     Attributes:
         source:
         scope:
         name:
         language:
+        report_fields:
+        finding_fields:
     """
 
     source: str = ""
     scope: str = ""
     name: str = ""
     language: str = ""
+    report_fields: typing.List[ProjectDesignField] = []
+    finding_fields: typing.List[ProjectDesignField] = []
 
 
 class Project(BaseModel):

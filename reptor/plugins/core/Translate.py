@@ -1,4 +1,5 @@
 import re
+import typing
 
 from requests.exceptions import HTTPError
 
@@ -179,21 +180,29 @@ class Translate(Base):
         )
         return result.text
 
-    def _translate_finding(self, finding: Finding) -> FindingData:
+    def _translate_finding(self, finding: Finding) -> Finding:
         translated_finding = Finding()
         translated_finding.id = finding.id
-
         translated_finding.data = FindingData()
-        for (
-            key,
-            value,
-        ) in (
-            finding.data.__dict__.items()
-        ):  # TODO does this work with recursive fields?
-            if not isinstance(value, str) or key in self.SKIP_FINDING_FIELDS:
-                continue
-            translated_finding.data.__setattr__(key, self._translate(value))
+        finding_data_dict = finding.data.__dict__
+        for key in self.SKIP_FINDING_FIELDS:
+            finding_data_dict.pop(key, None)
+
+        translated_finding.data = FindingData(
+            self._translate_fields(finding_data_dict))
         return translated_finding
+
+    def _translate_fields(self, fields: typing.Collection, root: bool = True) -> typing.Collection:
+        """Recursive function to translate nested fields
+        """
+        if isinstance(fields, str):
+            return self._translate(fields)
+        elif isinstance(fields, dict):
+            for key, value in fields.items():
+                fields[key] = self._translate_fields(value, root=False)
+        elif isinstance(fields, list):
+            fields = [self._translate_fields(f) for f in fields]
+        return fields
 
     def _dry_run_translate(self, text: str) -> str:
         self.chars_count_to_translate += len(text)
@@ -221,8 +230,12 @@ class Translate(Base):
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
             self.projects_api: ProjectsAPI = ProjectsAPI(
+<<<<<<< Updated upstream
                 reptor=self.reptor, project_id=to_project_id
             )
+=======
+                self.reptor, to_project_id)
+>>>>>>> Stashed changes
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
                     self.to_lang
@@ -236,8 +249,12 @@ class Translate(Base):
                 )
         else:
             self.projects_api: ProjectsAPI = ProjectsAPI(
+<<<<<<< Updated upstream
                 reptor=self.reptor, project_id=from_project.id
             )
+=======
+                self.reptor, from_project.id)
+>>>>>>> Stashed changes
 
         self.reptor.logger.display(
             f"Translating findings{' (dry run)' if self.dry_run else ''}."
@@ -247,7 +264,8 @@ class Translate(Base):
             translated_finding = self._translate_finding(finding)
             try:
                 self.projects_api.update_finding(
-                    translated_finding.id, {"data": translated_finding.data.__dict__}
+                    translated_finding.id, {
+                        "data": translated_finding.data.__dict__}
                 )
             except HTTPError as e:
                 self.reptor.logger.warning(
