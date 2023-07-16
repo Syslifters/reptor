@@ -230,12 +230,8 @@ class Translate(Base):
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
             self.projects_api: ProjectsAPI = ProjectsAPI(
-<<<<<<< Updated upstream
                 reptor=self.reptor, project_id=to_project_id
             )
-=======
-                self.reptor, to_project_id)
->>>>>>> Stashed changes
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
                     self.to_lang
@@ -249,12 +245,8 @@ class Translate(Base):
                 )
         else:
             self.projects_api: ProjectsAPI = ProjectsAPI(
-<<<<<<< Updated upstream
                 reptor=self.reptor, project_id=from_project.id
             )
-=======
-                self.reptor, from_project.id)
->>>>>>> Stashed changes
 
         self.reptor.logger.display(
             f"Translating findings{' (dry run)' if self.dry_run else ''}."

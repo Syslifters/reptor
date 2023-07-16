@@ -13,22 +13,11 @@ class ProjectsAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-<<<<<<< Updated upstream
-        self.base_endpoint = urljoin(
-            self.reptor.get_config().get_server(), f"api/v1/pentestprojects/"
-        )
-        self.object_endpoint = urljoin(
-            self.base_endpoint, f"{self.reptor.get_config().get_project_id()}"
-        )
-        if kwargs.get("project_id", None):
-            self.project_id = kwargs.get("project_id", "")
-=======
         self.base_endpoint = pathlib.Path(
             self._config.get_server()) / f"api/v1/pentestprojects/"
 
         if project_id:
             self.project_id = project_id
->>>>>>> Stashed changes
         else:
             self.project_id = self.reptor.get_config().get_project_id()
 

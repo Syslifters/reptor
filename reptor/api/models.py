@@ -64,6 +64,8 @@ class BaseModel:
                         for item in data[attr[0]]:
                             item_list.append(cls(item))
                         self.__setattr__(attr[0], item_list)
+                    else:
+                        self.__setattr__(attr[0], cls(data[attr[0]]))
                 elif model_class in ["ProjectDesignField"]:
                     cls = getattr(sys.modules[__name__], model_class)
                     self.__setattr__(attr[0], list())
@@ -156,7 +158,6 @@ class FindingData(BaseModel):
         retest_status:
         evidence:
     """
-
     title: str = ""
     cvss: str = ""
     summary: str = ""
@@ -319,6 +320,75 @@ class ProjectDesign(BaseModel):
     language: str = ""
     report_fields: typing.List[ProjectDesignField] = []
     finding_fields: typing.List[ProjectDesignField] = []
+
+
+class FindingDataField(BaseModel):
+    """
+    Finding data holds values only and does not contain type definitions.
+    Most data types cannot be differentiated (like strings and enums).
+
+    This model joins finding data values from an acutal report with project 
+    design field definitions.
+    """
+    value: typing.Union[
+        str,  # cvss, string, markdown, enum, user, combobox, date
+        typing.List,  # list
+        bool,  # boolean
+        int,  # number
+        typing.TypeAlias,  # "FindingDataField" for object
+    ]
+    type: ProjectDesignField
+
+
+class FindingDataJoined(BaseModel):
+    """
+    Custom finding fields will be added as additional attributes.
+
+    Attributes:
+        title:
+        cvss:
+        summary:
+        description:
+        precondition:
+        impact:
+        recommendation:
+        short_recommendation:
+        references:
+        affected_components:
+        owasp_top10_2021:
+        wstg_category:
+        retest_notes:
+        retest_status:
+        evidence:
+    """
+    title: FindingDataField
+    cvss: FindingDataField
+    summary: FindingDataField
+    description: FindingDataField
+    precondition: FindingDataField
+    impact: FindingDataField
+    recommendation: FindingDataField
+    short_recommendation: FindingDataField
+    references: FindingDataField
+    affected_components: FindingDataField
+    owasp_top10_2021: FindingDataField
+    wstg_category: FindingDataField
+    retest_notes: FindingDataField
+    retest_status: FindingDataField
+    evidence: FindingDataField
+
+    def _fill_from_api(self, data: typing.Dict):
+        """Fills Model from reptor.api return JSON data
+        For FindingData, undefined keys should also be set.
+
+        Args:
+            data (str): API Return Data
+        """
+        super()._fill_from_api(data)
+        for key, value in data.items():
+            if not hasattr(self, key):
+                self.__setattr__(key, value)
+                # TODO what about nested data types?
 
 
 class Project(BaseModel):
