@@ -18,14 +18,14 @@ class Plugins(Base):
     Create a new plugin from a template for the community
     or yourself.
 
-    # Arguments:
+    # Arguments
 
     * --search    Allows you to search for a specific plugin by name and tag
     * --copy PLUGINNAME      Copies a plugin to your local folder for development
     * --new PLUGINNAME  Creates a new plugin based off a template and your input
     * --verbose   Provides more information about a plugin
 
-    # Developer Notes:
+    # Developer Notes
     You can modify the `_list` method to change the output for search as
     well as the default output.
     """

@@ -70,7 +70,7 @@ class BaseModel:
                     cls = getattr(sys.modules[__name__], model_class)
                     self.__setattr__(attr[0], list())
                     for k, v in data[attr[0]].items():
-                        v['name'] = k
+                        v["name"] = k
                         self.__getattribute__(attr[0]).append(cls(v))
                 else:
                     # Fill each attribute
@@ -158,6 +158,7 @@ class FindingData(BaseModel):
         retest_status:
         evidence:
     """
+
     title: str = ""
     cvss: str = ""
     summary: str = ""
@@ -273,6 +274,23 @@ class ProjectFieldTypes(enum.Enum):
 
 
 class ProjectDesignField(BaseModel):
+    """
+
+    Attributes:
+        name:
+        type:
+        label:
+        origin:
+        default:
+        required:
+        spellcheck:
+
+        properties: "ProjectDesignField"
+        choices:
+        items:
+        suggestions:
+    """
+
     name: str = ""
     type: ProjectFieldTypes = None
     label: str = ""
@@ -288,14 +306,14 @@ class ProjectDesignField(BaseModel):
     suggestions: typing.List[str] = []
 
     def _fill_from_api(self, data: typing.Dict):
-        if data['type'] == ProjectFieldTypes.list.value:
-            data['items'] = ProjectDesignField(data['items'])
-        elif data['type'] == ProjectFieldTypes.object.value:
+        if data["type"] == ProjectFieldTypes.list.value:
+            data["items"] = ProjectDesignField(data["items"])
+        elif data["type"] == ProjectFieldTypes.object.value:
             properties = list()
-            for name, field in data['properties'].items():
-                field['name'] = name
+            for name, field in data["properties"].items():
+                field["name"] = name
                 properties.append(ProjectDesignField(field))
-            data['properties'] = properties
+            data["properties"] = properties
 
         attrs = typing.get_type_hints(self).keys()
         for key, value in data.items():
@@ -327,9 +345,10 @@ class FindingDataField(BaseModel):
     Finding data holds values only and does not contain type definitions.
     Most data types cannot be differentiated (like strings and enums).
 
-    This model joins finding data values from an acutal report with project 
+    This model joins finding data values from an acutal report with project
     design field definitions.
     """
+
     value: typing.Union[
         str,  # cvss, string, markdown, enum, user, combobox, date
         typing.List,  # list
@@ -361,6 +380,7 @@ class FindingDataJoined(BaseModel):
         retest_status:
         evidence:
     """
+
     title: FindingDataField
     cvss: FindingDataField
     summary: FindingDataField
