@@ -8,22 +8,21 @@ from reptor.plugins.community.OWASPZap.models import Alert, Instance, Site
 
 class OWASPZap(ToolBase):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: web,owasp,zap
-
-    Short Help:
-    Parses OWASPZap XML and JSON reports
-
-    Description:
     Parses OWASPZap generated reports in either XML or JSON
 
     Make sure you verify what type of findings you export.
 
     Recommended settings are to only export Medium and higher findings
     """
+
+    meta = {
+        "author": "Richard Schwabe",
+        "name": "OWASPZap",
+        "version": "1.0",
+        "license": "MIT",
+        "tags": ["web", "owasp", "zap"],
+        "summary": "Parses OWASPZap XML and JSON reports",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

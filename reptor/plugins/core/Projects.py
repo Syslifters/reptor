@@ -8,15 +8,13 @@ from reptor.utils.table import make_table
 
 class Projects(Base):
     """
-    # Short Help:
-    Queries Projects from reptor.api
-
-    # Description:
-
-    # Arguments:
-
-    # Developer Notes:
+    This plugin is used to interact with the projects via the sysreptor API.
     """
+
+    meta = {
+        "name": "Projects",
+        "summary": "Queries Projects from reptor.api",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

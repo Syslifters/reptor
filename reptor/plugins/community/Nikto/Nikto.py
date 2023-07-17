@@ -14,21 +14,6 @@ from reptor.plugins.community.Nikto.models import (
 
 class Nikto(ToolBase):
     """
-    Author: Richard Schwabe
-
-    Version: 1.0
-
-    Website: https://github.com/Syslifters/reptor
-
-    License: MIT
-
-    Tags: web,owasp
-
-    # Short Help:
-    Formats Nikto output (Raw, XML, JSON)
-
-    # Description:
-
     Multiple Targets are not supported in JSON
 
     cat nikto-raw-output.txt | reptor simplelist -c format
@@ -37,6 +22,15 @@ class Nikto(ToolBase):
 
     cat nikto-result.json | python reptor simplelist --json
     """
+
+    meta = {
+        "author": "Richard Schwabe",
+        "name": "Nikto",
+        "version": "1.0",
+        "license": "MIT",
+        "tags": ["web", "owasp"],
+        "summary": "Formats Nikto output (Raw, XML, JSON)",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

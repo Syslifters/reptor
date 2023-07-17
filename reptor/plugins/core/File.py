@@ -7,16 +7,16 @@ from reptor.api.NotesAPI import NotesAPI
 
 class File(UploadBase):
     """
-    # Short Help:
-    Uploads a file
-
-
-    # Arguments:
+    Arguments:
     * --file        files to upload; leave empty for stdin
     * --filename|-fn    filename if file provided via stdin
 
-    # Developer Notes:
     """
+
+    meta = {
+        "name": "File",
+        "summary": "Uploads a file",
+    }
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

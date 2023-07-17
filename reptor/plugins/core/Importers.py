@@ -8,21 +8,19 @@ from reptor.utils.table import make_table
 
 class Importers(Base):
     """
-    #Short Help:
-    Shows available finding template importers
 
-    # Description:
     Use this module to list importers.
 
     Search for importers based on tags or name
 
     Create a new importer from a template for the community
     or yourself.
-
-    # Arguments:
-
-    # Developer Notes:
     """
+
+    meta = {
+        "name": "Importers",
+        "summary": "Show importers to use to import finding templates",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

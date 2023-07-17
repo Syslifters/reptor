@@ -14,16 +14,12 @@ except ImportError:
 
 
 class Translate(Base):
-    """
-    # Short Help:
-    Translate Projects and Templates to other languages
+    """ """
 
-    # Description:
-
-    # Arguments:
-
-    # Developer Notes:
-    """
+    meta = {
+        "name": "Translate",
+        "summary": "Translate Projects and Templates to other languages",
+    }
 
     SKIP_FINDING_FIELDS = [
         "cvss",
@@ -188,13 +184,13 @@ class Translate(Base):
         for key in self.SKIP_FINDING_FIELDS:
             finding_data_dict.pop(key, None)
 
-        translated_finding.data = FindingData(
-            self._translate_fields(finding_data_dict))
+        translated_finding.data = FindingData(self._translate_fields(finding_data_dict))
         return translated_finding
 
-    def _translate_fields(self, fields: typing.Collection, root: bool = True) -> typing.Collection:
-        """Recursive function to translate nested fields
-        """
+    def _translate_fields(
+        self, fields: typing.Collection, root: bool = True
+    ) -> typing.Collection:
+        """Recursive function to translate nested fields"""
         if isinstance(fields, str):
             return self._translate(fields)
         elif isinstance(fields, dict):
@@ -256,8 +252,7 @@ class Translate(Base):
             translated_finding = self._translate_finding(finding)
             try:
                 self.projects_api.update_finding(
-                    translated_finding.id, {
-                        "data": translated_finding.data.__dict__}
+                    translated_finding.id, {"data": translated_finding.data.__dict__}
                 )
             except HTTPError as e:
                 self.reptor.logger.warning(

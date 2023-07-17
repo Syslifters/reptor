@@ -49,7 +49,9 @@ class BaseImporter:
         return new_finding
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
-        updated_template = TemplatesAPI(self.reptor).upload_new_template(new_finding)
+        updated_template = TemplatesAPI(reptor=self.reptor).upload_new_template(
+            new_finding
+        )
         if updated_template:
             self.reptor.get_logger().display(f"Uploaded {updated_template.id}")
         else:
@@ -62,7 +64,7 @@ class BaseImporter:
         if not self.mapping:
             self.reptor.get_logger().fail_with_exit("You need to provide a mapping.")
 
-        for external_finding in self.next_findings_batch():
+        for external_finding in self.next_findings_batch():  # type: ignore
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue

@@ -11,10 +11,6 @@ from reptor.utils.table import make_table
 
 class Plugins(Base):
     """
-    # Short Help:
-    Allows plugin management & development
-
-    # Description:
     Use this plugin to list your plugins.
 
     Search for plugins based on tags, name or author
@@ -33,6 +29,11 @@ class Plugins(Base):
     You can modify the `_list` method to change the output for search as
     well as the default output.
     """
+
+    meta = {
+        "name": "Plugins",
+        "summary": "Allows plugin management & development",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

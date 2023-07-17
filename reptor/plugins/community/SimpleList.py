@@ -3,16 +3,23 @@ from reptor.lib.plugins.ToolBase import ToolBase
 
 class SimpleList(ToolBase):
     """
-    format list output
 
     Sample commands:
 
-        # Format
         cat subdomains.txt | reptor simplelist -c format
 
-        # Upload with level 4 heading and numeric
+        Upload with level 4 heading and numeric
         cat subdomains.txt | python reptor simplelist -c upload --force-unlock  --num --header "My Heading" --level 4
     """
+
+    meta = {
+        "author": "Richard Schwabe",
+        "name": "SimpleList",
+        "version": "1.0",
+        "license": "MIT",
+        "tags": ["text", "other"],
+        "summary": "format list output",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

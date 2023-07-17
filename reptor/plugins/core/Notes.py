@@ -6,16 +6,12 @@ from reptor.utils.table import make_table
 
 
 class Notes(Base):
-    """
-    # Short Help:
-    Queries Notes from reptor.api
+    """ """
 
-    # Description:
-
-    # Arguments:
-
-    # Developer Notes:
-    """
+    meta = {
+        "name": "Notes",
+        "summary": "Lists current notes",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

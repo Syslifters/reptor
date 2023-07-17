@@ -7,15 +7,13 @@ from reptor.utils.table import make_table
 
 class Templates(Base):
     """
-    #Short Help:
-    Queries Finding Templates from reptor.api
-
-    # Description:
-
-    # Arguments:
-
-    # Developer Notes:
+    Work with the finding templates.
     """
+
+    meta = {
+        "name": "Templates",
+        "summary": "Queries Finding Templates from reptor.api",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

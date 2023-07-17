@@ -3,16 +3,12 @@ from reptor.api.NotesAPI import NotesAPI
 
 
 class Note(UploadBase):
-    """
-    # Short Help:
-    Uploads a note
+    """ """
 
-    # Description:
-
-    # Arguments:
-
-    # Developer Notes:
-    """
+    meta = {
+        "name": "Note",
+        "summary": "Uploads a note",
+    }
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
