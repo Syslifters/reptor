@@ -35,7 +35,7 @@ class Config(ConfigProtocol):
         return cls.instance
 
     def get(
-        self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = None
+        self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = ""
     ) -> typing.Any:
         """Returns a value from the current config
 
@@ -51,7 +51,7 @@ class Config(ConfigProtocol):
         else:
             return self._raw_config.get(key, default)
 
-    def get_config_keys(self, plugin: str = None) -> typing.Collection:
+    def get_config_keys(self, plugin: str = "") -> typing.Collection:
         if plugin:
             return self._raw_config.get(plugin, dict()).keys()
         else:
@@ -61,8 +61,8 @@ class Config(ConfigProtocol):
         """Sets a value in the config
 
         Args:
-            key (_type_): _description_
-            value (_type_): _description_
+            key (typing.Any): _description_
+            value (typing.Any): _description_
         """
         self._raw_config.update({key: value})
 
