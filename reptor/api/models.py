@@ -3,6 +3,7 @@ import datetime
 import sys
 import typing
 import enum
+from reptor.lib.interfaces.api.models import ProjectProtocol
 
 
 @dataclass
@@ -411,7 +412,7 @@ class FindingDataJoined(BaseModel):
                 # TODO what about nested data types?
 
 
-class Project(BaseModel):
+class Project(BaseModel, ProjectProtocol):
     """
     Attributes:
         name:

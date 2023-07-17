@@ -1,10 +1,14 @@
 import typing
 from abc import abstractmethod
 
-from reptor.api.models import Note
+from reptor.api.models import Note  # Todo: Should be a Protocol!
+from .base import BaseApiProtocol
 
 
-class ApiNotesProtocol(typing.Protocol):
+class ApiNotesProtocol(BaseApiProtocol):
+    project_id: str
+
+
     @abstractmethod
     def get_notes() -> typing.List[Note]:
         ...

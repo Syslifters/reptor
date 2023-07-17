@@ -1,6 +1,8 @@
 import typing
 from abc import abstractmethod
 
+from .base import BaseApiProtocol
 
-class ApiTemplatesProtocol(typing.Protocol):
-    ...
+
+class ApiTemplatesProtocol(BaseApiProtocol):
+    project_id: str
