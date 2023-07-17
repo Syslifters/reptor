@@ -1,8 +1,5 @@
 import pathlib
-import re
 import typing
-
-from inspect import cleandoc
 
 
 class PluginDocs:
@@ -19,8 +16,7 @@ class PluginDocs:
     website: str = ""
     license: str = ""
     tags: list = []
-    short_help: str = ""
-    description: str = ""
+    summary: str = ""
 
     path: pathlib.Path = None  # type: ignore
 
@@ -62,28 +58,13 @@ class PluginDocs:
 
 class DocParser:
     @staticmethod
-    def parse(raw_text: str) -> PluginDocs:
-        cleaned_docs = cleandoc(raw_text)
+    def parse(meta_dictionary: typing.Dict) -> PluginDocs:
         plugin_docs = PluginDocs()
-        if author := re.findall(r"Author: (.*)", cleaned_docs):
-            plugin_docs.author = author[0]
-
-        if version := re.findall(r"Version: (.*)", cleaned_docs):
-            plugin_docs.version = version[0]
-
-        if website := re.findall(r"Website: (.*)", cleaned_docs):
-            plugin_docs.website = website[0]
-
-        if license := re.findall(r"License: (.*)", cleaned_docs):
-            plugin_docs.license = license[0]
-
-        if tags := re.findall(r"Tags: (.*)", cleaned_docs):
-            plugin_docs.tags = [tag.strip() for tag in tags[0].split(",")]
-
-        if short_help := re.findall(r"Short Help:\n(.*)", cleaned_docs):
-            plugin_docs.short_help = short_help[0]
-
-        if description := re.findall(r"Description:\n((.*\n){1,10})", cleaned_docs):
-            plugin_docs.description = description[0][0].strip()
+        plugin_docs.author = meta_dictionary.get("author", "")
+        plugin_docs.version = meta_dictionary.get("version", "")
+        plugin_docs.website = meta_dictionary.get("website", "")
+        plugin_docs.license = meta_dictionary.get("license", "")
+        plugin_docs.tags = meta_dictionary.get("tags", [])
+        plugin_docs.summary = meta_dictionary.get("summary", "")
 
         return plugin_docs

@@ -14,6 +14,7 @@ class ReptorProtocol(typing.Protocol):
     console: Console
     plugin_manager: PluginManagerProtocol
     api: APIManagerProtocol
+    is_community_enabled: bool
 
     @abstractmethod
     def get_config(self) -> ConfigProtocol:

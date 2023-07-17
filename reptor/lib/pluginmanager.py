@@ -3,8 +3,6 @@ import pathlib
 import sys
 import typing
 
-from inspect import cleandoc
-
 import reptor.settings as settings
 import reptor.subcommands as subcommands
 
@@ -160,8 +158,7 @@ class PluginManager:
                 continue
 
             # Configure metadata
-            module.description = cleandoc(module.loader.__doc__)
-            plugin_docs = DocParser.parse(module.description)
+            plugin_docs = DocParser.parse(module.loader.meta)
             plugin_docs.name = module.loader.__name__.lower()
             plugin_docs.path = plugin_path
 

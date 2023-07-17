@@ -8,6 +8,15 @@ from reptor.api.TemplatesAPI import TemplatesAPI
 class BaseImporter:
     reptor: ReptorProtocol
     mapping: typing.Dict
+    meta: typing.Dict = {
+        "name": "",
+        "author": "",
+        "version": "",
+        "website": "",
+        "license": "",
+        "tags": [],
+        "summary": "",
+    }
 
     def __init__(self, **kwargs):
         self.reptor = kwargs.get("reptor", None)

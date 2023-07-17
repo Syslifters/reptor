@@ -1,4 +1,6 @@
+import typing
 from reptor.lib.interfaces.reptor import ReptorProtocol
+from reptor.lib.console import reptor_console
 
 
 class Base:
@@ -11,6 +13,15 @@ class Base:
     """
 
     reptor: ReptorProtocol
+    meta: typing.Dict = {
+        "name": "",
+        "author": "",
+        "version": "",
+        "website": "",
+        "license": "",
+        "tags": [],
+        "summary": "",
+    }
 
     def __init__(self, **kwargs):
         self.notename = kwargs.get("notename")
@@ -29,6 +40,29 @@ class Base:
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         pass
+
+    @property
+    def log(self):
+        return self.reptor.get_logger()
+
+    @property
+    def console(self):
+        return reptor_console
+
+    def display(self, msg, *args, **kwargs):
+        self.log.display(msg, *args, **kwargs)
+
+    def highlight(self, msg, *args, **kwargs):
+        self.log.highlight(msg, *args, **kwargs)
+
+    def debug(self, msg, *args, **kwargs):
+        self.log.debug(msg, *args, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        self.log.info(msg, *args, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        self.log.error(msg, *args, **kwargs)
 
     def run(self):
         pass

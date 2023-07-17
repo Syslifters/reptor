@@ -71,6 +71,17 @@ class Reptor(ReptorProtocol):
         """
         return self._config
 
+    @property
+    def is_community_enabled(self):
+        """Returns True or False if the community plugins are enabled or not
+
+        Community content can be enabled/disabled in the config
+
+        Returns:
+            bool: Status of community enabled
+        """
+        return self.get_config().get_community_enabled()
+
     def get_logger(self) -> ReptorAdapter:
         """Returns the active logger. Use this for logging
 
@@ -121,7 +132,7 @@ class Reptor(ReptorProtocol):
 
             item: PluginDocs
             for item in short_help_group_meta[1]:
-                description += f"{item.name:<21} {item.short_help}{settings.NEWLINE}"
+                description += f"{item.name:<21} {item.summary}{settings.NEWLINE}"
 
         # Argument parser
         main_description = """
@@ -148,7 +159,7 @@ class Reptor(ReptorProtocol):
         for name, plugin in self.plugin_manager.LOADED_PLUGINS.items():
             plugin.subparser = self._sub_parsers.add_parser(
                 name,
-                description=plugin.description,
+                description=plugin.loader.meta.get("summary", ""),
                 formatter_class=argparse.RawTextHelpFormatter,
             )
             plugin.loader.add_arguments(

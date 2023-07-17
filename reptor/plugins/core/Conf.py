@@ -1,23 +1,24 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------------
+# Name:         Conf
+# Purpose:      Show configuration or set configuration
+# Author:
+# Created:      2022-07-18
+# -------------------------------------------------------------------------------
+
 from reptor.lib.plugins.ConfBase import ConfBase
-from reptor.lib.console import reptor_console
 
 from reptor.utils.table import make_table
 
 
 class Conf(ConfBase):
     """
-    # Short Help:
-    Interact with reptor configuration
-
-    # Description:
     Offers you a way to write a config file for reptor,
     allows you to quickly see the configuration without touching
     the config file
-
-    # Arguments:
-
-    # Developer Notes:
     """
+
+    meta = {"name": "Config", "summary": "Shows config and sets config"}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -32,7 +33,7 @@ class Conf(ConfBase):
         )
 
     def _show_config(self):
-        self.reptor.get_logger().display("Configuration Overview")
+        self.display("Configuration Overview")
 
         table = make_table(["Setting", "Value"])
 
@@ -42,11 +43,11 @@ class Conf(ConfBase):
         table.add_row("Project ID", project_id or "Writing globally.")
 
         community_enabled = "[green]Enabled[/green]"
-        if not self.reptor.get_config().get_community_enabled():
+        if not self.reptor.is_community_enabled:
             community_enabled = "[yellow]Disabled[/yellow]"
         table.add_row("Community Modules", community_enabled)
 
-        reptor_console.print(table)
+        self.console.print(table)
 
     def run(self):
         if self.arg_show:
