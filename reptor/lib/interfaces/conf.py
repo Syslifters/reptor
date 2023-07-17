@@ -8,11 +8,13 @@ class ConfigProtocol(typing.Protocol):
         ...
 
     @abstractmethod
-    def get(self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = None) -> typing.Any:
+    def get(
+        self, key: str, default: typing.Optional[typing.Any] = None, plugin: str = ""
+    ) -> typing.Any:
         ...
 
     @abstractmethod
-    def get_config_keys(self, plugin: str = None) -> typing.Collection:
+    def get_config_keys(self, plugin: str = "") -> typing.Collection:
         ...
 
     @abstractmethod
