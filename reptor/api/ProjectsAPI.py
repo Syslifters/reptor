@@ -8,8 +8,6 @@ from reptor.api.models import Project, Finding
 
 
 class ProjectsAPI(APIClient):
-    project_id: str  # This is a local overwrite to quickly check other projects
-
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
@@ -17,8 +15,6 @@ class ProjectsAPI(APIClient):
             f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects/"
         )
 
-        # if not self.project_id:
-        #     self.reptor.logger.fail_with_exit("No project ID. Wanna run 'reptor conf'?")
         self.object_endpoint = f"{self.base_endpoint}/{self.project_id}"
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
@@ -39,10 +35,15 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def search(self, search_term: Optional[str] = None) -> typing.List[Project]:
-        """Searches for search term"""
-        if not search_term:
-            raise ValueError("search_term is missing")
+    def search(self, search_term: Optional[str] = "") -> typing.List[Project]:
+        """Searches projects by search term and retrieves all projects that match
+
+        Args:
+            search_term (Optional[str], optional): Search Term to look for. Defaults to None.
+
+        Returns:
+            typing.List[Project]: List of projects that match search
+        """
 
         response = self.get(f"{self.base_endpoint}?search={search_term}")
 
@@ -56,9 +57,15 @@ class ProjectsAPI(APIClient):
         response = self.get(url)
         return Project(response.json())
 
-    def export(
-        self, file_name: typing.Optional[pathlib.Path] = None
-    ) -> typing.Optional[bytes]:
+    def export(self, file_name: typing.Optional[pathlib.Path] = None):
+        """Exports a Project to a .tar.gz file locally.
+
+        Args:
+            file_name (typing.Optional[pathlib.Path], optional): Local File path. Defaults to None.
+
+        Raises:
+            ValueError: Requires project_id
+        """
         if not self.project_id:
             raise ValueError("No project ID. Wanna run 'reptor conf'?")
 
@@ -72,11 +79,21 @@ class ProjectsAPI(APIClient):
             f.write(data.content)
 
     def duplicate(self) -> Project:
+        """Duplicates Projects
+
+        Returns:
+            Project: Project Object
+        """
         url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
         duplicated_project = self.post(url).json()
         return Project(duplicated_project)
 
     def get_findings(self) -> typing.List[Finding]:
+        """Gets all findings of a project
+
+        Returns:
+            typing.List[Finding]: List of findings for this project
+        """
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         response = self.get(url)
 
@@ -86,10 +103,12 @@ class ProjectsAPI(APIClient):
         return return_data
 
     def update_finding(self, finding_id: str, data: dict) -> None:
+        # Todo: Should accept a finding object ?
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         self.patch(url, data)
 
     def update_project(self, data: dict) -> None:
+        # Todo: Should return an updated object?
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
         self.patch(url, data)
 
