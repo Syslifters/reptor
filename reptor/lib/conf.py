@@ -143,16 +143,52 @@ class Config(ConfigProtocol):
             raise ValueError("No config is currently set")
 
     def get_server(self) -> str:
-        return self.get("server", "")
+        """Always returns the server url without the final /
+
+        When you concat the server url you are responsible for starting with /
+
+        i.e:
+
+            f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects"
+
+        Returns:
+            str: _description_
+        """
+        server_url = self.get("server", "")
+        if server_url[-1:] == "/":
+            server_url = server_url[:-1]
+        return server_url
 
     def get_token(self) -> str:
+        """The Token is required to connect to the Rest API
+
+        Returns:
+            str: Token to Authenticate
+        """
         return self.get("token", "")
 
     def get_project_id(self) -> str:
+        """Do not use this, instead use self.reptor.get_active_project_id()
+        This will query the Project ID from the actual config.
+        Can be overwritten via CLI
+        Returns:
+            str: Project ID
+        """
         return self.get("project_id", "")
 
     def get_cli_overwrite(self) -> typing.Dict:
+        """Gives access to the entire CLI arguments.
+        If not found, it will return an empty dict
+
+        Returns:
+            typing.Dict: Holds all CLI arguments
+        """
         return self.get("cli", {})
 
     def get_community_enabled(self) -> bool:
+        """Checks if the community plugins are enabled.
+
+        Returns:
+            bool: Default False
+        """
         return self.get("community", False)

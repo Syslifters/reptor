@@ -72,9 +72,19 @@ class Reptor(ReptorProtocol):
         return self._config
 
     def get_logger(self) -> ReptorAdapter:
+        """Returns the active logger. Use this for logging
+
+        Returns:
+            ReptorAdapter: _description_
+        """
         return self.logger
 
     def get_plugin_manager(self) -> PluginManagerProtocol:
+        """Returns the PluginManager with all loaded plugins.
+
+        Returns:
+            PluginManagerProtocol: _description_
+        """
         return self.plugin_manager
 
     def get_active_project_id(self) -> str:

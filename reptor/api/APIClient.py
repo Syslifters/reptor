@@ -52,6 +52,7 @@ class APIClient:
             verify=self.verify,
         )
         response.raise_for_status()
+        self.reptor.get_logger().debug(f"Received response: {response.content}")
         return response
 
     def post(
@@ -76,6 +77,7 @@ class APIClient:
             verify=self.verify,
         )
         response.raise_for_status()
+        self.reptor.get_logger().debug(f"Received response: {response.content}")
         return response
 
     def put(self, url: str, data: object) -> requests.models.Response:
@@ -95,6 +97,7 @@ class APIClient:
             verify=self.verify,
         )
         response.raise_for_status()
+        self.reptor.get_logger().debug(f"Received response: {response.content}")
         return response
 
     def patch(self, url: str, data: object) -> requests.models.Response:
@@ -114,4 +117,5 @@ class APIClient:
             verify=self.verify,
         )
         response.raise_for_status()
+        self.reptor.get_logger().debug(f"Received response: {response.content}")
         return response
