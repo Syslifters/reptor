@@ -181,11 +181,9 @@ class FindingData(BaseModel):
         Args:
             data (str): API Return Data
         """
-        super()._fill_from_api(data)
         for key, value in data.items():
-            if not hasattr(self, key):
-                self.__setattr__(key, value)
-                # TODO what about nested data types?
+            # We don't care about recursion here
+            self.__setattr__(key, value)
 
 
 class Finding(BaseModel):
