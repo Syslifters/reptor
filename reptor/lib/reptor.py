@@ -77,6 +77,20 @@ class Reptor(ReptorProtocol):
     def get_plugin_manager(self) -> PluginManagerProtocol:
         return self.plugin_manager
 
+    def get_active_project_id(self) -> str:
+        """Always returns the active project id, either from config
+        or from the CLI overwrite. If no project id is found,
+        then it returns an emptry string.
+
+        Returns:
+            str: Project ID
+        """
+        if self.get_config().get_cli_overwrite().get("project_id", ""):
+            return self.get_config().get_cli_overwrite().get("project_id", "")
+        if self.get_config().get_project_id():
+            return self.get_config().get_project_id()
+        return ""
+
     @property
     def api(self) -> APIManager:
         return self._api

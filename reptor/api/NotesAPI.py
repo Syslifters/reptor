@@ -29,10 +29,10 @@ class NotesAPI(APIClient):
                 self.reptor.get_config().get_server(),
                 f"api/v1/pentestusers/self/notes/",
             )
-        elif self.reptor.get_config().get_project_id():
+        elif self.project_id:
             self.base_endpoint = urljoin(
                 self.reptor.get_config().get_server(),
-                f"api/v1/pentestprojects/{self.reptor.get_config().get_project_id()}/notes/",
+                f"api/v1/pentestprojects/{self.project_id}/notes/",
             )
         else:
             self.reptor.logger.fail_with_exit(

@@ -16,6 +16,7 @@ class APIClient:
     endpoint: str
     item_id: str
     force_unlock: bool
+    project_id: str
 
     def __init__(self, **kwargs) -> None:
         self.reptor = kwargs.get("reptor", None)
@@ -25,6 +26,7 @@ class APIClient:
             )
             exit(1)
         self.verify = not self.reptor.get_config().get("insecure", False)
+        self.project_id = kwargs.get("project_id", "")
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()

@@ -12,9 +12,7 @@ class TemplatesAPI(APIClient):
         self.base_endpoint = urljoin(
             self.reptor.get_config().get_server(), f"api/v1/findingtemplates/"
         )
-        self.object_endpoint = urljoin(
-            f"api/v1/findingtemplates/{self.reptor.get_config().get_project_id()}"
-        )
+        self.object_endpoint = urljoin(f"api/v1/findingtemplates/{self.project_id}")
 
     def get_templates(self) -> typing.List[FindingTemplate]:
         """Gets list of Templates"""

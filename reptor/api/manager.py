@@ -16,17 +16,23 @@ class APIManager(APIManagerProtocol):
     @property
     def notes(self) -> NotesAPI:
         if not self._notes:
-            self._notes = NotesAPI(reptor=self._reptor)
+            self._notes = NotesAPI(
+                reptor=self._reptor, project_id=self._reptor.get_active_project_id()
+            )
         return self._notes
 
     @property
     def projects(self) -> ProjectsAPI:
         if not self._projects:
-            self._projects = ProjectsAPI(reptor=self._reptor)
+            self._projects = ProjectsAPI(
+                reptor=self._reptor, project_id=self._reptor.get_active_project_id()
+            )
         return self._projects
 
     @property
     def templates(self) -> TemplatesAPI:
         if not self._templates:
-            self._templates = TemplatesAPI(reptor=self._reptor)
+            self._templates = TemplatesAPI(
+                reptor=self._reptor, project_id=self._reptor.get_active_project_id()
+            )
         return self._templates
