@@ -1,8 +1,10 @@
 import json
 import unittest
 
-from reptor.api.models import (Finding, FindingData, FindingTemplate, Project,
-                               ProjectDesign, ProjectDesignField, User)
+from reptor.api.models import (Finding, FindingData, FindingDataExtended,
+                               FindingDataExtendedField, FindingTemplate,
+                               Project, ProjectDesign, ProjectDesignField,
+                               User)
 
 
 class TestModelsParsing(unittest.TestCase):
@@ -130,6 +132,9 @@ class TestModelsParsing(unittest.TestCase):
     example_project_design = """
     {"id":"9ef57060-9bcc-4410-b1fd-744d7657558c","created":"2023-07-14T14:19:06.805883Z","updated":"2023-07-14T15:35:05.162391Z","source":"created","scope":"private","name":"Demo Report v1.12","language":"en-US","details":"https://demo.sysre.pt/api/v1/projecttypes/9ef57060-9bcc-4410-b1fd-744d7657558c","assets":"https://demo.sysre.pt/api/v1/projecttypes/9ef57060-9bcc-4410-b1fd-744d7657558c/assets","copy_of":"da029ad9-ee5b-4f31-820e-a0e48ddbc8b8","lock_info":{"created":"2023-07-14T17:18:19.072853Z","updated":"2023-07-14T17:18:49.380931Z","last_ping":"2023-07-14T17:18:49.380870Z","expires":"2023-07-14T17:20:19.380870Z","user":{"id":"80bcd0a1-4a7d-4288-9853-8592662c8ee3","username":"demo-eoNeCdnO","name":"","title_before":null,"first_name":"","middle_name":null,"last_name":"","title_after":null,"is_active":true}},"report_template":"","report_preview_data":{"report":{"pta":"TODO: screenshots of PTA"},"findings":[{"id":"a10eed1a-07f5-46ef-bf3a-b78208e72272","cvss":"CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H","title":"Demo Finding Critical","summary":"TODO summary","references":["https://example.com"],"description":"TODO description","wstg_category":"IDNT","recommendation":"TODO recommendation","affected_components":["https://example.com"],"recomlist":["quidem aliquam","est possimus"],"new_field1":{"date":"2023-07-14","enum":"enum_val","user":null,"new_cvss":"n/a","new_field2":"sed laudantium","new_field4":"quam similique","nested_field":"Combobox Value"},"importantenum":"enum_val"}]},"report_fields":{"draft":{"type":"boolean","label":"Is Draft?","origin":"custom","default":true},"scope":{"type":"markdown","label":"Scope","origin":"custom","default":"**TODO:","required":true},"title":{"type":"string","label":"Title","origin":"core","default":"TODO report title","required":true,"spellcheck":false},"duration":{"type":"string","label":"Duration","origin":"custom","default":"TODO person days","required":true,"spellcheck":false},"end_date":{"type":"date","label":"Pentest End Date","origin":"custom","default":null,"required":true},"start_date":{"type":"date","label":"Pentest Start Date","origin":"custom","default":null,"required":true},"report_date":{"type":"date","label":"Report Date","origin":"custom","default":null,"required":true},"customer_name":{"type":"string","label":"Customer","origin":"custom","default":"TODO company","required":true,"spellcheck":false},"receiver_name":{"type":"string","label":"Receiver Name","origin":"custom","default":"TODO receiver","required":true,"spellcheck":false},"provided_users":{"type":"markdown","label":"Users and Permissions","origin":"custom","default":"**TODO: Provided Use","required":true},"report_version":{"type":"string","label":"Report Version","origin":"custom","default":"1.0","required":true,"spellcheck":false},"list_of_changes":{"type":"list","items":{"type":"object","label":"","origin":"custom","properties":{"date":{"type":"date","label":"Date","origin":"custom","default":null,"required":true},"version":{"type":"string","label":"Version","origin":"custom","default":"TODO version","required":true,"spellcheck":false},"description":{"type":"string","label":"Description","origin":"custom","default":"TODO description","required":true,"spellcheck":false}}},"label":"List of Changes","origin":"custom","required":true},"customer_address":{"type":"object","label":"Address","origin":"custom","properties":{"city":{"type":"string","label":"City","origin":"custom","default":"TODO city","required":true,"spellcheck":false},"street":{"type":"string","label":"Street","origin":"custom","default":"TODO street","required":true,"spellcheck":false}}},"appendix_sections":{"type":"list","items":{"type":"object","label":"","origin":"custom","properties":{"title":{"type":"string","label":"Title","origin":"custom","default":"TODO appendix title","required":true,"spellcheck":false},"content":{"type":"markdown","label":"Content","origin":"custom","default":"TODO appendix content","required":true}}},"label":"Appendix","origin":"custom","required":true},"executive_summary":{"type":"markdown","label":"Executive Summary","origin":"custom","default":"**TODO:","required":true}},"report_sections":[{"id":"executive_summary","label":"Executive Summary","fields":["executive_summary"]},{"id":"scope","label":"Scope","fields":["scope","start_date","end_date","duration","provided_users"]},{"id":"customer","label":"Customer","fields":["customer_name","customer_address","receiver_name"]},{"id":"other","label":"Other","fields":["title","report_date","report_version","list_of_changes","draft"]},{"id":"appendix","label":"Appendix","fields":["appendix_sections"]}],"finding_fields":{"cvss":{"type":"cvss","label":"CVSS","origin":"core","default":"n/a","required":true},"title":{"type":"string","label":"Titel","origin":"core","default":"TODO finding title","required":true,"spellcheck":false},"summary":{"type":"markdown","label":"Overview","origin":"predefined","default":"TODO summary","required":true},"recomlist":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"recomlist","origin":"custom","required":true},"new_field1":{"type":"object","label":"New Field","origin":"custom","properties":{"date":{"type":"date","label":"New Field","origin":"custom","default":"2023-07-14","required":true},"enum":{"type":"enum","label":"New Field","origin":"custom","choices":[{"label":"Enum Value","value":"enum_val"},{"label":"New Enum Value","value":"new_value1"}],"default":null,"required":true},"user":{"type":"user","label":"New Field","origin":"custom","required":false},"new_cvss":{"type":"cvss","label":"New Field","origin":"custom","default":"n/a","required":true},"new_field2":{"type":"string","label":"New Field","origin":"custom","default":null,"required":true,"spellcheck":false},"new_field4":{"type":"string","label":"New Field","origin":"custom","default":null,"required":true,"spellcheck":false},"nested_field":{"type":"combobox","label":"Nested Field","origin":"custom","default":null,"required":true,"suggestions":["Combobox Value"]}}},"references":{"type":"list","items":{"type":"string","label":"Reference","origin":"predefined","default":"TODO reference","required":true,"spellcheck":false},"label":"References","origin":"predefined","required":false},"description":{"type":"markdown","label":"Details","origin":"predefined","default":"TODO description","required":true},"importantenum":{"type":"enum","label":"importantenum","origin":"custom","choices":[{"label":"Enum Value","value":"enum_val"},{"label":"New Enum Value","value":"new_value1"},{"label":"New Enum Value","value":"new_value1"}],"default":null,"required":true},"recommendation":{"type":"markdown","label":"Recommendation","origin":"predefined","default":"TODO recommendation","required":true},"affected_components":{"type":"list","items":{"type":"string","label":"Component","origin":"predefined","default":"TODO affected component","required":true,"spellcheck":false},"label":"Affected Components","origin":"predefined","required":true}},"finding_field_order":["title","cvss","references","affected_components","summary","description","recommendation","importantenum","recomlist","new_field1"]}"""
 
+    example_design_with_finding_fields_only = """
+    {"finding_fields":{"cvss":{"type":"cvss","label":"CVSS","origin":"core","default":"n/a","required":true},"title":{"type":"string","label":"Title","origin":"core","default":"TODO: Finding Title","required":true,"spellcheck":true},"date_field":{"type":"date","label":"Date Field","origin":"custom","default":null,"required":true},"enum_field":{"type":"enum","label":"Enum Field","origin":"custom","choices":[{"label":"Enum Value 1","value":"enum_val_1"},{"label":"Enum Value 2","value":"enum_val_2"},{"label":"Enum Value 3","value":"enum_val_"}],"default":null,"required":true},"list_field":{"type":"list","items":{"type":"object","label":"","origin":"custom","properties":{"enum_in_object":{"type":"enum","label":"Enum in Object","origin":"custom","choices":[{"label":"Enum in Obj 1","value":"enum_in_obj_1"},{"label":"Enum in Obj 2","value":"enum_in_obj_2"},{"label":"Enum in Obj 3","value":"enum_in_obj_3"}],"default":null,"required":true}}},"label":"List Field","origin":"custom","required":true},"user_field":{"type":"user","label":"User Field","origin":"custom","required":true},"number_field":{"type":"number","label":"Number Field","origin":"custom","default":null,"required":true},"object_field":{"type":"object","label":"Object Field","origin":"custom","properties":{"list_in_object":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"List in Object","origin":"custom","required":true}}},"boolean_field":{"type":"boolean","label":"Boolean Field","origin":"custom","default":null},"combobox_field":{"type":"combobox","label":"Combobox Field","origin":"custom","default":null,"required":true,"suggestions":["Combobox Value 1","Combobox Value 2","Combobox Value 3"]},"markdown_field":{"type":"markdown","label":"Markdown Field","origin":"custom","default":null,"required":true}}}"""
+
     example_finding = """
     {
         "id": "d3658ee5-2d43-40f6-9b97-1b98480afe78",
@@ -178,6 +183,59 @@ class TestModelsParsing(unittest.TestCase):
             "markdown_field": "My Markdown"
         }
     }"""
+
+    def test_finding_data_extended(self):
+        finding = Finding(json.loads(self.example_finding))
+        project_design = ProjectDesign(json.loads(
+            self.example_design_with_finding_fields_only))
+        fd_ext = FindingDataExtended(
+            project_design.finding_fields, finding.data)
+        self.assertEqual(fd_ext.boolean_field.name, 'boolean_field')
+        self.assertEqual(fd_ext.boolean_field.type, 'boolean')
+        self.assertEqual(fd_ext.boolean_field.value, True)
+
+        self.assertEqual(fd_ext.combobox_field.name, 'combobox_field')
+        self.assertEqual(fd_ext.combobox_field.type, 'combobox')
+        self.assertEqual(fd_ext.combobox_field.value, 'Combobox Value 2')
+
+        self.assertEqual(fd_ext.cvss.name, 'cvss')
+        self.assertEqual(fd_ext.cvss.type, 'cvss')
+        self.assertEqual(fd_ext.cvss.value, 'n/a')
+
+        self.assertEqual(fd_ext.date_field.name, 'date_field')
+        self.assertEqual(fd_ext.date_field.type, 'date')
+        self.assertEqual(fd_ext.date_field.value, '2023-07-03')
+
+        self.assertEqual(fd_ext.enum_field.name, 'enum_field')
+        self.assertEqual(fd_ext.enum_field.type, 'enum')
+        self.assertEqual(fd_ext.enum_field.value, 'enum_val_2')
+
+        self.assertEqual(fd_ext.list_field.name, 'list_field')
+        self.assertEqual(fd_ext.list_field.type, 'list')
+        self.assertIsInstance(fd_ext.list_field.value, list)
+        self.assertIsInstance(
+            fd_ext.list_field.value[0], FindingDataExtendedField)
+        self.assertEqual(fd_ext.list_field.value[0].type, 'object')
+        self.assertIsInstance(
+            fd_ext.list_field.value[0].value, list)
+        self.assertIsInstance(
+            fd_ext.list_field.value[0].value[0], FindingDataExtendedField)
+        self.assertEqual(fd_ext.list_field.value[0].value[0].type, 'enum')
+        self.assertEqual(
+            fd_ext.list_field.value[0].value[0].value, 'enum_in_obj_2')
+
+        self.assertEqual(fd_ext.object_field.name, 'object_field')
+        self.assertEqual(fd_ext.object_field.type, 'object')
+        self.assertIsInstance(fd_ext.object_field.value, list)
+        self.assertIsInstance(
+            fd_ext.object_field.value[0], FindingDataExtendedField)
+        self.assertEqual(fd_ext.object_field.value[0].type, 'list')
+        self.assertIsInstance(fd_ext.object_field.value[0].value, list)
+        self.assertIsInstance(
+            fd_ext.object_field.value[0].value[0], FindingDataExtendedField)
+        self.assertEqual(fd_ext.object_field.value[0].value[0].type, 'string')
+        self.assertEqual(
+            fd_ext.object_field.value[0].value[0].value, 'My String in List in Object')
 
     def test_finding_parsing(self):
         api_test_data = json.loads(self.example_finding)

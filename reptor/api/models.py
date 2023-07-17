@@ -320,73 +320,75 @@ class ProjectDesign(BaseModel):
     finding_fields: typing.List[ProjectDesignField] = []
 
 
-class FindingDataField(BaseModel):
+class FindingDataExtendedField(ProjectDesignField):
     """
     Finding data holds values only and does not contain type definitions.
     Most data types cannot be differentiated (like strings and enums).
 
-    This model joins finding data values from an acutal report with project 
+    This model joins finding data values from an acutal report with project
     design field definitions.
     """
     value: typing.Union[
         str,  # cvss, string, markdown, enum, user, combobox, date
         typing.List,  # list
         bool,  # boolean
-        int,  # number
-        typing.TypeAlias,  # "FindingDataField" for object
+        float,  # number
+        typing.TypeAlias,  # "FindingDataExtendedField" for object
     ]
-    type: ProjectDesignField
+
+    def __init__(self,
+                 design_field: ProjectDesignField,
+                 value: typing.Union[
+                     str, typing.List, bool, float, typing.TypeAlias,]):
+        project_design_type_hints = typing.get_type_hints(ProjectDesignField)
+        for attr in project_design_type_hints.items():
+            self.__setattr__(attr[0], design_field.__getattribute__(attr[0]))
+
+        if self.type == ProjectFieldTypes.object.value:
+            self.value = list()
+            for property in self.properties:
+                # property is of type ProjectDesignField
+                try:
+                    self.value.append(FindingDataExtendedField(
+                        property, value[property.name]))
+                except KeyError:
+                    self.reptor.logger.fail_with_exit(
+                        f"Object name '{property.name}' not found. Did you mix"
+                        f"mismatched project design with project data?")
+        elif self.type == ProjectFieldTypes.list.value:
+            self.value = list()
+            for v in value:
+                self.value.append(FindingDataExtendedField(self.items, v))
+        else:
+            self.value = value
 
 
-class FindingDataJoined(BaseModel):
-    """
-    Custom finding fields will be added as additional attributes.
+class FindingDataExtended(BaseModel):
+    title: FindingDataExtendedField
+    cvss: FindingDataExtendedField
+    summary: FindingDataExtendedField
+    description: FindingDataExtendedField
+    precondition: FindingDataExtendedField
+    impact: FindingDataExtendedField
+    recommendation: FindingDataExtendedField
+    short_recommendation: FindingDataExtendedField
+    references: FindingDataExtendedField
+    affected_components: FindingDataExtendedField
+    owasp_top10_2021: FindingDataExtendedField
+    wstg_category: FindingDataExtendedField
+    retest_notes: FindingDataExtendedField
+    retest_status: FindingDataExtendedField
+    evidence: FindingDataExtendedField
 
-    Attributes:
-        title:
-        cvss:
-        summary:
-        description:
-        precondition:
-        impact:
-        recommendation:
-        short_recommendation:
-        references:
-        affected_components:
-        owasp_top10_2021:
-        wstg_category:
-        retest_notes:
-        retest_status:
-        evidence:
-    """
-    title: FindingDataField
-    cvss: FindingDataField
-    summary: FindingDataField
-    description: FindingDataField
-    precondition: FindingDataField
-    impact: FindingDataField
-    recommendation: FindingDataField
-    short_recommendation: FindingDataField
-    references: FindingDataField
-    affected_components: FindingDataField
-    owasp_top10_2021: FindingDataField
-    wstg_category: FindingDataField
-    retest_notes: FindingDataField
-    retest_status: FindingDataField
-    evidence: FindingDataField
-
-    def _fill_from_api(self, data: typing.Dict):
-        """Fills Model from reptor.api return JSON data
-        For FindingData, undefined keys should also be set.
-
-        Args:
-            data (str): API Return Data
-        """
-        super()._fill_from_api(data)
-        for key, value in data.items():
-            if not hasattr(self, key):
-                self.__setattr__(key, value)
-                # TODO what about nested data types?
+    def __init__(self,
+                 design_fields: typing.List[ProjectDesignField] = None,
+                 field_data: FindingData = None,):
+        for design_field in design_fields:
+            self.__setattr__(
+                design_field.name,
+                FindingDataExtendedField(
+                    design_field, field_data.__getattribute__(design_field.name))
+            )
 
 
 class Project(BaseModel):
