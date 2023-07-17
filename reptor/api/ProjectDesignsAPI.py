@@ -8,15 +8,15 @@ from reptor.api.models import ProjectDesign
 
 
 class ProjectDesignsAPI(APIClient):
-    def __init__(self, reptor, project_design_id: str = None) -> None:
-        super().__init__(reptor)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
-        self.base_endpoint = pathlib.Path(
-            self._config.get_server()) / f"api/v1/projecttypes/"
+        self.base_endpoint = (
+            f"{self.reptor.get_config().get_server()}/api/v1/projecttypes/"
+        )
 
-        self.project_design_id = project_design_id
-        self.object_endpoint = pathlib.Path(
-            self.base_endpoint) / f"{self.project_design_id}/"
+        self.project_design_id = kwargs.get("project_design_id", "")
+        self.object_endpoint = f"{self.base_endpoint}/{self.project_design_id}/"
 
     def get_project_design(self) -> ProjectDesign:
         """Gets project design

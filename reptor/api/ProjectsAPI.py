@@ -13,18 +13,17 @@ class ProjectsAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self.base_endpoint = pathlib.Path(
-            self._config.get_server()) / f"api/v1/pentestprojects/"
-
-        if project_id:
-            self.project_id = project_id
+        self.base_endpoint = (
+            f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects/"
+        )
+        if kwargs.get("project_id", ""):
+            self.project_id = kwargs.get("project_id", "")
         else:
             self.project_id = self.reptor.get_config().get_project_id()
 
         # if not self.project_id:
         #     self.reptor.logger.fail_with_exit("No project ID. Wanna run 'reptor conf'?")
-        self.object_endpoint = pathlib.Path(
-            self.base_endpoint) / f"{self.project_id}/"
+        self.object_endpoint = pathlib.Path(self.base_endpoint) / f"{self.project_id}/"
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
