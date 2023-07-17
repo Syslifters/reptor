@@ -186,7 +186,29 @@ class TestModelsParsing(unittest.TestCase):
         self.assertEqual(finding.language, "en-US")
         self.assertEqual(finding.project_type,
                          "2970149f-e11d-420a-8a5d-25b5fda14e33")
+        self.assertIsInstance(finding.assignee, dict)
         self.assertIsInstance(finding.data, FindingData)
+        self.assertEqual(finding.data.cvss, "n/a")
+        self.assertEqual(finding.data.title, "My Title")
+        self.assertEqual(finding.data.date_field, "2023-07-03")
+        self.assertEqual(finding.data.enum_field, "enum_val_2")
+        self.assertIsInstance(finding.data.list_field, list)
+        self.assertEqual(len(finding.data.list_field), 2)
+        self.assertEqual(finding.data.list_field[0], {
+                         "enum_in_object": "enum_in_obj_2"})
+        self.assertEqual(finding.data.user_field,
+                         "788dcb76-9928-46fc-87ba-7043708f1bc0")
+        self.assertEqual(finding.data.number_field, 1337.0)
+        self.assertIsInstance(finding.data.number_field, float)
+        self.assertIsInstance(finding.data.object_field, dict)
+        self.assertIn('list_in_object', finding.data.object_field)
+        self.assertEqual(len(finding.data.object_field['list_in_object']), 2)
+        self.assertEqual(
+            finding.data.object_field['list_in_object'][0], "My String in List in Object")
+        self.assertEqual(finding.data.boolean_field, True)
+        self.assertEqual(finding.data.combobox_field, "Combobox Value 2")
+        self.assertEqual(finding.data.markdown_field, "My Markdown")
+        # print(finding.data)
 
     def test_project_design_parsing(self):
         api_test_data = json.loads(self.example_project_design)
