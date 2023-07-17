@@ -1,3 +1,3 @@
 ## Introduction
 
-::: reptor.lib.conf.Config
+::: reptor.lib.conf
