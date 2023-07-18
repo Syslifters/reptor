@@ -1,5 +1,6 @@
 import json
 import unittest
+from copy import deepcopy
 
 from reptor.api.models import (Finding, FindingData, FindingDataExtended,
                                FindingDataExtendedField, FindingTemplate,
@@ -237,6 +238,62 @@ class TestModelsParsing(unittest.TestCase):
         self.assertEqual(
             fd_ext.object_field.value[0].value[0].value, 'My String in List in Object')
 
+        # Try to set attributes
+        fd_ext.enum_field.value = 'enum_val_1'
+        self.assertEqual(fd_ext.enum_field.value, 'enum_val_1')
+        with self.assertRaises(ValueError):
+            fd_ext.enum_field.value = 'invalid_value'
+
+        fd_ext.boolean_field.value = False
+        self.assertEqual(fd_ext.boolean_field.value, False)
+        with self.assertRaises(ValueError):
+            fd_ext.boolean_field.value = 'invalid_value'
+
+        fd_ext.combobox_field.value = 'Combobox Value 1'
+        self.assertEqual(fd_ext.combobox_field.value, 'Combobox Value 1')
+        with self.assertRaises(ValueError):
+            fd_ext.combobox_field.value = True
+
+        fd_ext.date_field.value = '2005-01-01'
+        self.assertEqual(fd_ext.date_field.value, '2005-01-01')
+        with self.assertRaises(ValueError):
+            fd_ext.date_field.value = '2002-01-32'
+
+        new_list = deepcopy(fd_ext.list_field.value)
+        new_list[0].value[0].value = 'enum_in_obj_1'
+        fd_ext.list_field.value = new_list
+        self.assertEqual(fd_ext.list_field.value, new_list)
+        with self.assertRaises(ValueError):
+            # ValueError due to invalid enum
+            new_list[0].value[0].value = 'invalid_value'
+        with self.assertRaises(ValueError):
+            fd_ext.list_field.value = 'invalid_value'
+        with self.assertRaises(ValueError):
+            fd_ext.list_field.value = [new_list[0], 'invalid_value']
+        with self.assertRaises(ValueError):
+            fd_ext.list_field.value = [new_list[0], fd_ext.combobox_field]
+
+        new_object = deepcopy(fd_ext.object_field.value)
+        new_object[0].value[0].value = 'My new String in List in Object'
+        fd_ext.object_field.value = new_object
+        self.assertEqual(fd_ext.object_field.value, new_object)
+        with self.assertRaises(ValueError):
+            # ValueError due to invalid string
+            new_object[0].value[0].value = 1
+        with self.assertRaises(ValueError):
+            fd_ext.object_field.value = 'invalid_value'
+        with self.assertRaises(ValueError):
+            fd_ext.object_field.value = [new_object[0], 'invalid_value']
+        with self.assertRaises(ValueError):
+            fd_ext.object_field.value = [new_object[0], fd_ext.combobox_field]
+
+        with self.assertRaises(ValueError):
+            fd_ext.number_field.value = 'invalid_value'
+
+        fd_ext.user_field.value = "3cb580bd-131b-48f0-9e37-b405e2ab53b8"
+        with self.assertRaises(ValueError):
+            fd_ext.user_field.value = 'invalid_value'
+
     def test_finding_parsing(self):
         api_test_data = json.loads(self.example_finding)
         finding = Finding(api_test_data)
@@ -266,7 +323,6 @@ class TestModelsParsing(unittest.TestCase):
         self.assertEqual(finding.data.boolean_field, True)
         self.assertEqual(finding.data.combobox_field, "Combobox Value 2")
         self.assertEqual(finding.data.markdown_field, "My Markdown")
-        # print(finding.data)
 
     def test_project_design_parsing(self):
         api_test_data = json.loads(self.example_project_design)
