@@ -27,9 +27,9 @@ Description
 pip install reptor
 ```
 
-We follow the Django release/requirement cycle. This means, that we support up to the lowest version that django supports.
+We follow the Django release/requirement support. This means, that we support down to the lowest version that django supports.Currently that is `Python 3.8`
 
-We recommend to install reptor in a virtualenvironment to make sure that the dependencies to not clash with your current system. Simply follow the instructions:
+We recommend to install reptor in a virtual environment to make sure that the dependencies to not clash with your current (global) python setup. Follow the instructions:
 
 ```
 virtualenv .venv
@@ -39,10 +39,15 @@ pip install reptor
 
 or with pyenv:
 ```
-# pyenv global 3.11.3
+# pyenv global 3.11.3 # >=3.8.0
 pyenv virtualenv reptor
 pyenv local reptor
 pip install reptor
+```
+
+or pipx
+```
+pipx install reptor
 ```
 
 # How to use
@@ -161,9 +166,9 @@ $ cat test_data/sslyze.txt | python3 reptor nmap -upload
 ```
 
 ## Community Plugins
-Check out the community contributions in `plugins/community` to find if your current tool is supported.
+Check out the community contributions in `plugins/community` to find out if your current tool is supported.
 
-You can also create a plugin for a new tool or extend existing plugins. Simply create a Pull Request and add your plugin.
+You can also create a new plugin for a tool or extend existing plugins. Simply create a Pull Request and add your plugin.
 ## Private Plugins
 To install new plugins, that are not included in the community folder of this repository you can simply
 put them into your home directory:
@@ -179,9 +184,9 @@ To start a new plugin yourself you can use the `plugins` plugin.
 reptor plugins --new "MyPlugin"
 ```
 
-This will create a new plugin call "MyPlugin" within your home directory's `.sysreptor/plugins` folder.
+This will create a new plugin called "MyPlugin" within your home directory's `.sysreptor/plugins` folder.
 
-You can lean more about how to write a plugin via the documentation here.
+You can lean more about how to create a plugin via the documentation here.
 
 You can also write an Importer to import finding templates. Use the importer plugin the same way:
 
