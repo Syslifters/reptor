@@ -1,7 +1,6 @@
 from reptor.lib.plugins.Base import Base
 from reptor.api.TemplatesAPI import TemplatesAPI
 
-from reptor.lib.console import reptor_console
 from reptor.utils.table import make_table
 
 
@@ -39,11 +38,11 @@ class Templates(Base):
             if finding:
                 table.add_row(finding.title, template.id)
             else:
-                reptor_console.print(
+                self.console.print(
                     f"Template [yellow]{template.id}[/yellow] has no finding data."
                 )
 
-        reptor_console.print(table)
+        self.console.print(table)
 
 
 loader = Templates

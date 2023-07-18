@@ -3,7 +3,6 @@ import shutil
 
 import reptor.settings as settings
 import reptor.subcommands as subcommands
-from reptor.lib.console import reptor_console
 from reptor.lib.plugins.Base import Base
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.utils.table import make_table
@@ -98,7 +97,7 @@ class Plugins(Base):
                 ]
             )
 
-        reptor_console.print(
+        self.console.print(
             "plugin Colors: [blue]Core[/blue], [green]Community[/green], [magenta]Private[/magenta], [red]Overwrites other plugin[/red] "
         )
 
@@ -121,7 +120,7 @@ class Plugins(Base):
             if self.verbose:
                 table.add_row(
                     f"[{color}]{tool.name}[/{color}]",
-                    f"[{color}]{tool.short_help}[/{color}]",
+                    f"[{color}]{tool.summary}[/{color}]",
                     f"[{color}]{tool.space_label}[/{color}]",
                     overwrites_name,
                     f"[{color}]{tool.author}[/{color}]",
@@ -131,16 +130,16 @@ class Plugins(Base):
             else:
                 table.add_row(
                     f"{tool_name}",
-                    f"[{color}]{tool.short_help}[/{color}]",
+                    f"[{color}]{tool.summary}[/{color}]",
                     f"[{color}]{','.join(tool.tags)}[/{color}]",
                 )
 
-        reptor_console.print(table)
+        self.console.print(table)
 
     def _search(self):
         """Searches plugins"""
         if self.search:
-            self.reptor.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
+            self.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
             results = list()
             for plugin in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
                 if self.search in plugin.tags:
@@ -204,13 +203,13 @@ class Plugins(Base):
         try:
             new_plugin_folder.mkdir(parents=True)
         except FileExistsError:
-            self.reptor.logger.highlight(
+            self.highlight(
                 "A plugin with this name already exists in your home directory."
             )
             overwrite = input("Do you want to continue? [N/y]: ") or "n"
 
             if overwrite[0].lower() != "y":
-                self.reptor.logger.fail_with_exit("Aborting...")
+                self.log.fail_with_exit("Aborting...")
 
         shutil.copytree(
             settings.PLUGIN_TOOLBASE_TEMPLATE_FOLDER,
@@ -232,9 +231,7 @@ class Plugins(Base):
             f.write(contents)
             f.truncate()
 
-        self.reptor.logger.success(
-            f"New plugin created. Happy coding! ({new_plugin_folder})"
-        )
+        self.log.success(f"New plugin created. Happy coding! ({new_plugin_folder})")
 
     def _copy_plugin(self, dest=settings.PLUGIN_DIRS_USER):
         # Check if plugin exists and get its path
@@ -250,7 +247,7 @@ class Plugins(Base):
         # Copy plugin
 
         dest = dest / plugin.parent.name
-        self.reptor.logger.debug(f"Trying to copy {plugin.parent} to {dest}")
+        self.debug(f"Trying to copy {plugin.parent} to {dest}")
         shutil.copytree(plugin.parent, dest)
 
     def run(self):

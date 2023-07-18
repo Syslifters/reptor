@@ -209,20 +209,16 @@ class Translate(Base):
         # TODO this method might be simplified
         if self.dry_run:
             self._translate = self._dry_run_translate
-        self.reptor.logger.display(
-            f"Translating project name{' (dry run)' if self.dry_run else ''}."
-        )
+        self.display(f"Translating project name{' (dry run)' if self.dry_run else ''}.")
         from_projects_api: ProjectsAPI = ProjectsAPI(reptor=self.reptor)
         from_project = from_projects_api.get_project()
         from_project_name = from_project.name
         to_project_title = self._translate(from_project_name)
 
-        self.reptor.logger.display(
-            f"Duplicating project{' (dry run)' if self.dry_run else ''}."
-        )
+        self.display(f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
             to_project_id = from_projects_api.duplicate().id
-            self.reptor.logger.display(
+            self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
             self.projects_api: ProjectsAPI = ProjectsAPI(
@@ -236,17 +232,13 @@ class Translate(Base):
                     {"language": sysreptor_language_code, "name": to_project_title}
                 )
             except HTTPError as e:
-                self.reptor.logger.warning(
-                    f"Error updating project language: {e.response.text}"
-                )
+                self.warning(f"Error updating project language: {e.response.text}")
         else:
             self.projects_api: ProjectsAPI = ProjectsAPI(
                 reptor=self.reptor, project_id=from_project.id
             )
 
-        self.reptor.logger.display(
-            f"Translating findings{' (dry run)' if self.dry_run else ''}."
-        )
+        self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
         findings = self.projects_api.get_findings()
         for finding in findings:
             translated_finding = self._translate_finding(finding)
@@ -255,7 +247,7 @@ class Translate(Base):
                     translated_finding.id, {"data": translated_finding.data.__dict__}
                 )
             except HTTPError as e:
-                self.reptor.logger.warning(
+                self.warning(
                     f"Error updating finding {translated_finding.id}: {e.response.text}"
                 )
 
@@ -265,14 +257,14 @@ class Translate(Base):
             # Cannot get deeply translator, do not query quota.
             return
 
-        self.reptor.logger.display(
+        self.display(
             f"Translated {self.chars_count_to_translate} characters{' (dry run)' if self.dry_run else ''}."
         )
         usage = self.deepl_translator.get_usage()
         if usage.any_limit_reached:
-            self.reptor.logger.warning("Deepl transaction limit reached.")
+            self.warning("Deepl transaction limit reached.")
         if usage.character.valid:
-            self.reptor.logger.display(
+            self.display(
                 f"Deepl usage: {usage.character.count} of {usage.character.limit} characters"
             )
 

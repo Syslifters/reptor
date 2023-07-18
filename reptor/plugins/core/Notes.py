@@ -1,7 +1,6 @@
 from reptor.lib.plugins.Base import Base
 from reptor.api.NotesAPI import NotesAPI
 
-from reptor.lib.console import reptor_console
 from reptor.utils.table import make_table
 
 
@@ -26,7 +25,7 @@ class Notes(Base):
         table = make_table(["Title", "ID"])
         for note in notes:
             table.add_row(note.title, note.id)
-        reptor_console.print(table)
+        self.console.print(table)
 
 
 loader = Notes

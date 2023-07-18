@@ -1,7 +1,6 @@
 import pathlib
 
 from reptor.api.ProjectsAPI import ProjectsAPI
-from reptor.lib.console import reptor_console
 from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
 
@@ -53,7 +52,7 @@ class Projects(Base):
         filepath = pathlib.Path().cwd()
         file_name = filepath / f"{self.reptor.api.projects.project_id}.tar.gz"
         self.reptor.api.projects.export(file_name=file_name)
-        self.reptor.logger.success(f"Written to: {file_name}")
+        self.log.success(f"Written to: {file_name}")
 
     def _search_project(self):
         if self.search is not None:
@@ -69,13 +68,13 @@ class Projects(Base):
                 archived = "[red]Yes[/red]"
             table.add_row(project.name, project.id, archived)
 
-        reptor_console.print(table)
+        self.console.print(table)
 
     def _duplicate_project(self):
         duplicated_project = self.reptor.api.projects.duplicate()
         project_title = duplicated_project.name
         project_id = duplicated_project.id
-        self.reptor.logger.success(f"Duplicated to '{project_title}' ({project_id})")
+        self.success(f"Duplicated to '{project_title}' ({project_id})")
 
     def run(self):
         if self.export:
