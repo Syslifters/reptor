@@ -1,8 +1,10 @@
-from dataclasses import dataclass
 import datetime
+import enum
 import sys
 import typing
-import enum
+from dataclasses import dataclass
+from typing import Any
+from uuid import UUID
 
 
 @dataclass
@@ -361,6 +363,55 @@ class FindingDataExtendedField(ProjectDesignField):
                 self.value.append(FindingDataExtendedField(self.items, v))
         else:
             self.value = value
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name == 'value' and __value is not None:
+            if self.type in [
+                    ProjectFieldTypes.combobox.value,
+                    ProjectFieldTypes.cvss.value,
+                    ProjectFieldTypes.string.value,
+                    ProjectFieldTypes.markdown.value]:
+                if not isinstance(__value, str):
+                    raise ValueError(
+                        f"'{self.name}' expects a string value (got '{__value}').")
+            elif self.type == ProjectFieldTypes.date.value:
+                try:
+                    datetime.datetime.strptime(__value, '%Y-%m-%d')
+                except ValueError:
+                    raise ValueError(
+                        f"'{self.name}' expects date in format 2000-01-01 (got '{__value}').")
+            elif self.type == ProjectFieldTypes.enum.value:
+                valid_enums = [choice['value'] for choice in self.choices]
+                if __value not in valid_enums:
+                    raise ValueError(
+                        f"'{__value}' is not an valid enum choice for '{self.name}'.")
+            elif self.type in [ProjectFieldTypes.list.value, ProjectFieldTypes.object.value]:
+                if not isinstance(__value, list):
+                    raise ValueError(
+                        f"Value of '{self.name}' must be list  (got '{type(__value)}').")
+                if not all([isinstance(v, FindingDataExtendedField) for v in __value]):
+                    raise ValueError(
+                        f"Value of '{self.name}' must contain list of FindingDataExtendedFields.")
+                types = set([v.type for v in __value])
+                if len(types) > 1:
+                    raise ValueError(
+                        f"Values of '{self.name}' must not contain FindingDataExtendedFields"
+                        f"of multiple types  (got {','.join(types)}).")
+            elif self.type == ProjectFieldTypes.boolean.value:
+                if not isinstance(__value, bool):
+                    raise ValueError(
+                        f"'{self.name}' expects a boolean value (got '{__value}').")
+            elif self.type == ProjectFieldTypes.number.value:
+                if not isinstance(__value, int) and not isinstance(__value, float):
+                    raise ValueError(f"'{self.name}' expects int or float (got '{__value}').")
+            elif self.type == ProjectFieldTypes.user.value:
+                try:
+                    UUID(__value, version=4)
+                except ValueError:
+                    raise ValueError(
+                        f"'{self.name}' expects v4 uuid (got '{__value}').")
+
+        return super().__setattr__(__name, __value)
 
 
 class FindingDataExtended(BaseModel):
