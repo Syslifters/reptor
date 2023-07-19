@@ -71,14 +71,16 @@ class ToolBase(Base):
                 os.path.basename(f).rsplit(".", 1)[0]
                 for f in glob.glob(os.path.join(path, "*.md"))
             ]
-            cls.templates.extend([t for t in templates if t not in cls.templates])
+            cls.templates.extend(
+                [t for t in templates if t not in cls.templates])
 
         if cls.templates:
             # Choose default template
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
             else:
-                default_templates = [t for t in cls.templates if "default" in t]
+                default_templates = [
+                    t for t in cls.templates if "default" in t]
                 try:
                     cls.template = default_templates[0]
                 except IndexError:
@@ -126,8 +128,12 @@ class ToolBase(Base):
             default="format",
         )
 
-        input_format_group = parser.add_mutually_exclusive_group()
-        input_format_group.title = "input_format_group"
+        if any(
+            [cls.parse_xml != ToolBase.parse_xml,
+             cls.parse_json != ToolBase.parse_json,
+             cls.parse_csv != ToolBase.parse_csv,]):
+            input_format_group = parser.add_mutually_exclusive_group()
+            input_format_group.title = "input_format_group"
         # Add parsing options only if implemented by modules
         if cls.parse_xml != ToolBase.parse_xml:
             input_format_group.add_argument(
@@ -185,13 +191,16 @@ class ToolBase(Base):
             self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
-        raise NotImplementedError("Parse json data is not implemented for this plugin.")
+        raise NotImplementedError(
+            "Parse json data is not implemented for this plugin.")
 
     def parse_csv(self):
-        raise NotImplementedError("Parse csv data is not implemented for this plugin.")
+        raise NotImplementedError(
+            "Parse csv data is not implemented for this plugin.")
 
     def parse_raw(self):
-        raise NotImplementedError("Parse raw data is not implemented for this plugin.")
+        raise NotImplementedError(
+            "Parse raw data is not implemented for this plugin.")
 
     def parse(self):
         """
@@ -229,6 +238,10 @@ class ToolBase(Base):
         self.formatted_input = render_to_string(
             f"{self.template}.md", {"data": data}
         )
+        # TODO there might be a more elegant solution, maybe.
+        while '\n\n\n' in self.formatted_input:
+            self.formatted_input = self.formatted_input.replace(
+                '\n\n\n', '\n\n')
 
     def process_parsed_input_for_template(self, template=None):
         ...

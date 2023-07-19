@@ -223,14 +223,11 @@ class Sslyze(ToolBase):
         if commands_results is None:
             return result_vulnerabilities
         result_vulnerabilities["heartbleed"] = commands_results.get(
-            "heartbleed", dict()
-        ).get("is_vulnerable_to_heartbleed")
+            "heartbleed", dict()).get("is_vulnerable_to_heartbleed")
         result_vulnerabilities["openssl_ccs"] = commands_results.get(
-            "openssl_ccs", dict()
-        ).get("is_vulnerable_to_ccs_injection")
-        result_vulnerabilities["robot"] = commands_results.get("robot", dict()).get(
-            "robot_result_enum"
-        ) in ["VULNERABLE_STRONG_ORACLE", "VULNERABLE_WEAK_ORACLE"]
+            "openssl_ccs", dict()).get("is_vulnerable_to_ccs_injection")
+        robot = commands_results.get("robot", dict()).get("robot_result_enum")
+        result_vulnerabilities["robot"] = robot if "NOT_VULNERABLE" not in robot else False
         return result_vulnerabilities
 
     def get_misconfigurations(self, target):
@@ -239,12 +236,12 @@ class Sslyze(ToolBase):
         if commands_results is None:
             return result_misconfigs
         result_misconfigs["compression"] = (
-            commands_results.get("compression", dict()).get("compression_name")
-            is not None
+            commands_results.get("compression", dict()).get(
+                "compression_name") is not None
         )
         result_misconfigs["downgrade"] = (
-            commands_results.get("fallback", dict()).get("supports_fallback_scsv", True)
-            is not True
+            commands_results.get("fallback", dict()).get(
+                "supports_fallback_scsv", True) is not True
         )
         result_misconfigs["client_renegotiation"] = commands_results.get(
             "reneg", dict()
@@ -252,8 +249,7 @@ class Sslyze(ToolBase):
         result_misconfigs["no_secure_renegotiation"] = (
             commands_results.get("reneg", dict()).get(
                 "supports_secure_renegotiation", True
-            )
-            is not True
+            ) is not True
         )
 
         return result_misconfigs
@@ -274,169 +270,25 @@ class Sslyze(ToolBase):
             for target in ssylze_json.get("accepted_targets", list()):
                 target_data = self.get_server_info(target)
                 target_data["protocols"] = self.get_weak_ciphers(target)
+                target_data["has_weak_ciphers"] = False
+                if any(
+                        [
+                            v.get("weak_ciphers", list()) +
+                            v.get("insecure_ciphers", list())
+                            for k, v in target_data["protocols"].items()
+                        ]):
+                    target_data["has_weak_ciphers"] = True
                 target_data["certinfo"] = self.get_certinfo(target)
-                target_data["vulnerabilities"] = self.get_vulnerabilities(target)
-                target_data["misconfigurations"] = self.get_misconfigurations(target)
+                target_data["vulnerabilities"] = self.get_vulnerabilities(
+                    target)
+                target_data["has_vulnerabilities"] = False
+                if any([v for k, v in target_data["vulnerabilities"].items()]):
+                    target_data["has_vulnerabilities"] = True
+                target_data["misconfigurations"] = self.get_misconfigurations(
+                    target)
 
                 parsed.append(target_data)
         self.parsed_input = parsed
-
-    def format(self):
-        super().format()
-        formatted = ""
-        for target in self.parsed_input:
-            # Heading
-            formatted += (
-                f"# {target['hostname']}:{target['port']} ({target['ip_address']})\n\n"
-            )
-            # Protocols
-            formatted += "**Protocols**\n\n"
-            if "sslv2" in target["protocols"]:
-                formatted += ' * <span style="color: red">SSLv2</span>\n'
-            if "sslv3" in target["protocols"]:
-                formatted += ' * <span style="color: red">SSLv3</span>\n'
-            if "tlsv1" in target["protocols"]:
-                formatted += ' * <span style="color: red">TLS 1.0</span>\n'
-            if "tlsv1_1" in target["protocols"]:
-                formatted += ' * <span style="color: red">TLS 1.1</span>\n'
-            if "tlsv1_2" in target["protocols"]:
-                formatted += ' * <span style="color: green">TLS 1.2</span>\n'
-            if "tlsv1_3" in target["protocols"]:
-                formatted += ' * <span style="color: green">TLS 1.3</span>\n'
-            formatted += "\n\n"
-
-            # Certificate Info
-            formatted += "**Certificate Information**: \n\n"
-            if not target["certinfo"]["certificate_untrusted"]:
-                formatted += (
-                    ' * <span style="color: green">Certificate is trusted</span>\n'
-                )
-            else:
-                formatted += (
-                    ' * <span style="color: red">Certificate untrusted by:</span>\n'
-                )
-                for store in target["certinfo"]["certificate_untrusted"]:
-                    formatted += f"    * {store}\n"
-
-            formatted += (
-                f" * Certificate matches hostname: "
-                f'<span style="color: '
-                f"{'green' if target['certinfo']['certificate_matches_hostname'] else 'red'}\">"
-                f"{'Yes' if target['certinfo']['certificate_matches_hostname'] else 'No'}</span>\n"
-            )
-
-            formatted += (
-                f" * SHA1 in certificate chain: "
-                f'<span style="color: '
-                f"{'red' if target['certinfo']['has_sha1_in_certificate_chain'] else 'green'}\">"
-                f"{'Yes' if target['certinfo']['has_sha1_in_certificate_chain'] else 'No'}</span>\n"
-            )
-
-            formatted += "\n\n"
-
-            # Vulnerabilities
-            if any([v for k, v in target["vulnerabilities"].items()]):
-                formatted += "**Vulnerabilities**: "
-                vulns = list()
-                vulns.append("Heartbleed") if target["vulnerabilities"].get(
-                    "heartbleed"
-                ) else True
-                vulns.append("Robot Attack") if target["vulnerabilities"].get(
-                    "robot"
-                ) else True
-                vulns.append("OpenSSL CCS (CVE-2014-0224)") if target[
-                    "vulnerabilities"
-                ].get("openssl_ccs") else True
-                formatted += ", ".join(vulns) + "\n\n"
-            # Misconfigurations
-            if any([v for k, v in target["misconfigurations"].items()]):
-                formatted += "**Misconfigurations**: "
-                misconfigs = list()
-                misconfigs.append("Compression") if target["misconfigurations"].get(
-                    "compression"
-                ) else True
-                misconfigs.append("Downgrade Attack (no SCSV fallback)") if target[
-                    "misconfigurations"
-                ].get("downgrade") else True
-                misconfigs.append("No Secure Renegotiation") if target[
-                    "misconfigurations"
-                ].get("no_secure_renegotiation") else True
-                misconfigs.append("Client Renegotiation") if target[
-                    "misconfigurations"
-                ].get("accepts_client_renegotiation") else True
-                formatted += ", ".join(misconfigs) + "\n\n"
-
-            # Weak ciphers
-            if any(
-                [
-                    v.get("weak_ciphers", list()) + v.get("insecure_ciphers", list())
-                    for k, v in target["protocols"].items()
-                ]
-            ):
-                formatted += "**Weak Cipher Suites**\n\n"
-                if target["protocols"].get("sslv2"):
-                    formatted += " * **SSLv2**\n"
-                    for c in target["protocols"]["sslv2"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["sslv2"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-                if target["protocols"].get("sslv3"):
-                    formatted += " * **SSLv3**\n"
-                    for c in target["protocols"]["sslv3"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["sslv3"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-                if target["protocols"].get("tlsv1"):
-                    formatted += " * **TLS 1.0**\n"
-                    for c in target["protocols"]["tlsv1"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["tlsv1"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-                if target["protocols"].get("tlsv1_1"):
-                    formatted += " * **TLS 1.1**\n"
-                    for c in target["protocols"]["tlsv1_1"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["tlsv1_1"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-                if target["protocols"].get("tlsv1_2"):
-                    formatted += " * **TLS 1.2**\n"
-                    for c in target["protocols"]["tlsv1_2"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["tlsv1_2"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-                if target["protocols"].get("tlsv1_3"):
-                    formatted += " * **TLS 1.3**\n"
-                    for c in target["protocols"]["tlsv1_3"].get(
-                        "insecure_ciphers", list()
-                    ):
-                        formatted += (
-                            f'    * {c} (<span style="color: red">insecure</span>)\n'
-                        )
-                    for c in target["protocols"]["tlsv1_3"].get("weak_ciphers", list()):
-                        formatted += f"    * {c}\n"
-            formatted += "\n\n"
-
-        self.formatted_input = formatted
 
 
 loader = Sslyze
