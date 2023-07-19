@@ -49,7 +49,7 @@ class TemplatesAPI(APIClient):
                 self.base_endpoint, data={"data": {"title": template.data.title}}
             )
             raw_data = res.json()
-            self.reptor.logger.debug(raw_data)
+            self.debug(raw_data)
             if raw_data:
                 updated_template = FindingTemplate(raw_data)
                 updated_template.data = template.data
@@ -58,7 +58,7 @@ class TemplatesAPI(APIClient):
                     "status": "in-progress",
                     "data": updated_template.data._to_api_json(),
                 }
-                self.reptor.logger.debug(updated_data)
+                self.debug(updated_data)
                 res2 = self.put(
                     f"{self.base_endpoint}{updated_template.id}",
                     updated_data,
@@ -66,9 +66,7 @@ class TemplatesAPI(APIClient):
                 return_template = updated_template
 
         except Exception as e:
-            self.reptor.logger.fail(
-                f"Could not upload finding with title: {template.data.title}"
-            )
-            self.reptor.logger.fail(f"Error Message Infos: {e}")
+            self.fail(f"Could not upload finding with title: {template.data.title}")
+            self.fail(f"Error Message Infos: {e}")
 
         return return_template
