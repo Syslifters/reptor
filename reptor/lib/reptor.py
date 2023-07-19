@@ -20,10 +20,6 @@ from .interfaces.pluginmanager import PluginManagerProtocol
 
 root_logger = logging.getLogger("root")
 
-# Todo:
-# - Refactor Global and Configuration arguments
-# - Refactor Output
-
 
 class Reptor(ReptorProtocol):
     """The reptor class is the main App.
@@ -61,7 +57,6 @@ class Reptor(ReptorProtocol):
 
         self.plugin_manager = PluginManager(self)
 
-        # Todo: Debate if always write to file or togglable
         if self.get_config().get_log_file():
             self.logger.add_file_log()
 
