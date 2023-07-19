@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import traceback
 
 import django
 from django.conf import settings as django_settings
@@ -293,6 +294,7 @@ class Reptor(ReptorProtocol):
                 self.logger.debug(f"Loading Plugin: {plugin.__name__}")
                 plugin.loader(reptor=self, **self._config.get("cli")).run()
             except Exception as e:
+                self.logger.debug(traceback.format_exc())
                 self.logger.fail(e)
         else:
             # This is called when the user uses python -m reptor or any other way
