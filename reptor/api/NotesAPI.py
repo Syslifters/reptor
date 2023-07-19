@@ -35,7 +35,7 @@ class NotesAPI(APIClient):
                 f"api/v1/pentestprojects/{self.project_id}/notes/",
             )
         else:
-            self.reptor.logger.fail_with_exit(
+            raise ValueError(
                 "Either specify a project ID (-p|--project_id) or use --private-note"
             )
 
@@ -85,14 +85,14 @@ class NotesAPI(APIClient):
         If no notename defined, content gets appended to 'Uploads' note
         """
         if not content:
-            self.reptor.logger.info("Reading from stdin...")
+            self.info("Reading from stdin...")
             content = sys.stdin.read()
 
         note = self.get_note_by_title(
             notename, parent_notename=parent_notename, icon=icon
         )
 
-        self.reptor.logger.debug(f"Working with note: {note.id}")
+        self.debug(f"Working with note: {note.id}")
 
         with self._auto_lock_note(
             note.id
@@ -107,15 +107,13 @@ class NotesAPI(APIClient):
                     note_text += ": "
 
             note_text += content
-            self.reptor.logger.debug(
-                f"We are sending data with a lenght of: {len(note_text)}"
-            )
+            self.debug(f"We are sending data with a lenght of: {len(note_text)}")
             url = urljoin(self.base_endpoint, note.id, "")
             r = self.put(url, {"text": note_text})
 
             try:
                 r.raise_for_status()
-                self.reptor.logger.info(f'Note written to "{notename}".')
+                self.info(f'Note written to "{notename}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
@@ -153,7 +151,7 @@ class NotesAPI(APIClient):
 
         for file in files:
             if file.name == "<stdin>":
-                self.reptor.logger.info("Reading from stdin...")
+                self.info("Reading from stdin...")
             else:
                 filename = basename(file.name)
             content = file.buffer.read()
@@ -162,7 +160,7 @@ class NotesAPI(APIClient):
                 filename = f"data.{filetype}"
 
             if not content:
-                self.reptor.logger.warning(f"{file.name} is empty. Will not upload.")
+                self.warning(f"{file.name} is empty. Will not upload.")
                 continue
 
             # Lock during upload to prevent unnecessary uploads and for endpoint setup
