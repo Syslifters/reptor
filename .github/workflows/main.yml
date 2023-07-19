@@ -12,3 +12,21 @@ jobs:
         cache: 'pip'
     - run: pip install .[all]
     - run: make test
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    - run: pip install .[all]
+    - run: make test
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    - run: pip install .[all]
+    - run: make test
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    - run: pip install .[all]
+    - run: make test
