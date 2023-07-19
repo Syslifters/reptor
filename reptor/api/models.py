@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+from reptor.lib.interfaces.api.models import ProjectProtocol
+
 
 @dataclass
 class BaseModel:
