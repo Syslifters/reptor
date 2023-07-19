@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from typing_extensions import TypeAlias
-
 from reptor.lib.interfaces.api.models import ProjectProtocol
 
 
@@ -296,15 +294,15 @@ class ProjectDesignField(BaseModel):
     """
 
     name: str = ""
-    type: ProjectFieldTypes = None
+    type: ProjectFieldTypes
     label: str = ""
     origin: str = ""
     default: str = ""
     required: bool = False
-    spellcheck: bool = None
-    # Use TypeAlias instead of "typing.List['ProjectDesignField'] = []" due to Python bug
+    spellcheck: bool = False
+    # Use Any instead of "typing.List['ProjectDesignField'] = []" due to Python bug
     # See: https://bugs.python.org/issue44926
-    properties: TypeAlias = "ProjectDesignField"
+    properties: Any = None
     choices: typing.List[dict] = []
     items: dict = {}
     suggestions: typing.List[str] = []
@@ -358,7 +356,7 @@ class FindingDataExtendedField(ProjectDesignField):
         typing.List,  # list
         bool,  # boolean
         float,  # number
-        #TypeAlias,  # "FindingDataExtendedField" for object
+        Any,  # from Python3.10 "FindingDataExtendedField" or "TypeAlias" for object
     ]
 
     def __init__(self,
@@ -368,7 +366,7 @@ class FindingDataExtendedField(ProjectDesignField):
                      typing.List,
                      bool,
                      float, 
-                     #TypeAlias,
+                     Any,
                      ]):
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
         for attr in project_design_type_hints.items():

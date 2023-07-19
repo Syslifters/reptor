@@ -30,7 +30,6 @@ dependencies = [
   'sqlparse >= 0.4.3',
   'termcolor >= 2.3.0',
   'urllib3 >= 2.0.2',
-  'typing-extensions >= 4.7.0'
 ]
 requires-python = ">=3.8"
 classifiers = [
