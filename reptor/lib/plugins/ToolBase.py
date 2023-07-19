@@ -237,7 +237,7 @@ class ToolBase(Base):
         notename = self.notename or self.__class__.__name__.lower()
         parent_notename = "Uploads" if notename != "Uploads" else None
 
-        NotesAPI(self.reptor).write_note(
+        self.reptor.api.notes.write_note(
             notename=notename,
             parent_notename=parent_notename,
             content=self.formatted_input,

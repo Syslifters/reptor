@@ -1,0 +1,6 @@
+class MissingArgumentError(Exception):
+    ...
+
+
+class MissingConfigError(Exception):
+    ...

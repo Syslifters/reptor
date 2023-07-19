@@ -66,7 +66,8 @@ class TemplatesAPI(APIClient):
                 return_template = updated_template
 
         except Exception as e:
-            self.fail(f"Could not upload finding with title: {template.data.title}")
-            self.fail(f"Error Message Infos: {e}")
+            raise ValueError(
+                f"Could not upload finding with title: {template.data.title}"
+            )
 
         return return_template
