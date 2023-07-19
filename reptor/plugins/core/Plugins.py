@@ -209,7 +209,7 @@ class Plugins(Base):
             overwrite = input("Do you want to continue? [N/y]: ") or "n"
 
             if overwrite[0].lower() != "y":
-                self.log.fail_with_exit("Aborting...")
+                raise AssertionError("Aborting...")
 
         shutil.copytree(
             settings.PLUGIN_TOOLBASE_TEMPLATE_FOLDER,

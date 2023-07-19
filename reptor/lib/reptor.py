@@ -288,9 +288,12 @@ class Reptor(ReptorProtocol):
 
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
-            plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
-            self.logger.debug(f"Loading Plugin: {plugin.__name__}")
-            plugin.loader(reptor=self, **self._config.get("cli")).run()
+            try:
+                plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
+                self.logger.debug(f"Loading Plugin: {plugin.__name__}")
+                plugin.loader(reptor=self, **self._config.get("cli")).run()
+            except Exception as e:
+                self.logger.fail(e)
         else:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all

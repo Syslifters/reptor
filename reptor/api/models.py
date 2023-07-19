@@ -384,7 +384,7 @@ class FindingDataExtendedField(ProjectDesignField):
                             property, value[property.name])
                     )
                 except KeyError:
-                    self.reptor.logger.fail_with_exit(
+                    raise ValueError(
                         f"Object name '{property.name}' not found. Did you mix"
                         f"mismatched project design with project data?"
                     )
