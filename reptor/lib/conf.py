@@ -14,6 +14,7 @@ class Config(ConfigProtocol):
         "token": None,
         "project_id": None,
         "community": False,
+        "log_file": False,
     }
 
     """These keys are ignored when writing the config to a file
@@ -192,3 +193,11 @@ class Config(ConfigProtocol):
             bool: Default False
         """
         return self.get("community", False)
+
+    def get_log_file(self) -> bool:
+        """Checks if the user wants to keep a log file in their home directory
+
+        Returns:
+            bool: True to keep logs in a file
+        """
+        return self.get("log_file", False)

@@ -61,7 +61,8 @@ class Reptor(ReptorProtocol):
         self.plugin_manager = PluginManager(self)
 
         # Todo: Debate if always write to file or togglable
-        self.logger.add_file_log()
+        if self.get_config().get_log_file():
+            self.logger.add_file_log()
 
     def get_config(self) -> Config:
         """Use this to access the current config
