@@ -242,9 +242,12 @@ class ToolBase(Base):
         while '\n\n\n' in self.formatted_input:
             self.formatted_input = self.formatted_input.replace(
                 '\n\n\n', '\n\n')
+<<<<<<< HEAD
 
     def process_parsed_input_for_template(self, template=None):
         ...
+=======
+>>>>>>> 2287269 (Create template for sslyze)
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
