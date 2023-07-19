@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+from typing_extensions import TypeAlias
+
 from reptor.lib.interfaces.api.models import ProjectProtocol
 
 
@@ -302,7 +304,7 @@ class ProjectDesignField(BaseModel):
     spellcheck: bool = None
     # Use TypeAlias instead of "typing.List['ProjectDesignField'] = []" due to Python bug
     # See: https://bugs.python.org/issue44926
-    properties: typing.TypeAlias = "ProjectDesignField"
+    properties: TypeAlias = "ProjectDesignField"
     choices: typing.List[dict] = []
     items: dict = {}
     suggestions: typing.List[str] = []
@@ -356,13 +358,18 @@ class FindingDataExtendedField(ProjectDesignField):
         typing.List,  # list
         bool,  # boolean
         float,  # number
-        typing.TypeAlias,  # "FindingDataExtendedField" for object
+        #TypeAlias,  # "FindingDataExtendedField" for object
     ]
 
     def __init__(self,
                  design_field: ProjectDesignField,
                  value: typing.Union[
-                     str, typing.List, bool, float, typing.TypeAlias,]):
+                     str,
+                     typing.List,
+                     bool,
+                     float, 
+                     #TypeAlias,
+                     ]):
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
         for attr in project_design_type_hints.items():
             self.__setattr__(attr[0], design_field.__getattribute__(attr[0]))
@@ -424,7 +431,8 @@ class FindingDataExtendedField(ProjectDesignField):
                         f"'{self.name}' expects a boolean value (got '{__value}').")
             elif self.type == ProjectFieldTypes.number.value:
                 if not isinstance(__value, int) and not isinstance(__value, float):
-                    raise ValueError(f"'{self.name}' expects int or float (got '{__value}').")
+                    raise ValueError(
+                        f"'{self.name}' expects int or float (got '{__value}').")
             elif self.type == ProjectFieldTypes.user.value:
                 try:
                     UUID(__value, version=4)

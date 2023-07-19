@@ -152,7 +152,7 @@ class Translate(Base):
     def _set_deepl_translator(self) -> None:
         if not deepl:
             raise ModuleNotFoundError(
-                'deepl library not found. Install with "pip3 install reptor[deepl]'
+                'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
             )
 
         try:
