@@ -10,7 +10,7 @@ from reptor.lib.plugins.Base import Base
 try:
     import deepl
 except ImportError:
-    deepl = None
+    raise Exception("Make sure you have deepl installed.")
 
 
 class Translate(Base):
@@ -152,7 +152,7 @@ class Translate(Base):
     def _set_deepl_translator(self) -> None:
         if not deepl:
             raise ModuleNotFoundError(
-                'deepl library not found. Install with "pip3 install reptor[deepl]'
+                'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
             )
 
         try:
@@ -210,14 +210,13 @@ class Translate(Base):
         if self.dry_run:
             self._translate = self._dry_run_translate
         self.display(f"Translating project name{' (dry run)' if self.dry_run else ''}.")
-        from_projects_api: ProjectsAPI = ProjectsAPI(reptor=self.reptor)
-        from_project = from_projects_api.get_project()
+        from_project = self.reptor.api.projects.get_project()
         from_project_name = from_project.name
         to_project_title = self._translate(from_project_name)
 
         self.display(f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
-            to_project_id = from_projects_api.duplicate().id
+            to_project_id = self.reptor.api.projects.duplicate().id
             self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )

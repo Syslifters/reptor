@@ -44,8 +44,9 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-deepl = ['deepl >= 1.15.0']
-gql = ['gql >= 3.4.1']
+translate = ['deepl >= 1.15.0']
+ghostwriter = ['gql >= 3.4.1']
+all = ['reptor[translate,ghostwriter]']
 
 [project.scripts]
 reptor = 'reptor.__main__:run'

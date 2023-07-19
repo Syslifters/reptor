@@ -12,10 +12,11 @@ class ProjectsAPI(APIClient):
         super().__init__(**kwargs)
 
         self.base_endpoint = (
-            f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects/"
+            f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects"
         )
 
         self.object_endpoint = f"{self.base_endpoint}/{self.project_id}"
+        self.reptor.get_logger().debug(self.base_endpoint)
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
@@ -53,7 +54,9 @@ class ProjectsAPI(APIClient):
         return return_data
 
     def get_project(self) -> Project:
-        url = urljoin(self.base_endpoint, f"{self.project_id}/")
+        if not self.project_id:
+            raise ValueError("Make sure you have a project specified.")
+        url = self.object_endpoint
         response = self.get(url)
         return Project(response.json())
 

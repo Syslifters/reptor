@@ -1,2 +1,2 @@
 test:
-	python -m unittest discover -v -s reptor/tests
+	python -m unittest discover -v
