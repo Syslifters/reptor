@@ -152,14 +152,9 @@ class ReptorAdapter(logging.LoggerAdapter):
         Returns:
             pathlib.Path: Full pathlib Path to log FILE
         """
-        date_based_log_folder = settings.LOG_FOLDER / datetime.now().strftime(
-            "%Y-%m-%d"
-        )
-        date_based_log_folder.mkdir(parents=True, exist_ok=True)
-        return (
-            date_based_log_folder
-            / f"log_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
-        )
+        # Date Based
+        settings.LOG_FOLDER.mkdir(parents=True, exist_ok=True)
+        return settings.LOG_FOLDER / "reptor.log"
 
 
 class TermEscapeCodeFormatter(logging.Formatter):
