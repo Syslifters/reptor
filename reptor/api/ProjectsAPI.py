@@ -15,8 +15,8 @@ class ProjectsAPI(APIClient):
             f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects"
         )
 
-        self.object_endpoint = f"{self.base_endpoint}/{self.project_id}"
-        self.reptor.get_logger().debug(self.base_endpoint)
+        self.object_endpoint = urljoin(self.base_endpoint, self.project_id)
+        self.debug(self.base_endpoint)
 
     def get_projects(self, readonly: bool = False) -> typing.List[Project]:
         """Gets list of projects
@@ -70,7 +70,9 @@ class ProjectsAPI(APIClient):
             ValueError: Requires project_id
         """
         if not self.project_id:
-            raise ValueError("No project ID. Wanna run 'reptor conf'?")
+            raise ValueError(
+                "No project ID. Specify in reptor conf or via -p / --project-id"
+            )
 
         if not file_name:
             filepath = pathlib.Path().cwd()

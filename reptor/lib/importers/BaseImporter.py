@@ -58,11 +58,11 @@ class BaseImporter:
             self.reptor.get_logger().fail("Do you want to abort? [Y/n]")
             abort_answer = input()[:1].lower()
             if abort_answer != "n":
-                self.reptor.get_logger().fail_with_exit("Aborting...")
+                raise AssertionError("Aborting")
 
     def run(self):
         if not self.mapping:
-            self.reptor.get_logger().fail_with_exit("You need to provide a mapping.")
+            raise ValueError("You need to provide a mapping.")
 
         for external_finding in self.next_findings_batch():  # type: ignore
             new_finding = self._create_finding_item(external_finding)

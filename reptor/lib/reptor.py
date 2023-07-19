@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import traceback
 
 import django
 from django.conf import settings as django_settings
@@ -18,10 +19,6 @@ from .interfaces.reptor import ReptorProtocol
 from .interfaces.pluginmanager import PluginManagerProtocol
 
 root_logger = logging.getLogger("root")
-
-# Todo:
-# - Refactor Global and Configuration arguments
-# - Refactor Output
 
 
 class Reptor(ReptorProtocol):
@@ -60,7 +57,6 @@ class Reptor(ReptorProtocol):
 
         self.plugin_manager = PluginManager(self)
 
-        # Todo: Debate if always write to file or togglable
         if self.get_config().get_log_file():
             self.logger.add_file_log()
 
@@ -288,9 +284,13 @@ class Reptor(ReptorProtocol):
 
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
-            plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
-            self.logger.debug(f"Loading Plugin: {plugin.__name__}")
-            plugin.loader(reptor=self, **self._config.get("cli")).run()
+            try:
+                plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
+                self.logger.debug(f"Loading Plugin: {plugin.__name__}")
+                plugin.loader(reptor=self, **self._config.get("cli")).run()
+            except Exception as e:
+                self.logger.debug(traceback.format_exc())
+                self.logger.fail(e)
         else:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all

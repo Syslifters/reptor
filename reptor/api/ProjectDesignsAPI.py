@@ -1,7 +1,4 @@
-import pathlib
-import typing
 from posixpath import join as urljoin
-from typing import Optional
 
 from reptor.api.APIClient import APIClient
 from reptor.api.models import ProjectDesign
@@ -16,7 +13,9 @@ class ProjectDesignsAPI(APIClient):
         )
 
         self.project_design_id = kwargs.get("project_design_id", "")
-        self.object_endpoint = f"{self.base_endpoint}/{self.project_design_id}/"
+        self.object_endpoint = urljoin(
+            f"{self.base_endpoint}, {self.project_design_id}"
+        )
 
     def get_project_design(self) -> ProjectDesign:
         """Gets project design
@@ -27,6 +26,8 @@ class ProjectDesignsAPI(APIClient):
         Returns:
             ProjectDesign object
         """
-        url = self.object_endpoint
-        response = self.get(url)
+        if not self.project_design_id:
+            raise ValueError("Missing Project Design ID")
+
+        response = self.get(self.object_endpoint)
         return ProjectDesign(response.json())

@@ -12,6 +12,7 @@ from reptor.api.APIClient import APIClient
 from reptor.api.errors import LockedException
 from reptor.api.models import Note
 from reptor.utils.file_operations import guess_filetype
+from reptor.lib.errors import MissingArgumentError
 
 
 class NotesAPI(APIClient):
@@ -35,7 +36,7 @@ class NotesAPI(APIClient):
                 f"api/v1/pentestprojects/{self.project_id}/notes/",
             )
         else:
-            raise ValueError(
+            raise MissingArgumentError(
                 "Either specify a project ID (-p|--project_id) or use --private-note"
             )
 
@@ -52,7 +53,7 @@ class NotesAPI(APIClient):
         return notes
 
     def create_note(
-        self, title="CLI Note", parent_id=None, order=None, icon=None
+        self, title="CLI Note", parent_id: str = "", order=None, icon=None
     ) -> Note:
         note = self.post(
             self.base_endpoint,
@@ -72,12 +73,12 @@ class NotesAPI(APIClient):
 
     def write_note(
         self,
-        notename=None,
-        parent_notename=None,
-        content=None,
-        icon=None,
-        no_timestamp=False,
-        force_unlock=False,
+        notename: str = "",
+        parent_notename: str = "",
+        content: str = "",
+        icon: str = "",
+        no_timestamp: bool = False,
+        force_unlock: bool = False,
     ):
         """
         Notes accept stdin only
@@ -120,7 +121,7 @@ class NotesAPI(APIClient):
                 ) from e
 
     def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
-        parent_id = None
+        parent_id = ""
         if parent_notename:
             note = self.get_note_by_title(parent_notename)
             parent_id = note.id
@@ -194,16 +195,16 @@ class NotesAPI(APIClient):
                     force_unlock=True,
                 )
 
-    def _lock_note(self, note_id):
+    def _lock_note(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "lock/")
         return self.post(url)
 
-    def _unlock_note(self, note_id):
+    def _unlock_note(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "unlock/")
         return self.post(url)
 
     @contextlib.contextmanager
-    def _auto_lock_note(self, note_id):
+    def _auto_lock_note(self, note_id: str):
         r = self._lock_note(note_id)
         if r.status_code == 200 or r.status_code == 403:
             if r.status_code != 200:

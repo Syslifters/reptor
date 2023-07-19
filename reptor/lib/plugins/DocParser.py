@@ -1,6 +1,7 @@
 import pathlib
 import typing
 
+# Todo: Because we are not using the docs anymore, we should refactor this and rename this
 
 class PluginDocs:
     TYPE_CORE = "CORE"
