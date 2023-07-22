@@ -2,12 +2,14 @@ from reptor.lib.interfaces.apimanager import APIManagerProtocol
 
 from .NotesAPI import NotesAPI
 from .ProjectsAPI import ProjectsAPI
+from .ProjectDesignsAPI import ProjectDesignsAPI
 from .TemplatesAPI import TemplatesAPI
 
 
 class APIManager(APIManagerProtocol):
     _notes: NotesAPI = None
     _projects: ProjectsAPI = None
+    _project_designs: ProjectDesignsAPI = None
     _templates: TemplatesAPI = None
 
     def __init__(self, **kwargs) -> None:
@@ -28,6 +30,15 @@ class APIManager(APIManagerProtocol):
                 reptor=self._reptor, project_id=self._reptor.get_active_project_id()
             )
         return self._projects
+
+    @property
+    def project_designs(self) -> ProjectDesignsAPI:
+        if not self._project_designs:
+            project_design_id = self.projects.get_project().project_type
+            self._project_designs = ProjectDesignsAPI(
+                reptor=self._reptor,
+                project_design_id=project_design_id)
+        return self._project_designs
 
     @property
     def templates(self) -> TemplatesAPI:

@@ -10,5 +10,5 @@ from .api.project_designs import ApiProjectDesignsProtocol
 class APIManagerProtocol(typing.Protocol):
     notes: ApiNotesProtocol
     projects: ApiProjectsProtocol
-    project_desings: ApiProjectDesignsProtocol
+    project_designs: ApiProjectDesignsProtocol
     templates: ApiTemplatesProtocol

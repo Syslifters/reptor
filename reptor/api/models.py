@@ -503,8 +503,7 @@ class Finding(FindingRaw, FindingProtocol):
             project_design: ProjectDesign,
             finding_raw: FindingRaw):
         # Set attributes from FindingRaw
-        project_design_type_hints = typing.get_type_hints(ProjectDesignField)
-        for attr in project_design_type_hints.items():
+        for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(
                 attr[0],
                 finding_raw.__getattribute__(attr[0])
@@ -531,8 +530,7 @@ class Project(BaseModel, ProjectProtocol):
 
     name: str = ""
 
-    # Todo: should be ProjectType but API returns no object, but ID str instead
-    project_type: str = ""
+    project_type: str = ""  # is the project design id
 
     language: str = ""
     tags: typing.List[str] = []
