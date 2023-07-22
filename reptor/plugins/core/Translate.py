@@ -183,13 +183,14 @@ class Translate(Base):
         return result.text
 
     def _translate_finding(self, finding: Finding) -> Finding:
-        for _, finding_field in finding.data.__dict__.items():
+        for finding_field_name, finding_field in finding.data.__dict__.items():
             if finding_field.type not in self.TRANSLATE_DATA_TYPES:
                 continue
             if finding_field.name in self.SKIP_FINDING_FIELDS:
                 continue
 
-        finding.data = FindingData(self._translate_field(finding_data_dict))
+            finding_field = finding.data.__getattribute__(finding_field_name)
+            finding_field.value = self._translate_field(finding_field).value
         return finding
 
     def _translate_field(
@@ -197,8 +198,8 @@ class Translate(Base):
         field: FindingDataField,
     ) -> FindingDataField:
         """Recursive function to translate nested fields"""
-        if field.type in [ProjectFieldTypes.list.value, ProjectFieldTypes.object.value,]:
-            field.value = self._translate_field(field.type)
+        if field.type in [ProjectFieldTypes.list.value, ProjectFieldTypes.object.value]:
+            field.value = [self._translate_field(v) for v in field.value]
         else:
             field.value = self._translate(field.value)  # type: ignore
         return field
@@ -207,7 +208,7 @@ class Translate(Base):
         self.chars_count_to_translate += len(text)
         return text
 
-    def _duplicate_and_update_project(self, project_name: str) -> None:
+    def _duplicate_and_update_project(self, project_title: str) -> None:
         self.display(
             f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
@@ -221,19 +222,19 @@ class Translate(Base):
                     self.to_lang)
                 self.reptor.api.projects.update_project({
                     "language": sysreptor_language_code,
-                    "name": self._translate(project_name)})
+                    "name": self._translate(project_title)})
             except HTTPError as e:
                 self.warning(
                     f"Error updating project: {e.response.text}")
         else:
-            self._translate(project_name)  # To count characters
+            self._translate(project_title)  # To count characters
 
     def _translate_project(self):
         if self.dry_run:
             self._translate = self._dry_run_translate
 
         project = self.reptor.api.projects.get_project()
-        self._duplicate_and_update_project(project_name=project.name)
+        self._duplicate_and_update_project(project_title=project.name)
 
         self.display(
             f"Translating findings{' (dry run)' if self.dry_run else ''}.")
@@ -243,7 +244,7 @@ class Translate(Base):
             try:
                 self.reptor.api.projects.update_finding(
                     translated_finding.id, {
-                        "data": translated_finding.data.__dict__}
+                        "data": translated_finding.data.__dict__}  # TODO make JSON searializable
                 )
             except HTTPError as e:
                 self.warning(

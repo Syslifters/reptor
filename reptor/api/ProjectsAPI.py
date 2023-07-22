@@ -60,6 +60,7 @@ class ProjectsAPI(APIClient):
             raise ValueError("Make sure you have a project specified.")
         url = self.object_endpoint
         response = self.get(url)
+        # TODO we might want to save Project to attribute to avoid redundant requests
         return Project(response.json())
 
     def export(self, file_name: typing.Optional[pathlib.Path] = None):
@@ -109,10 +110,7 @@ class ProjectsAPI(APIClient):
             return return_data
 
         if not self.project_design:
-            project_design_id = response[0]['project_type']
-            self.reptor.api.project_desings.project_design
-            self.project_design = ProjectDesignsAPI(
-                project_design_id=project_design_id).project_design
+            self.project_design = self.reptor.api.project_designs.project_design
 
         for item in response:
             finding = Finding(

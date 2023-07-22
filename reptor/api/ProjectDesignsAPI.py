@@ -1,4 +1,5 @@
 from functools import cached_property
+from posixpath import join as urljoin
 
 from reptor.api.APIClient import APIClient
 from reptor.api.models import ProjectDesign
@@ -14,7 +15,7 @@ class ProjectDesignsAPI(APIClient):
 
         self.project_design_id = kwargs.get("project_design_id", "")
         self.object_endpoint = urljoin(
-            f"{self.base_endpoint}, {self.project_design_id}"
+            self.base_endpoint, self.project_design_id
         )
 
     @cached_property
