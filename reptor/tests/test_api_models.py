@@ -2,8 +2,8 @@ import json
 import unittest
 from copy import deepcopy
 
-from reptor.api.models import (Finding, FindingData, FindingDataExtended,
-                               FindingDataExtendedField, FindingTemplate,
+from reptor.api.models import (FindingRaw, FindingDataRaw, FindingData,
+                               FindingDataField, FindingTemplate,
                                Project, ProjectDesign, ProjectDesignField,
                                User)
 
@@ -186,10 +186,10 @@ class TestModelsParsing(unittest.TestCase):
     }"""
 
     def test_finding_data_extended(self):
-        finding = Finding(json.loads(self.example_finding))
+        finding = FindingRaw(json.loads(self.example_finding))
         project_design = ProjectDesign(json.loads(
             self.example_design_with_finding_fields_only))
-        fd_ext = FindingDataExtended(
+        fd_ext = FindingData(
             project_design.finding_fields, finding.data)
         self.assertEqual(fd_ext.boolean_field.name, 'boolean_field')
         self.assertEqual(fd_ext.boolean_field.type, 'boolean')
@@ -215,12 +215,12 @@ class TestModelsParsing(unittest.TestCase):
         self.assertEqual(fd_ext.list_field.type, 'list')
         self.assertIsInstance(fd_ext.list_field.value, list)
         self.assertIsInstance(
-            fd_ext.list_field.value[0], FindingDataExtendedField)
+            fd_ext.list_field.value[0], FindingDataField)
         self.assertEqual(fd_ext.list_field.value[0].type, 'object')
         self.assertIsInstance(
             fd_ext.list_field.value[0].value, list)
         self.assertIsInstance(
-            fd_ext.list_field.value[0].value[0], FindingDataExtendedField)
+            fd_ext.list_field.value[0].value[0], FindingDataField)
         self.assertEqual(fd_ext.list_field.value[0].value[0].type, 'enum')
         self.assertEqual(
             fd_ext.list_field.value[0].value[0].value, 'enum_in_obj_2')
@@ -229,11 +229,11 @@ class TestModelsParsing(unittest.TestCase):
         self.assertEqual(fd_ext.object_field.type, 'object')
         self.assertIsInstance(fd_ext.object_field.value, list)
         self.assertIsInstance(
-            fd_ext.object_field.value[0], FindingDataExtendedField)
+            fd_ext.object_field.value[0], FindingDataField)
         self.assertEqual(fd_ext.object_field.value[0].type, 'list')
         self.assertIsInstance(fd_ext.object_field.value[0].value, list)
         self.assertIsInstance(
-            fd_ext.object_field.value[0].value[0], FindingDataExtendedField)
+            fd_ext.object_field.value[0].value[0], FindingDataField)
         self.assertEqual(fd_ext.object_field.value[0].value[0].type, 'string')
         self.assertEqual(
             fd_ext.object_field.value[0].value[0].value, 'My String in List in Object')
@@ -296,13 +296,13 @@ class TestModelsParsing(unittest.TestCase):
 
     def test_finding_parsing(self):
         api_test_data = json.loads(self.example_finding)
-        finding = Finding(api_test_data)
+        finding = FindingRaw(api_test_data)
         self.assertEqual(finding.id, "d3658ee5-2d43-40f6-9b97-1b98480afe78")
         self.assertEqual(finding.language, "en-US")
         self.assertEqual(finding.project_type,
                          "2970149f-e11d-420a-8a5d-25b5fda14e33")
         self.assertIsInstance(finding.assignee, dict)
-        self.assertIsInstance(finding.data, FindingData)
+        self.assertIsInstance(finding.data, FindingDataRaw)
         self.assertEqual(finding.data.cvss, "n/a")
         self.assertEqual(finding.data.title, "My Title")
         self.assertEqual(finding.data.date_field, "2023-07-03")

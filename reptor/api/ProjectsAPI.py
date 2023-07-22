@@ -4,12 +4,14 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import Project, Finding
+from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
+from reptor.api.models import Finding, FindingRaw, Project, FindingData
 
 
 class ProjectsAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self.project_design = None
 
         self.base_endpoint = (
             f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects"
@@ -99,17 +101,31 @@ class ProjectsAPI(APIClient):
         Returns:
             typing.List[Finding]: List of findings for this project
         """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        response = self.get(url)
-
         return_data = list()
-        for item in response.json():
-            return_data.append(Finding(item))
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
+        response = self.get(url).json()
+
+        if not response:
+            return return_data
+
+        if not self.project_design:
+            project_design_id = response[0]['project_type']
+            self.reptor.api.project_desings.project_design
+            self.project_design = ProjectDesignsAPI(
+                project_design_id=project_design_id).project_design
+
+        for item in response:
+            finding = Finding(
+                self.project_design,
+                FindingRaw(item)
+            )
+            return_data.append(finding)
         return return_data
 
     def update_finding(self, finding_id: str, data: dict) -> None:
         # Todo: Should accept a finding object ?
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        url = urljoin(self.base_endpoint,
+                      f"{self.project_id}/findings/{finding_id}/")
         self.patch(url, data)
 
     def update_project(self, data: dict) -> None:
@@ -118,7 +134,8 @@ class ProjectsAPI(APIClient):
         self.patch(url, data)
 
     def get_enabled_language_codes(self) -> list:
-        url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
+        url = urljoin(self.reptor.get_config().get_server(),
+                      "api/v1/utils/settings/")
         settings = self.get(url).json()
         languages = [
             l["code"] for l in settings.get("languages", list()) if l["enabled"] == True

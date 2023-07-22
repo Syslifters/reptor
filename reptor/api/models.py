@@ -6,7 +6,23 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from reptor.lib.interfaces.api.models import ProjectProtocol
+from reptor.lib.interfaces.api.models import (FindingProtocol,
+                                              ProjectDesignProtocol,
+                                              ProjectProtocol)
+
+
+class ProjectFieldTypes(enum.Enum):
+    cvss = "cvss"
+    string = "string"
+    markdown = "markdown"
+    list = "list"
+    object = "object"
+    enum = "enum"
+    user = "user"
+    combobox = "combobox"
+    date = "date"
+    number = "number"
+    boolean = "boolean"
 
 
 @dataclass
@@ -56,7 +72,7 @@ class BaseModel:
                 if model_class in [
                     "User",
                     "FindingTemplate",
-                    "FindingData",
+                    "FindingDataRaw",
                     "Note",
                     "Project",
                     "ProjectDesign",
@@ -141,7 +157,7 @@ class User(BaseModel):
     can_login_sso: bool = False
 
 
-class FindingData(BaseModel):
+class FindingDataRaw(BaseModel):
     """
     Custom finding fields will be added as additional attributes.
 
@@ -181,7 +197,7 @@ class FindingData(BaseModel):
 
     def _fill_from_api(self, data: typing.Dict):
         """Fills Model from reptor.api return JSON data
-        For FindingData, undefined keys should also be set.
+        For FindingDataRaw, undefined keys should also be set.
 
         Args:
             data (str): API Return Data
@@ -189,90 +205,6 @@ class FindingData(BaseModel):
         for key, value in data.items():
             # We don't care about recursion here
             self.__setattr__(key, value)
-
-
-class Finding(BaseModel):
-    """
-    Attributes:
-        project:
-        project_type:
-        language:
-        lock_info:
-        template:
-        assignee:
-        status:
-        data:
-    """
-
-    project: str = ""
-    project_type: str = ""
-    language: str = ""
-    lock_info: bool = False
-    template: str = ""
-    assignee: str = ""
-    status: str = ""
-    data: FindingData = None
-
-
-class FindingTemplate(BaseModel):
-    """
-    Attributes:
-        details:
-        lock_info:
-        usage_count:
-        source:
-        tags:
-        language:
-        status:
-        data:
-        custom_attributes:
-    """
-
-    details: str = ""
-    lock_info: bool = False
-    usage_count: int = 0
-    source: str = ""
-    tags: typing.List[str] = []
-    language: str = ""
-    status: str = ""
-    data: FindingData = None
-
-
-class Note(BaseModel):
-    """
-    Attributes:
-        lock_info:
-        title:
-        text:
-        checked:
-        icon_emoji:
-        status_emoji:
-        order:
-        parent:
-    """
-
-    lock_info: bool = False
-    title: str = ""
-    text: str = ""
-    checked: bool = False
-    icon_emoji: str = ""
-    status_emoji: str = ""
-    order: int = 0
-    parent: str = ""
-
-
-class ProjectFieldTypes(enum.Enum):
-    cvss: str = "cvss"
-    string: str = "string"
-    markdown: str = "markdown"
-    list: str = "list"
-    object: str = "object"
-    enum: str = "enum"
-    user: str = "user"
-    combobox: str = "combobox"
-    date: str = "date"
-    number: str = "number"
-    boolean: str = "boolean"
 
 
 class ProjectDesignField(BaseModel):
@@ -323,26 +255,7 @@ class ProjectDesignField(BaseModel):
                 self.__setattr__(key, value)
 
 
-class ProjectDesign(BaseModel):
-    """
-    Attributes:
-        source:
-        scope:
-        name:
-        language:
-        report_fields:
-        finding_fields:
-    """
-
-    source: str = ""
-    scope: str = ""
-    name: str = ""
-    language: str = ""
-    report_fields: typing.List[ProjectDesignField] = []
-    finding_fields: typing.List[ProjectDesignField] = []
-
-
-class FindingDataExtendedField(ProjectDesignField):
+class FindingDataField(ProjectDesignField):
     """
     Finding data holds values only and does not contain type definitions.
     Most data types cannot be differentiated (like strings and enums).
@@ -356,7 +269,7 @@ class FindingDataExtendedField(ProjectDesignField):
         typing.List,  # list
         bool,  # boolean
         float,  # number
-        Any,  # "FindingDataExtendedField" for object
+        Any,  # "FindingDataField" for object
     ]
 
     def __init__(
@@ -370,6 +283,7 @@ class FindingDataExtendedField(ProjectDesignField):
             Any,
         ],
     ):
+        # Set attributes from ProjectDesignField
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
         for attr in project_design_type_hints.items():
             self.__setattr__(attr[0], design_field.__getattribute__(attr[0]))
@@ -380,18 +294,19 @@ class FindingDataExtendedField(ProjectDesignField):
                 # property is of type ProjectDesignField
                 try:
                     self.value.append(
-                        FindingDataExtendedField(
-                            property, value[property.name])
+                        FindingDataField(
+                            property, value[property.name])  # type: ignore
                     )
                 except KeyError:
-                    raise ValueError(
+                    raise KeyError(
                         f"Object name '{property.name}' not found. Did you mix"
                         f"mismatched project design with project data?"
                     )
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
-            for v in value:
-                self.value.append(FindingDataExtendedField(self.items, v))
+            for v in value:  # type: ignore
+                self.value.append(FindingDataField(
+                    self.items, v))  # type: ignore
         else:
             self.value = value
 
@@ -428,14 +343,14 @@ class FindingDataExtendedField(ProjectDesignField):
                     raise ValueError(
                         f"Value of '{self.name}' must be list  (got '{type(__value)}')."
                     )
-                if not all([isinstance(v, FindingDataExtendedField) for v in __value]):
+                if not all([isinstance(v, FindingDataField) for v in __value]):
                     raise ValueError(
-                        f"Value of '{self.name}' must contain list of FindingDataExtendedFields."
+                        f"Value of '{self.name}' must contain list of FindingDataFields."
                     )
                 types = set([v.type for v in __value])
                 if len(types) > 1:
                     raise ValueError(
-                        f"Values of '{self.name}' must not contain FindingDataExtendedFields"
+                        f"Values of '{self.name}' must not contain FindingDataFields"
                         f"of multiple types  (got {','.join(types)})."
                     )
             elif self.type == ProjectFieldTypes.boolean.value:
@@ -459,36 +374,146 @@ class FindingDataExtendedField(ProjectDesignField):
         return super().__setattr__(__name, __value)
 
 
-class FindingDataExtended(BaseModel):
-    title: FindingDataExtendedField
-    cvss: FindingDataExtendedField
-    summary: FindingDataExtendedField
-    description: FindingDataExtendedField
-    precondition: FindingDataExtendedField
-    impact: FindingDataExtendedField
-    recommendation: FindingDataExtendedField
-    short_recommendation: FindingDataExtendedField
-    references: FindingDataExtendedField
-    affected_components: FindingDataExtendedField
-    owasp_top10_2021: FindingDataExtendedField
-    wstg_category: FindingDataExtendedField
-    retest_notes: FindingDataExtendedField
-    retest_status: FindingDataExtendedField
-    evidence: FindingDataExtendedField
+class FindingData(BaseModel):
+    title: FindingDataField
+    cvss: FindingDataField
+    summary: FindingDataField
+    description: FindingDataField
+    precondition: FindingDataField
+    impact: FindingDataField
+    recommendation: FindingDataField
+    short_recommendation: FindingDataField
+    references: FindingDataField
+    affected_components: FindingDataField
+    owasp_top10_2021: FindingDataField
+    wstg_category: FindingDataField
+    retest_notes: FindingDataField
+    retest_status: FindingDataField
+    evidence: FindingDataField
 
     def __init__(
         self,
-        design_fields: typing.List[ProjectDesignField] = None,
-        field_data: FindingData = None,
+        design_fields: typing.List[ProjectDesignField],
+        finding_data_raw: FindingDataRaw
     ):
         for design_field in design_fields:
             self.__setattr__(
                 design_field.name,
-                FindingDataExtendedField(
-                    design_field, field_data.__getattribute__(
+                FindingDataField(
+                    design_field, finding_data_raw.__getattribute__(
                         design_field.name)
                 ),
             )
+
+
+class FindingRaw(BaseModel):
+    """
+    Attributes:
+        project:
+        project_type:
+        language:
+        lock_info:
+        template:
+        assignee:
+        status:
+        data:
+    """
+
+    project: str = ""
+    project_type: str = ""
+    language: str = ""
+    lock_info: bool = False
+    template: str = ""
+    assignee: str = ""
+    status: str = ""
+    data: FindingDataRaw
+
+
+class FindingTemplate(BaseModel):
+    """
+    Attributes:
+        details:
+        lock_info:
+        usage_count:
+        source:
+        tags:
+        language:
+        status:
+        data:
+        custom_attributes:
+    """
+
+    details: str = ""
+    lock_info: bool = False
+    usage_count: int = 0
+    source: str = ""
+    tags: typing.List[str] = []
+    language: str = ""
+    status: str = ""
+    data: FindingDataRaw
+
+
+class Note(BaseModel):
+    """
+    Attributes:
+        lock_info:
+        title:
+        text:
+        checked:
+        icon_emoji:
+        status_emoji:
+        order:
+        parent:
+    """
+
+    lock_info: bool = False
+    title: str = ""
+    text: str = ""
+    checked: bool = False
+    icon_emoji: str = ""
+    status_emoji: str = ""
+    order: int = 0
+    parent: str = ""
+
+
+class ProjectDesign(BaseModel, ProjectDesignProtocol):
+    """
+    Attributes:
+        source:
+        scope:
+        name:
+        language:
+        report_fields:
+        finding_fields:
+    """
+
+    source: str = ""
+    scope: str = ""
+    name: str = ""
+    language: str = ""
+    report_fields: typing.List[ProjectDesignField] = []
+    finding_fields: typing.List[ProjectDesignField] = []
+
+
+class Finding(FindingRaw, FindingProtocol):
+    data: FindingData
+
+    def __init__(
+            self,
+            project_design: ProjectDesign,
+            finding_raw: FindingRaw):
+        # Set attributes from FindingRaw
+        project_design_type_hints = typing.get_type_hints(ProjectDesignField)
+        for attr in project_design_type_hints.items():
+            self.__setattr__(
+                attr[0],
+                finding_raw.__getattribute__(attr[0])
+            )
+
+        self.data = FindingData(
+            project_design.finding_fields,
+            finding_raw.data
+        )
 
 
 class Project(BaseModel, ProjectProtocol):
