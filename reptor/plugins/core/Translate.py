@@ -1,5 +1,4 @@
 import re
-import typing
 
 from requests.exceptions import HTTPError
 
@@ -209,8 +208,7 @@ class Translate(Base):
         self.chars_count_to_translate += len(text)
         return text
 
-    def _duplicate_and_update_project(self, project_title: str) -> None:
-
+    def _duplicate_and_update_project(self, project_name: str) -> None:
         self.display(
             f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
@@ -226,15 +224,20 @@ class Translate(Base):
                     self.to_lang)
                 self.projects_api.update_project({
                     "language": sysreptor_language_code,
-                    "name": self._translate(project_title)}
+                    "name": self._translate(project_name)}
                 )
             except HTTPError as e:
                 self.warning(f"Error updating project language: {e.response.text}")
         else:
             self.projects_api: ProjectsAPI = ProjectsAPI(
-                reptor=self.reptor, project_id=from_project.id
+                reptor=self.reptor, project_id=self.projects_api.project_id
             )
 
+
+    def _translate_project(self):
+        project = self.projects_api.get_project()
+        self._duplicate_and_update_project(project_name=project.name)
+        
         self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
         findings = self.projects_api.get_findings()
         for finding in findings:
