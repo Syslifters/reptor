@@ -1,4 +1,4 @@
-from posixpath import join as urljoin
+from functools import cached_property
 
 from reptor.api.APIClient import APIClient
 from reptor.api.models import ProjectDesign
@@ -17,7 +17,8 @@ class ProjectDesignsAPI(APIClient):
             f"{self.base_endpoint}, {self.project_design_id}"
         )
 
-    def get_project_design(self) -> ProjectDesign:
+    @cached_property
+    def project_design(self) -> ProjectDesign:
         """Gets project design
 
         Args:

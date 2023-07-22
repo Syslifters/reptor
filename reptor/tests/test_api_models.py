@@ -2,7 +2,7 @@ import json
 import unittest
 from copy import deepcopy
 
-from reptor.api.models import (Finding, FindingData, FindingDataExtended,
+from reptor.api.models import (FindingRaw, FindingDataRaw, FindingDataExtended,
                                FindingDataExtendedField, FindingTemplate,
                                Project, ProjectDesign, ProjectDesignField,
                                User)
@@ -186,7 +186,7 @@ class TestModelsParsing(unittest.TestCase):
     }"""
 
     def test_finding_data_extended(self):
-        finding = Finding(json.loads(self.example_finding))
+        finding = FindingRaw(json.loads(self.example_finding))
         project_design = ProjectDesign(json.loads(
             self.example_design_with_finding_fields_only))
         fd_ext = FindingDataExtended(
@@ -296,13 +296,13 @@ class TestModelsParsing(unittest.TestCase):
 
     def test_finding_parsing(self):
         api_test_data = json.loads(self.example_finding)
-        finding = Finding(api_test_data)
+        finding = FindingRaw(api_test_data)
         self.assertEqual(finding.id, "d3658ee5-2d43-40f6-9b97-1b98480afe78")
         self.assertEqual(finding.language, "en-US")
         self.assertEqual(finding.project_type,
                          "2970149f-e11d-420a-8a5d-25b5fda14e33")
         self.assertIsInstance(finding.assignee, dict)
-        self.assertIsInstance(finding.data, FindingData)
+        self.assertIsInstance(finding.data, FindingDataRaw)
         self.assertEqual(finding.data.cvss, "n/a")
         self.assertEqual(finding.data.title, "My Title")
         self.assertEqual(finding.data.date_field, "2023-07-03")

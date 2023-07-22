@@ -3,7 +3,8 @@ import typing
 
 from requests.exceptions import HTTPError
 
-from reptor.api.models import Finding, FindingData
+from reptor.api.models import (Finding, FindingData, FindingDataField,
+                               ProjectFieldTypes)
 from reptor.api.ProjectsAPI import ProjectsAPI
 from reptor.lib.plugins.Base import Base
 
@@ -22,12 +23,14 @@ class Translate(Base):
     }
 
     SKIP_FINDING_FIELDS = [
-        "cvss",
         "affected_components",
         "references",
-        "owasp_top10_2021",
-        "wstg_category",
-        "retest_status",
+    ]
+    TRANSLATE_DATA_TYPES = [
+        ProjectFieldTypes.string.value,
+        ProjectFieldTypes.markdown.value,
+        ProjectFieldTypes.list.value,
+        ProjectFieldTypes.object.value,
     ]
     DEEPL_FROM = [
         "BG",
@@ -99,13 +102,18 @@ class Translate(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.from_lang = kwargs.get("from")
-        self.to_lang = kwargs.get("to")
+        self.to_lang = kwargs["to"]
         self.translator = kwargs.get("translator")
         self.dry_run = kwargs.get("dry_run")
-        self.deepl_translator = None
+        self.deepl_translator: deepl.Translator
         self.chars_count_to_translate = 0
+        self.projects_api: ProjectsAPI = ProjectsAPI(reptor=self.reptor)
 
-        if hasattr(self, "skip_finding_fields"):  # from user config
+        try:
+            self.skip_finding_fields = getattr(self, "skip_finding_fields")
+        except NameError:
+            self.skip_finding_fields = None
+        if self.skip_finding_fields:
             try:
                 self.SKIP_FINDING_FIELDS.extend(self.skip_finding_fields)
             except TypeError:
@@ -177,46 +185,36 @@ class Translate(Base):
         return result.text
 
     def _translate_finding(self, finding: Finding) -> Finding:
-        translated_finding = Finding()
-        translated_finding.id = finding.id
-        translated_finding.data = FindingData()
-        finding_data_dict = finding.data.__dict__
-        for key in self.SKIP_FINDING_FIELDS:
-            finding_data_dict.pop(key, None)
+        for _, finding_field in finding.data.__dict__.items():
+            if finding_field.type not in self.TRANSLATE_DATA_TYPES:
+                continue
+            if finding_field.name in self.SKIP_FINDING_FIELDS:
+                continue
 
-        translated_finding.data = FindingData(self._translate_fields(finding_data_dict))
-        return translated_finding
+        finding.data = FindingData(self._translate_field(finding_data_dict))
+        return finding
 
-    def _translate_fields(
-        self, fields: typing.Collection, root: bool = True
-    ) -> typing.Collection:
+    def _translate_field(
+        self,
+        field: FindingDataField,
+    ) -> FindingDataField:
         """Recursive function to translate nested fields"""
-        if isinstance(fields, str):
-            return self._translate(fields)
-        elif isinstance(fields, dict):
-            for key, value in fields.items():
-                fields[key] = self._translate_fields(value, root=False)
-        elif isinstance(fields, list):
-            fields = [self._translate_fields(f) for f in fields]
-        return fields
+        if field.type in [ProjectFieldTypes.list.value, ProjectFieldTypes.object.value,]:
+            field.value = self._translate_field(field.type)
+        else:
+            field.value = self._translate(field.value)  # type: ignore
+        return field
 
     def _dry_run_translate(self, text: str) -> str:
         self.chars_count_to_translate += len(text)
         return text
 
-    def _translate_project(self) -> None:
-        # TODO also translate reptor sections
-        # TODO this method might be simplified
-        if self.dry_run:
-            self._translate = self._dry_run_translate
-        self.display(f"Translating project name{' (dry run)' if self.dry_run else ''}.")
-        from_project = self.reptor.api.projects.get_project()
-        from_project_name = from_project.name
-        to_project_title = self._translate(from_project_name)
+    def _duplicate_and_update_project(self, project_title: str) -> None:
 
-        self.display(f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
+        self.display(
+            f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
-            to_project_id = self.reptor.api.projects.duplicate().id
+            to_project_id = self.projects_api.duplicate().id
             self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
@@ -225,10 +223,10 @@ class Translate(Base):
             )
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
-                    self.to_lang
-                )
-                self.projects_api.update_project(
-                    {"language": sysreptor_language_code, "name": to_project_title}
+                    self.to_lang)
+                self.projects_api.update_project({
+                    "language": sysreptor_language_code,
+                    "name": self._translate(project_title)}
                 )
             except HTTPError as e:
                 self.warning(f"Error updating project language: {e.response.text}")
@@ -243,7 +241,8 @@ class Translate(Base):
             translated_finding = self._translate_finding(finding)
             try:
                 self.projects_api.update_finding(
-                    translated_finding.id, {"data": translated_finding.data.__dict__}
+                    translated_finding.id, {
+                        "data": translated_finding.data.__dict__}
                 )
             except HTTPError as e:
                 self.warning(
@@ -253,7 +252,7 @@ class Translate(Base):
         try:
             self._set_deepl_translator()
         except (AttributeError, ModuleNotFoundError):
-            # Cannot get deeply translator, do not query quota.
+            # Cannot get deepl translator, do not query quota.
             return
 
         self.display(

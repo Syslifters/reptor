@@ -1,7 +1,7 @@
 import typing
 
 from reptor.lib.interfaces.reptor import ReptorProtocol
-from reptor.api.models import FindingTemplate, FindingData
+from reptor.api.models import FindingTemplate, FindingDataRaw
 from reptor.api.TemplatesAPI import TemplatesAPI
 
 
@@ -39,13 +39,14 @@ class BaseImporter:
             if hasattr(self, convert_method_name):
                 if callable(getattr(self, convert_method_name)):
                     converter_method = getattr(self, convert_method_name)
-                    self.reptor.get_logger().debug(f"Calling: {convert_method_name}")
+                    self.reptor.get_logger().debug(
+                        f"Calling: {convert_method_name}")
                     converted_data = converter_method(raw_data[key])
 
             remapped_data[value] = converted_data
 
         new_finding = FindingTemplate(remapped_data)
-        new_finding.data = FindingData(remapped_data)
+        new_finding.data = FindingDataRaw(remapped_data)
         return new_finding
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
@@ -68,6 +69,7 @@ class BaseImporter:
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue
-            self.reptor.get_logger().display(f"Uploading {new_finding.data.title}")
+            self.reptor.get_logger().display(
+                f"Uploading {new_finding.data.title}")
             self.reptor.get_logger().debug(new_finding)
             self._upload_finding_templates(new_finding)
