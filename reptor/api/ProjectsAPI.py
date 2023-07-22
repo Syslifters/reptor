@@ -110,6 +110,7 @@ class ProjectsAPI(APIClient):
 
         if not self.project_design:
             project_design_id = response[0]['project_type']
+            self.reptor.api.project_desings.project_design
             self.project_design = ProjectDesignsAPI(
                 project_design_id=project_design_id).project_design
 

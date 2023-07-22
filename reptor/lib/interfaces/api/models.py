@@ -8,5 +8,13 @@ class ProjectProtocol(typing.Protocol):
     id: str
 
 
+class ProjectDesignProtocol(typing.Protocol):
+    ...
+
+
 class NoteProtocol(typing.Protocol):
+    ...
+
+
+class FindingProtocol(typing.Protocol):
     ...

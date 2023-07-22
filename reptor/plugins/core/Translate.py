@@ -106,7 +106,6 @@ class Translate(Base):
         self.dry_run = kwargs.get("dry_run")
         self.deepl_translator: deepl.Translator
         self.chars_count_to_translate = 0
-        self.projects_api: ProjectsAPI = ProjectsAPI(reptor=self.reptor)
 
         try:
             self.skip_finding_fields = getattr(self, "skip_finding_fields")
@@ -212,38 +211,37 @@ class Translate(Base):
         self.display(
             f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
-            to_project_id = self.projects_api.duplicate().id
+            to_project_id = self.reptor.api.projects.duplicate().id
             self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
-            self.projects_api: ProjectsAPI = ProjectsAPI(
-                reptor=self.reptor, project_id=to_project_id
-            )
+            self.reptor.api.projects.project_id = to_project_id
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
                     self.to_lang)
-                self.projects_api.update_project({
+                self.reptor.api.projects.update_project({
                     "language": sysreptor_language_code,
-                    "name": self._translate(project_name)}
-                )
+                    "name": self._translate(project_name)})
             except HTTPError as e:
-                self.warning(f"Error updating project language: {e.response.text}")
+                self.warning(
+                    f"Error updating project: {e.response.text}")
         else:
-            self.projects_api: ProjectsAPI = ProjectsAPI(
-                reptor=self.reptor, project_id=self.projects_api.project_id
-            )
-
+            self._translate(project_name)  # To count characters
 
     def _translate_project(self):
-        project = self.projects_api.get_project()
+        if self.dry_run:
+            self._translate = self._dry_run_translate
+
+        project = self.reptor.api.projects.get_project()
         self._duplicate_and_update_project(project_name=project.name)
-        
-        self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
-        findings = self.projects_api.get_findings()
+
+        self.display(
+            f"Translating findings{' (dry run)' if self.dry_run else ''}.")
+        findings = self.reptor.api.projects.get_findings()
         for finding in findings:
             translated_finding = self._translate_finding(finding)
             try:
-                self.projects_api.update_finding(
+                self.reptor.api.projects.update_finding(
                     translated_finding.id, {
                         "data": translated_finding.data.__dict__}
                 )
@@ -270,7 +268,7 @@ class Translate(Base):
             )
 
     def _get_sysreptor_language_code(self, language_code) -> str:
-        enabled_language_codes = self.projects_api.get_enabled_language_codes()
+        enabled_language_codes = self.reptor.api.projects.get_enabled_language_codes()
         matched_lcs = [
             enabled_lc
             for enabled_lc in enabled_language_codes

@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from reptor.lib.interfaces.api.models import ProjectProtocol
+from reptor.lib.interfaces.api.models import (FindingProtocol,
+                                              ProjectDesignProtocol,
+                                              ProjectProtocol)
 
 
 class ProjectFieldTypes(enum.Enum):
@@ -474,7 +476,7 @@ class Note(BaseModel):
     parent: str = ""
 
 
-class ProjectDesign(BaseModel):
+class ProjectDesign(BaseModel, ProjectDesignProtocol):
     """
     Attributes:
         source:
@@ -493,7 +495,7 @@ class ProjectDesign(BaseModel):
     finding_fields: typing.List[ProjectDesignField] = []
 
 
-class Finding(FindingRaw):
+class Finding(FindingRaw, FindingProtocol):
     data: FindingData
 
     def __init__(
@@ -507,12 +509,11 @@ class Finding(FindingRaw):
                 attr[0],
                 finding_raw.__getattribute__(attr[0])
             )
-        
+
         self.data = FindingData(
             project_design.finding_fields,
             finding_raw.data
         )
-        
 
 
 class Project(BaseModel, ProjectProtocol):

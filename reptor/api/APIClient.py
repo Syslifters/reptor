@@ -26,7 +26,8 @@ class APIClient:
             )
             exit(1)
         self.verify = not self.reptor.get_config().get("insecure", False)
-        self.project_id = kwargs.get("project_id", "")
+        self.project_id = kwargs.get(
+            "project_id") or self.reptor.get_config().get("project_id", "")
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
