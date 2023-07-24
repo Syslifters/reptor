@@ -12,3 +12,7 @@ class APIManagerProtocol(typing.Protocol):
     projects: ApiProjectsProtocol
     project_designs: ApiProjectDesignsProtocol
     templates: ApiTemplatesProtocol
+
+    @abstractmethod
+    def switch_project(self, new_project_id, reset_all_apis=True) -> None:
+        ...

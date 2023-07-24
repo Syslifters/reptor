@@ -185,116 +185,126 @@ class TestModelsParsing(unittest.TestCase):
         }
     }"""
 
-    def test_finding_data_extended(self):
-        finding = FindingRaw(json.loads(self.example_finding))
+    def test_finding_data(self):
+        json_example = json.loads(self.example_finding)
+        finding_raw = FindingRaw(json_example)
         project_design = ProjectDesign(json.loads(
             self.example_design_with_finding_fields_only))
-        fd_ext = FindingData(
-            project_design.finding_fields, finding.data)
-        self.assertEqual(fd_ext.boolean_field.name, 'boolean_field')
-        self.assertEqual(fd_ext.boolean_field.type, 'boolean')
-        self.assertEqual(fd_ext.boolean_field.value, True)
+        finding_data = FindingData(
+            project_design.finding_fields, finding_raw.data)
+        self.assertEqual(finding_data.boolean_field.name, 'boolean_field')
+        self.assertEqual(finding_data.boolean_field.type, 'boolean')
+        self.assertEqual(finding_data.boolean_field.value, True)
 
-        self.assertEqual(fd_ext.combobox_field.name, 'combobox_field')
-        self.assertEqual(fd_ext.combobox_field.type, 'combobox')
-        self.assertEqual(fd_ext.combobox_field.value, 'Combobox Value 2')
+        self.assertEqual(finding_data.combobox_field.name, 'combobox_field')
+        self.assertEqual(finding_data.combobox_field.type, 'combobox')
+        self.assertEqual(finding_data.combobox_field.value, 'Combobox Value 2')
 
-        self.assertEqual(fd_ext.cvss.name, 'cvss')
-        self.assertEqual(fd_ext.cvss.type, 'cvss')
-        self.assertEqual(fd_ext.cvss.value, 'n/a')
+        self.assertEqual(finding_data.cvss.name, 'cvss')
+        self.assertEqual(finding_data.cvss.type, 'cvss')
+        self.assertEqual(finding_data.cvss.value, 'n/a')
 
-        self.assertEqual(fd_ext.date_field.name, 'date_field')
-        self.assertEqual(fd_ext.date_field.type, 'date')
-        self.assertEqual(fd_ext.date_field.value, '2023-07-03')
+        self.assertEqual(finding_data.date_field.name, 'date_field')
+        self.assertEqual(finding_data.date_field.type, 'date')
+        self.assertEqual(finding_data.date_field.value, '2023-07-03')
 
-        self.assertEqual(fd_ext.enum_field.name, 'enum_field')
-        self.assertEqual(fd_ext.enum_field.type, 'enum')
-        self.assertEqual(fd_ext.enum_field.value, 'enum_val_2')
+        self.assertEqual(finding_data.enum_field.name, 'enum_field')
+        self.assertEqual(finding_data.enum_field.type, 'enum')
+        self.assertEqual(finding_data.enum_field.value, 'enum_val_2')
 
-        self.assertEqual(fd_ext.list_field.name, 'list_field')
-        self.assertEqual(fd_ext.list_field.type, 'list')
-        self.assertIsInstance(fd_ext.list_field.value, list)
+        self.assertEqual(finding_data.list_field.name, 'list_field')
+        self.assertEqual(finding_data.list_field.type, 'list')
+        self.assertIsInstance(finding_data.list_field.value, list)
         self.assertIsInstance(
-            fd_ext.list_field.value[0], FindingDataField)
-        self.assertEqual(fd_ext.list_field.value[0].type, 'object')
+            finding_data.list_field.value[0], FindingDataField)
+        self.assertEqual(finding_data.list_field.value[0].type, 'object')
         self.assertIsInstance(
-            fd_ext.list_field.value[0].value, list)
+            finding_data.list_field.value[0].value, dict)
         self.assertIsInstance(
-            fd_ext.list_field.value[0].value[0], FindingDataField)
-        self.assertEqual(fd_ext.list_field.value[0].value[0].type, 'enum')
+            finding_data.list_field.value[0].value['enum_in_object'], FindingDataField)
         self.assertEqual(
-            fd_ext.list_field.value[0].value[0].value, 'enum_in_obj_2')
-
-        self.assertEqual(fd_ext.object_field.name, 'object_field')
-        self.assertEqual(fd_ext.object_field.type, 'object')
-        self.assertIsInstance(fd_ext.object_field.value, list)
-        self.assertIsInstance(
-            fd_ext.object_field.value[0], FindingDataField)
-        self.assertEqual(fd_ext.object_field.value[0].type, 'list')
-        self.assertIsInstance(fd_ext.object_field.value[0].value, list)
-        self.assertIsInstance(
-            fd_ext.object_field.value[0].value[0], FindingDataField)
-        self.assertEqual(fd_ext.object_field.value[0].value[0].type, 'string')
+            finding_data.list_field.value[0].value['enum_in_object'].type, 'enum')
         self.assertEqual(
-            fd_ext.object_field.value[0].value[0].value, 'My String in List in Object')
+            finding_data.list_field.value[0].value['enum_in_object'].value, 'enum_in_obj_2')
+
+        self.assertEqual(finding_data.object_field.name, 'object_field')
+        self.assertEqual(finding_data.object_field.type, 'object')
+        self.assertIsInstance(finding_data.object_field.value, dict)
+        self.assertIsInstance(
+            finding_data.object_field.value['list_in_object'], FindingDataField)
+        self.assertEqual(
+            finding_data.object_field.value['list_in_object'].type, 'list')
+        self.assertIsInstance(
+            finding_data.object_field.value['list_in_object'].value, list)
+        self.assertIsInstance(
+            finding_data.object_field.value['list_in_object'].value[0], FindingDataField)
+        self.assertEqual(
+            finding_data.object_field.value['list_in_object'].value[0].type, 'string')
+        self.assertEqual(
+            finding_data.object_field.value['list_in_object'].value[0].value, 'My String in List in Object')
+
+        self.assertDictEqual(finding_data.to_json(), json_example['data'])
 
         # Try to set attributes
-        fd_ext.enum_field.value = 'enum_val_1'
-        self.assertEqual(fd_ext.enum_field.value, 'enum_val_1')
+        finding_data.enum_field.value = 'enum_val_1'
+        self.assertEqual(finding_data.enum_field.value, 'enum_val_1')
         with self.assertRaises(ValueError):
-            fd_ext.enum_field.value = 'invalid_value'
+            finding_data.enum_field.value = 'invalid_value'
 
-        fd_ext.boolean_field.value = False
-        self.assertEqual(fd_ext.boolean_field.value, False)
+        finding_data.boolean_field.value = False
+        self.assertEqual(finding_data.boolean_field.value, False)
         with self.assertRaises(ValueError):
-            fd_ext.boolean_field.value = 'invalid_value'
+            finding_data.boolean_field.value = 'invalid_value'
 
-        fd_ext.combobox_field.value = 'Combobox Value 1'
-        self.assertEqual(fd_ext.combobox_field.value, 'Combobox Value 1')
+        finding_data.combobox_field.value = 'Combobox Value 1'
+        self.assertEqual(finding_data.combobox_field.value, 'Combobox Value 1')
         with self.assertRaises(ValueError):
-            fd_ext.combobox_field.value = True
+            finding_data.combobox_field.value = True
 
-        fd_ext.date_field.value = '2005-01-01'
-        self.assertEqual(fd_ext.date_field.value, '2005-01-01')
+        finding_data.date_field.value = '2005-01-01'
+        self.assertEqual(finding_data.date_field.value, '2005-01-01')
         with self.assertRaises(ValueError):
-            fd_ext.date_field.value = '2002-01-32'
+            finding_data.date_field.value = '2002-01-32'
 
-        new_list = deepcopy(fd_ext.list_field.value)
-        new_list[0].value[0].value = 'enum_in_obj_1'
-        fd_ext.list_field.value = new_list
-        self.assertEqual(fd_ext.list_field.value, new_list)
+        new_list = deepcopy(finding_data.list_field.value)
+        new_list[0].value['enum_in_object'].value = 'enum_in_obj_1'
+        finding_data.list_field.value = new_list
+        self.assertEqual(finding_data.list_field.value, new_list)
         with self.assertRaises(ValueError):
             # ValueError due to invalid enum
-            new_list[0].value[0].value = 'invalid_value'
+            new_list[0].value['enum_in_object'].value = 'invalid_value'
         with self.assertRaises(ValueError):
-            fd_ext.list_field.value = 'invalid_value'
+            finding_data.list_field.value = 'invalid_value'
         with self.assertRaises(ValueError):
-            fd_ext.list_field.value = [new_list[0], 'invalid_value']
+            finding_data.list_field.value = [new_list[0], 'invalid_value']
         with self.assertRaises(ValueError):
-            fd_ext.list_field.value = [new_list[0], fd_ext.combobox_field]
+            finding_data.list_field.value = [
+                new_list[0], finding_data.combobox_field]
 
-        new_object = deepcopy(fd_ext.object_field.value)
-        new_object[0].value[0].value = 'My new String in List in Object'
-        fd_ext.object_field.value = new_object
-        self.assertEqual(fd_ext.object_field.value, new_object)
+        new_object = deepcopy(finding_data.object_field.value)
+        new_object['list_in_object'].value[0].value = 'My new String in List in Object'
+        finding_data.object_field.value = new_object
+        self.assertEqual(finding_data.object_field.value, new_object)
         with self.assertRaises(ValueError):
             # ValueError due to invalid string
-            new_object[0].value[0].value = 1
+            new_object['list_in_object'].value[0].value = 1
         with self.assertRaises(ValueError):
-            fd_ext.object_field.value = 'invalid_value'
+            finding_data.object_field.value = 'invalid_value'
         with self.assertRaises(ValueError):
-            fd_ext.object_field.value = [new_object[0], 'invalid_value']
+            finding_data.object_field.value = [
+                new_object['list_in_object'], 'invalid_value']
         with self.assertRaises(ValueError):
-            fd_ext.object_field.value = [new_object[0], fd_ext.combobox_field]
+            finding_data.object_field.value = [
+                new_object['list_in_object'], finding_data.combobox_field]
 
         with self.assertRaises(ValueError):
-            fd_ext.number_field.value = 'invalid_value'
+            finding_data.number_field.value = 'invalid_value'
 
-        fd_ext.user_field.value = "3cb580bd-131b-48f0-9e37-b405e2ab53b8"
+        finding_data.user_field.value = "3cb580bd-131b-48f0-9e37-b405e2ab53b8"
         with self.assertRaises(ValueError):
-            fd_ext.user_field.value = 'invalid_value'
+            finding_data.user_field.value = 'invalid_value'
 
-    def test_finding_parsing(self):
+    def test_finding_raw_parsing(self):
         api_test_data = json.loads(self.example_finding)
         finding = FindingRaw(api_test_data)
         self.assertEqual(finding.id, "d3658ee5-2d43-40f6-9b97-1b98480afe78")
