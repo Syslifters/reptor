@@ -289,14 +289,13 @@ class FindingDataField(ProjectDesignField):
             self.__setattr__(attr[0], design_field.__getattribute__(attr[0]))
 
         if self.type == ProjectFieldTypes.object.value:
-            self.value = list()
+            self.value = dict()
             for property in self.properties:
                 # property is of type ProjectDesignField
                 try:
-                    self.value.append(
-                        FindingDataField(
-                            property, value[property.name])  # type: ignore
-                    )
+                    self.value[property.name] = FindingDataField(
+                        property, value[property.name])
+
                 except KeyError:
                     raise KeyError(
                         f"Object name '{property.name}' not found. Did you mix"
@@ -309,6 +308,24 @@ class FindingDataField(ProjectDesignField):
                     self.items, v))  # type: ignore
         else:
             self.value = value
+
+    def to_json(self) -> typing.Union[dict, list, str]:
+        if self.type == ProjectFieldTypes.list.value:
+            result = list()
+            for subfield in self.value:
+                if subfield.type == ProjectFieldTypes.enum.value:
+                    result.append({subfield.name: subfield.value})
+                else:
+                    result.append(subfield.to_json())
+        elif self.type == ProjectFieldTypes.object.value:
+            result = dict()
+            for name, subfield in self.value.items():
+                if subfield.type == ProjectFieldTypes.enum.value:
+                    result[name] = {subfield.name: subfield.value}
+                result[name] = subfield.to_json()
+        else:
+            return self.value
+        return result
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "value" and __value is not None:
@@ -335,10 +352,7 @@ class FindingDataField(ProjectDesignField):
                     raise ValueError(
                         f"'{__value}' is not an valid enum choice for '{self.name}'."
                     )
-            elif self.type in [
-                ProjectFieldTypes.list.value,
-                ProjectFieldTypes.object.value,
-            ]:
+            elif self.type == ProjectFieldTypes.list.value:
                 if not isinstance(__value, list):
                     raise ValueError(
                         f"Value of '{self.name}' must be list  (got '{type(__value)}')."
@@ -353,6 +367,16 @@ class FindingDataField(ProjectDesignField):
                         f"Values of '{self.name}' must not contain FindingDataFields"
                         f"of multiple types  (got {','.join(types)})."
                     )
+            elif self.type == ProjectFieldTypes.object.value:
+                if not isinstance(__value, dict):
+                    raise ValueError(
+                        f"Value of '{self.name}' must be dict  (got '{type(__value)}')."
+                    )
+                # if not isinstance(__value, FindingDataField):
+                #    raise ValueError(
+                #        f"Value of '{self.name}' must contain FindingDataField."
+                #    ) TODO
+                # TODO further checks
             elif self.type == ProjectFieldTypes.boolean.value:
                 if not isinstance(__value, bool):
                     raise ValueError(
@@ -404,6 +428,12 @@ class FindingData(BaseModel):
                         design_field.name)
                 ),
             )
+
+    def to_json(self) -> dict:
+        result = dict()
+        for key, value in self.__dict__.items():
+            result[key] = value.to_json()
+        return result
 
 
 class FindingRaw(BaseModel):

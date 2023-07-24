@@ -102,10 +102,20 @@ class Translate(Base):
         super().__init__(**kwargs)
         self.from_lang = kwargs.get("from")
         self.to_lang = kwargs["to"]
-        self.translator = kwargs.get("translator")
         self.dry_run = kwargs.get("dry_run")
-        self.deepl_translator: deepl.Translator
         self.chars_count_to_translate = 0
+        if not hasattr(self, 'deepl_api_token'):
+            self.deepl_api_token = ''
+
+        if not self.dry_run:
+            if not self.deepl_api_token:
+                # TODO error msg might propose a conf command for interactive configuration
+                raise AttributeError("No Deepl API token found.")
+            if not deepl:
+                raise ModuleNotFoundError(
+                    'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
+                )
+            self.deepl_translator = deepl.Translator(self.deepl_api_token)
 
         try:
             self.skip_finding_fields = getattr(self, "skip_finding_fields")
@@ -155,21 +165,7 @@ class Translate(Base):
             action="store_true",
         )
 
-    def _set_deepl_translator(self) -> None:
-        if not deepl:
-            raise ModuleNotFoundError(
-                'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
-            )
-
-        try:
-            self.deepl_translator = deepl.Translator(self.deepl_api_token)
-        except AttributeError:
-            # TODO error msg might propose a conf command for interactive configuration
-            raise AttributeError("No Deepl API token found.")
-
     def _translate(self, text: str) -> str:
-        self._set_deepl_translator()
-
         if not re.search("[a-zA-Z]", text):
             return text
 
@@ -198,8 +194,13 @@ class Translate(Base):
         field: FindingDataField,
     ) -> FindingDataField:
         """Recursive function to translate nested fields"""
-        if field.type in [ProjectFieldTypes.list.value, ProjectFieldTypes.object.value]:
-            field.value = [self._translate_field(v) for v in field.value]
+        if field.type == ProjectFieldTypes.list.value:
+            field.value = [self._translate_field(
+                v) for v in field.value]
+        elif field.type == ProjectFieldTypes.object.value:
+            field.value = dict()
+            for name, value in field.value.items():
+                field.value[name] = self._translate_field(value)
         else:
             field.value = self._translate(field.value)  # type: ignore
         return field
@@ -216,7 +217,9 @@ class Translate(Base):
             self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
-            self.reptor.api.projects.project_id = to_project_id
+            # Switch project to update duplicated project instead of original
+            self.reptor.api.switch_project(to_project_id)
+
             try:
                 sysreptor_language_code = self._get_sysreptor_language_code(
                     self.to_lang)
@@ -241,14 +244,11 @@ class Translate(Base):
         findings = self.reptor.api.projects.get_findings()
         for finding in findings:
             translated_finding = self._translate_finding(finding)
-            try:
+            if not self.dry_run:
+                translated_finding_data = translated_finding.data.to_json()
                 self.reptor.api.projects.update_finding(
                     translated_finding.id, {
-                        "data": translated_finding.data.__dict__}  # TODO make JSON searializable
-                )
-            except HTTPError as e:
-                self.warning(
-                    f"Error updating finding {translated_finding.id}: {e.response.text}"
+                        "data": translated_finding_data}
                 )
 
         try:
