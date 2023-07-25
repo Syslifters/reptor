@@ -309,6 +309,27 @@ class FindingDataField(ProjectDesignField):
         else:
             self.value = value
 
+    def __iter__(self):
+        """Recursive iteration through potentially nested FindingDataFields
+        returns iterator of FindingDataField"""
+        if self.type == ProjectFieldTypes.list.value:
+            yield self  # First yield self, then nested fields
+            # Iterate through list
+            for field in self.value:  # type: ignore
+                # Iterate through field for recursion
+                for f in field:
+                    yield f
+        elif self.type == ProjectFieldTypes.object.value:
+            yield self  # First yield self, then nested fields
+            for _, field in self.value.items():  # type: ignore
+                for f in field:
+                    yield f
+        else:
+            yield self
+
+    def __len__(self) -> int:
+        return len([e for e in self])
+
     def to_json(self) -> typing.Union[dict, list, str]:
         if self.type == ProjectFieldTypes.list.value:
             result = list()
@@ -428,6 +449,16 @@ class FindingData(BaseModel):
                         design_field.name)
                 ),
             )
+
+    def __iter__(self):
+        """Recursive iteration through cls attributes
+        returns FindingDataField"""
+        for _, finding_field in self.__dict__.items():
+            for nested_field in finding_field:
+                yield nested_field
+
+    def __len__(self) -> int:
+        return len([e for e in self])
 
     def to_json(self) -> dict:
         result = dict()

@@ -28,8 +28,6 @@ class Translate(Base):
     TRANSLATE_DATA_TYPES = [
         ProjectFieldTypes.string.value,
         ProjectFieldTypes.markdown.value,
-        ProjectFieldTypes.list.value,
-        ProjectFieldTypes.object.value,
     ]
     DEEPL_FROM = [
         "BG",
@@ -107,7 +105,7 @@ class Translate(Base):
         if not hasattr(self, 'deepl_api_token'):
             self.deepl_api_token = ''
 
-        if not self.dry_run:
+        try:
             if not self.deepl_api_token:
                 # TODO error msg might propose a conf command for interactive configuration
                 raise AttributeError("No Deepl API token found.")
@@ -116,6 +114,9 @@ class Translate(Base):
                     'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
                 )
             self.deepl_translator = deepl.Translator(self.deepl_api_token)
+        except (AttributeError, ModuleNotFoundError) as e:
+            if not self.dry_run:
+                raise e
 
         try:
             self.skip_finding_fields = getattr(self, "skip_finding_fields")
@@ -170,6 +171,7 @@ class Translate(Base):
             return text
 
         self.chars_count_to_translate += len(text)
+
         result = self.deepl_translator.translate_text(
             text,
             source_lang=self.from_lang,  # Can be None
@@ -179,31 +181,13 @@ class Translate(Base):
         return result.text
 
     def _translate_finding(self, finding: Finding) -> Finding:
-        for finding_field_name, finding_field in finding.data.__dict__.items():
-            if finding_field.type not in self.TRANSLATE_DATA_TYPES:
+        for field in finding.data:
+            if field.type not in self.TRANSLATE_DATA_TYPES:
                 continue
-            if finding_field.name in self.SKIP_FINDING_FIELDS:
+            if field.name in self.SKIP_FINDING_FIELDS:
                 continue
-
-            finding_field = finding.data.__getattribute__(finding_field_name)
-            finding_field.value = self._translate_field(finding_field).value
+            field.value = self._translate(field.value)
         return finding
-
-    def _translate_field(
-        self,
-        field: FindingDataField,
-    ) -> FindingDataField:
-        """Recursive function to translate nested fields"""
-        if field.type == ProjectFieldTypes.list.value:
-            field.value = [self._translate_field(
-                v) for v in field.value]
-        elif field.type == ProjectFieldTypes.object.value:
-            field.value = dict()
-            for name, value in field.value.items():
-                field.value[name] = self._translate_field(value)
-        else:
-            field.value = self._translate(field.value)  # type: ignore
-        return field
 
     def _dry_run_translate(self, text: str) -> str:
         self.chars_count_to_translate += len(text)
@@ -251,22 +235,22 @@ class Translate(Base):
                         "data": translated_finding_data}
                 )
 
-        try:
-            self._set_deepl_translator()
-        except (AttributeError, ModuleNotFoundError):
-            # Cannot get deepl translator, do not query quota.
-            return
-
         self.display(
             f"Translated {self.chars_count_to_translate} characters{' (dry run)' if self.dry_run else ''}."
         )
-        usage = self.deepl_translator.get_usage()
-        if usage.any_limit_reached:
-            self.warning("Deepl transaction limit reached.")
-        if usage.character.valid:
-            self.display(
-                f"Deepl usage: {usage.character.count} of {usage.character.limit} characters"
-            )
+        self._log_deepl_usage()
+
+    def _log_deepl_usage(self):
+        try:
+            usage = self.deepl_translator.get_usage()
+            if usage.any_limit_reached:
+                self.warning("Deepl transaction limit reached.")
+            if usage.character.valid:
+                self.display(
+                    f"Deepl usage: {usage.character.count} of {usage.character.limit} characters"
+                )
+        except AttributeError:
+            pass
 
     def _get_sysreptor_language_code(self, language_code) -> str:
         enabled_language_codes = self.reptor.api.projects.get_enabled_language_codes()
