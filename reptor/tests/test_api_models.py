@@ -2,10 +2,10 @@ import json
 import unittest
 from copy import deepcopy
 
-from reptor.api.models import (FindingRaw, FindingDataRaw, FindingData,
-                               FindingDataField, FindingTemplate,
-                               Project, ProjectDesign, ProjectDesignField,
-                               User)
+from reptor.api.models import (FindingData, FindingDataField, FindingDataRaw,
+                               FindingRaw, FindingTemplate, Project,
+                               ProjectDesign, ProjectDesignField, SectionData,
+                               SectionDataField, SectionRaw, User)
 
 
 class TestModelsParsing(unittest.TestCase):
@@ -184,6 +184,181 @@ class TestModelsParsing(unittest.TestCase):
             "markdown_field": "My Markdown"
         }
     }"""
+
+    example_design_with_report_fields_only = """
+    {
+	"report_fields": {
+		"draft": {
+			"type": "boolean",
+			"label": "Is Draft?",
+			"origin": "custom",
+			"default": true
+		},
+		"title": {
+			"type": "string",
+			"label": "Title",
+			"origin": "core",
+			"default": "TODO report title",
+			"required": true,
+			"spellcheck": false
+		},
+		"report_date": {
+			"type": "date",
+			"label": "Report Date",
+			"origin": "custom",
+			"default": null,
+			"required": true
+		},
+		"report_version": {
+			"type": "string",
+			"label": "Report Version",
+			"origin": "custom",
+			"default": "1.0",
+			"required": true,
+			"spellcheck": false
+		},
+		"list_of_changes": {
+			"type": "list",
+			"items": {
+				"type": "object",
+				"label": "",
+				"origin": "custom",
+				"properties": {
+					"date": {
+						"type": "date",
+						"label": "Date",
+						"origin": "custom",
+						"default": null,
+						"required": true
+					},
+					"version": {
+						"type": "string",
+						"label": "Version",
+						"origin": "custom",
+						"default": "TODO version",
+						"required": true,
+						"spellcheck": false
+					},
+					"description": {
+						"type": "string",
+						"label": "Description",
+						"origin": "custom",
+						"default": "TODO description",
+						"required": true,
+						"spellcheck": false
+					}
+				}
+			},
+			"label": "List of Changes",
+			"origin": "custom",
+			"required": true   
+        }
+    }}
+    """
+
+    example_section = """
+    {
+        "id": "other",
+        "label": "Other",
+        "fields": [
+            "title",
+            "report_date",
+            "report_version",
+            "list_of_changes",
+            "draft"
+        ],
+        "project": "42c2f73a-4383-4ec2-a3fa-281598edb0e8",
+        "project_type": "53c185f9-b8f3-44e3-ba4d-03a960cb795a",
+        "language": "en-US",
+        "lock_info": null,
+        "assignee": null,
+        "status": "in-progress",
+        "data": {
+            "title": "Test",
+            "report_date": "2023-07-31",
+            "report_version": "1.0",
+            "list_of_changes": [
+                {
+                    "date": "2023-07-24",
+                    "version": "1.0",
+                    "description": "Description"
+                },
+                {
+                    "date": "2023-07-25",
+                    "version": "2.0",
+                    "description": "New Description"
+                }
+            ],
+            "draft": true
+        }
+    }"""
+
+    def test_section_data(self):
+        json_example = json.loads(self.example_section)
+        section_raw = SectionRaw(json_example)
+        project_design = ProjectDesign(json.loads(
+            self.example_design_with_report_fields_only))
+        section_data = SectionData(
+            project_design.report_fields, section_raw.data)
+        self.assertEqual(section_data.draft.name, 'draft')
+        self.assertEqual(section_data.draft.type, 'boolean')
+        self.assertEqual(section_data.draft.value, True)
+
+        self.assertEqual(section_data.title.name, 'title')
+        self.assertEqual(section_data.title.type, 'string')
+        self.assertEqual(section_data.title.value, 'Test')
+
+        self.assertEqual(section_data.report_date.name, 'report_date')
+        self.assertEqual(section_data.report_date.type, 'date')
+        self.assertEqual(section_data.report_date.value, '2023-07-31')
+
+        self.assertEqual(section_data.report_version.name, 'report_version')
+        self.assertEqual(section_data.report_version.type, 'string')
+        self.assertEqual(section_data.report_version.value, '1.0')
+
+        self.assertEqual(section_data.list_of_changes.name, 'list_of_changes')
+        self.assertEqual(section_data.list_of_changes.type, 'list')
+        self.assertIsInstance(
+            section_data.list_of_changes.value[0], SectionDataField)
+        self.assertEqual(section_data.list_of_changes.value[0].type, 'object')
+        self.assertIsInstance(
+            section_data.list_of_changes.value[0].value['date'], SectionDataField)
+        self.assertEqual(
+            section_data.list_of_changes.value[0].value['date'].value, "2023-07-24")
+        self.assertEqual(
+            section_data.list_of_changes.value[0].value['version'].value, "1.0")
+        self.assertEqual(
+            section_data.list_of_changes.value[0].value['description'].value, "Description")
+        self.assertEqual(
+            section_data.list_of_changes.value[1].value['date'].value, "2023-07-25")
+        self.assertEqual(
+            section_data.list_of_changes.value[1].value['version'].value, "2.0")
+        self.assertEqual(
+            section_data.list_of_changes.value[1].value['description'].value, "New Description")
+
+        # Test setting values
+        section_data.title.value = 'New Title'
+        self.assertEqual(section_data.title.value, 'New Title')
+        with self.assertRaises(ValueError):
+            section_data.title.value = 1
+
+        section_data.report_date.value = '2024-08-08'
+        self.assertEqual(section_data.report_date.value, '2024-08-08')
+        with self.assertRaises(ValueError):
+            section_data.report_date.value = 'new date'
+
+        section_data.draft.value = False
+        self.assertEqual(section_data.draft.value, False)
+        with self.assertRaises(ValueError):
+            section_data.draft.value = 'False'
+
+        section_data.list_of_changes.value[1].value['date'].value = '2025-01-01'
+        self.assertEqual(
+            section_data.list_of_changes.value[1].value['date'].value, '2025-01-01')
+        with self.assertRaises(ValueError):
+            section_data.list_of_changes.value[0].value = "Invalid Value"
+        with self.assertRaises(ValueError):
+            section_data.list_of_changes.value[0].value = {"abc": "test"}
 
     def test_finding_data(self):
         json_example = json.loads(self.example_finding)

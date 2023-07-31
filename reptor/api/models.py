@@ -277,7 +277,7 @@ class SectionDataField(ProjectDesignField):
         typing.List,  # list
         bool,  # boolean
         float,  # number
-        Any,  # "FindingDataField" for object
+        Any,  # "SectionDataField" for object
     ]
 
     def __init__(
@@ -297,11 +297,11 @@ class SectionDataField(ProjectDesignField):
             self.__setattr__(attr[0], design_field.__getattribute__(attr[0]))
 
         if self.type == ProjectFieldTypes.object.value:
-            self.value = dict()
+            property_value = dict()
             for property in self.properties:
                 # property is of type ProjectDesignField
                 try:
-                    self.value[property.name] = self.__class__(
+                    property_value[property.name] = self.__class__(
                         property, value[property.name])
 
                 except KeyError:
@@ -309,6 +309,7 @@ class SectionDataField(ProjectDesignField):
                         f"Object name '{property.name}' not found. Did you mix"
                         f"mismatched project design with project data?"
                     )
+            self.value = property_value
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
             for v in value:  # type: ignore
@@ -399,13 +400,14 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.object.value:
                 if not isinstance(__value, dict):
                     raise ValueError(
-                        f"Value of '{self.name}' must be dict  (got '{type(__value)}')."
+                        f"Value of '{self.name}' must be dict (got '{type(__value)}')."
                     )
-                # if not isinstance(__value, FindingDataField):
-                #    raise ValueError(
-                #        f"Value of '{self.name}' must contain FindingDataField."
-                #    ) TODO
-                # TODO further checks
+                for k, v in __value.items():
+                    if not isinstance(v, self.__class__):
+                        raise ValueError(
+                            f"Value of '{self.name}' dict values must contain {self.__class__.__name__} "
+                            f"(got '{type(v)}' for key '{k}')."
+                        )
             elif self.type == ProjectFieldTypes.boolean.value:
                 if not isinstance(__value, bool):
                     raise ValueError(
