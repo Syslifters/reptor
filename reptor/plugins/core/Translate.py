@@ -1,8 +1,9 @@
 import re
 
 from requests.exceptions import HTTPError
+from typing import Union
 
-from reptor.api.models import (Finding, FindingData, FindingDataField,
+from reptor.api.models import (Finding, Section, FindingDataField,
                                ProjectFieldTypes)
 from reptor.api.ProjectsAPI import ProjectsAPI
 from reptor.lib.plugins.Base import Base
@@ -180,14 +181,14 @@ class Translate(Base):
         )
         return result.text
 
-    def _translate_finding(self, finding: Finding) -> Finding:
-        for field in finding.data:
+    def _translate_section(self, section: Union[Finding, Section]) -> Union[Finding, Section]:
+        for field in section.data:
             if field.type not in self.TRANSLATE_DATA_TYPES:
                 continue
             if field.name in self.SKIP_FINDING_FIELDS:
                 continue
             field.value = self._translate(field.value)
-        return finding
+        return section
 
     def _dry_run_translate(self, text: str) -> str:
         self.chars_count_to_translate += len(text)
@@ -225,15 +226,22 @@ class Translate(Base):
 
         self.display(
             f"Translating findings{' (dry run)' if self.dry_run else ''}.")
-        findings = self.reptor.api.projects.get_findings()
-        for finding in findings:
-            translated_finding = self._translate_finding(finding)
+        sections = self.reptor.api.projects.get_findings(
+        ) + self.reptor.api.projects.get_sections()
+        for section in sections:
+            translated_section = self._translate_section(section)
+            translated_section_data = translated_section.data.to_json()
             if not self.dry_run:
-                translated_finding_data = translated_finding.data.to_json()
-                self.reptor.api.projects.update_finding(
-                    translated_finding.id, {
-                        "data": translated_finding_data}
-                )
+                if translated_section.__class__ == Finding:
+                    self.reptor.api.projects.update_finding(
+                        translated_section.id, {
+                            "data": translated_section_data}
+                    )
+                elif translated_section.__class__ == Section:
+                    self.reptor.api.projects.update_section(
+                        translated_section.id, {
+                            "data": translated_section_data}
+                    )
 
         self.display(
             f"Translated {self.chars_count_to_translate} characters{' (dry run)' if self.dry_run else ''}."

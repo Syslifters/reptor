@@ -8,7 +8,7 @@ from uuid import UUID
 
 from reptor.lib.interfaces.api.models import (FindingProtocol,
                                               ProjectDesignProtocol,
-                                              ProjectProtocol)
+                                              ProjectProtocol, SectionProtocol)
 
 
 class ProjectFieldTypes(enum.Enum):
@@ -40,12 +40,17 @@ class BaseModel:
             self._fill_from_api(data)
 
     def _get_combined_class_type_hints(self) -> dict:
-        basemodel_class_type_hints = typing.get_type_hints(BaseModel)
-        current_class_type_hints = typing.get_type_hints(self)
-        combined_class_type_hints = {
-            **basemodel_class_type_hints,
-            **current_class_type_hints,
-        }
+        type_hints = list()
+        type_hints_from_class = self.__class__
+        while type_hints_from_class.__base__:
+            type_hints.append(typing.get_type_hints(type_hints_from_class))
+            if type_hints_from_class == BaseModel:
+                break
+            type_hints_from_class = type_hints_from_class.__base__
+
+        combined_class_type_hints = dict()
+        for type_hint in reversed(type_hints):
+            combined_class_type_hints.update(type_hint)
         return combined_class_type_hints
 
     def _fill_from_api(self, data: typing.Dict):
@@ -73,6 +78,7 @@ class BaseModel:
                     "User",
                     "FindingTemplate",
                     "FindingDataRaw",
+                    "SectionDataRaw",
                     "Note",
                     "Project",
                     "ProjectDesign",
@@ -157,7 +163,20 @@ class User(BaseModel):
     can_login_sso: bool = False
 
 
-class FindingDataRaw(BaseModel):
+class SectionDataRaw(BaseModel):
+    def _fill_from_api(self, data: typing.Dict):
+        """Fills Model from reptor.api return JSON data
+        For FindingDataRaw, undefined keys should also be set.
+
+        Args:
+            data (str): API Return Data
+        """
+        for key, value in data.items():
+            # We don't care about recursion here
+            self.__setattr__(key, value)
+
+
+class FindingDataRaw(SectionDataRaw):
     """
     Custom finding fields will be added as additional attributes.
 
@@ -194,17 +213,6 @@ class FindingDataRaw(BaseModel):
     retest_notes: str = ""
     retest_status: str = ""
     evidence: str = ""
-
-    def _fill_from_api(self, data: typing.Dict):
-        """Fills Model from reptor.api return JSON data
-        For FindingDataRaw, undefined keys should also be set.
-
-        Args:
-            data (str): API Return Data
-        """
-        for key, value in data.items():
-            # We don't care about recursion here
-            self.__setattr__(key, value)
 
 
 class ProjectDesignField(BaseModel):
@@ -255,9 +263,9 @@ class ProjectDesignField(BaseModel):
                 self.__setattr__(key, value)
 
 
-class FindingDataField(ProjectDesignField):
+class SectionDataField(ProjectDesignField):
     """
-    Finding data holds values only and does not contain type definitions.
+    Section data holds values only and does not contain type definitions.
     Most data types cannot be differentiated (like strings and enums).
 
     This model joins finding data values from an acutal report with project
@@ -293,7 +301,7 @@ class FindingDataField(ProjectDesignField):
             for property in self.properties:
                 # property is of type ProjectDesignField
                 try:
-                    self.value[property.name] = FindingDataField(
+                    self.value[property.name] = self.__class__(
                         property, value[property.name])
 
                 except KeyError:
@@ -304,14 +312,14 @@ class FindingDataField(ProjectDesignField):
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
             for v in value:  # type: ignore
-                self.value.append(FindingDataField(
+                self.value.append(self.__class__(
                     self.items, v))  # type: ignore
         else:
             self.value = value
 
     def __iter__(self):
-        """Recursive iteration through potentially nested FindingDataFields
-        returns iterator of FindingDataField"""
+        """Recursive iteration through potentially nested SectionDataFields
+        returns iterator of SectionDataField"""
         if self.type == ProjectFieldTypes.list.value:
             yield self  # First yield self, then nested fields
             # Iterate through list
@@ -378,15 +386,15 @@ class FindingDataField(ProjectDesignField):
                     raise ValueError(
                         f"Value of '{self.name}' must be list  (got '{type(__value)}')."
                     )
-                if not all([isinstance(v, FindingDataField) for v in __value]):
+                if not all([isinstance(v, self.__class__) for v in __value]):
                     raise ValueError(
-                        f"Value of '{self.name}' must contain list of FindingDataFields."
+                        f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
                     )
                 types = set([v.type for v in __value])
                 if len(types) > 1:
                     raise ValueError(
-                        f"Values of '{self.name}' must not contain FindingDataFields"
-                        f"of multiple types  (got {','.join(types)})."
+                        f"Values of '{self.name}' must not contain {self.__class__.__name__}s"
+                        f"of multiple types (got {','.join(types)})."
                     )
             elif self.type == ProjectFieldTypes.object.value:
                 if not isinstance(__value, dict):
@@ -419,35 +427,26 @@ class FindingDataField(ProjectDesignField):
         return super().__setattr__(__name, __value)
 
 
-class FindingData(BaseModel):
-    title: FindingDataField
-    cvss: FindingDataField
-    summary: FindingDataField
-    description: FindingDataField
-    precondition: FindingDataField
-    impact: FindingDataField
-    recommendation: FindingDataField
-    short_recommendation: FindingDataField
-    references: FindingDataField
-    affected_components: FindingDataField
-    owasp_top10_2021: FindingDataField
-    wstg_category: FindingDataField
-    retest_notes: FindingDataField
-    retest_status: FindingDataField
-    evidence: FindingDataField
+class FindingDataField(SectionDataField):
+    ...
+
+
+class SectionData(BaseModel):
+    field_class = SectionDataField
 
     def __init__(
         self,
         design_fields: typing.List[ProjectDesignField],
-        finding_data_raw: FindingDataRaw
+        data_raw: SectionDataRaw
     ):
         for design_field in design_fields:
+            try:
+                value = data_raw.__getattribute__(design_field.name)
+            except AttributeError:
+                continue
             self.__setattr__(
                 design_field.name,
-                FindingDataField(
-                    design_field, finding_data_raw.__getattribute__(
-                        design_field.name)
-                ),
+                self.field_class(design_field, value),
             )
 
     def __iter__(self):
@@ -467,7 +466,34 @@ class FindingData(BaseModel):
         return result
 
 
-class FindingRaw(BaseModel):
+class FindingData(SectionData):
+    title: FindingDataField
+    cvss: FindingDataField
+    summary: FindingDataField
+    description: FindingDataField
+    precondition: FindingDataField
+    impact: FindingDataField
+    recommendation: FindingDataField
+    short_recommendation: FindingDataField
+    references: FindingDataField
+    affected_components: FindingDataField
+    owasp_top10_2021: FindingDataField
+    wstg_category: FindingDataField
+    retest_notes: FindingDataField
+    retest_status: FindingDataField
+    evidence: FindingDataField
+
+    field_class = FindingDataField
+
+    def __init__(
+        self,
+        design_fields: typing.List[ProjectDesignField],
+        data_raw: FindingDataRaw
+    ):
+        super().__init__(design_fields, data_raw)
+
+
+class SectionRaw(BaseModel):
     """
     Attributes:
         project:
@@ -487,6 +513,10 @@ class FindingRaw(BaseModel):
     template: str = ""
     assignee: str = ""
     status: str = ""
+    data: SectionDataRaw
+
+
+class FindingRaw(SectionRaw):
     data: FindingDataRaw
 
 
@@ -556,23 +586,43 @@ class ProjectDesign(BaseModel, ProjectDesignProtocol):
     finding_fields: typing.List[ProjectDesignField] = []
 
 
+class Section(SectionRaw, SectionProtocol):
+    data: SectionData
+
+    def __init__(
+            self,
+            project_design: ProjectDesign,
+            raw: SectionRaw):
+        # Set attributes from FindingRaw
+        for attr in typing.get_type_hints(SectionRaw).items():
+            self.__setattr__(
+                attr[0],
+                raw.__getattribute__(attr[0])
+            )
+
+        self.data = SectionData(
+            project_design.report_fields,
+            raw.data
+        )
+
+
 class Finding(FindingRaw, FindingProtocol):
     data: FindingData
 
     def __init__(
             self,
             project_design: ProjectDesign,
-            finding_raw: FindingRaw):
+            raw: FindingRaw):
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(
                 attr[0],
-                finding_raw.__getattribute__(attr[0])
+                raw.__getattribute__(attr[0])
             )
 
         self.data = FindingData(
             project_design.finding_fields,
-            finding_raw.data
+            raw.data
         )
 
 

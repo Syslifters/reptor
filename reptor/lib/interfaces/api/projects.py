@@ -1,9 +1,9 @@
 import pathlib
 import typing
 from abc import abstractmethod
-from .base import BaseApiProtocol
 
-from .models import ProjectProtocol, FindingProtocol
+from .base import BaseApiProtocol
+from .models import FindingProtocol, ProjectProtocol, SectionProtocol
 
 
 class ApiProjectsProtocol(BaseApiProtocol):
@@ -34,11 +34,18 @@ class ApiProjectsProtocol(BaseApiProtocol):
         ...
 
     @abstractmethod
-    def update_project(self, data: dict) -> None:
+    def get_sections(self) -> typing.List[SectionProtocol]:
         ...
 
     @abstractmethod
-    def update_finding(self, finding_id: str, data: dict) -> None:
+    def update_project(self, data: dict) -> dict:
+        ...
+
+    @abstractmethod
+    def update_finding(self, finding_id: str, data: dict) -> dict:
+        ...
+
+    def update_section(self, section_id: str, data: dict) -> dict:
         ...
 
     @abstractmethod

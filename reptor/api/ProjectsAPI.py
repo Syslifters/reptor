@@ -4,8 +4,7 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
-from reptor.api.models import Finding, FindingRaw, Project, FindingData
+from reptor.api.models import Finding, FindingRaw, Project, Section, SectionRaw
 
 
 class ProjectsAPI(APIClient):
@@ -96,6 +95,30 @@ class ProjectsAPI(APIClient):
         duplicated_project = self.post(url).json()
         return Project(duplicated_project)
 
+    def get_sections(self) -> typing.List[Section]:
+        """Gets all sections of a project
+
+        Returns:
+            typing.List[Section]: List of sections for this project
+        """
+        return_data = list()
+        url = urljoin(self.base_endpoint, f"{self.project_id}/sections/")
+        response = self.get(url).json()
+
+        if not response:
+            return return_data
+
+        if not self.project_design:
+            self.project_design = self.reptor.api.project_designs.project_design
+
+        for item in response:
+            section = Section(
+                self.project_design,
+                SectionRaw(item)
+            )
+            return_data.append(section)
+        return return_data
+
     def get_findings(self) -> typing.List[Finding]:
         """Gets all findings of a project
 
@@ -120,16 +143,19 @@ class ProjectsAPI(APIClient):
             return_data.append(finding)
         return return_data
 
-    def update_finding(self, finding_id: str, data: dict) -> None:
-        # Todo: Should accept a finding object ?
+    def update_finding(self, finding_id: str, data: dict) -> dict:
         url = urljoin(self.base_endpoint,
                       f"{self.project_id}/findings/{finding_id}/")
-        self.patch(url, data)
+        return self.patch(url, data).json()
 
-    def update_project(self, data: dict) -> None:
-        # Todo: Should return an updated object?
+    def update_section(self, section_id: str, data: dict) -> dict:
+        url = urljoin(self.base_endpoint,
+                      f"{self.project_id}/sections/{section_id}/")
+        return self.patch(url, data).json()
+
+    def update_project(self, data: dict) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
-        self.patch(url, data)
+        return self.patch(url, data).json()
 
     def get_enabled_language_codes(self) -> list:
         url = urljoin(self.reptor.get_config().get_server(),
