@@ -22,7 +22,7 @@ class Translate(Base):
         "summary": "Translate Projects and Templates to other languages",
     }
 
-    SKIP_FINDING_FIELDS = [
+    PREDEFINED_SKIP_FIELDS = [
         "affected_components",
         "references",
     ]
@@ -120,16 +120,15 @@ class Translate(Base):
                 raise e
 
         try:
-            self.skip_finding_fields = getattr(self, "skip_finding_fields")
-        except NameError:
-            self.skip_finding_fields = None
-        if self.skip_finding_fields:
-            try:
-                self.SKIP_FINDING_FIELDS.extend(self.skip_finding_fields)
-            except TypeError:
-                raise TypeError(
-                    f"Error in user config: skip_finding_fields should be list."
-                )
+            self.skip_fields = getattr(self, "skip_fields")
+        except AttributeError:
+            self.skip_fields = list()
+        try:
+            self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
+        except TypeError:
+            raise TypeError(
+                f"Error in user config: skip_fields should be list."
+            )
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -185,7 +184,7 @@ class Translate(Base):
         for field in section.data:
             if field.type not in self.TRANSLATE_DATA_TYPES:
                 continue
-            if field.name in self.SKIP_FINDING_FIELDS:
+            if field.name in self.skip_fields:
                 continue
             field.value = self._translate(field.value)
         return section
@@ -206,11 +205,11 @@ class Translate(Base):
             self.reptor.api.switch_project(to_project_id)
 
             try:
-                sysreptor_language_code = self._get_sysreptor_language_code(
-                    self.to_lang)
-                self.reptor.api.projects.update_project({
-                    "language": sysreptor_language_code,
-                    "name": self._translate(project_title)})
+                data = {"name": self._translate(project_title)}
+                if sysreptor_language_code := self._get_sysreptor_language_code(
+                        self.to_lang):
+                    data["language"] = sysreptor_language_code
+                self.reptor.api.projects.update_project(data)
             except HTTPError as e:
                 self.warning(
                     f"Error updating project: {e.response.text}")
@@ -268,7 +267,7 @@ class Translate(Base):
             if enabled_lc.lower().startswith(language_code[:2].lower())
         ]
         if not matched_lcs:
-            return enabled_language_codes[0]
+            return ''
         elif len(matched_lcs) == 1:
             return matched_lcs[0]
         else:
