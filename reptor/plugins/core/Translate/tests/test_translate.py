@@ -122,7 +122,14 @@ class TranslateTests(unittest.TestCase):
         pass
 
     def test_language_code_mapping(self):
-        self.translate.reptor.api.projects.get_enabled_language_codes = self._get_enabled_language_codes
+        class Reptor:
+            class Api:
+                class Projects:
+                    def get_enabled_language_codes(self) -> list:
+                        return ["en-US", "de-DE", "es-ES", "fr-FR", "de-XX"]
+                projects = Projects()
+            api = Api()
+        self.translate.reptor = Reptor()
         self.assertEqual(
             self.translate._get_sysreptor_language_code("EN"), "en-US")
         self.assertEqual(
@@ -141,6 +148,3 @@ class TranslateTests(unittest.TestCase):
 
         self.assertEqual(
             self.translate._get_sysreptor_language_code("invalid"), "")
-
-    def _get_enabled_language_codes(self) -> list:
-        return ["en-US", "de-DE", "es-ES", "fr-FR", "de-XX"]
