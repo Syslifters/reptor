@@ -62,9 +62,16 @@ class TranslateTests(unittest.TestCase):
     {"finding_fields":{"cvss":{"type":"cvss","label":"CVSS","origin":"core","default":"n/a","required":true},"title":{"type":"string","label":"Title","origin":"core","default":"TODO: Finding Title","required":true,"spellcheck":true},"date_field":{"type":"date","label":"Date Field","origin":"custom","default":null,"required":true},"enum_field":{"type":"enum","label":"Enum Field","origin":"custom","choices":[{"label":"Enum Value 1","value":"enum_val_1"},{"label":"Enum Value 2","value":"enum_val_2"},{"label":"Enum Value 3","value":"enum_val_"}],"default":null,"required":true},"list_field":{"type":"list","items":{"type":"object","label":"","origin":"custom","properties":{"enum_in_object":{"type":"enum","label":"Enum in Object","origin":"custom","choices":[{"label":"Enum in Obj 1","value":"enum_in_obj_1"},{"label":"Enum in Obj 2","value":"enum_in_obj_2"},{"label":"Enum in Obj 3","value":"enum_in_obj_3"}],"default":null,"required":true}}},"label":"List Field","origin":"custom","required":true},"user_field":{"type":"user","label":"User Field","origin":"custom","required":true},"number_field":{"type":"number","label":"Number Field","origin":"custom","default":null,"required":true},"object_field":{"type":"object","label":"Object Field","origin":"custom","properties":{"list_in_object":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"List in Object","origin":"custom","required":true}}},"boolean_field":{"type":"boolean","label":"Boolean Field","origin":"custom","default":null},"combobox_field":{"type":"combobox","label":"Combobox Field","origin":"custom","default":null,"required":true,"suggestions":["Combobox Value 1","Combobox Value 2","Combobox Value 3"]},"markdown_field":{"type":"markdown","label":"Markdown Field","origin":"custom","default":null,"required":true}}}"""
 
     def setUp(self) -> None:
+        class Translator:
+            def translate_text(self, text, **kwargs):
+                class Result:
+                    def __init__(self, text):
+                        self.text = text
+                return Result(f"Translated: {text}")
         reptor = Reptor()
         reptor._api = APIManager(reptor=reptor)
         self.translate = Translate(reptor=reptor, to="EN", dry_run=True)
+        self.translate.deepl_translator = Translator()
 
         finding_raw = FindingRaw(json.loads(self.example_finding))
         project_design = ProjectDesign(json.loads(
@@ -78,7 +85,6 @@ class TranslateTests(unittest.TestCase):
         self.assertEqual(self.translate._dry_run_translate('12345'), '12345')
         self.assertEqual(self.translate.chars_count_to_translate, 5)
 
-        self.translate.deepl_translator.translate_text = self._translate
         text = "Hello World"
         self.assertEqual(self.translate._translate(
             text), f"Translated: {text}")
@@ -138,9 +144,3 @@ class TranslateTests(unittest.TestCase):
 
     def _get_enabled_language_codes(self) -> list:
         return ["en-US", "de-DE", "es-ES", "fr-FR", "de-XX"]
-
-    def _translate(self, text, **kwargs):
-        class Result:
-            def __init__(self, text):
-                self.text = text
-        return Result(f"Translated: {text}")
