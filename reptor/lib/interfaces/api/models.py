@@ -18,3 +18,7 @@ class NoteProtocol(typing.Protocol):
 
 class FindingProtocol(typing.Protocol):
     ...
+
+
+class SectionProtocol(typing.Protocol):
+    ...
