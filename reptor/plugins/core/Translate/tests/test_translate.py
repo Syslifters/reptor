@@ -64,7 +64,7 @@ class TranslateTests(unittest.TestCase):
     def setUp(self) -> None:
         reptor = Reptor()
         reptor._api = APIManager(reptor=reptor)
-        self.translate = Translate(reptor=reptor, to="EN")
+        self.translate = Translate(reptor=reptor, to="EN", dry_run=True)
 
         finding_raw = FindingRaw(json.loads(self.example_finding))
         project_design = ProjectDesign(json.loads(
