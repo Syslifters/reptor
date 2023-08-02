@@ -45,7 +45,7 @@ classifiers = [
 
 [project.optional-dependencies]
 translate = ['deepl >= 1.15.0']
-ghostwriter = ['gql >= 3.4.1']
+ghostwriter = ['gql[aiohttp] >= 3.4.1',]
 all = ['reptor[translate,ghostwriter]']
 
 [project.scripts]

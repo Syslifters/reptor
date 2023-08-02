@@ -5,10 +5,7 @@ try:
     from gql import gql, Client
     from gql.transport.aiohttp import AIOHTTPTransport
 except ImportError:
-    from reptor.lib.console import reptor_console
-
-    reptor_console.print("[red]To run this importer you need to install gql[/red]")
-    exit(1)
+    gql = None
 
 # Todo: This needs a lot of work
 # Consider it a WIP Example
@@ -44,6 +41,11 @@ class GhostWriter(BaseImporter):
 
     def __init__(self, reptor: ReptorProtocol, **kwargs) -> None:
         super().__init__(reptor, **kwargs)
+
+        if gql is None:
+            reptor.logger.fail_with_exit(
+                f"[red]Error importing Ghostwriter dependencies. "
+                f"Install with 'pip install reptor{reptor.logger.escape('[ghostwriter]')}'.[/red]")
 
         self.ghostwriter_url = kwargs.get("url", "")
         self.ghostwriter_apikey = kwargs.get("apikey", "")

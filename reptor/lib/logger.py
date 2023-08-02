@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from termcolor import colored
 from rich.text import Text
 from rich.logging import RichHandler
+from rich.markup import escape as rich_escape
 
 import reptor.settings as settings
 
@@ -51,6 +52,9 @@ class ReptorAdapter(logging.LoggerAdapter):
         Format msg for output if needed
         """
         return f"{msg}", kwargs
+
+    def escape(self, *args, **kwargs) -> str:
+        return rich_escape(*args, **kwargs)
 
     def display(self, msg, color="blue", *args, **kwargs):
         """Prints a blue message in console
@@ -93,7 +97,8 @@ class ReptorAdapter(logging.LoggerAdapter):
         """
         Prints a completely yellow highlighted message to the user
         """
-        msg, kwargs = self._format(f"{colored(msg, 'yellow', attrs=['bold'])}", kwargs)
+        msg, kwargs = self._format(
+            f"{colored(msg, 'yellow', attrs=['bold'])}", kwargs)
         text = Text.from_ansi(msg)
         reptor_console.print(text, *args, **kwargs)
         self._log_console_to_file(text, *args, **kwargs)
