@@ -6,3 +6,4 @@ config.yaml
 reptor.egg-info
 build
 dist
+venv
