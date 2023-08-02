@@ -1,12 +1,7 @@
 import unittest
 
-<<<<<<< HEAD
-from reptor.lib.errors import MissingArgumentError
-from reptor.lib.reptor import Reptor
-=======
 from reptor.lib.reptor import Reptor
 from reptor.lib.errors import MissingArgumentError
->>>>>>> 4234491 (Update template)
 
 from ..NotesAPI import NotesAPI
 
@@ -25,10 +20,10 @@ class TestNotesAPI(unittest.TestCase):
         except (ValueError, MissingArgumentError):
             self.fail("NotesAPI raised Error")
 
-        # Test project note
+        # Test valid project note
         self.reptor._config._raw_config['server'] = 'https://demo.sysre.pt'
         self.reptor._config._raw_config['cli'] = {'private_note': False}
-        self.reptor._config._raw_config['project_id'] = '8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e'
+        self.reptor._config._raw_config['project_id'] = '2b5de38d-2932-4112-b0f7-42c4889dd64d'
         try:
             n = NotesAPI(reptor=self.reptor)
             self.assertFalse(n.private_note)
