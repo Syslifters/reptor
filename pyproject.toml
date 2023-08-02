@@ -56,3 +56,6 @@ reptor = 'reptor.__main__:run'
 "Documentation" = "https://github.com/Syslifters/reptor/blob/main/README.md"
 "Bug Tracker" = "https://github.com/Syslifters/reptor/issues"
 "Source" = "https://github.com/syslifters/reptor"
+
+[tool.setuptools.package-data]
+"*" = ["**/*.md"]
