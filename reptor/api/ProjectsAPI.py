@@ -12,8 +12,15 @@ class ProjectsAPI(APIClient):
         super().__init__(**kwargs)
         self.project_design = None
 
+        if not (server := self.reptor.get_config().get_server()):
+            raise ValueError(
+                "No SysReptor server configured. Try 'reptor conf'.")
+        if not self.project_id:
+            raise ValueError(
+                "No Project ID configured. Try 'reptor conf' or use '--project-id'.")
+
         self.base_endpoint = (
-            f"{self.reptor.get_config().get_server()}/api/v1/pentestprojects"
+            f"{server}/api/v1/pentestprojects"
         )
 
         self.object_endpoint = urljoin(self.base_endpoint, self.project_id)
