@@ -1,9 +1,10 @@
 import typing
+from posixpath import join as urljoin
+from uuid import UUID
 
 import yaml
 
 from .. import settings as settings
-
 from .interfaces.conf import ConfigProtocol
 from .logger import reptor_logger
 
@@ -90,7 +91,9 @@ class Config(ConfigProtocol):
             input(f"Server [{default_server}]: ") or default_server
         )
 
-        default_api_token = self._raw_config.get("token")
+        default_api_token = self._raw_config.get("token") or \
+            f'Create at {urljoin(self._raw_config["server"], "users/self/apitokens/")}' if \
+            self._raw_config["server"].startswith('http') else ''
         self._raw_config["token"] = input(
             f"API Token{ f' [{default_api_token}]' if default_api_token else ''}: "
         ) or self._raw_config.get("token")
@@ -103,14 +106,15 @@ class Config(ConfigProtocol):
             or default_project_id
         )
 
-        default_community_enabled = self._raw_config.get("community")
-        is_community_enabled = "No"
-        if default_community_enabled:
-            is_community_enabled = "Yes"
+        # default_community_enabled = self._raw_config.get("community")
+        # is_community_enabled = "No"
+        # if default_community_enabled:
+        #    is_community_enabled = "Yes"
 
-        community = input(
-            f"Enable Community Plugins?{ f'[Currently: {is_community_enabled}]'} [y/n]: "
-        )[:1].lower()
+        # community = input(
+        #    f"Enable Community Plugins?{ f'[Currently: {is_community_enabled}]'} [y/n]: "
+        # )[:1].lower()
+        community = "y"  # Enable as long as there are not many plugins
         if community == "y":
             self._raw_config["community"] = True
         elif community == "n":
@@ -158,6 +162,9 @@ class Config(ConfigProtocol):
         server_url = self.get("server", "")
         if server_url[-1:] == "/":
             server_url = server_url[:-1]
+        if not server_url:
+            raise ValueError(
+                "No SysReptor server. Try 'reptor conf' or use '--server'.")
         return server_url
 
     def get_token(self) -> str:
@@ -166,7 +173,11 @@ class Config(ConfigProtocol):
         Returns:
             str: Token to Authenticate
         """
-        return self.get("token", "")
+        if (token := self.get("token")):
+            return token
+        else:
+            raise ValueError(
+                "No SysReptor API token. Try 'reptor conf' or use '--token'.")
 
     def get_project_id(self) -> str:
         """Do not use this, instead use self.reptor.get_active_project_id()
@@ -175,7 +186,16 @@ class Config(ConfigProtocol):
         Returns:
             str: Project ID
         """
-        return self.get("project_id", "")
+        if (project_id := self.get("project_id")):
+            try:
+                UUID(project_id)
+                return project_id
+            except ValueError:
+                raise ValueError(
+                    f"Project ID ('{project_id}') is not a valid UUID.")
+        else:
+            raise ValueError(
+                "No SysReptor project ID. Try 'reptor conf' or use '--project-id'.")
 
     def get_cli_overwrite(self) -> typing.Dict:
         """Gives access to the entire CLI arguments.

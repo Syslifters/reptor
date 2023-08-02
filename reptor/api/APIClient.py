@@ -18,7 +18,7 @@ class APIClient:
     force_unlock: bool
     project_id: str
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, require_project_id=True, **kwargs) -> None:
         self.reptor = kwargs.get("reptor", None)
         if not self.reptor:
             reptor_console.print(
@@ -26,8 +26,13 @@ class APIClient:
             )
             exit(1)
         self.verify = not self.reptor.get_config().get("insecure", False)
-        self.project_id = kwargs.get(
-            "project_id") or self.reptor.get_config().get("project_id", "")
+        try:
+            self.project_id = kwargs.get(
+                "project_id") or self.reptor.get_config().get_project_id()
+        except ValueError as e:
+            if require_project_id:
+                raise e
+            self.project_id = ''
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
@@ -136,8 +141,8 @@ class APIClient:
             headers=self._get_headers(),
             verify=self.verify,
         )
-        response.raise_for_status()
         self.debug(f"Received response: {response.content}")
+        response.raise_for_status()
         return response
 
     def post(
@@ -154,7 +159,7 @@ class APIClient:
         Returns:
             requests.models.Response: Requests Responde Object
         """
-        self.reptor.logger.debug(f"POST URL:{url}")
+        self.reptor.logger.debug(f"POST URL: {url}")
         response = requests.post(
             url,
             headers=self._get_headers(json_content=json_content),
@@ -162,8 +167,8 @@ class APIClient:
             files=files,
             verify=self.verify,
         )
-        response.raise_for_status()
         self.debug(f"Received response: {response.content}")
+        response.raise_for_status()
         return response
 
     def put(self, url: str, data: object) -> requests.models.Response:
@@ -183,8 +188,8 @@ class APIClient:
             json=data,
             verify=self.verify,
         )
-        response.raise_for_status()
         self.debug(f"Received response: {response.content}")
+        response.raise_for_status()
         return response
 
     def patch(self, url: str, data: object) -> requests.models.Response:
@@ -204,6 +209,6 @@ class APIClient:
             json=data,
             verify=self.verify,
         )
-        response.raise_for_status()
         self.debug(f"Received response: {response.content}")
+        response.raise_for_status()
         return response

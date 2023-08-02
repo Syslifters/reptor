@@ -12,7 +12,7 @@ class TestProjectsAPI(unittest.TestCase):
     def test_project_api_init(self):
         # Test valid init
         self.reptor._config._raw_config['server'] = 'https://demo.sysre.pt'
-        self.reptor._config._raw_config['project_id'] = '123456789'
+        self.reptor._config._raw_config['project_id'] = '8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e'
         try:
             ProjectsAPI(reptor=self.reptor)
         except ValueError:

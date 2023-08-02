@@ -173,20 +173,10 @@ class Reptor(ReptorProtocol):
         config_parser.add_argument("-s", "--server")
         config_parser.add_argument("-t", "--token", help="SysReptor API token")
         config_parser.add_argument(
-            "-f",
-            "--force-unlock",
-            help="force unlock notes and sections",
-            action="store_true",
-        )
-        config_parser.add_argument(
             "--insecure", help="do not verify server certificate", action="store_true"
         )
-        private_or_project_parser = config_parser.add_mutually_exclusive_group()
-        private_or_project_parser.add_argument(
+        config_parser.add_argument(
             "-p", "--project-id", help="SysReptor project ID"
-        )
-        private_or_project_parser.add_argument(
-            "--private-note", help="add notes to private notes", action="store_true"
         )
 
     def _configure_global_arguments(self):
