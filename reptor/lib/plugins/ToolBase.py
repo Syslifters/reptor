@@ -235,7 +235,7 @@ class ToolBase(Base):
         if not self.formatted_input:
             self.format()
         notename = self.notename or self.__class__.__name__.lower()
-        parent_notename = "Uploads" if notename != "Uploads" else None
+        parent_notename = "Uploads" if notename != "Uploads" else ""
 
         self.reptor.api.notes.write_note(
             notename=notename,

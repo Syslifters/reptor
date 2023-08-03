@@ -26,19 +26,17 @@ class Nikto(ToolBase):
     meta = {
         "author": "Richard Schwabe",
         "name": "Nikto",
-        "version": "1.0",
+        "version": "1.1",
         "license": "MIT",
         "tags": ["web", "owasp"],
-        "summary": "Formats Nikto output (Raw, XML, JSON)",
+        "summary": "Formats Nikto output (XML)",
     }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = "Nikto"
-        self.arg_type_json = kwargs.get("json")
-        self.arg_type_xml = kwargs.get("xml")
 
-    def parse_xml(self, data) -> typing.List[NiktoScan]:
+    def parse_xml(self):
         """Parses XML file from Nikto, tested with version 2.5.0
 
         Args:
@@ -47,9 +45,11 @@ class Nikto(ToolBase):
         Returns:
             typing.List[NiktoScan]: Returns a list of NiktoScan objects
         """
-        root = ElementTree.fromstring(data)
+        self.debug("Running parse_xml of nikto")
+
         return_data = list()
-        for niktoscan in root:
+        for niktoscan in self.xml_root:
+            self.debug(f"Got niktoscan: {niktoscan} ")
             nikto = NiktoScan()
             nikto.parse(niktoscan)
 
@@ -69,79 +69,65 @@ class Nikto(ToolBase):
 
             return_data.append(nikto)
 
-        return return_data
+        self.parsed_input = return_data
 
-    def parse_raw(self, data) -> typing.List[NiktoScan]:
-        raise NotImplementedError
+    # def format(self):
+    #     super().format()
 
-    def parse(self):
-        super().parse()
+    #     output = list()
 
-        if self.arg_type_xml:
-            nikto_scans = self.parse_xml(self.raw_input)
-        else:
-            nikto_scans = self.parse_raw(self.raw_input)
+    #     nikto_scans: typing.List[NiktoScan] = self.parsed_input
 
-        self.parsed_input = nikto_scans
+    #     for nikto_scan in nikto_scans:
+    #         nikto_output = f"""
 
-    def format(self):
-        super().format()
+    #         # Nikto Scan Results
 
-        output = list()
+    #         CMD Options: `{nikto_scan.options}`
 
-        nikto_scans: typing.List[NiktoScan] = self.parsed_input
+    #         ## Details
 
-        for nikto_scan in nikto_scans:
-            nikto_output = f"""
+    #         | Target | Information |
+    #         | :--- | :--- |
+    #         | IP | {nikto_scan.scandetails.targetip} |
+    #         | Port | {nikto_scan.scandetails.targetport} |
+    #         | Hostname | {nikto_scan.scandetails.targethostname} |
+    #         | Sitename | {nikto_scan.scandetails.sitename} |
+    #         | Host Header | {nikto_scan.scandetails.hostheader} |
+    #         | Errors | {nikto_scan.scandetails.errors} |
 
-            # Nikto Scan Results
+    #         ## Statistics
+    #         | Target | Information |
+    #         | :--- | :--- |
+    #         | Issues Items | {nikto_scan.statistics.itemsfound} |
+    #         | Duration | {nikto_scan.statistics.elapsed} Seconds |
+    #         | Total Checks | {nikto_scan.statistics.checks} |
 
-            CMD Options: `{nikto_scan.options}`
+    #         ## Issues
+    #         | Endpoint | Method | Description | References |
+    #         | :----- | :--- | :----- | :---- |"""
 
-            ## Details
+    #         output.append(nikto_output)
 
-            | Target | Information |
-            | :--- | :--- |
-            | IP | {nikto_scan.scandetails.targetip} |
-            | Port | {nikto_scan.scandetails.targetport} |
-            | Hostname | {nikto_scan.scandetails.targethostname} |
-            | Sitename | {nikto_scan.scandetails.sitename} |
-            | Host Header | {nikto_scan.scandetails.hostheader} |
-            | Errors | {nikto_scan.scandetails.errors} |
+    #         for item in nikto_scan.scandetails.items:
+    #             endpoint = method = description = references = ""
+    #             method = item.method
+    #             references = item.references
 
-            ## Statistics
-            | Target | Information |
-            | :--- | :--- |
-            | Issues Items | {nikto_scan.statistics.itemsfound} |
-            | Duration | {nikto_scan.statistics.elapsed} Seconds |
-            | Total Checks | {nikto_scan.statistics.checks} |
+    #             if ": " in item.description:
+    #                 description_split = item.description.split(": ")
+    #                 endpoint = description_split[0]
+    #                 description = description_split[1]
+    #             else:
+    #                 endpoint = "/"
+    #                 description = item.description
 
+    #             item_output = (
+    #                 f"| {endpoint} | {method} | {description} | {references} |"
+    #             )
+    #             output.append(item_output)
 
-            ## Issues
-            | Endpoint | Method | Description | References |
-            | :----- | :--- | :----- | :---- |"""
-
-            output.append(nikto_output)
-
-            for item in nikto_scan.scandetails.items:
-                endpoint = method = description = references = ""
-                method = item.method
-                references = item.references
-
-                if ": " in item.description:
-                    description_split = item.description.split(": ")
-                    endpoint = description_split[0]
-                    description = description_split[1]
-                else:
-                    endpoint = "/"
-                    description = item.description
-
-                item_output = (
-                    f"| {endpoint} | {method} | {description} | {references} |"
-                )
-                output.append(item_output)
-
-        self.formatted_input = "\n".join(output)
+    #     self.formatted_input = "\n".join(output)
 
 
 loader = Nikto

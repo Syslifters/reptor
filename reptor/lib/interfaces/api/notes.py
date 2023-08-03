@@ -8,7 +8,6 @@ from .base import BaseApiProtocol
 class ApiNotesProtocol(BaseApiProtocol):
     project_id: str
 
-
     @abstractmethod
     def get_notes() -> typing.List[Note]:
         ...
@@ -22,7 +21,15 @@ class ApiNotesProtocol(BaseApiProtocol):
         ...
 
     @abstractmethod
-    def write_note():
+    def write_note(
+        self,
+        notename: str = "",
+        parent_notename: str = "",
+        content: str = "",
+        icon: str = "",
+        no_timestamp: bool = False,
+        force_unlock: bool = False,
+    ):
         ...
 
     @abstractmethod
