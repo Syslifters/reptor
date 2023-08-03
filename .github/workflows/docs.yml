@@ -10,6 +10,7 @@ jobs:
       with:
         python-version: '3.8'
         cache: 'pip'
-    - run: cd docs
     - run: pip install -r requirements.txt
+      working-directory: ./docs
     - run: mkdocs build
+      working-directory: ./docs
