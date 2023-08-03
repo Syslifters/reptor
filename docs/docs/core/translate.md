@@ -2,7 +2,7 @@
 
 ## Usage
 ```
-usage: reptor translate [-h] [-from LANGUAGE_CODE] [-to LANGUAGE_CODE] [-translator {deepl}] [-dry-run]
+usage: reptor translate [-h] [-from LANGUAGE_CODE] [-to LANGUAGE_CODE] [-skip-fields FIELDS] [-dry-run]
 
 Translate Projects and Templates to other languages
 
@@ -12,9 +12,17 @@ options:
                         Language code of source language
   -to LANGUAGE_CODE, --to LANGUAGE_CODE
                         Language code of dest language
-  -translator {deepl}, --translator {deepl}
-                        Translator service to use
+  -skip-fields FIELDS, --skip-fields FIELDS
+                        Report and Finding fields, comma-separated
   -dry-run, --dry-run   Do not translate, count characters to be translated and checks Deepl quota
+```
+
+## Sample commands
+
+```
+python3 -m reptor translate -to DE --dry-run
+python3 -m reptor translate --from EN -to DE
+python3 -m reptor translate -to DE --skip-fields recommendation,summary --dry-run
 ```
 
 ## Installation

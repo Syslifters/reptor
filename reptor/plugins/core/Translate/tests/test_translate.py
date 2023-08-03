@@ -92,6 +92,7 @@ class TranslateTests(unittest.TestCase):
         self.assertEqual(self.translate._translate("123"), f"123")
         self.assertEqual(self.translate.chars_count_to_translate, 5+len(text))
 
+        self.translate.skip_fields = ['title']
         translated_finding = self.translate._translate_section(
             deepcopy(self.finding))
 
@@ -100,11 +101,13 @@ class TranslateTests(unittest.TestCase):
             translated_finding.data.markdown_field.value,
             f"Translated: {self.finding.data.markdown_field.value}")
         self.assertEqual(
-            translated_finding.data.title.value,
-            f"Translated: {self.finding.data.title.value}")
-        self.assertEqual(
             translated_finding.data.object_field.value['list_in_object'].value[0].value,
             f"Translated: {self.finding.data.object_field.value['list_in_object'].value[0].value}")
+
+        # Fields not translated due to skip_fields
+        self.assertEqual(
+            translated_finding.data.title.value,
+            f"{self.finding.data.title.value}")
 
         # Fields that should not be translated
         self.assertEqual(
