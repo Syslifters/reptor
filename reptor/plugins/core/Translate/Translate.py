@@ -6,6 +6,7 @@ from typing import Union
 from reptor.api.models import (Finding, Section, FindingDataField,
                                ProjectFieldTypes)
 from reptor.api.ProjectsAPI import ProjectsAPI
+from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
 from reptor.lib.plugins.Base import Base
 
 try:

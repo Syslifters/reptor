@@ -1,7 +1,5 @@
 import contextlib
-import sys
 import typing
-
 from datetime import datetime
 from os.path import basename
 from posixpath import join as urljoin
@@ -11,8 +9,8 @@ from requests import HTTPError
 from reptor.api.APIClient import APIClient
 from reptor.api.errors import LockedException
 from reptor.api.models import Note
-from reptor.utils.file_operations import guess_filetype
 from reptor.lib.errors import MissingArgumentError
+from reptor.utils.file_operations import guess_filetype
 
 
 class NotesAPI(APIClient):
@@ -23,7 +21,7 @@ class NotesAPI(APIClient):
     """
 
     def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+        super().__init__(require_project_id=False, **kwargs)
 
         if self.private_note:
             self.base_endpoint = urljoin(
@@ -56,16 +54,18 @@ class NotesAPI(APIClient):
     def create_note(
         self,
         title="CLI Note",
-        parent_id: typing.Union[str, None] = None,
+        parent_id: str = "",
         order=None,
-        icon=None,
+        checked=None,
+        icon=None
     ) -> Note:
         self.debug("Creating Note")
         note = self.post(
             self.base_endpoint,
             {
                 "order": order,
-                "parent": parent_id,
+                "parent": parent_id or None,
+                "checked": checked,
                 "title": title,
             },
         ).json()
@@ -80,23 +80,13 @@ class NotesAPI(APIClient):
 
     def write_note(
         self,
+        content: str,
         notename: str = "",
-        parent_notename: typing.Union[str, None] = None,
-        content: str = "",
+        parent_notename: str = "",
         icon: str = "",
         no_timestamp: bool = False,
         force_unlock: bool = False,
     ):
-        """
-        Notes are added as child of 'Uploads' note
-        If no notename defined, content gets appended to 'Uploads' note
-        """
-        self.debug(f"Go data: {notename}, {content[:100]}")
-        if not content:
-            self.info("Reading from stdin...")
-            content = sys.stdin.read()
-
-        self.debug("Have content")
         note = self.get_note_by_title(
             notename, parent_notename=parent_notename, icon=icon
         )
@@ -115,7 +105,8 @@ class NotesAPI(APIClient):
                     note_text += ": "
 
             note_text += content
-            self.debug(f"We are sending data with a lenght of: {len(note_text)}")
+            self.debug(
+                f"We are sending data with a lenght of: {len(note_text)}")
             url = urljoin(self.base_endpoint, note.id, "")
             r = self.put(url, {"text": note_text})
 
@@ -128,7 +119,7 @@ class NotesAPI(APIClient):
                 ) from e
 
     def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
-        parent_id = ""
+        parent_id = None
         if parent_notename:
             note = self.get_note_by_title(parent_notename)
             parent_id = note.id
@@ -139,7 +130,8 @@ class NotesAPI(APIClient):
                 break
         else:
             # Note does not exist. Create.
-            note = self.create_note(title=title, parent_id=parent_id, icon=icon)
+            note = self.create_note(
+                title=title, parent_id=parent_id, icon=icon)
 
         return note
 
@@ -172,7 +164,8 @@ class NotesAPI(APIClient):
                 continue
 
             # Lock during upload to prevent unnecessary uploads and for endpoint setup
-            note = self.get_note_by_title(notename, parent_notename=parent_notename)
+            note = self.get_note_by_title(
+                notename, parent_notename=parent_notename)
             if self.private_note:
                 url = urljoin(self.base_endpoint, "upload/")
             else:
@@ -182,9 +175,11 @@ class NotesAPI(APIClient):
             ) if not force_unlock else contextlib.nullcontext():
                 # TODO this might be streamed
                 files = {"file": (filename, content)}
-                response_json = self.post(url, files=files, json_content=False).json()
+                response_json = self.post(
+                    url, files=files, json_content=False).json()
                 is_image = (
-                    True if response_json.get("resource_type") == "image" else False
+                    True if response_json.get(
+                        "resource_type") == "image" else False
                 )
                 if is_image:
                     file_path = f"/images/name/{response_json['name']}"
@@ -212,17 +207,18 @@ class NotesAPI(APIClient):
 
     @contextlib.contextmanager
     def _auto_lock_note(self, note_id: str):
-        r = self._lock_note(note_id)
-        if r.status_code == 200 or r.status_code == 403:
-            if r.status_code != 200:
-                if self.force_unlock:
-                    raise LockedException("Cannot force unlock. Locked by other user.")
-                else:
-                    raise LockedException(
-                        "The section you want to write to is locked. "
-                        "(Unlock or force: --force-unlock)"
-                    )
-        r.raise_for_status()
+        try:
+            r = self._lock_note(note_id)
+        except HTTPError as e:
+            if e.response.status_code == 403:
+                raise LockedException(
+                "Cannot force unlock. Locked by other user.")
+            else:
+                raise e
+        if r.status_code == 200:
+            raise LockedException(
+                    "The section you want to write to is locked. "
+                    "(Unlock or force: --force-unlock)")
 
         yield
 
