@@ -1,4 +1,4 @@
-name: reptor unittests
+name: main unittests
 run-name: unittests
 on: [push]
 jobs:

@@ -103,6 +103,16 @@ class Translate(Base):
         self.to_lang = kwargs["to"]
         self.dry_run = kwargs.get("dry_run")
         self.chars_count_to_translate = 0
+        try:
+            self.skip_fields = kwargs.get("skip_fields", '').split(',') or getattr(self, "skip_fields")
+        except AttributeError:
+            self.skip_fields = list()
+        try:
+            self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
+        except TypeError:
+            raise TypeError(
+                f"skip_fields should be list."
+            )
         if not hasattr(self, 'deepl_api_token'):
             self.deepl_api_token = ''
 
@@ -118,17 +128,7 @@ class Translate(Base):
         except (AttributeError, ModuleNotFoundError) as e:
             if not self.dry_run:
                 raise e
-
-        try:
-            self.skip_fields = getattr(self, "skip_fields")
-        except AttributeError:
-            self.skip_fields = list()
-        try:
-            self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
-        except TypeError:
-            raise TypeError(
-                f"Error in user config: skip_fields should be list."
-            )
+        
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -151,14 +151,23 @@ class Translate(Base):
             action="store",
             default=None,
         )
-
         parser.add_argument(
-            "-translator",
-            "--translator",
-            help="Translator service to use",
-            choices=["deepl"],
-            default="deepl",
+            "-skip-fields",
+            "--skip-fields",
+            metavar="FIELDS",
+            help="Report and Finding fields, comma-separated",
+            action="store",
+            default='',
         )
+
+        # Currently supported: Deepl
+        #parser.add_argument(
+        #    "-translator",
+        #    "--translator",
+        #    help="Translator service to use",
+        #    choices=["deepl"],
+        #    default="deepl",
+        #)
         parser.add_argument(
             "-dry-run",
             "--dry-run",
@@ -246,6 +255,9 @@ class Translate(Base):
             f"Translated {self.chars_count_to_translate} characters{' (dry run)' if self.dry_run else ''}."
         )
         self._log_deepl_usage()
+        self.success(f"Project translated{' (dry run)' if self.dry_run else ''}.")
+        self.display("We recommend to check quality of the translation, or to add a note that the report was "
+                     "translated by a machine.")
 
     def _log_deepl_usage(self):
         try:

@@ -39,8 +39,6 @@ An example from the Plugins plugin:
 
 ::: reptor.plugins.core.Note.Note
 
-::: reptor.plugins.core.Notes.Notes
-
 ::: reptor.plugins.core.Plugins.Plugins
 
 ::: reptor.plugins.core.Projects.Projects
