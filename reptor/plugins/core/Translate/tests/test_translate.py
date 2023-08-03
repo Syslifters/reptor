@@ -69,6 +69,7 @@ class TranslateTests(unittest.TestCase):
                         self.text = text
                 return Result(f"Translated: {text}")
         reptor = Reptor()
+        reptor._config._raw_config['project_id'] = '8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e'
         reptor._api = APIManager(reptor=reptor)
         self.translate = Translate(reptor=reptor, to="EN", dry_run=True)
         self.translate.deepl_translator = Translator()
