@@ -44,6 +44,7 @@ class NotesAPI(APIClient):
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""
+        self.debug("Getting Notes List")
         response = self.get(self.base_endpoint)
         notes = list()
         for note_data in response.json():
@@ -58,6 +59,7 @@ class NotesAPI(APIClient):
         checked=None,
         icon=None
     ) -> Note:
+        self.debug("Creating Note")
         note = self.post(
             self.base_endpoint,
             {
@@ -67,6 +69,7 @@ class NotesAPI(APIClient):
                 "title": title,
             },
         ).json()
+        self.debug(f"We created note with {note}")
         if icon:
             self.set_icon(note.get("id"), icon)
         return Note(note)
@@ -87,7 +90,6 @@ class NotesAPI(APIClient):
         note = self.get_note_by_title(
             notename, parent_notename=parent_notename, icon=icon
         )
-
         self.debug(f"Working with note: {note.id}")
 
         with self._auto_lock_note(
@@ -140,7 +142,7 @@ class NotesAPI(APIClient):
         caption=None,
         notename=None,
         parent_notename=None,
-        icon=None,
+        icon: str = "",
         no_timestamp=False,
         force_unlock=False,
     ):

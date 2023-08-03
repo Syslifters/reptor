@@ -12,8 +12,16 @@ class Item(ModelBase):
     iplink: str
     references: str
 
+    endpoint: str = "/"
+
     def parse(self, data):
-        self.description = data.find("description").text
+        description = data.find("description").text
+        self.description = description
+        if ": " in description:
+            description_data = description.split(":")
+            self.endpoint = description_data[0]
+            self.description = description_data[1]
+
         self.uri = data.find("uri").text
         self.namelink = data.find("namelink").text
         self.iplink = data.find("iplink").text
