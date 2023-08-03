@@ -26,8 +26,9 @@ class APIClient:
             )
             exit(1)
         self.verify = not self.reptor.get_config().get("insecure", False)
-        self.project_id = kwargs.get(
-            "project_id") or self.reptor.get_config().get("project_id", "")
+        self.project_id = kwargs.get("project_id") or self.reptor.get_config().get(
+            "project_id", ""
+        )
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
@@ -130,7 +131,7 @@ class APIClient:
         Returns:
             requests.models.Response: Returns requests Response Object
         """
-        self.reptor.logger.debug(f"GET URL:{url}")
+        self.debug(f"GET URL:{url}")
         response = requests.get(
             url,
             headers=self._get_headers(),
@@ -154,7 +155,8 @@ class APIClient:
         Returns:
             requests.models.Response: Requests Responde Object
         """
-        self.reptor.logger.debug(f"POST URL:{url}")
+        self.debug(f"POST URL:{url}")
+        self.debug(f"Sending with data: {data}")
         response = requests.post(
             url,
             headers=self._get_headers(json_content=json_content),
@@ -176,7 +178,7 @@ class APIClient:
         Returns:
             requests.models.Response: requests Respone Object
         """
-        self.reptor.logger.debug(f"PUT URL:{url}")
+        self.debug(f"PUT URL:{url}")
         response = requests.put(
             url,
             headers=self._get_headers(),
@@ -197,7 +199,7 @@ class APIClient:
         Returns:
             requests.models.Response: requests Respone Object
         """
-        self.reptor.logger.debug(f"PATCH URL:{url}")
+        self.debug(f"PATCH URL:{url}")
         response = requests.patch(
             url,
             headers=self._get_headers(),

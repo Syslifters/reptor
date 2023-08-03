@@ -46,6 +46,7 @@ class NotesAPI(APIClient):
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""
+        self.debug("Getting Notes List")
         response = self.get(self.base_endpoint)
         notes = list()
         for note_data in response.json():
@@ -53,8 +54,13 @@ class NotesAPI(APIClient):
         return notes
 
     def create_note(
-        self, title="CLI Note", parent_id: str = "", order=None, icon=None
+        self,
+        title="CLI Note",
+        parent_id: typing.Union[str, None] = None,
+        order=None,
+        icon=None,
     ) -> Note:
+        self.debug("Creating Note")
         note = self.post(
             self.base_endpoint,
             {
@@ -63,6 +69,7 @@ class NotesAPI(APIClient):
                 "title": title,
             },
         ).json()
+        self.debug(f"We created note with {note}")
         if icon:
             self.set_icon(note.get("id"), icon)
         return Note(note)
@@ -74,25 +81,25 @@ class NotesAPI(APIClient):
     def write_note(
         self,
         notename: str = "",
-        parent_notename: str = "",
+        parent_notename: typing.Union[str, None] = None,
         content: str = "",
         icon: str = "",
         no_timestamp: bool = False,
         force_unlock: bool = False,
     ):
         """
-        Notes accept stdin only
         Notes are added as child of 'Uploads' note
         If no notename defined, content gets appended to 'Uploads' note
         """
+        self.debug(f"Go data: {notename}, {content[:100]}")
         if not content:
             self.info("Reading from stdin...")
             content = sys.stdin.read()
 
+        self.debug("Have content")
         note = self.get_note_by_title(
             notename, parent_notename=parent_notename, icon=icon
         )
-
         self.debug(f"Working with note: {note.id}")
 
         with self._auto_lock_note(
@@ -143,7 +150,7 @@ class NotesAPI(APIClient):
         caption=None,
         notename=None,
         parent_notename=None,
-        icon=None,
+        icon: str = "",
         no_timestamp=False,
         force_unlock=False,
     ):
