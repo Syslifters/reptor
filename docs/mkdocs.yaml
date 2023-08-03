@@ -14,7 +14,9 @@ nav:
     - Config : lib/config.md
     - Testing : lib/tests.md
   - API Models: api-models.md
-  - Core Plugins: core-modules.md
+  - Core Plugins:
+    - core-modules.md
+    - translate.md
   - Community Plugins:
     - Create Plugin : community/create.md
     - Nikto : community/nikto.md
