@@ -46,7 +46,19 @@ class TemplatesAPI(APIClient):
         return_template = None
         try:
             res = self.post(
-                self.base_endpoint, data={"data": {"title": template.data.title}}
+                self.base_endpoint,
+                data={
+                    "translations": [
+                        {
+                            "status": "in-progress",
+                            "language": "en-US",
+                            "is_main": True,
+                            "data": {
+                                "title": template.data.title,
+                            },
+                        }
+                    ]
+                },
             )
             raw_data = res.json()
             self.debug(raw_data)
@@ -55,8 +67,14 @@ class TemplatesAPI(APIClient):
                 updated_template.data = template.data
                 updated_data = {
                     "id": updated_template.id,
-                    "status": "in-progress",
-                    "data": updated_template.data._to_api_json(),
+                    "translations": [
+                        {
+                            "status": "in-progress",
+                            "is_main": True,
+                            "language": "en-US",
+                            "data": updated_template.data._to_api_json(),
+                        }
+                    ],
                 }
                 self.debug(updated_data)
                 res2 = self.put(

@@ -13,20 +13,19 @@ except ImportError:
 
 class GhostWriter(BaseImporter):
     """
-    Author: Richard Schwabe
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: core, import, ghostwriter
-
-    Short Help:
     Imports findings from GhostWriter
 
-    Description:
     Connects to the API of a GhostWriter instance and imports its
     finding templates.
-
     """
+
+    meta = {
+        "author": "Richard Schwabe",
+        "name": "GhostWriter",
+        "version": "1.0",
+        "license": "MIT",
+        "summary": "Imports GhostWriter finding templates",
+    }
 
     mapping = {
         "cvss_vector": "cvss",
@@ -39,13 +38,14 @@ class GhostWriter(BaseImporter):
     ghostwriter_url: str
     ghostwriter_apikey: str
 
-    def __init__(self, reptor: ReptorProtocol, **kwargs) -> None:
-        super().__init__(reptor, **kwargs)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         if gql is None:
-            reptor.logger.fail_with_exit(
+            self.log.fail_with_exit(
                 f"[red]Error importing Ghostwriter dependencies. "
-                f"Install with 'pip install reptor{reptor.logger.escape('[ghostwriter]')}'.[/red]")
+                f"Install with 'pip install reptor{self.log.escape('[ghostwriter]')}'.[/red]"
+            )
 
         self.ghostwriter_url = kwargs.get("url", "")
         self.ghostwriter_apikey = kwargs.get("apikey", "")
@@ -109,7 +109,7 @@ class GhostWriter(BaseImporter):
         return result["finding"]
 
     def next_findings_batch(self):
-        self.reptor.logger.debug("Running batch findings")
+        self.debug("Running batch findings")
 
         findings = self._send_graphql_query()
         for finding_data in findings:

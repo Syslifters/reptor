@@ -6,3 +6,7 @@ from .base import BaseApiProtocol
 
 class ApiTemplatesProtocol(BaseApiProtocol):
     project_id: str
+
+    @abstractmethod
+    def upload_new_template(self, template: object):
+        ...
