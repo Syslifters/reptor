@@ -24,9 +24,9 @@ class ApiNotesProtocol(BaseApiProtocol):
     def write_note(
         self,
         notename: str = "",
-        parent_notename: str = "",
         content: str = "",
-        icon: str = "",
+        parent_notename: typing.Union[str, None] = "",
+        icon: typing.Union[str, None] = "",
         no_timestamp: bool = False,
         force_unlock: bool = False,
     ):

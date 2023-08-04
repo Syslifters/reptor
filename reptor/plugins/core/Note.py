@@ -55,10 +55,10 @@ class Note(UploadBase):
         If no notename defined, content gets appended to 'Uploads' note
         """
         self.info("Reading from stdin...")
-        content = 'A' # sys.stdin.read()
+        content = sys.stdin.read()
 
         self.reptor.api.notes.write_note(
-            content,
+            content=content,
             notename=self.notename,
             parent_notename=parent_notename,
             icon=icon,
