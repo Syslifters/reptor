@@ -21,15 +21,6 @@ class Note(UploadBase):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         parser.add_argument(
-            "--private-note", help="add notes to private notes", action="store_true"
-        )
-        parser.add_argument(
-            "-f",
-            "--force-unlock",
-            help="force unlock notes",
-            action="store_true",
-        )
-        parser.add_argument(
             "--list", help="list available notes", action="store_true"
         )
 
