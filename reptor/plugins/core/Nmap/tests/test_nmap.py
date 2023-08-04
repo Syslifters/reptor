@@ -31,6 +31,13 @@ class NmapTests(unittest.TestCase):
         with open(filepath, 'r') as f:
             self.nmap.raw_input = f.read()
 
+    def _load_xml_data(self):
+        self.nmap.input_format = 'xml'
+        filepath = os.path.join(
+            os.path.dirname(__file__), './data/nmap_with_ip.xml')
+        with open(filepath, 'r') as f:
+            self.nmap.raw_input = f.read()
+
     def test_grepable_parse(self):
         result_dict = [{'ip': '127.0.0.1', 'port': 80, 'protocol': 'tcp',
                         'service': 'http', 'version': 'nginx (reverse proxy)'},
@@ -40,6 +47,19 @@ class NmapTests(unittest.TestCase):
                            'protocol': 'tcp', 'service': '', 'version': ''}
                        ]
         self._load_grepable_data()
+        self.nmap.parse()
+        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
+        self.assertEqual(parsed_input_dict, result_dict)
+
+    def test_xml_parse(self):
+        result_dict = [{'ip': '127.0.0.1', 'port': 80, 'protocol': 'tcp',
+                        'service': 'http', 'version': 'nginx (reverse proxy)'},
+                       {'ip': '127.0.0.1', 'port': 443, 'protocol': 'tcp',
+                        'service': 'ssl/http', 'version': 'nginx (reverse proxy)'},
+                       {'ip': '127.0.0.1', 'port': 8080,
+                           'protocol': 'tcp', 'service': '', 'version': ''}
+                       ]
+        self._load_xml_data()
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         self.assertEqual(parsed_input_dict, result_dict)
