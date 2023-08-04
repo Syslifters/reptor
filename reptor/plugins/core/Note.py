@@ -21,15 +21,6 @@ class Note(UploadBase):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         parser.add_argument(
-            "--private-note", help="add notes to private notes", action="store_true"
-        )
-        parser.add_argument(
-            "-f",
-            "--force-unlock",
-            help="force unlock notes",
-            action="store_true",
-        )
-        parser.add_argument(
             "--list", help="list available notes", action="store_true"
         )
 
@@ -64,10 +55,10 @@ class Note(UploadBase):
         If no notename defined, content gets appended to 'Uploads' note
         """
         self.info("Reading from stdin...")
-        content = 'A' # sys.stdin.read()
+        content = sys.stdin.read()
 
         self.reptor.api.notes.write_note(
-            content,
+            content=content,
             notename=self.notename,
             parent_notename=parent_notename,
             icon=icon,

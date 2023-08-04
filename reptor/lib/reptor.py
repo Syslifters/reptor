@@ -178,6 +178,15 @@ class Reptor(ReptorProtocol):
         config_parser.add_argument(
             "-p", "--project-id", help="SysReptor project ID"
         )
+        config_parser.add_argument(
+            "--private-note", help="add notes to private notes", action="store_true"
+        )
+        config_parser.add_argument(
+            "-f",
+            "--force-unlock",
+            help="force unlock notes",
+            action="store_true",
+        )
 
     def _configure_global_arguments(self):
         """Enables the parameters
@@ -284,4 +293,4 @@ class Reptor(ReptorProtocol):
         else:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all
-            self._print_title()
+            print(self._parser.format_help())
