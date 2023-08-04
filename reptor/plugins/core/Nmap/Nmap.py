@@ -23,6 +23,10 @@ class Nmap(ToolBase):
     # Format and upload
     cat nmap_result.txt | reptor nmap -c upload
     """
+    meta = {
+        "name": "Nmap",
+        "summary": "format nmap output",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -83,8 +87,9 @@ class Nmap(ToolBase):
                     self.parsed_input.append(s)
 
     def parse_xml(self):
-        # TODO parse XML
-        raise TypeError("nmap -oX format (XML) not yet implemented")
+        import xmltodict
+        x = xmltodict.parse(self.raw_input)
+        pass
 
     def parse(self):
         super().parse()
