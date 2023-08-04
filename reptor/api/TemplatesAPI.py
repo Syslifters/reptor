@@ -32,7 +32,10 @@ class TemplatesAPI(APIClient):
         return return_data
 
     def upload_new_template(
-        self, template: FindingTemplate
+        self,
+        template: FindingTemplate,
+        language: str = "en-US",
+        is_main_language: bool = True,
     ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
@@ -51,8 +54,8 @@ class TemplatesAPI(APIClient):
                     "translations": [
                         {
                             "status": "in-progress",
-                            "language": "en-US",
-                            "is_main": True,
+                            "language": language,
+                            "is_main": is_main_language,
                             "data": {
                                 "title": template.data.title,
                             },
@@ -70,8 +73,8 @@ class TemplatesAPI(APIClient):
                     "translations": [
                         {
                             "status": "in-progress",
-                            "is_main": True,
-                            "language": "en-US",
+                            "is_main": is_main_language,
+                            "language": language,
                             "data": updated_template.data._to_api_json(),
                         }
                     ],

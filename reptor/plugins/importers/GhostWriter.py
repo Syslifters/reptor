@@ -53,8 +53,8 @@ class GhostWriter(BaseImporter):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath)
         action_group = parser.add_argument_group()
-        action_group.title = "action_group"
         action_group.add_argument(
             "-url",
             "--url",
