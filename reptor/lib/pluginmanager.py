@@ -118,7 +118,7 @@ class PluginManager:
         """Finally the user can have their own "private" modules or
         overwrite any of the official or community modules.
         """
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_IMPORTERS)
+        self._load_plugin_from_path(settings.PLUGIN_DIRS_USER)
 
     def _load_importers(self):
         """Finally the user can have their own "private" modules or
