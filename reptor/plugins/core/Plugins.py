@@ -138,10 +138,13 @@ class Plugins(Base):
 
     def _search(self):
         """Searches plugins"""
+        plugins = list()
+        for _, group_plugins in subcommands.SUBCOMMANDS_GROUPS.items():
+            plugins.extend(group_plugins[1])
         if self.search:
             self.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
             results = list()
-            for plugin in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
+            for plugin in plugins:
                 if self.search in plugin.tags:
                     results.append(plugin)
                     continue
@@ -150,7 +153,7 @@ class Plugins(Base):
                     results.append(plugin)
                     continue
         else:
-            results = subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]
+            results = plugins
 
         self._list(results)
 
