@@ -1,5 +1,6 @@
 import argparse
 import logging
+import signal
 import sys
 import traceback
 
@@ -19,6 +20,11 @@ from .interfaces.reptor import ReptorProtocol
 from .interfaces.pluginmanager import PluginManagerProtocol
 
 root_logger = logging.getLogger("root")
+
+
+def signal_handler(sig, frame):
+    reptor_console.print("[yellow]You pressed Ctrl+C![/yellow]")
+    sys.exit(0)
 
 
 class Reptor(ReptorProtocol):
@@ -51,6 +57,8 @@ class Reptor(ReptorProtocol):
         return cls.instance
 
     def __init__(self) -> None:
+        signal.signal(signal.SIGINT, signal_handler)
+
         # Load the config
         self._config = Config()
         self._config.load_config()
@@ -175,9 +183,7 @@ class Reptor(ReptorProtocol):
         config_parser.add_argument(
             "--insecure", help="do not verify server certificate", action="store_true"
         )
-        config_parser.add_argument(
-            "-p", "--project-id", help="SysReptor project ID"
-        )
+        config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
             "--private-note", help="add notes to private notes", action="store_true"
         )
