@@ -18,7 +18,11 @@ class ConfigProtocol(typing.Protocol):
         ...
 
     @abstractmethod
-    def set(self) -> None:
+    def store_config(self):
+        ...
+
+    @abstractmethod
+    def set(self, key: str, value: typing.Any, plugin: str = "") -> None:
         ...
 
     @abstractmethod

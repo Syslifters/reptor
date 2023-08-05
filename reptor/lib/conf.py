@@ -7,6 +7,7 @@ import yaml
 from .. import settings as settings
 from .interfaces.conf import ConfigProtocol
 from .logger import reptor_logger
+from .console import reptor_console
 
 
 class Config(ConfigProtocol):
@@ -59,14 +60,19 @@ class Config(ConfigProtocol):
         else:
             return self._raw_config.keys()
 
-    def set(self, key, value):
+    def set(self, key: str, value: typing.Any, plugin: str = ""):
         """Sets a value in the config
 
         Args:
             key (typing.Any): _description_
             value (typing.Any): _description_
         """
-        self._raw_config.update({key: value})
+        if plugin:
+            plugin_settings = self._raw_config.get(plugin, {})
+            plugin_settings.update({key: value})
+            self._raw_config.update({plugin: plugin_settings})
+        else:
+            self._raw_config.update({key: value})
 
     def load_config(self):
         """Loads config file from user home directory"""

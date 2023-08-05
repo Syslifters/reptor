@@ -1,3 +1,4 @@
+import sys
 import typing
 from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.console import reptor_console
@@ -23,6 +24,8 @@ class Base:
         "summary": "",
     }
 
+    keys: typing.Dict = {}
+
     def __init__(self, **kwargs):
         self.notename = kwargs.get("notename")
         self.file_path = kwargs.get("file", "")
@@ -36,6 +39,39 @@ class Base:
                 plugin_config_key,
                 self.reptor.get_config().get(plugin_config_key, plugin=plugin_name),
             )
+
+        self._check_required_keys_are_set(plugin_name)
+
+    def _check_required_keys_are_set(self, plugin_name: str = ""):
+        """This method will check if the keys specified in the attribute keys
+        are present in the config. If they are not present in the config, it will
+        over the user to set them.
+
+        The form of each key should be key:help , i.e:
+
+        ```
+        {
+            "api_secret": "Used to connect to the API",
+            "language": "default language of the source items"
+        }
+        ```
+        """
+        config_updated = False
+        for key, val in self.keys.items():
+            config_value = self.reptor.get_config().get(key, "", plugin=plugin_name)
+            if not config_value:
+                self.console.print(
+                    f"[red]Required Key {key} not set in config. [bold]Set it now to continue or press ENTER to exit:[/bold][/red]"
+                )
+                config_value = input()
+                if not config_value:
+                    self.console.print("[green]Exiting...[/green]")
+                    sys.exit(0)
+                self.reptor.get_config().set(key, config_value, plugin=plugin_name)
+                config_updated = True
+
+        if config_updated:
+            self.reptor.get_config().store_config()
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

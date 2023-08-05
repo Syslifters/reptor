@@ -1,6 +1,3 @@
-import typing
-from xml.etree import ElementTree
-
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.plugins.community.Nikto.models import (
     NiktoScan,
@@ -31,6 +28,8 @@ class Nikto(ToolBase):
         "tags": ["web", "owasp"],
         "summary": "Formats Nikto output (XML)",
     }
+
+    keys = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
