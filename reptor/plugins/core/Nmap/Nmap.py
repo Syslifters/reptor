@@ -1,3 +1,5 @@
+import xmltodict
+
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.plugins.core.Nmap.models import Service
 
@@ -68,6 +70,8 @@ class Nmap(ToolBase):
                 continue
             ip, ports = line.split("Ports:")
             ip = ip.split(" ")[1]
+
+            # TODO IP vs Hostname?
             ports = ports.split(",")
             for port in ports:
                 port, status, protocol, _, service, _, version, _ = port.strip().split(
@@ -87,9 +91,30 @@ class Nmap(ToolBase):
                     self.parsed_input.append(s)
 
     def parse_xml(self):
-        import xmltodict
-        x = xmltodict.parse(self.raw_input)
-        pass
+        self.parsed_input = list()
+        nmap_data = xmltodict.parse(self.raw_input)
+        hosts = nmap_data.get("nmaprun", {}).get("host", [])
+        if not isinstance(hosts, list):
+                hosts = [hosts]
+        for host in hosts:
+            ip = host.get("address", {}).get("@addr")
+            ports = host.get("ports", {}).get("port", [])
+            if not isinstance(ports, list):
+                ports = [ports]
+            for port in ports:
+                if port.get("state", {}).get("@state") == "open":
+                    s = Service()
+                    s.parse(
+                        {
+                            "ip": ip,
+                            "hostname": (host.get("hostnames") or {}).get("hostname", {}).get("@name"),
+                            "port": int(port.get("@portid")),
+                            "protocol": port.get("@protocol"),
+                            "service": port.get("service", {}).get("@name"),
+                            "version": port.get("service", {}).get("@product"),
+                        }
+                    )
+                    self.parsed_input.append(s)
 
     def parse(self):
         super().parse()

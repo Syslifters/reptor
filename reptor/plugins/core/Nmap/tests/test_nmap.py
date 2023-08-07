@@ -31,19 +31,19 @@ class NmapTests(unittest.TestCase):
         with open(filepath, 'r') as f:
             self.nmap.raw_input = f.read()
 
-    def _load_xml_data(self):
+    def _load_xml_data(self, xml_file):
         self.nmap.input_format = 'xml'
         filepath = os.path.join(
-            os.path.dirname(__file__), './data/nmap_with_ip.xml')
+            os.path.dirname(__file__), f'./data/{xml_file}')
         with open(filepath, 'r') as f:
             self.nmap.raw_input = f.read()
 
     def test_grepable_parse(self):
-        result_dict = [{'ip': '127.0.0.1', 'port': 80, 'protocol': 'tcp',
+        result_dict = [{'ip': '127.0.0.1', 'hostname': '', 'port': 80, 'protocol': 'tcp',
                         'service': 'http', 'version': 'nginx (reverse proxy)'},
-                       {'ip': '127.0.0.1', 'port': 443, 'protocol': 'tcp',
+                       {'ip': '127.0.0.1', 'hostname': '', 'port': 443, 'protocol': 'tcp',
                         'service': 'ssl/http', 'version': 'nginx (reverse proxy)'},
-                       {'ip': '127.0.0.1', 'port': 8080,
+                       {'ip': '127.0.0.1', 'hostname': '', 'port': 8080,
                            'protocol': 'tcp', 'service': '', 'version': ''}
                        ]
         self._load_grepable_data()
@@ -51,18 +51,79 @@ class NmapTests(unittest.TestCase):
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         self.assertEqual(parsed_input_dict, result_dict)
 
-    def test_xml_parse(self):
-        result_dict = [{'ip': '127.0.0.1', 'port': 80, 'protocol': 'tcp',
-                        'service': 'http', 'version': 'nginx (reverse proxy)'},
-                       {'ip': '127.0.0.1', 'port': 443, 'protocol': 'tcp',
-                        'service': 'ssl/http', 'version': 'nginx (reverse proxy)'},
-                       {'ip': '127.0.0.1', 'port': 8080,
-                           'protocol': 'tcp', 'service': '', 'version': ''}
-                       ]
-        self._load_xml_data()
+    def test_xml_parse_multi_target(self):
+        entries = [{
+            'ip': '142.250.180.228',
+            'hostname': 'www.google.com',
+            'port': 80,
+            'protocol': 'tcp',
+            'service': 'http',
+            'version': 'gws'
+        }, {
+            'ip': '142.250.180.228',
+            'hostname': 'www.google.com',
+            'port': 443,
+            'protocol': 'tcp',
+            'service': 'https',
+            'version': 'gws'
+        }, {
+            'ip': '34.249.200.254',
+            'hostname': 'www.syslifters.com',
+            'port': 80,
+            'protocol': 'tcp',
+            'service': 'http',
+            'version': None
+        }, {
+            'ip': '34.249.200.254',
+            'hostname': 'www.syslifters.com',
+            'port': 443,
+            'protocol': 'tcp',
+            'service': 'https',
+            'version': None
+        }]
+        self._load_xml_data('nmap_multi_target.xml')
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
-        self.assertEqual(parsed_input_dict, result_dict)
+        for entry in entries:
+            self.assertIn(entry, parsed_input_dict)
+            
+
+    def test_xml_parse_single_target(self):
+        entries = [{
+            'ip': '63.35.51.142',
+            'hostname': 'www.syslifters.com',
+            'port': 80,
+            'protocol': 'tcp',
+            'service': 'http',
+            'version': None
+        }]
+        self._load_xml_data('nmap_single_target_single_port.xml')
+        self.nmap.parse()
+        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
+        for entry in entries:
+            self.assertIn(entry, parsed_input_dict)
+
+    def test_xml_parse_without_hostname(self):
+        entries = [{
+            'ip': '142.251.208.164',
+            'hostname': None,
+            'port': 80,
+            'protocol': 'tcp',
+            'service': 'http',
+            'version': None
+        }, {
+            'ip': '142.251.208.164',
+            'hostname': None,
+            'port': 443,
+            'protocol': 'tcp',
+            'service': 'https',
+            'version': None
+        }]
+        self._load_xml_data('nmap_without_hostname.xml')
+        self.nmap.parse()
+        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
+        for entry in entries:
+            self.assertIn(entry, parsed_input_dict)
 
     def test_format_nmap(self):
         result = """| Host | Port | Service | Version |
