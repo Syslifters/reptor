@@ -237,6 +237,10 @@ class ToolBase(Base):
         self.formatted_input = render_to_string(
             f"{self.template}.md", data
         )
+        # TODO there might be a more elegant solution, maybe.
+        while '\n\n\n' in self.formatted_input:
+            self.formatted_input = self.formatted_input.replace(
+                '\n\n\n', '\n\n')
 
     def process_parsed_input_for_template(self):
         return {"data": self.parsed_input}
