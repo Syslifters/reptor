@@ -4,7 +4,6 @@ import shutil
 import reptor.settings as settings
 import reptor.subcommands as subcommands
 from reptor.lib.plugins.Base import Base
-from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.utils.table import make_table
 
 
@@ -138,10 +137,13 @@ class Plugins(Base):
 
     def _search(self):
         """Searches plugins"""
+        plugins = list()
+        for _, group_plugins in subcommands.SUBCOMMANDS_GROUPS.items():
+            plugins.extend(group_plugins[1])
         if self.search:
             self.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
             results = list()
-            for plugin in subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]:
+            for plugin in plugins:
                 if self.search in plugin.tags:
                     results.append(plugin)
                     continue
@@ -150,7 +152,7 @@ class Plugins(Base):
                     results.append(plugin)
                     continue
         else:
-            results = subcommands.SUBCOMMANDS_GROUPS[ToolBase][1]
+            results = plugins
 
         self._list(results)
 
@@ -247,8 +249,9 @@ class Plugins(Base):
         # Copy plugin
 
         dest = dest / plugin.parent.name
-        self.debug(f"Trying to copy {plugin.parent} to {dest}")
+        self.log.display(f"Trying to copy \"{plugin.parent}\" to \"{dest}\"")
         shutil.copytree(plugin.parent, dest)
+        self.log.success(f"Copied successfully. ({dest})")
 
     def run(self):
         if self.new_plugin_name is not None:

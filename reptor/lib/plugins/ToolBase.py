@@ -179,7 +179,10 @@ class ToolBase(Base):
         self.raw_input = sys.stdin.read()
 
     def parse_xml(self):
-        raise NotImplementedError("Parse xml data is not implemented for this plugin.")
+        if not self.file_path and self.raw_input:
+            self.xml_root = ElementTree.fromstring(self.raw_input)
+        else:
+            self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
         raise NotImplementedError("Parse json data is not implemented for this plugin.")
@@ -204,10 +207,6 @@ class ToolBase(Base):
             self.load()
 
         if self.input_format == "xml":
-            if not self.file_path and self.raw_input:
-                self.xml_root = ElementTree.fromstring(self.raw_input)
-            else:
-                self.xml_root = ElementTree.parse(self.file_path).getroot()
             self.parse_xml()
         elif self.input_format == "json":
             self.parse_json()
@@ -226,9 +225,13 @@ class ToolBase(Base):
         if not self.parsed_input:
             self.parse()
 
+        data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(
-            f"{self.template}.md", {"data": self.parsed_input}
+            f"{self.template}.md", {"data": data}
         )
+
+    def process_parsed_input_for_template(self, template=None):
+        ...
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
