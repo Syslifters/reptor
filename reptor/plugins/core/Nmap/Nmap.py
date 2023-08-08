@@ -122,7 +122,7 @@ class Nmap(ToolBase):
 
     def process_parsed_input_for_template(self, template=None):
         data = dict()
-        data['parsed_input'] = self.parsed_input
+        data['data'] = self.parsed_input
         data['show_hostname'] = any([s.hostname for s in self.parsed_input])
         return data
 

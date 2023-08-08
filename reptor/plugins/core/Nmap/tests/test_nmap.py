@@ -2,7 +2,9 @@ import os
 import unittest
 
 import django
-from django.conf import settings
+from django.conf import LazySettings, settings
+from django.utils.functional import empty
+import copy
 
 from reptor.lib.conf import settings as reptor_settings
 from reptor.lib.reptor import Reptor
@@ -13,7 +15,12 @@ from ..Nmap import Nmap
 templates_path = os.path.normpath(os.path.join(
     os.path.dirname(__file__), '../templates'))
 reptor_settings.TEMPLATES[0]['DIRS'].append(templates_path)
+#settings._wrapped = empty
+#my_settings = LazySettings()
+settings = LazySettings()
 settings.configure(reptor_settings, DEBUG=True)
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myapp.settings")
 django.setup()
 
 
@@ -138,7 +145,7 @@ class NmapTests(unittest.TestCase):
             self.nmap.parsed_input.append(s)
 
         data = self.nmap.process_parsed_input_for_template()
-        self.assertEqual(data, {'parsed_input': self.nmap.parsed_input, 'show_hostname': False})
+        self.assertEqual(data, {'data': self.nmap.parsed_input, 'show_hostname': False})
         
         # test with hostname
         self.nmap.parsed_input = list()
@@ -151,7 +158,7 @@ class NmapTests(unittest.TestCase):
             self.nmap.parsed_input.append(s)
 
         data = self.nmap.process_parsed_input_for_template()
-        self.assertEqual(data, {'parsed_input': self.nmap.parsed_input, 'show_hostname': True})
+        self.assertEqual(data, {'data': self.nmap.parsed_input, 'show_hostname': True})
         
 
     def test_format_nmap(self):
@@ -162,7 +169,10 @@ class NmapTests(unittest.TestCase):
 | 127.0.0.1 | 8080/tcp | n/a | n/a |"""
         self._load_grepable_data()
         self.nmap.format()
-        #print(self.nmap.formatted_input)
+        print(self.nmap.parsed_input)
+        print("'######################")
+        print(self.nmap.formatted_input)
+        print("'######################")
         self.assertEqual(self.nmap.formatted_input, result)
 
 

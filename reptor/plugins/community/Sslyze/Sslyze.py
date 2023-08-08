@@ -23,6 +23,7 @@ class Sslyze(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.note_icon = "🔒"
+        self.input_format = "json"
 
     weak_ciphers = [
         "DHE-DSS-DES-CBC3-SHA",
@@ -262,33 +263,37 @@ class Sslyze(ToolBase):
         result_server_info["ip_address"] = server_info["ip_address"]
         return result_server_info
 
-    def parse(self):
-        super().parse()
-        parsed = list()
-        if self.raw_input:
-            ssylze_json = json.loads(self.raw_input)
-            for target in ssylze_json.get("accepted_targets", list()):
-                target_data = self.get_server_info(target)
-                target_data["protocols"] = self.get_weak_ciphers(target)
-                target_data["has_weak_ciphers"] = False
-                if any(
-                        [
-                            v.get("weak_ciphers", list()) +
-                            v.get("insecure_ciphers", list())
-                            for k, v in target_data["protocols"].items()
-                        ]):
-                    target_data["has_weak_ciphers"] = True
-                target_data["certinfo"] = self.get_certinfo(target)
-                target_data["vulnerabilities"] = self.get_vulnerabilities(
-                    target)
-                target_data["has_vulnerabilities"] = False
-                if any([v for k, v in target_data["vulnerabilities"].items()]):
-                    target_data["has_vulnerabilities"] = True
-                target_data["misconfigurations"] = self.get_misconfigurations(
-                    target)
+    def process_parsed_input_for_template(self):
+        data = list()
+        if not isinstance(self.parsed_input, dict):
+            return None
+        for target in self.parsed_input.get("accepted_targets", list()):
+            target_data = self.get_server_info(target)
+            target_data["protocols"] = self.get_weak_ciphers(target)
+            target_data["has_weak_ciphers"] = False
+            if any(
+                    [
+                        v.get("weak_ciphers", list()) +
+                        v.get("insecure_ciphers", list())
+                        for k, v in target_data["protocols"].items()
+                    ]):
+                target_data["has_weak_ciphers"] = True
+            target_data["certinfo"] = self.get_certinfo(target)
+            target_data["vulnerabilities"] = self.get_vulnerabilities(
+                target)
+            target_data["has_vulnerabilities"] = False
+            if any([v for k, v in target_data["vulnerabilities"].items()]):
+                target_data["has_vulnerabilities"] = True
+            target_data["misconfigurations"] = self.get_misconfigurations(
+                target)
 
-                parsed.append(target_data)
-        self.parsed_input = parsed
+            data.append(target_data)
+        if self.template in ["protocols", "certinfo", "vulnerabilities", "misconfigurations", "weak_ciphers"]:
+            if len(data) > 1:
+                self.log.warning("sslyze output contains more than one target. Taking the first one.")
+            return {"target": data[0]}
+        return {"data": data}
+        
 
 
 loader = Sslyze

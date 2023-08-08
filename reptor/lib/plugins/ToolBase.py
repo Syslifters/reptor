@@ -1,4 +1,5 @@
 import glob
+import json
 import logging
 import os
 import sys
@@ -7,7 +8,6 @@ from xml.etree import ElementTree
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
-from reptor.api.NotesAPI import NotesAPI
 
 from .Base import Base
 
@@ -191,8 +191,7 @@ class ToolBase(Base):
             self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
-        raise NotImplementedError(
-            "Parse json data is not implemented for this plugin.")
+        self.parsed_input = json.loads(self.raw_input)
 
     def parse_csv(self):
         raise NotImplementedError(
@@ -236,18 +235,11 @@ class ToolBase(Base):
 
         data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(
-            f"{self.template}.md", {"data": data}
+            f"{self.template}.md", data
         )
-        # TODO there might be a more elegant solution, maybe.
-        while '\n\n\n' in self.formatted_input:
-            self.formatted_input = self.formatted_input.replace(
-                '\n\n\n', '\n\n')
-<<<<<<< HEAD
 
-    def process_parsed_input_for_template(self, template=None):
-        ...
-=======
->>>>>>> 2287269 (Create template for sslyze)
+    def process_parsed_input_for_template(self):
+        return {"data": self.parsed_input}
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
