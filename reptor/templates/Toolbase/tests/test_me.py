@@ -3,7 +3,7 @@ import unittest
 
 class TestMyPlugin(unittest.TestCase):
     def test_true(self):
-        self.assertEqual(True, True)
+        raise NotImplementedError("Test not implemented")
 
 
 if __name__ == "__main__":

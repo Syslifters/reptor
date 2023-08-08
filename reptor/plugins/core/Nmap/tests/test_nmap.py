@@ -7,6 +7,7 @@ from django.conf import settings
 from reptor.lib.conf import settings as reptor_settings
 from reptor.lib.reptor import Reptor
 
+from ..models import Service
 from ..Nmap import Nmap
 
 templates_path = os.path.normpath(os.path.join(
@@ -125,6 +126,34 @@ class NmapTests(unittest.TestCase):
         for entry in entries:
             self.assertIn(entry, parsed_input_dict)
 
+    def test_process_parsed_input(self):
+        # test without hostname
+        self.nmap.parsed_input = list()
+        for d in [{'ip': '127.0.0.1', 'hostname': '', 'port': 80, 'protocol': 'tcp',
+                        'service': 'http', 'version': 'nginx (reverse proxy)'},
+                  {'ip': '127.0.0.1', 'hostname': '', 'port': 443, 'protocol': 'tcp',
+                        'service': 'ssl/http', 'version': 'nginx (reverse proxy)'}]:
+            s = Service()
+            s.parse(d)
+            self.nmap.parsed_input.append(s)
+
+        data = self.nmap.process_parsed_input_for_template()
+        self.assertEqual(data, {'parsed_input': self.nmap.parsed_input, 'show_hostname': False})
+        
+        # test with hostname
+        self.nmap.parsed_input = list()
+        for d in [{'ip': '127.0.0.1', 'hostname': '', 'port': 80, 'protocol': 'tcp',
+                        'service': 'http', 'version': 'nginx (reverse proxy)'},
+                  {'ip': '127.0.0.1', 'hostname': 'localhost', 'port': 443, 'protocol': 'tcp',
+                        'service': 'ssl/http', 'version': 'nginx (reverse proxy)'}]:
+            s = Service()
+            s.parse(d)
+            self.nmap.parsed_input.append(s)
+
+        data = self.nmap.process_parsed_input_for_template()
+        self.assertEqual(data, {'parsed_input': self.nmap.parsed_input, 'show_hostname': True})
+        
+
     def test_format_nmap(self):
         result = """| Host | Port | Service | Version |
 | ------- | ------- | ------- | ------- |
@@ -133,4 +162,14 @@ class NmapTests(unittest.TestCase):
 | 127.0.0.1 | 8080/tcp | n/a | n/a |"""
         self._load_grepable_data()
         self.nmap.format()
-        self.assertEqual(self.nmap.formatted_input.strip('\n'), result)
+        #print(self.nmap.formatted_input)
+        self.assertEqual(self.nmap.formatted_input, result)
+
+
+        result = """| Hostname | Host | Port | Service | Version |
+| ------- | ------- | ------- | ------- | ------- |
+| www.syslifters.com | 63.35.51.142 | 80/tcp | http | n/a |"""
+        self.nmap.parsed_input = None
+        self._load_xml_data('nmap_single_target_single_port.xml')
+        self.nmap.format()
+        self.assertEqual(self.nmap.formatted_input, result)

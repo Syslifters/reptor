@@ -225,9 +225,13 @@ class ToolBase(Base):
         if not self.parsed_input:
             self.parse()
 
+        data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(
-            f"{self.template}.md", {"data": self.parsed_input}
+            f"{self.template}.md", {"data": data}
         )
+
+    def process_parsed_input_for_template(self, template=None):
+        ...
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""

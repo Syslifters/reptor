@@ -29,6 +29,11 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
+        "OPTIONS": {
+            "libraries": {
+                "md": "reptor.utils.templatetags.md",
+            },
+        }
     },
 ]
 
