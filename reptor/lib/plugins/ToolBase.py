@@ -1,4 +1,5 @@
 import glob
+import json
 import logging
 import os
 import sys
@@ -7,7 +8,6 @@ from xml.etree import ElementTree
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
-from reptor.api.NotesAPI import NotesAPI
 
 from .Base import Base
 
@@ -45,16 +45,21 @@ class ToolBase(Base):
             settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
     @classmethod
-    def set_template_vars(cls, plugin_path):
+    def set_template_vars(cls, plugin_path, skip_user_plugins=False):
         template_paths = list()
         # Get template paths from plugin and userdir
-        user_plugin_path = os.path.join(
-            settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
-        )
+        if skip_user_plugins:
+            user_plugin_path = None
+        else:
+            user_plugin_path = os.path.join(
+                settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
+            )
         for path in [
             user_plugin_path,
             plugin_path,
         ]:  # Keep order: user templates override
+            if path is None:
+                continue
             path = os.path.normpath(
                 os.path.join(path, settings.PLUGIN_TEMPLATES_DIR_NAME)
             )
@@ -71,14 +76,16 @@ class ToolBase(Base):
                 os.path.basename(f).rsplit(".", 1)[0]
                 for f in glob.glob(os.path.join(path, "*.md"))
             ]
-            cls.templates.extend([t for t in templates if t not in cls.templates])
+            cls.templates.extend(
+                [t for t in templates if t not in cls.templates])
 
         if cls.templates:
             # Choose default template
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
             else:
-                default_templates = [t for t in cls.templates if "default" in t]
+                default_templates = [
+                    t for t in cls.templates if "default" in t]
                 try:
                     cls.template = default_templates[0]
                 except IndexError:
@@ -126,8 +133,12 @@ class ToolBase(Base):
             default="format",
         )
 
-        input_format_group = parser.add_mutually_exclusive_group()
-        input_format_group.title = "input_format_group"
+        if any(
+            [cls.parse_xml != ToolBase.parse_xml,
+             cls.parse_json != ToolBase.parse_json,
+             cls.parse_csv != ToolBase.parse_csv,]):
+            input_format_group = parser.add_mutually_exclusive_group()
+            input_format_group.title = "input_format_group"
         # Add parsing options only if implemented by modules
         if cls.parse_xml != ToolBase.parse_xml:
             input_format_group.add_argument(
@@ -185,13 +196,15 @@ class ToolBase(Base):
             self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
-        raise NotImplementedError("Parse json data is not implemented for this plugin.")
+        self.parsed_input = json.loads(self.raw_input)
 
     def parse_csv(self):
-        raise NotImplementedError("Parse csv data is not implemented for this plugin.")
+        raise NotImplementedError(
+            "Parse csv data is not implemented for this plugin.")
 
     def parse_raw(self):
-        raise NotImplementedError("Parse raw data is not implemented for this plugin.")
+        raise NotImplementedError(
+            "Parse raw data is not implemented for this plugin.")
 
     def parse(self):
         """
@@ -224,14 +237,18 @@ class ToolBase(Base):
         """
         if not self.parsed_input:
             self.parse()
-
+        
         data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(
-            f"{self.template}.md", {"data": data}
+            f"{self.template}.md", data
         )
+        # TODO there might be a more elegant solution, maybe.
+        while '\n\n\n' in self.formatted_input:
+            self.formatted_input = self.formatted_input.replace(
+                '\n\n\n', '\n\n')
 
-    def process_parsed_input_for_template(self, template=None):
-        ...
+    def process_parsed_input_for_template(self):
+        return {"data": self.parsed_input}
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
