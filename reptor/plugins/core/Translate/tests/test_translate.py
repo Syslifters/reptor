@@ -1,6 +1,7 @@
 import json
-import unittest
 from copy import deepcopy
+
+import pytest
 
 from reptor.api.manager import APIManager
 from reptor.api.models import Finding, FindingRaw, ProjectDesign
@@ -9,7 +10,7 @@ from reptor.lib.reptor import Reptor
 from ..Translate import Translate
 
 
-class TranslateTests(unittest.TestCase):
+class TestTranslate:
     example_finding = """
     {
         "id": "d3658ee5-2d43-40f6-9b97-1b98480afe78",
@@ -61,69 +62,64 @@ class TranslateTests(unittest.TestCase):
     example_design_with_finding_fields_only = """
     {"finding_fields":{"cvss":{"type":"cvss","label":"CVSS","origin":"core","default":"n/a","required":true},"title":{"type":"string","label":"Title","origin":"core","default":"TODO: Finding Title","required":true,"spellcheck":true},"date_field":{"type":"date","label":"Date Field","origin":"custom","default":null,"required":true},"enum_field":{"type":"enum","label":"Enum Field","origin":"custom","choices":[{"label":"Enum Value 1","value":"enum_val_1"},{"label":"Enum Value 2","value":"enum_val_2"},{"label":"Enum Value 3","value":"enum_val_"}],"default":null,"required":true},"list_field":{"type":"list","items":{"type":"object","label":"","origin":"custom","properties":{"enum_in_object":{"type":"enum","label":"Enum in Object","origin":"custom","choices":[{"label":"Enum in Obj 1","value":"enum_in_obj_1"},{"label":"Enum in Obj 2","value":"enum_in_obj_2"},{"label":"Enum in Obj 3","value":"enum_in_obj_3"}],"default":null,"required":true}}},"label":"List Field","origin":"custom","required":true},"user_field":{"type":"user","label":"User Field","origin":"custom","required":true},"number_field":{"type":"number","label":"Number Field","origin":"custom","default":null,"required":true},"object_field":{"type":"object","label":"Object Field","origin":"custom","properties":{"list_in_object":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"List in Object","origin":"custom","required":true}}},"boolean_field":{"type":"boolean","label":"Boolean Field","origin":"custom","default":null},"combobox_field":{"type":"combobox","label":"Combobox Field","origin":"custom","default":null,"required":true,"suggestions":["Combobox Value 1","Combobox Value 2","Combobox Value 3"]},"markdown_field":{"type":"markdown","label":"Markdown Field","origin":"custom","default":null,"required":true}}}"""
 
-    def setUp(self) -> None:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
         class Translator:
             def translate_text(self, text, **kwargs):
                 class Result:
                     def __init__(self, text):
                         self.text = text
+
                 return Result(f"Translated: {text}")
+
         reptor = Reptor()
-        reptor._config._raw_config['project_id'] = '8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e'
+        reptor._config._raw_config[
+            "project_id"
+        ] = "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
         reptor._api = APIManager(reptor=reptor)
         self.translate = Translate(reptor=reptor, to="EN", dry_run=True)
         self.translate.deepl_translator = Translator()
 
         finding_raw = FindingRaw(json.loads(self.example_finding))
-        project_design = ProjectDesign(json.loads(
-            self.example_design_with_finding_fields_only))
+        project_design = ProjectDesign(
+            json.loads(self.example_design_with_finding_fields_only)
+        )
         self.finding = Finding(project_design, finding_raw)
 
-        return super().setUp()
-
     def test_translate(self):
-        self.assertEqual(self.translate.chars_count_to_translate, 0)
-        self.assertEqual(self.translate._dry_run_translate('12345'), '12345')
-        self.assertEqual(self.translate.chars_count_to_translate, 5)
+        assert self.translate.chars_count_to_translate == 0
+        assert self.translate._dry_run_translate("12345") == "12345"
+        assert self.translate.chars_count_to_translate == 5
 
         text = "Hello World"
-        self.assertEqual(self.translate._translate(
-            text), f"Translated: {text}")
-        self.assertEqual(self.translate.chars_count_to_translate, 5+len(text))
-        self.assertEqual(self.translate._translate("123"), f"123")
-        self.assertEqual(self.translate.chars_count_to_translate, 5+len(text))
+        assert self.translate._translate(text) == f"Translated: {text}"
+        assert self.translate.chars_count_to_translate == 5 + len(text)
+        assert self.translate._translate("123") == f"123"
+        assert self.translate.chars_count_to_translate == 5 + len(text)
 
-        self.translate.skip_fields = ['title']
-        translated_finding = self.translate._translate_section(
-            deepcopy(self.finding))
+        self.translate.skip_fields = ["title"]
+        translated_finding = self.translate._translate_section(deepcopy(self.finding))
 
         # Fields that should be translated
-        self.assertEqual(
-            translated_finding.data.markdown_field.value,
-            f"Translated: {self.finding.data.markdown_field.value}")
-        self.assertEqual(
-            translated_finding.data.object_field.value['list_in_object'].value[0].value,
-            f"Translated: {self.finding.data.object_field.value['list_in_object'].value[0].value}")
+        assert (
+            translated_finding.data.markdown_field.value
+            == f"Translated: {self.finding.data.markdown_field.value}"
+        )
+        assert (
+            translated_finding.data.object_field.value["list_in_object"].value[0].value
+            == f"Translated: {self.finding.data.object_field.value['list_in_object'].value[0].value}"
+        )
 
         # Fields not translated due to skip_fields
-        self.assertEqual(
-            translated_finding.data.title.value,
-            f"{self.finding.data.title.value}")
+        assert translated_finding.data.title.value == self.finding.data.title.value
 
         # Fields that should not be translated
-        self.assertEqual(
-            translated_finding.data.combobox_field.value,
-            f"{self.finding.data.combobox_field.value}")
-        self.assertEqual(
-            translated_finding.data.cvss.value,
-            f"{self.finding.data.cvss.value}")
-        self.assertEqual(
-            translated_finding.data.enum_field.value,
-            f"{self.finding.data.enum_field.value}")
-        self.assertEqual(
-            translated_finding.data.list_field.value[0].value['enum_in_object'].value,
-            f"{self.finding.data.list_field.value[0].value['enum_in_object'].value}")
-        pass
+        assert translated_finding.data.combobox_field.value == self.finding.data.combobox_field.value
+        assert translated_finding.data.cvss.value == self.finding.data.cvss.value
+        assert translated_finding.data.enum_field.value == self.finding.data.enum_field.value
+        assert translated_finding.data.list_field.value[0].value[
+            "enum_in_object"
+        ].value == self.finding.data.list_field.value[0].value["enum_in_object"].value
 
     def test_language_code_mapping(self):
         class Reptor:
@@ -131,24 +127,19 @@ class TranslateTests(unittest.TestCase):
                 class Projects:
                     def get_enabled_language_codes(self) -> list:
                         return ["en-US", "de-DE", "es-ES", "fr-FR", "de-XX"]
+
                 projects = Projects()
+
             api = Api()
+
         self.translate.reptor = Reptor()
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("EN"), "en-US")
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("EN-GB"), "en-US")
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("EN-US"), "en-US")
+        assert self.translate._get_sysreptor_language_code("EN") == "en-US"
+        assert self.translate._get_sysreptor_language_code("EN-GB") == "en-US"
+        assert self.translate._get_sysreptor_language_code("EN-US") == "en-US"
 
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("DE"), "de-DE")
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("DE-xX"), "de-XX")
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("ES"), "es-ES")
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("FR"), "fr-FR")
+        assert self.translate._get_sysreptor_language_code("DE") == "de-DE"
+        assert self.translate._get_sysreptor_language_code("DE-xX") == "de-XX"
+        assert self.translate._get_sysreptor_language_code("ES") == "es-ES"
+        assert self.translate._get_sysreptor_language_code("FR") == "fr-FR"
 
-        self.assertEqual(
-            self.translate._get_sysreptor_language_code("invalid"), "")
+        assert self.translate._get_sysreptor_language_code("invalid") == ""

@@ -1,5 +1,3 @@
-import unittest
-
 import django
 from django.conf import settings
 from django.template import engines
@@ -11,9 +9,9 @@ settings.configure(reptor_settings, DEBUG=True)
 django.setup()
 
 
-class TestCaseToolPlugin(unittest.TestCase):
+class TestCaseToolPlugin:
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls.reptor = Reptor()
 
         settings.TEMPLATES[0]["DIRS"] = [cls.templates_path]
@@ -23,7 +21,7 @@ class TestCaseToolPlugin(unittest.TestCase):
             pass
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         settings.TEMPLATES[0]["DIRS"] = []
         try:
             engines._engines["django"].engine.dirs = []

@@ -1,22 +1,24 @@
 import os
 
+import pytest
+
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 
 from ..models import Service
 from ..Nmap import Nmap
 
 
-class NmapTests(TestCaseToolPlugin):
+class TestNmap(TestCaseToolPlugin):
     templates_path = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "../templates")
     )
 
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         Nmap.set_template_vars(
             os.path.dirname(self.templates_path), skip_user_plugins=True
         )
         self.nmap = Nmap(reptor=self.reptor)
-        return super().setUp()
 
     def _load_grepable_data(self):
         self.nmap.input_format = "grepable"
@@ -60,7 +62,7 @@ class NmapTests(TestCaseToolPlugin):
         self._load_grepable_data()
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
-        self.assertEqual(parsed_input_dict, result_dict)
+        assert parsed_input_dict == result_dict
 
     def test_xml_parse_multi_target(self):
         entries = [
@@ -101,7 +103,7 @@ class NmapTests(TestCaseToolPlugin):
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            self.assertIn(entry, parsed_input_dict)
+            assert entry in parsed_input_dict
 
     def test_xml_parse_single_target(self):
         entries = [
@@ -118,7 +120,7 @@ class NmapTests(TestCaseToolPlugin):
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            self.assertIn(entry, parsed_input_dict)
+            assert entry in parsed_input_dict
 
     def test_xml_parse_without_hostname(self):
         entries = [
@@ -143,7 +145,7 @@ class NmapTests(TestCaseToolPlugin):
         self.nmap.parse()
         parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            self.assertIn(entry, parsed_input_dict)
+            assert entry in parsed_input_dict
 
     def test_process_parsed_input(self):
         # test without hostname
@@ -171,7 +173,7 @@ class NmapTests(TestCaseToolPlugin):
             self.nmap.parsed_input.append(s)
 
         data = self.nmap.process_parsed_input_for_template()
-        self.assertEqual(data, {"data": self.nmap.parsed_input, "show_hostname": False})
+        assert data == {"data": self.nmap.parsed_input, "show_hostname": False}
 
         # test with hostname
         self.nmap.parsed_input = list()
@@ -198,7 +200,7 @@ class NmapTests(TestCaseToolPlugin):
             self.nmap.parsed_input.append(s)
 
         data = self.nmap.process_parsed_input_for_template()
-        self.assertEqual(data, {"data": self.nmap.parsed_input, "show_hostname": True})
+        assert data == {"data": self.nmap.parsed_input, "show_hostname": True}
 
     def test_format_nmap(self):
         result = """| Host | Port | Service | Version |
@@ -208,7 +210,7 @@ class NmapTests(TestCaseToolPlugin):
 | 127.0.0.1 | 8080/tcp | n/a | n/a |"""
         self._load_grepable_data()
         self.nmap.format()
-        self.assertEqual(self.nmap.formatted_input, result)
+        assert self.nmap.formatted_input == result
 
         result = """| Hostname | Host | Port | Service | Version |
 | ------- | ------- | ------- | ------- | ------- |
@@ -216,4 +218,4 @@ class NmapTests(TestCaseToolPlugin):
         self.nmap.parsed_input = None
         self._load_xml_data("nmap_single_target_single_port.xml")
         self.nmap.format()
-        self.assertEqual(self.nmap.formatted_input, result)
+        assert self.nmap.formatted_input == result

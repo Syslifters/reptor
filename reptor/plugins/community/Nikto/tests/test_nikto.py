@@ -1,16 +1,15 @@
-import unittest
+import os
 from xml.etree import ElementTree
 
-from ..models import NiktoScan
-
-import os
+import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 
+from ..models import NiktoScan
 from ..Nikto import Nikto
 
 
-class NiktoTests(TestCaseToolPlugin):
+class TestNikto(TestCaseToolPlugin):
     templates_path = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "../templates")
     )
@@ -21,12 +20,12 @@ class NiktoTests(TestCaseToolPlugin):
     </niktoscan>
 </niktoscans>"""
 
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         Nikto.set_template_vars(
             os.path.dirname(self.templates_path), skip_user_plugins=True
         )
         self.nikto = Nikto(reptor=self.reptor)
-        return super().setUp()
 
     def _load_xml_data(self, xml_file):
         self.nikto.input_format = "xml"
@@ -43,55 +42,49 @@ class NiktoTests(TestCaseToolPlugin):
     def test_nikto_parse_xml(self):
         self._load_xml_data("multiple-nikto.xml")
         self.nikto.parse()
-        self.assertEqual(len(self.nikto.parsed_input), 2)
-        self.assertEqual(self.nikto.parsed_input[0].version, "2.5.0")
-        self.assertEqual(self.nikto.parsed_input[1].version, "2.5.0")
+        assert len(self.nikto.parsed_input) == 2
+        assert self.nikto.parsed_input[0].version == "2.5.0"
+        assert self.nikto.parsed_input[1].version == "2.5.0"
 
-        self.assertEqual(
-            self.nikto.parsed_input[0].options,
-            "-host targets.txt -Format xml -output multiple-nikto.xml",
+        assert (
+            self.nikto.parsed_input[0].options
+            == "-host targets.txt -Format xml -output multiple-nikto.xml"
         )
-        self.assertEqual(
-            self.nikto.parsed_input[1].options,
-            "-host targets.txt -Format xml -output multiple-nikto.xml",
-        )
-
-        self.assertEqual(len(self.nikto.parsed_input[0].scandetails.items), 2)
-        self.assertEqual(self.nikto.parsed_input[0].scandetails.errors, "0")
-        self.assertEqual(self.nikto.parsed_input[0].scandetails.targetport, "9443")
-        self.assertEqual(self.nikto.parsed_input[1].scandetails.targetip, "127.0.0.1")
-        self.assertEqual(
-            self.nikto.parsed_input[0].scandetails.targethostname, "localhost"
-        )
-        self.assertEqual(self.nikto.parsed_input[0].scandetails.targetbanner, "")
-        self.assertEqual(
-            self.nikto.parsed_input[0].scandetails.starttime, "2023-06-29 01:21:03"
+        assert (
+            self.nikto.parsed_input[1].options
+            == "-host targets.txt -Format xml -output multiple-nikto.xml"
         )
 
-        self.assertEqual(len(self.nikto.parsed_input[1].scandetails.items), 151)
-        self.assertEqual(
-            self.nikto.parsed_input[1].scandetails.targetbanner,
-            "Apache/2.4.56 (Debian)",
-        )
-        self.assertEqual(
-            self.nikto.parsed_input[1].scandetails.targethostname,
-            "mutillidae.localhost",
-        )
-        self.assertEqual(self.nikto.parsed_input[1].scandetails.targetip, "127.0.0.1")
-        self.assertEqual(self.nikto.parsed_input[1].scandetails.targetport, "80")
-        self.assertEqual(self.nikto.parsed_input[1].scandetails.errors, "0")
-        self.assertEqual(
-            self.nikto.parsed_input[1].scandetails.starttime, "2023-06-29 01:21:10"
-        )
+        assert len(self.nikto.parsed_input[0].scandetails.items) == 2
+        assert self.nikto.parsed_input[0].scandetails.errors == "0"
+        assert self.nikto.parsed_input[0].scandetails.targetport == "9443"
+        assert self.nikto.parsed_input[1].scandetails.targetip == "127.0.0.1"
+        assert self.nikto.parsed_input[0].scandetails.targethostname == "localhost"
+        assert self.nikto.parsed_input[0].scandetails.targetbanner == ""
+        assert self.nikto.parsed_input[0].scandetails.starttime == "2023-06-29 01:21:03"
 
-        self.assertEqual(
-            self.nikto.parsed_input[1].scandetails.items[0].description,
-            " Cookie PHPSESSID created without the httponly flag.",
+        assert len(self.nikto.parsed_input[1].scandetails.items) == 151
+        assert (
+            self.nikto.parsed_input[1].scandetails.targetbanner
+            == "Apache/2.4.56 (Debian)"
+        )
+        assert (
+            self.nikto.parsed_input[1].scandetails.targethostname
+            == "mutillidae.localhost"
+        )
+        assert self.nikto.parsed_input[1].scandetails.targetip == "127.0.0.1"
+        assert self.nikto.parsed_input[1].scandetails.targetport == "80"
+        assert self.nikto.parsed_input[1].scandetails.errors == "0"
+        assert self.nikto.parsed_input[1].scandetails.starttime == "2023-06-29 01:21:10"
+
+        assert (
+            self.nikto.parsed_input[1].scandetails.items[0].description
+            == " Cookie PHPSESSID created without the httponly flag."
         )
 
     def test_nikto_parse_json(self):
         self._load_json_data("nikto-multidae.json")
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             self.nikto.input_format = "json"
             self.nikto.parse()
 
@@ -107,44 +100,44 @@ class NiktoTests(TestCaseToolPlugin):
 | Sitename | http://localhost:9443/ |
 | Host Header | localhost |
 | Errors | 0 |"""
-        self.assertIn(details_table, self.nikto.formatted_input)
+        assert details_table in self.nikto.formatted_input
 
         statistics_table = """| Target | Information |
 | :--- | :--- |
 | Issues Items | 2 |
 | Duration | 7 Seconds |
 | Total Checks | None |"""
-        self.assertIn(statistics_table, self.nikto.formatted_input)
+        assert statistics_table in self.nikto.formatted_input
 
         issues_table = """| Endpoint | Method | Description | References |
 | :----- | :--- | :----- | :---- |
 | / | GET |  The anti-clickjacking X-Frame-Options header is not present. | https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options |
 | / | GET |  The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. | https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/ |"""
-        self.assertIn(issues_table, self.nikto.formatted_input)
+        assert issues_table in self.nikto.formatted_input
 
         scan_results = """CMD Options: `-host targets.txt -Format xml -output multiple-nikto.xml`"""
-        self.assertIn(scan_results, self.nikto.formatted_input)
+        assert scan_results in self.nikto.formatted_input
 
         statistics_table_1 = """| Target | Information |
 | :--- | :--- |
 | Issues Items | 151 |
 | Duration | 15 Seconds |
 | Total Checks | None |"""
-        self.assertIn(statistics_table_1, self.nikto.formatted_input)
+        assert statistics_table_1 in self.nikto.formatted_input
 
         issues_table_1 = """| Endpoint | Method | Description | References |
 | :----- | :--- | :----- | :---- |
 | / | GET |  Cookie PHPSESSID created without the httponly flag. | https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies |
 | / | GET |  Cookie showhints created without the httponly flag. | https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies |
 | / | GET |  Retrieved x-powered-by header | None |"""
-        self.assertIn(issues_table_1, self.nikto.formatted_input)
+        assert issues_table_1 in self.nikto.formatted_input
 
     def test_nikto_scan(self):
         root = ElementTree.fromstring(self.xml_sample)
         nikto_scan = NiktoScan()
         nikto_scan.parse(root[0])
-        self.assertEqual(
-            "-host targets.txt -Format xml -output multiple-nikto.xml",
-            nikto_scan.options,
+        assert (
+            "-host targets.txt -Format xml -output multiple-nikto.xml"
+            == nikto_scan.options
         )
-        self.assertEqual("2.5.0", nikto_scan.version)
+        assert "2.5.0" == nikto_scan.version

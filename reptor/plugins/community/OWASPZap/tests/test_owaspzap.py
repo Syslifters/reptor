@@ -1,15 +1,6 @@
-import unittest
-
-
-class TestXMLParseMethods(unittest.TestCase):
-
+class TestXMLParseMethods:
     def test_owasp_xml_scan(self):
-        self.assertEqual(True, True)
+        assert True == True
 
     def test_owasp_json_scan(self):
-        self.assertEqual(True, True)
-
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert True == True

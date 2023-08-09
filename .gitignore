@@ -7,3 +7,4 @@ reptor.egg-info
 build
 dist
 venv
+.pytest_cache
