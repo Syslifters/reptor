@@ -25,4 +25,7 @@ class TestCaseToolPlugin(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         settings.TEMPLATES[0]["DIRS"] = []
-        engines._engines["django"].engine.dirs = []
+        try:
+            engines._engines["django"].engine.dirs = []
+        except KeyError:
+            pass
