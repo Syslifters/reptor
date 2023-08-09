@@ -16,7 +16,7 @@ class TestCaseToolPlugin(unittest.TestCase):
     def setUpClass(cls):
         cls.reptor = Reptor()
 
-        settings.TEMPLATES[0]["DIRS"] = cls.templates_path
+        settings.TEMPLATES[0]["DIRS"] = [cls.templates_path]
         try:
             engines._engines["django"].engine.dirs = [cls.templates_path]
         except KeyError:
@@ -25,4 +25,7 @@ class TestCaseToolPlugin(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         settings.TEMPLATES[0]["DIRS"] = []
-        engines._engines["django"].engine.dirs = []
+        try:
+            engines._engines["django"].engine.dirs = []
+        except KeyError:
+            pass

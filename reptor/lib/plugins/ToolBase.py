@@ -5,6 +5,7 @@ import os
 import sys
 from xml.etree import ElementTree
 
+import xmltodict
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
@@ -76,16 +77,14 @@ class ToolBase(Base):
                 os.path.basename(f).rsplit(".", 1)[0]
                 for f in glob.glob(os.path.join(path, "*.md"))
             ]
-            cls.templates.extend(
-                [t for t in templates if t not in cls.templates])
+            cls.templates.extend([t for t in templates if t not in cls.templates])
 
         if cls.templates:
             # Choose default template
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
             else:
-                default_templates = [
-                    t for t in cls.templates if "default" in t]
+                default_templates = [t for t in cls.templates if "default" in t]
                 try:
                     cls.template = default_templates[0]
                 except IndexError:
@@ -134,9 +133,12 @@ class ToolBase(Base):
         )
 
         if any(
-            [cls.parse_xml != ToolBase.parse_xml,
-             cls.parse_json != ToolBase.parse_json,
-             cls.parse_csv != ToolBase.parse_csv,]):
+            [
+                cls.parse_xml != ToolBase.parse_xml,
+                cls.parse_json != ToolBase.parse_json,
+                cls.parse_csv != ToolBase.parse_csv,
+            ]
+        ):
             input_format_group = parser.add_mutually_exclusive_group()
             input_format_group.title = "input_format_group"
         # Add parsing options only if implemented by modules
@@ -189,22 +191,23 @@ class ToolBase(Base):
         """Puts the stdin into raw_input"""
         self.raw_input = sys.stdin.read()
 
-    def parse_xml(self):
-        if not self.file_path and self.raw_input:
-            self.xml_root = ElementTree.fromstring(self.raw_input)
+    def parse_xml(self, as_dict=True):
+        if as_dict:
+            self.parsed_input = xmltodict.parse(self.raw_input)
         else:
-            self.xml_root = ElementTree.parse(self.file_path).getroot()
+            if not self.file_path and self.raw_input:
+                self.xml_root = ElementTree.fromstring(self.raw_input)
+            else:
+                self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
         self.parsed_input = json.loads(self.raw_input)
 
     def parse_csv(self):
-        raise NotImplementedError(
-            "Parse csv data is not implemented for this plugin.")
+        raise NotImplementedError("Parse csv data is not implemented for this plugin.")
 
     def parse_raw(self):
-        raise NotImplementedError(
-            "Parse raw data is not implemented for this plugin.")
+        raise NotImplementedError("Parse raw data is not implemented for this plugin.")
 
     def parse(self):
         """
@@ -237,15 +240,12 @@ class ToolBase(Base):
         """
         if not self.parsed_input:
             self.parse()
-        
+
         data = self.process_parsed_input_for_template()
-        self.formatted_input = render_to_string(
-            f"{self.template}.md", data
-        )
+        self.formatted_input = render_to_string(f"{self.template}.md", data)
         # TODO there might be a more elegant solution, maybe.
-        while '\n\n\n' in self.formatted_input:
-            self.formatted_input = self.formatted_input.replace(
-                '\n\n\n', '\n\n')
+        while "\n\n\n" in self.formatted_input:
+            self.formatted_input = self.formatted_input.replace("\n\n\n", "\n\n")
 
     def process_parsed_input_for_template(self):
         return {"data": self.parsed_input}
