@@ -1,7 +1,6 @@
-
-
-{% for nikto_scan in data %}
+{% for nikto_scan in data %}{% load md %}
 # Nikto Scan Results
+
 CMD Options: `{{ nikto_scan.options  }}`
 
 ## Details
@@ -25,8 +24,10 @@ CMD Options: `{{ nikto_scan.options  }}`
 
 ## Issues
 | Endpoint | Method | Description | References |
-| :----- | :--- | :----- | :---- |"""
-    {% for item in nikto_scan.scandetails.items %}
+| :----- | :--- | :----- | :---- |
+{% noemptylines %}
+{% for item in nikto_scan.scandetails.items %}
 | {{ item.endpoint }} | {{ item.method }} | {{ item.description }} | {{ item.references }} |
-    {% endfor %}
+{% endfor %}
+{% endnoemptylines %}
 {% endfor %}

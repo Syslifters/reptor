@@ -16,7 +16,7 @@ class TestCaseToolPlugin(unittest.TestCase):
     def setUpClass(cls):
         cls.reptor = Reptor()
 
-        settings.TEMPLATES[0]["DIRS"] = cls.templates_path
+        settings.TEMPLATES[0]["DIRS"] = [cls.templates_path]
         try:
             engines._engines["django"].engine.dirs = [cls.templates_path]
         except KeyError:

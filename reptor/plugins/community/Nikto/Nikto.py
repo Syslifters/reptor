@@ -11,13 +11,10 @@ from reptor.plugins.community.Nikto.models import (
 
 class Nikto(ToolBase):
     """
-    Multiple Targets are not supported in JSON
-
     cat nikto-raw-output.txt | reptor simplelist -c format
 
     cat nikto-result.xml | python reptor simplelist --xml
 
-    cat nikto-result.json | python reptor simplelist --json
     """
 
     meta = {
@@ -34,6 +31,9 @@ class Nikto(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = "Nikto"
+
+    def parse_json(self):
+        raise NotImplementedError("JSON parsing is not implemented for nikto")
 
     def parse_xml(self):
         """Parses XML file from Nikto, tested with version 2.5.0
