@@ -1,14 +1,25 @@
 import json
-import unittest
 from copy import deepcopy
 
-from reptor.api.models import (FindingData, FindingDataField, FindingDataRaw,
-                               FindingRaw, FindingTemplate, Project,
-                               ProjectDesign, ProjectDesignField, SectionData,
-                               SectionDataField, SectionRaw, User)
+import pytest
+
+from reptor.api.models import (
+    FindingData,
+    FindingDataField,
+    FindingDataRaw,
+    FindingRaw,
+    FindingTemplate,
+    Project,
+    ProjectDesign,
+    ProjectDesignField,
+    SectionData,
+    SectionDataField,
+    SectionRaw,
+    User,
+)
 
 
-class TestModelsParsing(unittest.TestCase):
+class TestModelsParsing:
     example_user = """
 {
             "id": "e79abf41-5b7c-4c1f-826e-040f34eaf6b4",
@@ -296,289 +307,300 @@ class TestModelsParsing(unittest.TestCase):
     def test_section_data(self):
         json_example = json.loads(self.example_section)
         section_raw = SectionRaw(json_example)
-        project_design = ProjectDesign(json.loads(
-            self.example_design_with_report_fields_only))
-        section_data = SectionData(
-            project_design.report_fields, section_raw.data)
-        self.assertEqual(section_data.draft.name, 'draft')
-        self.assertEqual(section_data.draft.type, 'boolean')
-        self.assertEqual(section_data.draft.value, True)
+        project_design = ProjectDesign(
+            json.loads(self.example_design_with_report_fields_only)
+        )
+        section_data = SectionData(project_design.report_fields, section_raw.data)
+        assert section_data.draft.name == "draft"
+        assert section_data.draft.type == "boolean"
+        assert section_data.draft.value == True
 
-        self.assertEqual(section_data.title.name, 'title')
-        self.assertEqual(section_data.title.type, 'string')
-        self.assertEqual(section_data.title.value, 'Test')
+        assert section_data.title.name == "title"
+        assert section_data.title.type == "string"
+        assert section_data.title.value == "Test"
 
-        self.assertEqual(section_data.report_date.name, 'report_date')
-        self.assertEqual(section_data.report_date.type, 'date')
-        self.assertEqual(section_data.report_date.value, '2023-07-31')
+        assert section_data.report_date.name == "report_date"
+        assert section_data.report_date.type == "date"
+        assert section_data.report_date.value == "2023-07-31"
 
-        self.assertEqual(section_data.report_version.name, 'report_version')
-        self.assertEqual(section_data.report_version.type, 'string')
-        self.assertEqual(section_data.report_version.value, '1.0')
+        assert section_data.report_version.name == "report_version"
+        assert section_data.report_version.type == "string"
+        assert section_data.report_version.value == "1.0"
 
-        self.assertEqual(section_data.list_of_changes.name, 'list_of_changes')
-        self.assertEqual(section_data.list_of_changes.type, 'list')
-        self.assertIsInstance(
-            section_data.list_of_changes.value[0], SectionDataField)
-        self.assertEqual(section_data.list_of_changes.value[0].type, 'object')
-        self.assertIsInstance(
-            section_data.list_of_changes.value[0].value['date'], SectionDataField)
-        self.assertEqual(
-            section_data.list_of_changes.value[0].value['date'].value, "2023-07-24")
-        self.assertEqual(
-            section_data.list_of_changes.value[0].value['version'].value, "1.0")
-        self.assertEqual(
-            section_data.list_of_changes.value[0].value['description'].value, "Description")
-        self.assertEqual(
-            section_data.list_of_changes.value[1].value['date'].value, "2023-07-25")
-        self.assertEqual(
-            section_data.list_of_changes.value[1].value['version'].value, "2.0")
-        self.assertEqual(
-            section_data.list_of_changes.value[1].value['description'].value, "New Description")
+        assert section_data.list_of_changes.name == "list_of_changes"
+        assert section_data.list_of_changes.type == "list"
+        assert isinstance(section_data.list_of_changes.value[0], SectionDataField)
+        assert section_data.list_of_changes.value[0].type == "object"
+        assert isinstance(
+            section_data.list_of_changes.value[0].value["date"], SectionDataField
+        )
+        assert section_data.list_of_changes.value[0].value["date"].value == "2023-07-24"
+        assert section_data.list_of_changes.value[0].value["version"].value == "1.0"
+        assert (
+            section_data.list_of_changes.value[0].value["description"].value
+            == "Description"
+        )
+        assert section_data.list_of_changes.value[1].value["date"].value == "2023-07-25"
+        assert section_data.list_of_changes.value[1].value["version"].value == "2.0"
+        assert (
+            section_data.list_of_changes.value[1].value["description"].value
+            == "New Description"
+        )
 
         # Test setting values
-        section_data.title.value = 'New Title'
-        self.assertEqual(section_data.title.value, 'New Title')
-        with self.assertRaises(ValueError):
+        section_data.title.value = "New Title"
+        assert section_data.title.value == "New Title"
+        with pytest.raises(ValueError):
             section_data.title.value = 1
 
-        section_data.report_date.value = '2024-08-08'
-        self.assertEqual(section_data.report_date.value, '2024-08-08')
-        with self.assertRaises(ValueError):
-            section_data.report_date.value = 'new date'
+        section_data.report_date.value = "2024-08-08"
+        assert section_data.report_date.value == "2024-08-08"
+        with pytest.raises(ValueError):
+            section_data.report_date.value = "new date"
 
         section_data.draft.value = False
-        self.assertEqual(section_data.draft.value, False)
-        with self.assertRaises(ValueError):
-            section_data.draft.value = 'False'
+        assert section_data.draft.value == False
+        with pytest.raises(ValueError):
+            section_data.draft.value = "False"
 
-        section_data.list_of_changes.value[1].value['date'].value = '2025-01-01'
-        self.assertEqual(
-            section_data.list_of_changes.value[1].value['date'].value, '2025-01-01')
-        with self.assertRaises(ValueError):
+        section_data.list_of_changes.value[1].value["date"].value = "2025-01-01"
+        assert section_data.list_of_changes.value[1].value["date"].value == "2025-01-01"
+        with pytest.raises(ValueError):
             section_data.list_of_changes.value[0].value = "Invalid Value"
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             section_data.list_of_changes.value[0].value = {"abc": "test"}
 
     def test_finding_data(self):
         json_example = json.loads(self.example_finding)
         finding_raw = FindingRaw(json_example)
-        project_design = ProjectDesign(json.loads(
-            self.example_design_with_finding_fields_only))
-        finding_data = FindingData(
-            project_design.finding_fields, finding_raw.data)
-        self.assertEqual(finding_data.boolean_field.name, 'boolean_field')
-        self.assertEqual(finding_data.boolean_field.type, 'boolean')
-        self.assertEqual(finding_data.boolean_field.value, True)
+        project_design = ProjectDesign(
+            json.loads(self.example_design_with_finding_fields_only)
+        )
+        finding_data = FindingData(project_design.finding_fields, finding_raw.data)
+        assert finding_data.boolean_field.name == "boolean_field"
+        assert finding_data.boolean_field.type == "boolean"
+        assert finding_data.boolean_field.value == True
 
-        self.assertEqual(finding_data.combobox_field.name, 'combobox_field')
-        self.assertEqual(finding_data.combobox_field.type, 'combobox')
-        self.assertEqual(finding_data.combobox_field.value, 'Combobox Value 2')
+        assert finding_data.combobox_field.name == "combobox_field"
+        assert finding_data.combobox_field.type == "combobox"
+        assert finding_data.combobox_field.value == "Combobox Value 2"
 
-        self.assertEqual(finding_data.cvss.name, 'cvss')
-        self.assertEqual(finding_data.cvss.type, 'cvss')
-        self.assertEqual(finding_data.cvss.value, 'n/a')
+        assert finding_data.cvss.name == "cvss"
+        assert finding_data.cvss.type == "cvss"
+        assert finding_data.cvss.value == "n/a"
 
-        self.assertEqual(finding_data.date_field.name, 'date_field')
-        self.assertEqual(finding_data.date_field.type, 'date')
-        self.assertEqual(finding_data.date_field.value, '2023-07-03')
+        assert finding_data.date_field.name == "date_field"
+        assert finding_data.date_field.type == "date"
+        assert finding_data.date_field.value == "2023-07-03"
 
-        self.assertEqual(finding_data.enum_field.name, 'enum_field')
-        self.assertEqual(finding_data.enum_field.type, 'enum')
-        self.assertEqual(finding_data.enum_field.value, 'enum_val_2')
+        assert finding_data.enum_field.name == "enum_field"
+        assert finding_data.enum_field.type == "enum"
+        assert finding_data.enum_field.value == "enum_val_2"
 
-        self.assertEqual(finding_data.list_field.name, 'list_field')
-        self.assertEqual(finding_data.list_field.type, 'list')
-        self.assertIsInstance(finding_data.list_field.value, list)
-        self.assertIsInstance(
-            finding_data.list_field.value[0], FindingDataField)
-        self.assertEqual(finding_data.list_field.value[0].type, 'object')
-        self.assertIsInstance(
-            finding_data.list_field.value[0].value, dict)
-        self.assertIsInstance(
-            finding_data.list_field.value[0].value['enum_in_object'], FindingDataField)
-        self.assertEqual(
-            finding_data.list_field.value[0].value['enum_in_object'].type, 'enum')
-        self.assertEqual(
-            finding_data.list_field.value[0].value['enum_in_object'].value, 'enum_in_obj_2')
+        assert finding_data.list_field.name == "list_field"
+        assert finding_data.list_field.type == "list"
+        assert isinstance(finding_data.list_field.value, list)
+        assert isinstance(finding_data.list_field.value[0], FindingDataField)
+        assert finding_data.list_field.value[0].type == "object"
+        assert isinstance(finding_data.list_field.value[0].value, dict)
+        assert isinstance(
+            finding_data.list_field.value[0].value["enum_in_object"], FindingDataField
+        )
+        assert finding_data.list_field.value[0].value["enum_in_object"].type == "enum"
+        assert (
+            finding_data.list_field.value[0].value["enum_in_object"].value
+            == "enum_in_obj_2"
+        )
+        assert finding_data.object_field.name == "object_field"
+        assert finding_data.object_field.type == "object"
+        assert isinstance(finding_data.object_field.value, dict)
+        assert isinstance(
+            finding_data.object_field.value["list_in_object"], FindingDataField
+        )
+        assert finding_data.object_field.value["list_in_object"].type == "list"
+        assert isinstance(finding_data.object_field.value["list_in_object"].value, list)
+        assert isinstance(
+            finding_data.object_field.value["list_in_object"].value[0], FindingDataField
+        )
+        assert (
+            finding_data.object_field.value["list_in_object"].value[0].type == "string"
+        )
+        assert (
+            finding_data.object_field.value["list_in_object"].value[0].value
+            == "My String in List in Object"
+        )
 
-        self.assertEqual(finding_data.object_field.name, 'object_field')
-        self.assertEqual(finding_data.object_field.type, 'object')
-        self.assertIsInstance(finding_data.object_field.value, dict)
-        self.assertIsInstance(
-            finding_data.object_field.value['list_in_object'], FindingDataField)
-        self.assertEqual(
-            finding_data.object_field.value['list_in_object'].type, 'list')
-        self.assertIsInstance(
-            finding_data.object_field.value['list_in_object'].value, list)
-        self.assertIsInstance(
-            finding_data.object_field.value['list_in_object'].value[0], FindingDataField)
-        self.assertEqual(
-            finding_data.object_field.value['list_in_object'].value[0].type, 'string')
-        self.assertEqual(
-            finding_data.object_field.value['list_in_object'].value[0].value, 'My String in List in Object')
-
-        self.assertDictEqual(finding_data.to_json(), json_example['data'])
+        assert finding_data.to_json() == json_example["data"]
 
         # Try to set attributes
-        finding_data.enum_field.value = 'enum_val_1'
-        self.assertEqual(finding_data.enum_field.value, 'enum_val_1')
-        with self.assertRaises(ValueError):
-            finding_data.enum_field.value = 'invalid_value'
+        finding_data.enum_field.value = "enum_val_1"
+        assert finding_data.enum_field.value == "enum_val_1"
+        with pytest.raises(ValueError):
+            finding_data.enum_field.value = "invalid_value"
 
         finding_data.boolean_field.value = False
-        self.assertEqual(finding_data.boolean_field.value, False)
-        with self.assertRaises(ValueError):
-            finding_data.boolean_field.value = 'invalid_value'
+        assert finding_data.boolean_field.value == False
+        with pytest.raises(ValueError):
+            finding_data.boolean_field.value = "invalid_value"
 
-        finding_data.combobox_field.value = 'Combobox Value 1'
-        self.assertEqual(finding_data.combobox_field.value, 'Combobox Value 1')
-        with self.assertRaises(ValueError):
+        finding_data.combobox_field.value = "Combobox Value 1"
+        assert finding_data.combobox_field.value == "Combobox Value 1"
+        with pytest.raises(ValueError):
             finding_data.combobox_field.value = True
 
-        finding_data.date_field.value = '2005-01-01'
-        self.assertEqual(finding_data.date_field.value, '2005-01-01')
-        with self.assertRaises(ValueError):
-            finding_data.date_field.value = '2002-01-32'
+        finding_data.date_field.value = "2005-01-01"
+        assert finding_data.date_field.value == "2005-01-01"
+        with pytest.raises(ValueError):
+            finding_data.date_field.value = "2002-01-32"
 
         new_list = deepcopy(finding_data.list_field.value)
-        new_list[0].value['enum_in_object'].value = 'enum_in_obj_1'
+        new_list[0].value["enum_in_object"].value = "enum_in_obj_1"
         finding_data.list_field.value = new_list
-        self.assertEqual(finding_data.list_field.value, new_list)
-        with self.assertRaises(ValueError):
+        assert finding_data.list_field.value == new_list
+        with pytest.raises(ValueError):
             # ValueError due to invalid enum
-            new_list[0].value['enum_in_object'].value = 'invalid_value'
-        with self.assertRaises(ValueError):
-            finding_data.list_field.value = 'invalid_value'
-        with self.assertRaises(ValueError):
-            finding_data.list_field.value = [new_list[0], 'invalid_value']
-        with self.assertRaises(ValueError):
-            finding_data.list_field.value = [
-                new_list[0], finding_data.combobox_field]
+            new_list[0].value["enum_in_object"].value = "invalid_value"
+        with pytest.raises(ValueError):
+            finding_data.list_field.value = "invalid_value"
+        with pytest.raises(ValueError):
+            finding_data.list_field.value = [new_list[0], "invalid_value"]
+        with pytest.raises(ValueError):
+            finding_data.list_field.value = [new_list[0], finding_data.combobox_field]
 
         new_object = deepcopy(finding_data.object_field.value)
-        new_object['list_in_object'].value[0].value = 'My new String in List in Object'
+        new_object["list_in_object"].value[0].value = "My new String in List in Object"
         finding_data.object_field.value = new_object
-        self.assertEqual(finding_data.object_field.value, new_object)
-        with self.assertRaises(ValueError):
+        assert finding_data.object_field.value == new_object
+        with pytest.raises(ValueError):
             # ValueError due to invalid string
-            new_object['list_in_object'].value[0].value = 1
-        with self.assertRaises(ValueError):
-            finding_data.object_field.value = 'invalid_value'
-        with self.assertRaises(ValueError):
+            new_object["list_in_object"].value[0].value = 1
+        with pytest.raises(ValueError):
+            finding_data.object_field.value = "invalid_value"
+        with pytest.raises(ValueError):
             finding_data.object_field.value = [
-                new_object['list_in_object'], 'invalid_value']
-        with self.assertRaises(ValueError):
+                new_object["list_in_object"],
+                "invalid_value",
+            ]
+        with pytest.raises(ValueError):
             finding_data.object_field.value = [
-                new_object['list_in_object'], finding_data.combobox_field]
+                new_object["list_in_object"],
+                finding_data.combobox_field,
+            ]
 
-        with self.assertRaises(ValueError):
-            finding_data.number_field.value = 'invalid_value'
+        with pytest.raises(ValueError):
+            finding_data.number_field.value = "invalid_value"
 
         finding_data.user_field.value = "3cb580bd-131b-48f0-9e37-b405e2ab53b8"
-        with self.assertRaises(ValueError):
-            finding_data.user_field.value = 'invalid_value'
+        with pytest.raises(ValueError):
+            finding_data.user_field.value = "invalid_value"
 
     def test_finding_raw_parsing(self):
         api_test_data = json.loads(self.example_finding)
         finding = FindingRaw(api_test_data)
-        self.assertEqual(finding.id, "d3658ee5-2d43-40f6-9b97-1b98480afe78")
-        self.assertEqual(finding.language, "en-US")
-        self.assertEqual(finding.project_type,
-                         "2970149f-e11d-420a-8a5d-25b5fda14e33")
-        self.assertIsInstance(finding.assignee, dict)
-        self.assertIsInstance(finding.data, FindingDataRaw)
-        self.assertEqual(finding.data.cvss, "n/a")
-        self.assertEqual(finding.data.title, "My Title")
-        self.assertEqual(finding.data.date_field, "2023-07-03")
-        self.assertEqual(finding.data.enum_field, "enum_val_2")
-        self.assertIsInstance(finding.data.list_field, list)
-        self.assertEqual(len(finding.data.list_field), 2)
-        self.assertEqual(finding.data.list_field[0], {
-                         "enum_in_object": "enum_in_obj_2"})
-        self.assertEqual(finding.data.user_field,
-                         "788dcb76-9928-46fc-87ba-7043708f1bc0")
-        self.assertEqual(finding.data.number_field, 1337.0)
-        self.assertIsInstance(finding.data.number_field, float)
-        self.assertIsInstance(finding.data.object_field, dict)
-        self.assertIn('list_in_object', finding.data.object_field)
-        self.assertEqual(len(finding.data.object_field['list_in_object']), 2)
-        self.assertEqual(
-            finding.data.object_field['list_in_object'][0], "My String in List in Object")
-        self.assertEqual(finding.data.boolean_field, True)
-        self.assertEqual(finding.data.combobox_field, "Combobox Value 2")
-        self.assertEqual(finding.data.markdown_field, "My Markdown")
+        assert finding.id == "d3658ee5-2d43-40f6-9b97-1b98480afe78"
+        assert finding.language == "en-US"
+        assert finding.project_type == "2970149f-e11d-420a-8a5d-25b5fda14e33"
+        assert isinstance(finding.assignee, dict)
+        assert isinstance(finding.data, FindingDataRaw)
+        assert finding.data.cvss == "n/a"
+        assert finding.data.title == "My Title"
+        assert finding.data.date_field == "2023-07-03"
+        assert finding.data.enum_field == "enum_val_2"
+        assert isinstance(finding.data.list_field, list)
+        assert len(finding.data.list_field) == 2
+        assert finding.data.list_field[0] == {"enum_in_object": "enum_in_obj_2"}
+        assert finding.data.user_field == "788dcb76-9928-46fc-87ba-7043708f1bc0"
+        assert finding.data.number_field == 1337.0
+        assert isinstance(finding.data.number_field, float)
+        assert isinstance(finding.data.object_field, dict)
+        assert "list_in_object" in finding.data.object_field
+        assert len(finding.data.object_field["list_in_object"]) == 2
+        assert (
+            finding.data.object_field["list_in_object"][0]
+            == "My String in List in Object"
+        )
+        assert finding.data.boolean_field == True
+        assert finding.data.combobox_field == "Combobox Value 2"
+        assert finding.data.markdown_field == "My Markdown"
 
     def test_project_design_parsing(self):
         api_test_data = json.loads(self.example_project_design)
         project_design = ProjectDesign(api_test_data)
-        self.assertEqual(project_design.id,
-                         '9ef57060-9bcc-4410-b1fd-744d7657558c')
-        self.assertEqual(project_design.source, 'created')
-        self.assertEqual(project_design.scope, 'private')
-        self.assertEqual(project_design.name, 'Demo Report v1.12')
-        self.assertEqual(project_design.language, 'en-US')
-        self.assertIsInstance(project_design.finding_fields, list)
-        self.assertIsInstance(project_design.report_fields, list)
-        self.assertEqual(len(project_design.finding_fields), 10)
-        self.assertEqual(len(project_design.report_fields), 15)
+        assert project_design.id == "9ef57060-9bcc-4410-b1fd-744d7657558c"
+        assert project_design.source == "created"
+        assert project_design.scope == "private"
+        assert project_design.name == "Demo Report v1.12"
+        assert project_design.language == "en-US"
+        assert isinstance(project_design.finding_fields, list)
+        assert isinstance(project_design.report_fields, list)
+        assert len(project_design.finding_fields) == 10
+        assert len(project_design.report_fields) == 15
 
-        report_field_names = [
-            field.name for field in project_design.report_fields]
-        self.assertTrue(all([name in report_field_names for name in ['draft', 'scope', 'title', 'duration', 'end_date', 'start_date',
-                        'report_date', 'customer_name', 'receiver_name', 'provided_users', 'report_version', 'list_of_changes', 'customer_address']]))
+        report_field_names = [field.name for field in project_design.report_fields]
+        assert all(
+            [
+                name in report_field_names
+                for name in [
+                    "draft",
+                    "scope",
+                    "title",
+                    "duration",
+                    "end_date",
+                    "start_date",
+                    "report_date",
+                    "customer_name",
+                    "receiver_name",
+                    "provided_users",
+                    "report_version",
+                    "list_of_changes",
+                    "customer_address",
+                ]
+            ]
+        )
         loc = [
-            field for field in project_design.report_fields if field.name == 'list_of_changes'][0]
-        self.assertEqual(loc.type, 'list')
-        self.assertIsInstance(loc.items, ProjectDesignField)
-        self.assertIsInstance(loc.items.properties, list)
+            field
+            for field in project_design.report_fields
+            if field.name == "list_of_changes"
+        ][0]
+        assert loc.type == "list"
+        assert isinstance(loc.items, ProjectDesignField)
+        assert isinstance(loc.items.properties, list)
         property_field_names = [field.name for field in loc.items.properties]
-        self.assertEqual(len(property_field_names), 3)
-        self.assertTrue(all(name in property_field_names for name in [
-                        'date', 'version', 'description']))
-        self.assertIsInstance(loc.items.properties[0], ProjectDesignField)
+        assert len(property_field_names) == 3
+        assert all(
+            name in property_field_names for name in ["date", "version", "description"]
+        )
+        assert isinstance(loc.items.properties[0], ProjectDesignField)
 
     def test_user_parsing(self):
         api_test_data = json.loads(self.example_user)
 
         test_user = User(api_test_data)
 
-        self.assertEqual(test_user.id, "e79abf41-5b7c-4c1f-826e-040f34eaf6b4")
-        self.assertEqual(test_user.name, "Richard Schwabe")
-        self.assertEqual(test_user.first_name, "Richard")
-        self.assertEqual(test_user.last_name, "Schwabe")
-        self.assertEqual(test_user.is_superuser, True)
-        self.assertTrue(test_user.scope)
+        assert test_user.id == "e79abf41-5b7c-4c1f-826e-040f34eaf6b4"
+        assert test_user.name == "Richard Schwabe"
+        assert test_user.first_name == "Richard"
+        assert test_user.last_name == "Schwabe"
+        assert test_user.is_superuser == True
+        assert test_user.scope
 
     def test_project_parsing(self):
         api_test_data = json.loads(self.example_project)
 
         test_project = Project(api_test_data)
-        self.assertEqual(
-            test_project.id, "4cf78324-8502-4fb0-936a-724892d3c539")
-        self.assertEqual(
-            test_project.members[0].id, "f2c9bad4-c916-4c18-9f76-d5ef94b34453"
-        )
-        self.assertEqual(test_project.members[1].username, "richard")
-        self.assertEqual(
-            test_project.project_type, "fa670018-e6ef-4b73-989b-1e4c4af09cee"
-        )
+        assert test_project.id == "4cf78324-8502-4fb0-936a-724892d3c539"
+        assert test_project.members[0].id == "f2c9bad4-c916-4c18-9f76-d5ef94b34453"
+        assert test_project.members[1].username == "richard"
+        assert test_project.project_type == "fa670018-e6ef-4b73-989b-1e4c4af09cee"
 
     def test_finding_template_parsing(self):
         api_test_data = json.loads(self.example_finding_template)
 
         test_finding_template = FindingTemplate(api_test_data)
-        self.assertEqual(
-            test_finding_template.id, "e6961177-0582-4dd2-b057-c48490294ddd"
+        assert test_finding_template.id == "e6961177-0582-4dd2-b057-c48490294ddd"
+        assert test_finding_template.data.title == "SQL Injection (SQLi)"
+        assert test_finding_template.data.references
+        assert (
+            test_finding_template.data.references[0]
+            == "https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet"
         )
-        self.assertEqual(test_finding_template.data.title,
-                         "SQL Injection (SQLi)")
-        self.assertTrue(test_finding_template.data.references)
-        self.assertEqual(
-            test_finding_template.data.references[0],
-            "https://www.owasp.org/index.php/SQL_Injection_Prevention_Cheat_Sheet",
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()

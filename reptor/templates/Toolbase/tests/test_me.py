@@ -1,21 +1,23 @@
 import os
 
+import pytest
+
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 
 from ..Toolbase import MYMODULENAME
 
 
-class MyModuleTests(TestCaseToolPlugin):
+class TestMyModule(TestCaseToolPlugin):
     templates_path = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "../templates")
     )
 
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         MYMODULENAME.set_template_vars(
             os.path.dirname(self.templates_path), skip_user_plugins=True
         )
         self.mymodule = MYMODULENAME(reptor=self.reptor)
-        return super().setUp()
 
     def _load_xml_data(self, xml_file):
         self.mymodule.input_format = "xml"
@@ -30,5 +32,5 @@ class MyModuleTests(TestCaseToolPlugin):
             self.mymodule.raw_input = f.read()
 
     def test_true_example(self):
-        self.assertEqual(True, True)
+        assert True == True
         raise NotImplementedError("Test not implemented")

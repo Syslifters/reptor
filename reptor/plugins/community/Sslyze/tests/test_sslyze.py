@@ -1,22 +1,24 @@
 import json
 import os
 
+import pytest
+
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 
 from ..Sslyze import Sslyze
 
 
-class SslyzeTests(TestCaseToolPlugin):
+class TestSslyze(TestCaseToolPlugin):
     templates_path = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "../templates")
     )
 
+    @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         Sslyze.set_template_vars(
             os.path.dirname(self.templates_path), skip_user_plugins=True
         )
         self.sslyze = Sslyze(reptor=self.reptor)
-        return super().setUp()
 
     def _load_json_data(self):
         self.sslyze.input_format = "json"
@@ -28,7 +30,7 @@ class SslyzeTests(TestCaseToolPlugin):
         result_dict = {"a": "b"}
         self.sslyze.raw_input = json.dumps(result_dict)
         self.sslyze.parse()
-        self.assertEqual(self.sslyze.parsed_input, result_dict)
+        assert self.sslyze.parsed_input == result_dict
 
     def test_process_parsed_input_for_template(self):
         result = {
@@ -80,7 +82,7 @@ class SslyzeTests(TestCaseToolPlugin):
         self.sslyze.parsed_input = None
         self.sslyze.parse()
         data = self.sslyze.process_parsed_input_for_template()
-        self.assertEqual(data, result)
+        assert data == result
 
     def test_format(self):
         # result = """| Host | Port | Service | Version |"""
@@ -90,7 +92,7 @@ class SslyzeTests(TestCaseToolPlugin):
         protocols_result = '    * <span style="color: green">TLS 1.2</span>\n'
         self.sslyze.template = "protocols"
         self.sslyze.format()
-        self.assertEqual(self.sslyze.formatted_input, protocols_result)
+        assert self.sslyze.formatted_input == protocols_result
 
         # certinfo template
         certinfo_result = """ * <span style="color: green">Certificate is trusted</span>
@@ -105,7 +107,7 @@ class SslyzeTests(TestCaseToolPlugin):
 """
         self.sslyze.template = "certinfo"
         self.sslyze.format()
-        self.assertEqual(self.sslyze.formatted_input, certinfo_result)
+        assert self.sslyze.formatted_input == certinfo_result
 
         # vulnerabilities template
         vulnerabilities_result = """ * Heartbleed: 
@@ -123,7 +125,7 @@ class SslyzeTests(TestCaseToolPlugin):
 """
         self.sslyze.template = "vulnerabilities"
         self.sslyze.format()
-        self.assertEqual(self.sslyze.formatted_input, vulnerabilities_result)
+        assert self.sslyze.formatted_input == vulnerabilities_result
 
         # misconfigurations template
         misconfigurations_result = """ * Compression: 
@@ -145,7 +147,7 @@ class SslyzeTests(TestCaseToolPlugin):
 """
         self.sslyze.template = "misconfigurations"
         self.sslyze.format()
-        self.assertEqual(self.sslyze.formatted_input, misconfigurations_result)
+        assert self.sslyze.formatted_input == misconfigurations_result
 
         # weak ciphers template
         weak_ciphers_result = """ * <span style="color: red">DHE-RSA-AES256-SHA256</span> (TLS 1.2)
@@ -163,7 +165,7 @@ class SslyzeTests(TestCaseToolPlugin):
 """
         self.sslyze.template = "weak_ciphers"
         self.sslyze.format()
-        self.assertEqual(self.sslyze.formatted_input, weak_ciphers_result)
+        assert self.sslyze.formatted_input == weak_ciphers_result
 
         # summary template
         self.sslyze.template = "default_summary"
@@ -175,4 +177,4 @@ class SslyzeTests(TestCaseToolPlugin):
             weak_ciphers_result,
             protocols_result,
         ]:
-            self.assertIn(content, self.sslyze.formatted_input)  # type: ignore
+            assert content in self.sslyze.formatted_input

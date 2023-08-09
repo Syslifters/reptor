@@ -1,4 +1,3 @@
-import json
 from reptor.lib.plugins.ToolBase import ToolBase
 
 
@@ -224,11 +223,15 @@ class Sslyze(ToolBase):
         if commands_results is None:
             return result_vulnerabilities
         result_vulnerabilities["heartbleed"] = commands_results.get(
-            "heartbleed", dict()).get("is_vulnerable_to_heartbleed")
+            "heartbleed", dict()
+        ).get("is_vulnerable_to_heartbleed")
         result_vulnerabilities["openssl_ccs"] = commands_results.get(
-            "openssl_ccs", dict()).get("is_vulnerable_to_ccs_injection")
+            "openssl_ccs", dict()
+        ).get("is_vulnerable_to_ccs_injection")
         robot = commands_results.get("robot", dict()).get("robot_result_enum")
-        result_vulnerabilities["robot"] = robot if "NOT_VULNERABLE" not in robot else False
+        result_vulnerabilities["robot"] = (
+            robot if "NOT_VULNERABLE" not in robot else False
+        )
         return result_vulnerabilities
 
     def get_misconfigurations(self, target):
@@ -237,12 +240,12 @@ class Sslyze(ToolBase):
         if commands_results is None:
             return result_misconfigs
         result_misconfigs["compression"] = (
-            commands_results.get("compression", dict()).get(
-                "compression_name") is not None
+            commands_results.get("compression", dict()).get("compression_name")
+            is not None
         )
         result_misconfigs["downgrade"] = (
-            commands_results.get("fallback", dict()).get(
-                "supports_fallback_scsv", True) is not True
+            commands_results.get("fallback", dict()).get("supports_fallback_scsv", True)
+            is not True
         )
         result_misconfigs["client_renegotiation"] = commands_results.get(
             "reneg", dict()
@@ -250,7 +253,8 @@ class Sslyze(ToolBase):
         result_misconfigs["no_secure_renegotiation"] = (
             commands_results.get("reneg", dict()).get(
                 "supports_secure_renegotiation", True
-            ) is not True
+            )
+            is not True
         )
 
         return result_misconfigs
@@ -272,28 +276,33 @@ class Sslyze(ToolBase):
             target_data["protocols"] = self.get_weak_ciphers(target)
             target_data["has_weak_ciphers"] = False
             if any(
-                    [
-                        v.get("weak_ciphers", list()) +
-                        v.get("insecure_ciphers", list())
-                        for k, v in target_data["protocols"].items()
-                    ]):
+                [
+                    v.get("weak_ciphers", list()) + v.get("insecure_ciphers", list())
+                    for k, v in target_data["protocols"].items()
+                ]
+            ):
                 target_data["has_weak_ciphers"] = True
             target_data["certinfo"] = self.get_certinfo(target)
-            target_data["vulnerabilities"] = self.get_vulnerabilities(
-                target)
+            target_data["vulnerabilities"] = self.get_vulnerabilities(target)
             target_data["has_vulnerabilities"] = False
             if any([v for k, v in target_data["vulnerabilities"].items()]):
                 target_data["has_vulnerabilities"] = True
-            target_data["misconfigurations"] = self.get_misconfigurations(
-                target)
+            target_data["misconfigurations"] = self.get_misconfigurations(target)
 
             data.append(target_data)
-        if self.template in ["protocols", "certinfo", "vulnerabilities", "misconfigurations", "weak_ciphers"]:
+        if self.template in [
+            "protocols",
+            "certinfo",
+            "vulnerabilities",
+            "misconfigurations",
+            "weak_ciphers",
+        ]:
             if len(data) > 1:
-                self.log.warning("sslyze output contains more than one target. Taking the first one.")
+                self.log.warning(
+                    "sslyze output contains more than one target. Taking the first one."
+                )
             return {"target": data[0]}
         return {"data": data}
-        
 
 
 loader = Sslyze
