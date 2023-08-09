@@ -31,6 +31,7 @@ class OWASPZap(ToolBase):
             self.input_format = "json"
 
     def parse_xml(self):
+        super().parse_xml(as_dict=False)
         return_data = list()
         for owasp_scan in self.xml_root:
             site = Site()

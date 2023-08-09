@@ -25,6 +25,7 @@ class Nmap(ToolBase):
     # Format and upload
     cat nmap_result.txt | reptor nmap -c upload
     """
+
     meta = {
         "name": "Nmap",
         "summary": "format nmap output",
@@ -70,7 +71,7 @@ class Nmap(ToolBase):
                 continue
             ip, ports = line.split("Ports:")
             ip = ip.split(" ")[1]
-            
+
             ports = ports.split(",")
             for port in ports:
                 port, status, protocol, _, service, _, version, _ = port.strip().split(
@@ -90,11 +91,12 @@ class Nmap(ToolBase):
                     self.parsed_input.append(s)
 
     def parse_xml(self):
+        super().parse_xml()
+        nmap_data = self.parsed_input
         self.parsed_input = list()
-        nmap_data = xmltodict.parse(self.raw_input)
         hosts = nmap_data.get("nmaprun", {}).get("host", [])
         if not isinstance(hosts, list):
-                hosts = [hosts]
+            hosts = [hosts]
         for host in hosts:
             ip = host.get("address", {}).get("@addr")
             ports = host.get("ports", {}).get("port", [])
@@ -106,7 +108,9 @@ class Nmap(ToolBase):
                     s.parse(
                         {
                             "ip": ip,
-                            "hostname": (host.get("hostnames") or {}).get("hostname", {}).get("@name"),
+                            "hostname": (host.get("hostnames") or {})
+                            .get("hostname", {})
+                            .get("@name"),
                             "port": int(port.get("@portid")),
                             "protocol": port.get("@protocol"),
                             "service": port.get("service", {}).get("@name"),
@@ -122,8 +126,9 @@ class Nmap(ToolBase):
 
     def process_parsed_input_for_template(self, template=None):
         data = dict()
-        data['data'] = self.parsed_input
-        data['show_hostname'] = any([s.hostname for s in self.parsed_input])
+        data["data"] = self.parsed_input
+        data["show_hostname"] = any([s.hostname for s in self.parsed_input])
         return data
+
 
 loader = Nmap

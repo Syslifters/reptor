@@ -44,6 +44,7 @@ class Nikto(ToolBase):
         Returns:
             typing.List[NiktoScan]: Returns a list of NiktoScan objects
         """
+        super().parse_xml(as_dict=False)
         self.debug("Running parse_xml of nikto")
 
         return_data = list()

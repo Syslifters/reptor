@@ -3,6 +3,25 @@ from xml.etree import ElementTree
 
 from ..models import NiktoScan
 
+import os
+
+from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
+
+from ..Nikto import Nikto
+
+
+class NiktoTests(TestCaseToolPlugin):
+    templates_path = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "../templates")
+    )
+
+    def setUp(self) -> None:
+        Nikto.set_template_vars(
+            os.path.dirname(self.templates_path), skip_user_plugins=True
+        )
+        self.nikto = Nikto(reptor=self.reptor)
+        return super().setUp()
+
 
 class TestXMLParseMethods(unittest.TestCase):
     def test_nikto_scan(self):
