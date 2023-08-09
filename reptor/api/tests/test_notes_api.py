@@ -38,12 +38,7 @@ class TestNotesAPI(unittest.TestCase):
             NotesAPI(reptor=self.reptor)
 
         # Test missing server
-        # self.reptor._config._raw_config['server'] = ''
-        # with self.assertRaises(ValueError):
-        #    NotesAPI(reptor=self.reptor)
-        #
-        # Test missing project id
-        # self.reptor._config._raw_config['server'] = 'https://demo.sysre.pt'
-        # self.reptor._config._raw_config['project_id'] = ''
-        # with self.assertRaises(ValueError):
-        #    ProjectsAPI(reptor=self.reptor)
+        self.reptor._config._raw_config['server'] = ''
+        self.reptor._config._raw_config['cli'] = {'private_note': True}
+        with self.assertRaises(ValueError):
+           NotesAPI(reptor=self.reptor)

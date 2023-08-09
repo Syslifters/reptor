@@ -45,16 +45,21 @@ class ToolBase(Base):
             settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
     @classmethod
-    def set_template_vars(cls, plugin_path):
+    def set_template_vars(cls, plugin_path, skip_user_plugins=False):
         template_paths = list()
         # Get template paths from plugin and userdir
-        user_plugin_path = os.path.join(
-            settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
-        )
+        if skip_user_plugins:
+            user_plugin_path = None
+        else:
+            user_plugin_path = os.path.join(
+                settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
+            )
         for path in [
             user_plugin_path,
             plugin_path,
         ]:  # Keep order: user templates override
+            if path is None:
+                continue
             path = os.path.normpath(
                 os.path.join(path, settings.PLUGIN_TEMPLATES_DIR_NAME)
             )
@@ -232,7 +237,7 @@ class ToolBase(Base):
         """
         if not self.parsed_input:
             self.parse()
-
+        
         data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(
             f"{self.template}.md", data

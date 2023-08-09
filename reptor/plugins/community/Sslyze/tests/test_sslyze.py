@@ -1,36 +1,27 @@
 import json
 import os
-import unittest
 
-import django
-from django.conf import settings
-from django.utils.functional import empty
-
-from reptor.lib.conf import settings as reptor_settings
-from reptor.lib.reptor import Reptor
+from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 
 from ..Sslyze import Sslyze
 
-templates_path = os.path.normpath(os.path.join(
-    os.path.dirname(__file__), '../templates'))
-reptor_settings.TEMPLATES[0]['DIRS'].append(templates_path)
-settings.configure(reptor_settings, DEBUG=True)
-django.setup()
 
+class SslyzeTests(TestCaseToolPlugin):
+    templates_path = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "../templates")
+    )
 
-class SslyzeTests(unittest.TestCase):
     def setUp(self) -> None:
-        reptor = Reptor()
-        Sslyze.set_template_vars(os.path.dirname(templates_path))
-        self.sslyze = Sslyze(reptor=reptor)
-
+        Sslyze.set_template_vars(
+            os.path.dirname(self.templates_path), skip_user_plugins=True
+        )
+        self.sslyze = Sslyze(reptor=self.reptor)
         return super().setUp()
 
     def _load_json_data(self):
-        self.sslyze.input_format = 'json'
-        filepath = os.path.join(
-            os.path.dirname(__file__), './data/sslyze.json')
-        with open(filepath, 'r') as f:
+        self.sslyze.input_format = "json"
+        filepath = os.path.join(os.path.dirname(__file__), "./data/sslyze.json")
+        with open(filepath, "r") as f:
             self.sslyze.raw_input = f.read()
 
     def test_parse(self):
@@ -40,7 +31,51 @@ class SslyzeTests(unittest.TestCase):
         self.assertEqual(self.sslyze.parsed_input, result_dict)
 
     def test_process_parsed_input_for_template(self):
-        result = {"data": [{"hostname": "www.example.com", "port": 443, "ip_address": "127.0.0.1", "protocols": {"tlsv1_2": {"weak_ciphers": ["DHE-RSA-AES256-SHA256", "AES256-SHA256", "ECDHE-RSA-AES256-SHA384", "DHE-RSA-AES256-SHA", "AES256-SHA", "AES256-GCM-SHA384", "DHE-RSA-AES128-SHA256", "DHE-RSA-AES128-SHA", "AES128-SHA", "AES128-SHA256", "AES128-GCM-SHA256", "ECDHE-RSA-AES128-SHA256"]}}, "has_weak_ciphers": True, "certinfo": {"certificate_matches_hostname": True, "has_sha1_in_certificate_chain": False, "certificate_untrusted": []}, "vulnerabilities": {"heartbleed": False, "openssl_ccs": False, "robot": False}, "has_vulnerabilities": False, "misconfigurations": {"compression": False, "downgrade": False, "client_renegotiation": False, "no_secure_renegotiation": False}}]}
+        result = {
+            "data": [
+                {
+                    "hostname": "www.example.com",
+                    "port": 443,
+                    "ip_address": "127.0.0.1",
+                    "protocols": {
+                        "tlsv1_2": {
+                            "weak_ciphers": [
+                                "DHE-RSA-AES256-SHA256",
+                                "AES256-SHA256",
+                                "ECDHE-RSA-AES256-SHA384",
+                                "DHE-RSA-AES256-SHA",
+                                "AES256-SHA",
+                                "AES256-GCM-SHA384",
+                                "DHE-RSA-AES128-SHA256",
+                                "DHE-RSA-AES128-SHA",
+                                "AES128-SHA",
+                                "AES128-SHA256",
+                                "AES128-GCM-SHA256",
+                                "ECDHE-RSA-AES128-SHA256",
+                            ]
+                        }
+                    },
+                    "has_weak_ciphers": True,
+                    "certinfo": {
+                        "certificate_matches_hostname": True,
+                        "has_sha1_in_certificate_chain": False,
+                        "certificate_untrusted": [],
+                    },
+                    "vulnerabilities": {
+                        "heartbleed": False,
+                        "openssl_ccs": False,
+                        "robot": False,
+                    },
+                    "has_vulnerabilities": False,
+                    "misconfigurations": {
+                        "compression": False,
+                        "downgrade": False,
+                        "client_renegotiation": False,
+                        "no_secure_renegotiation": False,
+                    },
+                }
+            ]
+        }
         self._load_json_data()
         self.sslyze.parsed_input = None
         self.sslyze.parse()
@@ -48,15 +83,15 @@ class SslyzeTests(unittest.TestCase):
         self.assertEqual(data, result)
 
     def test_format(self):
-        #result = """| Host | Port | Service | Version |"""
+        # result = """| Host | Port | Service | Version |"""
         self._load_json_data()
 
         # Protocols template
         protocols_result = '    * <span style="color: green">TLS 1.2</span>\n'
-        self.sslyze.template = 'protocols'
+        self.sslyze.template = "protocols"
         self.sslyze.format()
         self.assertEqual(self.sslyze.formatted_input, protocols_result)
-        
+
         # certinfo template
         certinfo_result = """ * <span style="color: green">Certificate is trusted</span>
  * Certificate matches hostname: 
@@ -68,7 +103,7 @@ class SslyzeTests(unittest.TestCase):
     No
 </span>
 """
-        self.sslyze.template = 'certinfo'
+        self.sslyze.template = "certinfo"
         self.sslyze.format()
         self.assertEqual(self.sslyze.formatted_input, certinfo_result)
 
@@ -86,7 +121,7 @@ class SslyzeTests(unittest.TestCase):
     No
 </span>
 """
-        self.sslyze.template = 'vulnerabilities'
+        self.sslyze.template = "vulnerabilities"
         self.sslyze.format()
         self.assertEqual(self.sslyze.formatted_input, vulnerabilities_result)
 
@@ -108,7 +143,7 @@ class SslyzeTests(unittest.TestCase):
     No
 </span>
 """
-        self.sslyze.template = 'misconfigurations'
+        self.sslyze.template = "misconfigurations"
         self.sslyze.format()
         self.assertEqual(self.sslyze.formatted_input, misconfigurations_result)
 
@@ -126,12 +161,18 @@ class SslyzeTests(unittest.TestCase):
  * <span style="color: red">AES128-GCM-SHA256</span> (TLS 1.2)
  * <span style="color: red">ECDHE-RSA-AES128-SHA256</span> (TLS 1.2)
 """
-        self.sslyze.template = 'weak_ciphers'
+        self.sslyze.template = "weak_ciphers"
         self.sslyze.format()
         self.assertEqual(self.sslyze.formatted_input, weak_ciphers_result)
 
         # summary template
-        self.sslyze.template = 'default_summary'
+        self.sslyze.template = "default_summary"
         self.sslyze.format()
-        for content in [certinfo_result, vulnerabilities_result, misconfigurations_result, weak_ciphers_result, protocols_result]:
-            self.assertIn(content, self.sslyze.formatted_input) # type: ignore
+        for content in [
+            certinfo_result,
+            vulnerabilities_result,
+            misconfigurations_result,
+            weak_ciphers_result,
+            protocols_result,
+        ]:
+            self.assertIn(content, self.sslyze.formatted_input)  # type: ignore
