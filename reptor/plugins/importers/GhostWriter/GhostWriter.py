@@ -1,9 +1,9 @@
 from reptor.lib.importers.BaseImporter import BaseImporter
-from reptor.lib.interfaces.reptor import ReptorProtocol
 
 try:
-    from gql import gql, Client
+    from gql import Client, gql
     from gql.transport.aiohttp import AIOHTTPTransport
+    from gql.transport.exceptions import TransportServerError
 except ImportError:
     gql = None
 
@@ -36,19 +36,26 @@ class GhostWriter(BaseImporter):
         "title": "title",
     }
     ghostwriter_url: str
-    ghostwriter_apikey: str
+    apikey: str
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         if gql is None:
-            self.log.fail_with_exit(
-                f"[red]Error importing Ghostwriter dependencies. "
-                f"Install with 'pip install reptor{self.log.escape('[ghostwriter]')}'.[/red]"
+            raise ImportError(
+                "Error importing gql. Install with 'pip install reptor{self.log.escape('[ghostwriter]')}'."
             )
 
         self.ghostwriter_url = kwargs.get("url", "")
-        self.ghostwriter_apikey = kwargs.get("apikey", "")
+        if not self.ghostwriter_url:
+            try:
+                self.ghostwriter_url = self.url
+            except AttributeError:
+                raise ValueError("Ghostwriter URL is required.")
+        if not hasattr(self, "apikey"):
+            raise ValueError(
+                "Ghostwriter API Key is required. Add to your user config."
+            )
         self.insecure = kwargs.get("insecure", False)
 
     @classmethod
@@ -64,20 +71,11 @@ class GhostWriter(BaseImporter):
             nargs="?",
             help="API Url",
         )
-        action_group.add_argument(
-            "-apikey",
-            "--apikey",
-            metavar="API_KEY",
-            action="store",
-            const="",
-            nargs="?",
-            help="API Auth Token from GhostWriter",
-        )
 
     def convert_references(self, value):
         return value.splitlines()
 
-    def _send_graphql_query(self):
+    def _get_ghostwriter_findings(self):
         query = gql(
             """
             query MyQuery {
@@ -95,23 +93,38 @@ class GhostWriter(BaseImporter):
 
         # Either x-hasura-admin-secret or Authorization Bearer can be used
         headers = {
-            "Authorization": f"Bearer {self.ghostwriter_apikey}",
-            "x-hasura-admin-secret": f"{self.ghostwriter_apikey}",
             "Content-Type": "application/json",
         }
+        if (
+            self.apikey.startswith("ey")
+            and "." in self.apikey
+            and len(self.apikey) > 40
+        ):
+            # Probably a JWT token
+            headers["Authorization"] = f"Bearer {self.apikey}"
+        else:
+            # Probably hasura admin secret
+            headers["x-hasura-admin-secret"] = self.apikey
 
         transport = AIOHTTPTransport(
             url=f"{self.ghostwriter_url}/v1/graphql", headers=headers
         )
 
         client = Client(transport=transport, fetch_schema_from_transport=False)
-        result = client.execute(query)
+        try:
+            result = client.execute(query)
+        except TransportServerError as e:
+            if e.code == 404:
+                raise TransportServerError(
+                    "404, Not found. Wrong URL? Make sure to specify the graqhql port (default: 8080)."
+                ) from e
+            raise e
         return result["finding"]
 
     def next_findings_batch(self):
         self.debug("Running batch findings")
 
-        findings = self._send_graphql_query()
+        findings = self._get_ghostwriter_findings()
         for finding_data in findings:
             yield finding_data
 

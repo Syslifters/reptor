@@ -1,13 +1,12 @@
 import typing
 
-from reptor.lib.interfaces.reptor import ReptorProtocol
-from reptor.api.models import FindingTemplate, FindingDataRaw
-from reptor.api.TemplatesAPI import TemplatesAPI
-
+from reptor.api.models import FindingDataRaw, FindingTemplate
 from reptor.lib.console import reptor_console
+from reptor.lib.interfaces.reptor import ReptorProtocol
+from reptor.lib.plugins.Base import Base
 
 
-class BaseImporter:
+class BaseImporter(Base):
     reptor: ReptorProtocol
     mapping: typing.Dict
     meta: typing.Dict = {
@@ -21,6 +20,7 @@ class BaseImporter:
     }
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.reptor = kwargs.get("reptor", None)
         self.finding_language = kwargs.get("language", "en-US")
         self.is_main_language = kwargs.get("main", True)
