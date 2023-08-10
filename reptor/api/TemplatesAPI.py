@@ -32,9 +32,7 @@ class TemplatesAPI(APIClient):
         return return_data
 
     def upload_new_template(
-        self,
-        template: FindingTemplate,
-        language: str = "en-US",
+        self, template: object, language: str, tags: typing.Optional[list] = None
     ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
@@ -49,7 +47,7 @@ class TemplatesAPI(APIClient):
         res = self.post(
             self.base_endpoint,
             data={
-                "tags": [],  # TODO
+                "tags": tags or [],
                 "translations": [
                     {
                         "status": "in-progress",
@@ -59,7 +57,7 @@ class TemplatesAPI(APIClient):
                             "title": template.data.title,
                         },
                     }
-                ]
+                ],
             },
         )
         raw_data = res.json()
@@ -67,18 +65,21 @@ class TemplatesAPI(APIClient):
         if raw_data:
             updated_template = FindingTemplate(raw_data)
             updated_template.data = template.data
+            translations = [t.__dict__ for t in updated_template.translations]
+            for t in translations:
+                t.update(
+                    {
+                        "data": t.get("data").__dict__
+                        if not t.get("is_main")
+                        else updated_template.data._to_api_json(),
+                    }
+                )
             updated_data = {
                 "id": updated_template.id,
-                "translations": [
-                    {
-                        "status": "in-progress",
-                        "language": language,
-                        "data": updated_template.data._to_api_json(),
-                    }
-                ],
+                "translations": translations,
             }
             self.debug(updated_data)
-            res2 = self.put(
+            self.put(
                 f"{self.base_endpoint}{updated_template.id}",
                 updated_data,
             )

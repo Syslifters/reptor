@@ -22,11 +22,19 @@ class BaseImporter(Base):
         super().__init__(**kwargs)
         self.reptor = kwargs.get("reptor", None)
         self.finding_language = kwargs.get("language", "en-US")
+        self.tags = list(filter(None, (kwargs.get("tags") or "").split(",")))
+        self.tags.append(f"{self.__class__.__name__.lower()}:imported")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         action_group = parser.add_argument_group()
         action_group.title = "Global Importer Settings"
+        action_group.add_argument(
+            "-tags",
+            "--tags",
+            action="store",
+            help="Comma-separated tags for new templates",
+        )
 
     def next_findings_batch(self) -> typing.List[typing.Dict]:
         """Implement this to yield the next findings to process"""
@@ -67,7 +75,7 @@ class BaseImporter(Base):
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
         updated_template = self.reptor.api.templates.upload_new_template(
-            new_finding, language=self.finding_language
+            new_finding, language=self.finding_language, tags=self.tags
         )
         if updated_template:
             self.display(f"Uploaded {updated_template.id}")
