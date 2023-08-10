@@ -35,7 +35,6 @@ class TemplatesAPI(APIClient):
         self,
         template: FindingTemplate,
         language: str = "en-US",
-        is_main_language: bool = True,
     ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
@@ -47,48 +46,42 @@ class TemplatesAPI(APIClient):
         """
         # template.data._to_api_json()
         return_template = None
-        try:
-            res = self.post(
-                self.base_endpoint,
-                data={
-                    "translations": [
-                        {
-                            "status": "in-progress",
-                            "language": language,
-                            "is_main": is_main_language,
-                            "data": {
-                                "title": template.data.title,
-                            },
-                        }
-                    ]
-                },
+        res = self.post(
+            self.base_endpoint,
+            data={
+                "tags": [],  # TODO
+                "translations": [
+                    {
+                        "status": "in-progress",
+                        "language": language,
+                        "is_main": True,  # New templates are always main language
+                        "data": {
+                            "title": template.data.title,
+                        },
+                    }
+                ]
+            },
+        )
+        raw_data = res.json()
+        self.debug(raw_data)
+        if raw_data:
+            updated_template = FindingTemplate(raw_data)
+            updated_template.data = template.data
+            updated_data = {
+                "id": updated_template.id,
+                "translations": [
+                    {
+                        "status": "in-progress",
+                        "language": language,
+                        "data": updated_template.data._to_api_json(),
+                    }
+                ],
+            }
+            self.debug(updated_data)
+            res2 = self.put(
+                f"{self.base_endpoint}{updated_template.id}",
+                updated_data,
             )
-            raw_data = res.json()
-            self.debug(raw_data)
-            if raw_data:
-                updated_template = FindingTemplate(raw_data)
-                updated_template.data = template.data
-                updated_data = {
-                    "id": updated_template.id,
-                    "translations": [
-                        {
-                            "status": "in-progress",
-                            "is_main": is_main_language,
-                            "language": language,
-                            "data": updated_template.data._to_api_json(),
-                        }
-                    ],
-                }
-                self.debug(updated_data)
-                res2 = self.put(
-                    f"{self.base_endpoint}{updated_template.id}",
-                    updated_data,
-                )
-                return_template = updated_template
-
-        except Exception as e:
-            raise ValueError(
-                f"Could not upload finding with title: {template.data.title}"
-            )
+            return_template = updated_template
 
         return return_template

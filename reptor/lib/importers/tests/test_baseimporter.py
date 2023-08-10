@@ -33,7 +33,6 @@ class TestBaseImporter:
                 def upload_new_template(self, template, **kwargs):
                     assert template == finding
                     assert kwargs["language"] == "en-US"
-                    assert kwargs["is_main_language"] == True
                     return FindingTemplate(finding_example)
 
             templates = Templates()

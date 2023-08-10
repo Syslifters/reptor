@@ -22,27 +22,11 @@ class BaseImporter(Base):
         super().__init__(**kwargs)
         self.reptor = kwargs.get("reptor", None)
         self.finding_language = kwargs.get("language", "en-US")
-        self.is_main_language = kwargs.get("main", True)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         action_group = parser.add_argument_group()
         action_group.title = "Global Importer Settings"
-        action_group.add_argument(
-            "-l",
-            "--language",
-            metavar="LANGUAGE",
-            action="store",
-            const="en-US",
-            nargs="?",
-            help="Language of Finding i.e en-US, default is en-US",
-        )
-        action_group.add_argument(
-            "-main",
-            "--main",
-            action="store_true",
-            help="Is this the main template language? Default True",
-        )
 
     def next_findings_batch(self) -> typing.List[typing.Dict]:
         """Implement this to yield the next findings to process"""
@@ -82,19 +66,16 @@ class BaseImporter(Base):
         return new_finding
 
     def _upload_finding_templates(self, new_finding: FindingTemplate):
-        self.debug(f"Is main language?: {self.is_main_language}")
         updated_template = self.reptor.api.templates.upload_new_template(
-            new_finding,
-            language=self.finding_language,
-            is_main_language=self.is_main_language,
+            new_finding, language=self.finding_language
         )
         if updated_template:
             self.display(f"Uploaded {updated_template.id}")
         else:
-            self.error("Do you want to abort? [Y/n]")
+            self.error("Cancel? [Y/n]")
             abort_answer = input()[:1].lower()
             if abort_answer != "n":
-                raise AssertionError("Aborting")
+                raise AssertionError("Cancelling")
 
     def run(self):
         try:
