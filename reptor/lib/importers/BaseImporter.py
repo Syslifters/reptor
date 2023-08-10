@@ -1,7 +1,6 @@
 import typing
 
 from reptor.api.models import FindingDataRaw, FindingTemplate
-from reptor.lib.console import reptor_console
 from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.plugins.Base import Base
 
@@ -45,14 +44,19 @@ class BaseImporter(Base):
             help="Is this the main template language? Default True",
         )
 
-    def next_findings_batch(self):
+    def next_findings_batch(self) -> typing.List[typing.Dict]:
         """Implement this to yield the next findings to process"""
-        return None
+        raise NotImplementedError(
+            "next_findings_batch not implemented in importer plugin"
+        )
 
     def _create_finding_item(self, raw_data: typing.Dict) -> FindingTemplate:
         remapped_data = dict()
         for key, value in self.mapping.items():
-            converted_data = raw_data[key]
+            try:
+                converted_data = raw_data[key]
+            except KeyError:
+                continue
             # check if we have a convert_method and call it
             # update the value
             convert_method_name = f"convert_{key}"
@@ -62,7 +66,16 @@ class BaseImporter(Base):
                     self.debug(f"Calling: {convert_method_name}")
                     converted_data = converter_method(raw_data[key])
 
-            remapped_data[value] = converted_data
+            # get type of converted data. the real type. not data type "type"
+            remapped_data.setdefault(value, type(converted_data)())
+            if isinstance(converted_data, str):
+                if remapped_data[value]:
+                    remapped_data[value] += "\n"
+                remapped_data[value] += converted_data
+            elif isinstance(converted_data, dict):
+                remapped_data.update(converted_data)
+            else:
+                remapped_data[value] += converted_data
 
         new_finding = FindingTemplate(remapped_data)
         new_finding.data = FindingDataRaw(remapped_data)
@@ -84,13 +97,15 @@ class BaseImporter(Base):
                 raise AssertionError("Aborting")
 
     def run(self):
-        if not self.mapping:
-            raise ValueError("You need to provide a mapping.")
+        try:
+            self.mapping
+        except AttributeError as e:
+            raise AttributeError("Importer plugin does not define a mapping") from e
 
         for external_finding in self.next_findings_batch():  # type: ignore
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue
-            self.display(f"Uploading {new_finding.data.title}")
+            self.display(f'Uploading "{new_finding.data.title}"')
             self.debug(new_finding)
             self._upload_finding_templates(new_finding)
