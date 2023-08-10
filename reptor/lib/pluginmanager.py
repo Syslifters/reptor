@@ -124,11 +124,11 @@ class PluginManager:
         """Finally the user can have their own "private" modules or
         overwrite any of the official or community modules.
         """
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_EXPORTERS)
+        self._load_plugin_from_path(settings.PLUGIN_DIRS_IMPORTERS)
 
     def _load_exporters(self):
         """Export Project findings to CSV or similar..."""
-        ...
+        self._load_plugin_from_path(settings.PLUGIN_DIRS_EXPORTERS)
 
     def load_plugins(self):
         """Loads each plugin from _plugin_paths
