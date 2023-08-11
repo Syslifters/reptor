@@ -7,7 +7,6 @@ import yaml
 from .. import settings as settings
 from .interfaces.conf import ConfigProtocol
 from .logger import reptor_logger
-from .console import reptor_console
 
 
 class Config(ConfigProtocol):
@@ -50,13 +49,13 @@ class Config(ConfigProtocol):
             typing.Any: _description_
         """
         if plugin:
-            return self._raw_config.get(plugin, dict()).get(key, default)
+            return (self._raw_config.get(plugin) or dict()).get(key, default)
         else:
             return self._raw_config.get(key, default)
 
     def get_config_keys(self, plugin: str = "") -> typing.Collection:
         if plugin:
-            return self._raw_config.get(plugin, dict()).keys()
+            return (self._raw_config.get(plugin) or dict()).keys()
         else:
             return self._raw_config.keys()
 

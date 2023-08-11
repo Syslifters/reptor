@@ -9,6 +9,6 @@ class ApiTemplatesProtocol(BaseApiProtocol):
 
     @abstractmethod
     def upload_new_template(
-        self, template: object, language: str, is_main_language: bool
+        self, template: object, language: str, tags: typing.Optional[list] = None
     ):
         ...

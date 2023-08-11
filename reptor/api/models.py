@@ -6,9 +6,12 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from reptor.lib.interfaces.api.models import (FindingProtocol,
-                                              ProjectDesignProtocol,
-                                              ProjectProtocol, SectionProtocol)
+from reptor.lib.interfaces.api.models import (
+    FindingProtocol,
+    ProjectDesignProtocol,
+    ProjectProtocol,
+    SectionProtocol,
+)
 
 
 class ProjectFieldTypes(enum.Enum):
@@ -23,6 +26,14 @@ class ProjectFieldTypes(enum.Enum):
     date = "date"
     number = "number"
     boolean = "boolean"
+
+
+class FindingTemplateSources(enum.Enum):
+    CREATED = "created"
+    IMPORTED = "imported"
+    IMPORTED_DEPENDENCY = "imported_dependency"
+    CUSTOMIZED = "customized"
+    SNAPSHOT = "snapshot"
 
 
 @dataclass
@@ -82,6 +93,7 @@ class BaseModel:
                     "Note",
                     "Project",
                     "ProjectDesign",
+                    "FindingTemplateTranslation",
                 ]:
                     cls = getattr(sys.modules[__name__], model_class)
 
@@ -302,7 +314,8 @@ class SectionDataField(ProjectDesignField):
                 # property is of type ProjectDesignField
                 try:
                     property_value[property.name] = self.__class__(
-                        property, value[property.name])
+                        property, value[property.name]
+                    )
 
                 except KeyError:
                     raise KeyError(
@@ -313,8 +326,7 @@ class SectionDataField(ProjectDesignField):
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
             for v in value:  # type: ignore
-                self.value.append(self.__class__(
-                    self.items, v))  # type: ignore
+                self.value.append(self.__class__(self.items, v))  # type: ignore
         else:
             self.value = value
 
@@ -437,9 +449,7 @@ class SectionData(BaseModel):
     field_class = SectionDataField
 
     def __init__(
-        self,
-        design_fields: typing.List[ProjectDesignField],
-        data_raw: SectionDataRaw
+        self, design_fields: typing.List[ProjectDesignField], data_raw: SectionDataRaw
     ):
         for design_field in design_fields:
             try:
@@ -488,9 +498,7 @@ class FindingData(SectionData):
     field_class = FindingDataField
 
     def __init__(
-        self,
-        design_fields: typing.List[ProjectDesignField],
-        data_raw: FindingDataRaw
+        self, design_fields: typing.List[ProjectDesignField], data_raw: FindingDataRaw
     ):
         super().__init__(design_fields, data_raw)
 
@@ -522,28 +530,32 @@ class FindingRaw(SectionRaw):
     data: FindingDataRaw
 
 
+class FindingTemplateTranslation(BaseModel):
+    language: str = "en-US"
+    status: str = "in-progress"
+    is_main: bool = True
+    data: FindingDataRaw
+
+
 class FindingTemplate(BaseModel):
     """
     Attributes:
         details:
+        images:
         lock_info:
         usage_count:
         source:
         tags:
-        language:
-        status:
-        data:
-        custom_attributes:
+        translations:
     """
 
     details: str = ""
+    images: str = ""
     lock_info: bool = False
     usage_count: int = 0
-    source: str = ""
+    source: FindingTemplateSources = FindingTemplateSources.CREATED
     tags: typing.List[str] = []
-    language: str = ""
-    status: str = ""
-    data: FindingDataRaw
+    translations: typing.List[FindingTemplateTranslation] = []
 
 
 class Note(BaseModel):
@@ -591,41 +603,23 @@ class ProjectDesign(BaseModel, ProjectDesignProtocol):
 class Section(SectionRaw, SectionProtocol):
     data: SectionData
 
-    def __init__(
-            self,
-            project_design: ProjectDesign,
-            raw: SectionRaw):
+    def __init__(self, project_design: ProjectDesign, raw: SectionRaw):
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(SectionRaw).items():
-            self.__setattr__(
-                attr[0],
-                raw.__getattribute__(attr[0])
-            )
+            self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
 
-        self.data = SectionData(
-            project_design.report_fields,
-            raw.data
-        )
+        self.data = SectionData(project_design.report_fields, raw.data)
 
 
 class Finding(FindingRaw, FindingProtocol):
     data: FindingData
 
-    def __init__(
-            self,
-            project_design: ProjectDesign,
-            raw: FindingRaw):
+    def __init__(self, project_design: ProjectDesign, raw: FindingRaw):
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(FindingRaw).items():
-            self.__setattr__(
-                attr[0],
-                raw.__getattribute__(attr[0])
-            )
+            self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
 
-        self.data = FindingData(
-            project_design.finding_fields,
-            raw.data
-        )
+        self.data = FindingData(project_design.finding_fields, raw.data)
 
 
 class Project(BaseModel, ProjectProtocol):

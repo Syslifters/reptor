@@ -1,5 +1,3 @@
-import xmltodict
-
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.plugins.core.Nmap.models import Service
 
