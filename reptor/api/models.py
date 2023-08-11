@@ -114,12 +114,13 @@ class BaseModel:
                     # Fill each attribute
                     self.__setattr__(attr[0], data[attr[0]])
 
-    def _to_api_json(self):
-        data = {}
-        for key, value in self.__dict__.items():
-            if key not in ["created", "updated"]:
-                data.update({key: value})
-        return data
+    def to_json(self):
+        # data = {}
+        # for key, value in self.__dict__.items():
+        #    if key not in ["created", "updated"]:
+        #        data.update({key: value})
+        # return data
+        return self.__dict__
 
 
 class User(BaseModel):
@@ -225,6 +226,9 @@ class FindingDataRaw(SectionDataRaw):
     retest_notes: str = ""
     retest_status: str = ""
     evidence: str = ""
+
+    def to_json(self) -> dict:
+        return self.__dict__
 
 
 class ProjectDesignField(BaseModel):
@@ -536,6 +540,11 @@ class FindingTemplateTranslation(BaseModel):
     is_main: bool = True
     data: FindingDataRaw
 
+    def to_json(self) -> dict:
+        result = self.__dict__
+        result["data"] = self.data.to_json()
+        return result
+
 
 class FindingTemplate(BaseModel):
     """
@@ -556,6 +565,13 @@ class FindingTemplate(BaseModel):
     source: FindingTemplateSources = FindingTemplateSources.CREATED
     tags: typing.List[str] = []
     translations: typing.List[FindingTemplateTranslation] = []
+
+    def to_json(self) -> dict:
+        result = self.__dict__
+        if isinstance(self.source, FindingTemplateSources):
+            result["source"] = self.source.value
+        result["translations"] = [t.to_json() for t in self.translations]
+        return result
 
 
 class Note(BaseModel):

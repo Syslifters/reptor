@@ -32,7 +32,6 @@ class TestBaseImporter:
             class Templates:
                 def upload_new_template(self, template, **kwargs):
                     assert template == finding
-                    assert kwargs["language"] == "en-US"
                     return FindingTemplate(finding_example)
 
             templates = Templates()
@@ -73,25 +72,43 @@ class TestBaseImporter:
         }
 
         finding_data = {
-            "old_tools_title": "my title",
-            "old_tools_description": "my description",
-            "old_tools_cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:H/A:H",
-            "old_tools_custom_field": "custom info",
-            "old_tools_empty_field": "",
-            "old_tools_references": "reference1\nreference2\r\nreference3",
-            "recommendation_part_1": "do this!",
-            "recommendation_part_2": "do that!",
-            "recommendation_part_3": "do nothing!",
+            "language": "en-US",
+            "status": "in-progress",
+            "data": {
+                "old_tools_title": "my title",
+                "old_tools_description": "my description",
+                "old_tools_cvss_vector": "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:H/A:H",
+                "old_tools_custom_field": "custom info",
+                "old_tools_empty_field": "",
+                "old_tools_references": "reference1\nreference2\r\nreference3",
+                "recommendation_part_1": "do this!",
+                "recommendation_part_2": "do that!",
+                "recommendation_part_3": "do nothing!",
+            },
         }
         finding = base_importer._create_finding_item(finding_data)
-        assert finding.data.title == "my title"
-        assert finding.data.description == "my description"
-        assert finding.data.cvss == "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:H/A:H"
-        assert finding.data.custom_field == "custom info"
-        assert finding.data.empty_field == ""
-        with pytest.raises(AttributeError):
-            finding.data.missing_field
-        assert finding.data.references == ["reference1", "reference2", "reference3"]
-        assert finding.data.recommendation == "do this!\ndo that!\ndo nothing!"
+        assert isinstance(finding, FindingTemplate)
+        assert finding.translations[0].language == "en-US"
+        assert finding.translations[0].status == "in-progress"
 
-        base_importer._upload_finding_templates(finding)
+        assert finding.translations[0].data.title == "my title"
+        assert finding.translations[0].data.description == "my description"
+        assert (
+            finding.translations[0].data.cvss
+            == "CVSS:3.0/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:H/A:H"
+        )
+        assert finding.translations[0].data.custom_field == "custom info"
+        assert finding.translations[0].data.empty_field == ""
+        with pytest.raises(AttributeError):
+            finding.translations[0].data.missing_field
+        assert finding.translations[0].data.references == [
+            "reference1",
+            "reference2",
+            "reference3",
+        ]
+        assert (
+            finding.translations[0].data.recommendation
+            == "do this!\ndo that!\ndo nothing!"
+        )
+
+        base_importer._upload_finding_template(finding)
