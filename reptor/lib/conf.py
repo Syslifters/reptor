@@ -7,7 +7,6 @@ import yaml
 from .. import settings as settings
 from .interfaces.conf import ConfigProtocol
 from .logger import reptor_logger
-from .console import reptor_console
 
 
 class Config(ConfigProtocol):

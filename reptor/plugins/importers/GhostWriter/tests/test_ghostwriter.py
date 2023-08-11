@@ -1,6 +1,8 @@
-import pytest
 import json
 
+import pytest
+
+from reptor.lib.conf import Config
 from reptor.lib.reptor import Reptor
 
 from .. import GhostWriter
@@ -10,12 +12,17 @@ class TestGhostwriter:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.reptor = Reptor()
+        self.reptor._config = Config()
+        self.reptor._config._raw_config = {}
 
     def test_init(self):
+        self.reptor.get_config()
         with pytest.raises(ValueError):
+            # Should raise because of missing URL
             GhostWriter.GhostWriter(reptor=self.reptor)
 
         with pytest.raises(ValueError):
+            # Should raise because of missing API key
             GhostWriter.GhostWriter(reptor=self.reptor, url="test")
 
         GhostWriter.GhostWriter.apikey = "test"
@@ -66,3 +73,51 @@ class TestGhostwriter:
             reptor=self.reptor, url="http://localhost:8080"
         )
         assert finding_data["finding"] == ghostwriter._get_ghostwriter_findings()
+
+    @pytest.mark.parametrize(
+        "text,converted",
+        [
+            ("123\n456", ["123", "456"]),
+            ("<ul>\n<li>abc</li>\n<li>cde</li>\n</ul>", ["abc", "cde"]),
+        ],
+    )
+    def test_convert_references(self, text, converted):
+        GhostWriter.GhostWriter.apikey = "123456789"
+        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        assert g.convert_references(text) == converted
+
+    @pytest.mark.parametrize(
+        "text,converted",
+        [
+            ("", ""),
+            ("ABC", "\n\n**Host Detection Techniques**\n\nABC"),
+        ],
+    )
+    def test_convert_hostDetectionTechniques(self, text, converted):
+        GhostWriter.GhostWriter.apikey = "123456789"
+        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        assert g.convert_hostDetectionTechniques(text) == converted
+
+    @pytest.mark.parametrize(
+        "text,converted",
+        [
+            ("", ""),
+            ("ABC", "\n\n**Network Detection Techniques**\n\nABC"),
+        ],
+    )
+    def test_convert_networkDetectionTechniques(self, text, converted):
+        GhostWriter.GhostWriter.apikey = "123456789"
+        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        assert g.convert_networkDetectionTechniques(text) == converted
+
+    @pytest.mark.parametrize(
+        "text,converted",
+        [
+            ("", ""),
+            ("ABC", "TODO: ABC\n\n"),
+        ],
+    )
+    def test_convert_findingGuidance(self, text, converted):
+        GhostWriter.GhostWriter.apikey = "123456789"
+        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        assert g.convert_findingGuidance(text) == converted

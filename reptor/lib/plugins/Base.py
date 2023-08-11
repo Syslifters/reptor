@@ -35,10 +35,11 @@ class Base:
         for plugin_config_key in self.reptor.get_config().get_config_keys(
             plugin=plugin_name
         ):
-            self.__setattr__(
-                plugin_config_key,
-                self.reptor.get_config().get(plugin_config_key, plugin=plugin_name),
-            )
+            if not hasattr(self, plugin_config_key):
+                self.__setattr__(
+                    plugin_config_key,
+                    self.reptor.get_config().get(plugin_config_key, plugin=plugin_name),
+                )
 
         self._check_required_keys_are_set(plugin_name)
 

@@ -1,3 +1,5 @@
+from django.utils.html import strip_tags
+
 from reptor.lib.importers.BaseImporter import BaseImporter
 
 try:
@@ -28,12 +30,16 @@ class GhostWriter(BaseImporter):
     }
 
     mapping = {
+        "title": "title",
         "cvss_vector": "cvss",
-        "description": "description",
+        "description": "summary",
+        "findingGuidance": "description",
+        "replication_steps": "description",
+        "hostDetectionTechniques": "description",
+        "networkDetectionTechniques": "description",
         "impact": "impact",
         "mitigation": "recommendation",
         "references": "references",
-        "title": "title",
     }
     ghostwriter_url: str
     apikey: str
@@ -73,13 +79,33 @@ class GhostWriter(BaseImporter):
         )
 
     def convert_references(self, value):
-        return value.splitlines()
+        value = strip_tags(value)
+        return [l for l in value.splitlines() if l.strip()]
+
+    def convert_hostDetectionTechniques(self, value):
+        if strip_tags(value):
+            return f"\n\n**Host Detection Techniques**\n\n{value}"
+        return value
+
+    def convert_networkDetectionTechniques(self, value):
+        if strip_tags(value):
+            return f"\n\n**Network Detection Techniques**\n\n{value}"
+        return value
+
+    def convert_findingGuidance(self, value):
+        if strip_tags(value):
+            return f"TODO: {value}\n\n"
+        return value
 
     def _get_ghostwriter_findings(self):
         query = gql(
             """
             query MyQuery {
                 finding {
+                        findingGuidance
+                        networkDetectionTechniques
+                        hostDetectionTechniques
+                        replication_steps
                         cvss_vector
                         description
                         impact
