@@ -31,7 +31,6 @@ dependencies = [
   'termcolor >= 2.3.0',
   'urllib3 >= 2.0.2',
   'xmltodict >= 0.13.0',
-  'pytest >= 7.4.0',
 ]
 requires-python = ">=3.8"
 classifiers = [
@@ -48,7 +47,8 @@ classifiers = [
 [project.optional-dependencies]
 translate = ['deepl >= 1.15.0']
 ghostwriter = ['gql[aiohttp] >= 3.4.1',]
-all = ['reptor[translate,ghostwriter]']
+dev = ['pytest >= 7.4.0',]
+all = ['reptor[translate,ghostwriter,dev]']
 
 [project.scripts]
 reptor = 'reptor.__main__:run'
