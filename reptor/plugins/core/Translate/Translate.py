@@ -1,19 +1,15 @@
 import re
-
-from requests.exceptions import HTTPError
 from typing import Union
 
-from reptor.api.models import (Finding, Section, FindingDataField,
-                               ProjectFieldTypes)
-from reptor.api.ProjectsAPI import ProjectsAPI
-from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
+from requests.exceptions import HTTPError
+
+from reptor.api.models import Finding, ProjectFieldTypes, Section
 from reptor.lib.plugins.Base import Base
 
 try:
     import deepl
 except ImportError:
-    raise Exception("Make sure you have deepl installed.")
-
+    deepl = None
 
 class Translate(Base):
     """ """
@@ -105,17 +101,17 @@ class Translate(Base):
         self.dry_run = kwargs.get("dry_run")
         self.chars_count_to_translate = 0
         try:
-            self.skip_fields = kwargs.get("skip_fields", '').split(',') or getattr(self, "skip_fields")
+            self.skip_fields = kwargs.get("skip_fields", "").split(",") or getattr(
+                self, "skip_fields"
+            )
         except AttributeError:
             self.skip_fields = list()
         try:
             self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
         except TypeError:
-            raise TypeError(
-                f"skip_fields should be list."
-            )
-        if not hasattr(self, 'deepl_api_token'):
-            self.deepl_api_token = ''
+            raise TypeError(f"skip_fields should be list.")
+        if not hasattr(self, "deepl_api_token"):
+            self.deepl_api_token = ""
 
         try:
             if not self.deepl_api_token:
@@ -129,7 +125,6 @@ class Translate(Base):
         except (AttributeError, ModuleNotFoundError) as e:
             if not self.dry_run:
                 raise e
-        
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -158,17 +153,17 @@ class Translate(Base):
             metavar="FIELDS",
             help="Report and Finding fields, comma-separated",
             action="store",
-            default='',
+            default="",
         )
 
         # Currently supported: Deepl
-        #parser.add_argument(
+        # parser.add_argument(
         #    "-translator",
         #    "--translator",
         #    help="Translator service to use",
         #    choices=["deepl"],
         #    default="deepl",
-        #)
+        # )
         parser.add_argument(
             "-dry-run",
             "--dry-run",
@@ -190,7 +185,9 @@ class Translate(Base):
         )
         return result.text
 
-    def _translate_section(self, section: Union[Finding, Section]) -> Union[Finding, Section]:
+    def _translate_section(
+        self, section: Union[Finding, Section]
+    ) -> Union[Finding, Section]:
         for field in section.data:
             if field.type not in self.TRANSLATE_DATA_TYPES:
                 continue
@@ -204,8 +201,7 @@ class Translate(Base):
         return text
 
     def _duplicate_and_update_project(self, project_title: str) -> None:
-        self.display(
-            f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
+        self.display(f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
             to_project_id = self.reptor.api.projects.duplicate().id
             self.display(
@@ -217,12 +213,12 @@ class Translate(Base):
             try:
                 data = {"name": self._translate(project_title)}
                 if sysreptor_language_code := self._get_sysreptor_language_code(
-                        self.to_lang):
+                    self.to_lang
+                ):
                     data["language"] = sysreptor_language_code
                 self.reptor.api.projects.update_project(data)
             except HTTPError as e:
-                self.warning(
-                    f"Error updating project: {e.response.text}")
+                self.warning(f"Error updating project: {e.response.text}")
         else:
             self._translate(project_title)  # To count characters
 
@@ -233,23 +229,22 @@ class Translate(Base):
         project = self.reptor.api.projects.get_project()
         self._duplicate_and_update_project(project_title=project.name)
 
-        self.display(
-            f"Translating findings{' (dry run)' if self.dry_run else ''}.")
-        sections = self.reptor.api.projects.get_findings(
-        ) + self.reptor.api.projects.get_sections()
+        self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
+        sections = (
+            self.reptor.api.projects.get_findings()
+            + self.reptor.api.projects.get_sections()
+        )
         for section in sections:
             translated_section = self._translate_section(section)
             translated_section_data = translated_section.data.to_json()
             if not self.dry_run:
                 if translated_section.__class__ == Finding:
                     self.reptor.api.projects.update_finding(
-                        translated_section.id, {
-                            "data": translated_section_data}
+                        translated_section.id, {"data": translated_section_data}
                     )
                 elif translated_section.__class__ == Section:
                     self.reptor.api.projects.update_section(
-                        translated_section.id, {
-                            "data": translated_section_data}
+                        translated_section.id, {"data": translated_section_data}
                     )
 
         self.display(
@@ -257,8 +252,10 @@ class Translate(Base):
         )
         self._log_deepl_usage()
         self.success(f"Project translated{' (dry run)' if self.dry_run else ''}.")
-        self.display("We recommend to check quality of the translation, or to add a note that the report was "
-                     "translated by a machine.")
+        self.display(
+            "We recommend to check quality of the translation, or to add a note that the report was "
+            "translated by a machine."
+        )
 
     def _log_deepl_usage(self):
         try:
@@ -280,7 +277,7 @@ class Translate(Base):
             if enabled_lc.lower().startswith(language_code[:2].lower())
         ]
         if not matched_lcs:
-            return ''
+            return ""
         elif len(matched_lcs) == 1:
             return matched_lcs[0]
         else:
