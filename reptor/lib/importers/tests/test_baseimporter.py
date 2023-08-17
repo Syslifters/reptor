@@ -1,7 +1,7 @@
 import pytest
 
 from reptor.lib.reptor import Reptor
-from reptor.api.models import FindingTemplate
+from reptor.api.models.Finding import FindingTemplate
 
 from .. import BaseImporter
 

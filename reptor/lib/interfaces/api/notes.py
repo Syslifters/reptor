@@ -1,7 +1,7 @@
 import typing
 from abc import abstractmethod
 
-from reptor.api.models import Note  # Todo: Should be a Protocol!
+from reptor.api.models.Note import Note  # Todo: Should be a Protocol!
 from .base import BaseApiProtocol
 
 

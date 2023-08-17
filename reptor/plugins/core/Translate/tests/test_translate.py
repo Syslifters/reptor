@@ -4,7 +4,9 @@ from copy import deepcopy
 import pytest
 
 from reptor.api.manager import APIManager
-from reptor.api.models import Finding, FindingRaw, ProjectDesign
+from reptor.api.models.Finding import FindingRaw
+from reptor.api.models.Project import ProjectDesign
+from reptor.api.models.Finding import Finding
 from reptor.lib.reptor import Reptor
 
 from ..Translate import Translate

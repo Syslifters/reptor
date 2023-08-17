@@ -2,7 +2,7 @@ import typing
 from posixpath import join as urljoin
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import FindingTemplate
+from reptor.api.models.Finding import FindingTemplate
 
 
 class TemplatesAPI(APIClient):

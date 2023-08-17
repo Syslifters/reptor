@@ -96,54 +96,27 @@ class TestSslyze(TestCaseToolPlugin):
 
         # certinfo template
         certinfo_result = """ * <span style="color: green">Certificate is trusted</span>
- * Certificate matches hostname: 
-<span style="color: green">
-    Yes
-</span>
- * SHA1 in certificate chain: 
-<span style="color: green">
-    No
-</span>
+ * Certificate matches hostname: <span style="color: green">Yes</span>
+ * SHA1 in certificate chain: <span style="color: green">No</span>
 """
         self.sslyze.template = "certinfo"
         self.sslyze.format()
         assert self.sslyze.formatted_input == certinfo_result
 
         # vulnerabilities template
-        vulnerabilities_result = """ * Heartbleed: 
-<span style="color: green">
-    No
-</span>
- * Robot Attack: 
-<span style="color: green">
-    No
-</span>
- * OpenSSL CCS (CVE-2014-0224): 
-<span style="color: green">
-    No
-</span>
+        vulnerabilities_result = """ * Heartbleed: <span style="color: green">No</span>
+ * Robot Attack: <span style="color: green">No</span>
+ * OpenSSL CCS (CVE-2014-0224): <span style="color: green">No</span>
 """
         self.sslyze.template = "vulnerabilities"
         self.sslyze.format()
         assert self.sslyze.formatted_input == vulnerabilities_result
 
         # misconfigurations template
-        misconfigurations_result = """ * Compression: 
-<span style="color: green">
-    No
-</span>
- * Downgrade Attack (no SCSV fallback): 
-<span style="color: green">
-    No
-</span>
- * No Secure Renegotiation: 
-<span style="color: green">
-    No
-</span>
- * Client Renegotiation: 
-<span style="color: green">
-    No
-</span>
+        misconfigurations_result = """ * Compression: <span style="color: green">No</span>
+ * Downgrade Attack (no SCSV fallback): <span style="color: green">No</span>
+ * No Secure Renegotiation: <span style="color: green">No</span>
+ * Client Renegotiation: <span style="color: green">No</span>
 """
         self.sslyze.template = "misconfigurations"
         self.sslyze.format()

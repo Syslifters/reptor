@@ -4,7 +4,9 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import Finding, FindingRaw, Project, Section, SectionRaw
+from reptor.api.models.Finding import Finding, FindingRaw
+from reptor.api.models.Section import Section, SectionRaw
+from reptor.api.models.Project import Project
 
 
 class ProjectsAPI(APIClient):

@@ -2,20 +2,13 @@ import json
 from copy import deepcopy
 
 import pytest
+from reptor.api.models.Finding import FindingData, FindingDataField, FindingDataRaw, FindingRaw, FindingTemplate
+from reptor.api.models.Project import ProjectDesign, ProjectDesignField
+from reptor.api.models.Section import SectionData, SectionDataField, SectionRaw
+from reptor.api.models.User import User
 
-from reptor.api.models import (
-    FindingData,
-    FindingDataField,
-    FindingDataRaw,
-    FindingRaw,
-    FindingTemplate,
+from reptor.api.models.Project import (
     Project,
-    ProjectDesign,
-    ProjectDesignField,
-    SectionData,
-    SectionDataField,
-    SectionRaw,
-    User,
 )
 
 

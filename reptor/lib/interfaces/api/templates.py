@@ -1,7 +1,7 @@
 import typing
 from abc import abstractmethod
 
-from reptor.api.models import FindingTemplate
+from reptor.api.models.Finding import FindingTemplate
 
 from .base import BaseApiProtocol
 

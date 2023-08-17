@@ -8,7 +8,7 @@ from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
 from reptor.api.errors import LockedException
-from reptor.api.models import Note
+from reptor.api.models.Note import Note
 from reptor.lib.errors import MissingArgumentError
 from reptor.utils.file_operations import guess_filetype
 
