@@ -4,7 +4,9 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models import Finding, FindingRaw, Project, Section, SectionRaw
+from reptor.models.Finding import Finding, FindingRaw
+from reptor.models.Section import Section, SectionRaw
+from reptor.models.Project import Project
 
 
 class ProjectsAPI(APIClient):
@@ -13,15 +15,13 @@ class ProjectsAPI(APIClient):
         self.project_design = None
 
         if not (server := self.reptor.get_config().get_server()):
-            raise ValueError(
-                "No SysReptor server configured. Try 'reptor conf'.")
+            raise ValueError("No SysReptor server configured. Try 'reptor conf'.")
         if not self.project_id:
             raise ValueError(
-                "No Project ID configured. Try 'reptor conf' or use '--project-id'.")
+                "No Project ID configured. Try 'reptor conf' or use '--project-id'."
+            )
 
-        self.base_endpoint = (
-            f"{server}/api/v1/pentestprojects"
-        )
+        self.base_endpoint = f"{server}/api/v1/pentestprojects"
 
         self.object_endpoint = urljoin(self.base_endpoint, self.project_id)
         self.debug(self.base_endpoint)
@@ -119,10 +119,7 @@ class ProjectsAPI(APIClient):
             self.project_design = self.reptor.api.project_designs.project_design
 
         for item in response:
-            section = Section(
-                self.project_design,
-                SectionRaw(item)
-            )
+            section = Section(self.project_design, SectionRaw(item))
             return_data.append(section)
         return return_data
 
@@ -143,21 +140,16 @@ class ProjectsAPI(APIClient):
             self.project_design = self.reptor.api.project_designs.project_design
 
         for item in response:
-            finding = Finding(
-                self.project_design,
-                FindingRaw(item)
-            )
+            finding = Finding(self.project_design, FindingRaw(item))
             return_data.append(finding)
         return return_data
 
     def update_finding(self, finding_id: str, data: dict) -> dict:
-        url = urljoin(self.base_endpoint,
-                      f"{self.project_id}/findings/{finding_id}/")
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         return self.patch(url, data).json()
 
     def update_section(self, section_id: str, data: dict) -> dict:
-        url = urljoin(self.base_endpoint,
-                      f"{self.project_id}/sections/{section_id}/")
+        url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
         return self.patch(url, data).json()
 
     def update_project(self, data: dict) -> dict:
@@ -165,8 +157,7 @@ class ProjectsAPI(APIClient):
         return self.patch(url, data).json()
 
     def get_enabled_language_codes(self) -> list:
-        url = urljoin(self.reptor.get_config().get_server(),
-                      "api/v1/utils/settings/")
+        url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
         settings = self.get(url).json()
         languages = [
             l["code"] for l in settings.get("languages", list()) if l["enabled"] == True

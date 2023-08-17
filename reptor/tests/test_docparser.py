@@ -1,7 +1,7 @@
 from reptor.lib.plugins.DocParser import DocParser
 
 
-class TestModelsParsing:
+class TestDocParser:
     example_docs = {
         "author": "Willy Wonka",
         "version": "1.5",

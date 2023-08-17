@@ -1,18 +1,18 @@
 These are models returned for endpoints by the SysReptor API.
 Please note that the SysReptor API is still unstable and might change in the future.
 
-::: reptor.api.models.User
+::: from reptor.models.User
 
-::: reptor.api.models.Finding
+::: from reptor.models.Finding
 
-::: reptor.api.models.FindingData
+::: from reptor.models.FindingData
 
-::: reptor.api.models.FindingTemplate
+::: from reptor.models.FindingTemplate
 
-::: reptor.api.models.Note
+::: from reptor.models.Note
 
-::: reptor.api.models.ProjectDesignField
-::: reptor.api.models.ProjectFieldTypes
-::: reptor.api.models.ProjectDesign
+::: from reptor.models.ProjectDesignField
+::: from reptor.models.ProjectFieldTypes
+::: from reptor.models.ProjectDesign
 
-::: reptor.api.models.Project
+::: from reptor.models.Project
