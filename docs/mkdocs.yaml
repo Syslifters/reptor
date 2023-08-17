@@ -53,16 +53,16 @@ plugins:
   #    cards_font: Exo
   # - tooltips
   - search
-  - mkdocstrings:
-      handlers:
-          python:
-            paths: [..]
-            options:
-              show_bases: true
-              show_docstring_attributes: true
-              docstring_section_style: list
-              show_root_heading: true
-              heading_level: 2
+  #- mkdocstrings:
+  #    handlers:
+  #        python:
+  #          paths: [..]
+  #          options:
+  #            show_bases: true
+  #            show_docstring_attributes: true
+  #            docstring_section_style: list
+  #            show_root_heading: true
+  #            heading_level: 2
   #- privacy
 
 extra:
