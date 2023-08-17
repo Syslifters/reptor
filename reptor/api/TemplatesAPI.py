@@ -31,9 +31,7 @@ class TemplatesAPI(APIClient):
             return_data.append(FindingTemplate(item))
         return return_data
 
-    def upload_new_template(
-        self, template: object, language: str, tags: typing.Optional[list] = None
-    ) -> typing.Optional[FindingTemplate]:
+    def upload_new_template(self, template: FindingTemplate) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
         Args:
@@ -42,47 +40,8 @@ class TemplatesAPI(APIClient):
         Returns:
             FindingTemplate: Updated Model with ID etc.
         """
-        # template.data._to_api_json()
-        return_template = None
         res = self.post(
             self.base_endpoint,
-            data={
-                "tags": tags or [],
-                "translations": [
-                    {
-                        "status": "in-progress",
-                        "language": language,
-                        "is_main": True,  # New templates are always main language
-                        "data": {
-                            "title": template.data.title,
-                        },
-                    }
-                ],
-            },
+            data=template.to_json(),
         )
-        raw_data = res.json()
-        self.debug(raw_data)
-        if raw_data:
-            updated_template = FindingTemplate(raw_data)
-            updated_template.data = template.data
-            translations = [t.__dict__ for t in updated_template.translations]
-            for t in translations:
-                t.update(
-                    {
-                        "data": t.get("data").__dict__
-                        if not t.get("is_main")
-                        else updated_template.data._to_api_json(),
-                    }
-                )
-            updated_data = {
-                "id": updated_template.id,
-                "translations": translations,
-            }
-            self.debug(updated_data)
-            self.put(
-                f"{self.base_endpoint}{updated_template.id}",
-                updated_data,
-            )
-            return_template = updated_template
-
-        return return_template
+        return FindingTemplate(res.json())

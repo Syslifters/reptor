@@ -9,16 +9,13 @@ try:
 except ImportError:
     gql = None
 
-# Todo: This needs a lot of work
-# Consider it a WIP Example
-
 
 class GhostWriter(BaseImporter):
     """
     Imports findings from GhostWriter
 
-    Connects to the API of a GhostWriter instance and imports its
-    finding templates.
+    Connects to the GraqhQL API of a GhostWriter instance and imports its
+    finding templates to SysReptor via API.
     """
 
     meta = {
@@ -152,7 +149,11 @@ class GhostWriter(BaseImporter):
 
         findings = self._get_ghostwriter_findings()
         for finding_data in findings:
-            yield finding_data
+            yield {
+                "language": "en-US",
+                "status": "in-progress",
+                "data": finding_data,
+            }
 
 
 loader = GhostWriter

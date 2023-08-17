@@ -74,22 +74,47 @@ It's time to get findings from your source. Use the `next_findings_batch` method
     def next_findings_batch(self):
         findings = self._get_findings_from_source()
         for finding_data in findings:
-            yield finding_data
+            yield {
+                "language": "en-US",
+                "status": "in-progress",
+                "data": finding_data,
+            }
 ```
 
 Note that you have to implement `_get_findings_from_source`. This is where you access your source's API.
 
-`finding_data` is a dictionary containing the fields of your source, e. g.:
+`finding_data` is a dictionary containing the fields of your source. The full data structure might look like:
 
 ```json
 {
-    "title": "Finding Title",
-	"description": "Finding Description",
-    "links": "https://example.com/\nhttps://example.com/reference"
+    "language": "en-US",
+    "status": "in-progress",
+    "data": {
+        "title": "Finding Title",
+        "description": "Finding Description",
+        "links": "https://example.com/\nhttps://example.com/reference"
+    },
 }
+
+```
+The field names should be those from your source, not from SysReptor.
+
+For multiple translations, you can yield a list containing this data structure, e. g.
+```json
+[
+    {
+        "language": "en-US",
+        "status": "in-progress",
+        "data": {
+            "title": "Finding Title",
+            "description": "Finding Description",
+            "links": "https://example.com/\nhttps://example.com/reference"
+        },
+    }
+]
+
 ```
 
-The field names should be those from your source, not from SysReptor.
 
 ## Mapping field names
 
