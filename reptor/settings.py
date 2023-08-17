@@ -14,6 +14,7 @@ PLUGIN_DIRS_EXPORTERS: pathlib.Path = PLUGIN_DIRS / "exporters"
 PLUGIN_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "plugins"
 
 PLUGIN_TEMPLATES_DIR_NAME: str = "templates"
+FINDING_TEMPLATES_DIR_NAME: str = "findings"
 
 PLUGIN_TOOLBASE_TEMPLATE_FOLDER: pathlib.Path = BASE_DIR / "templates" / "Toolbase"
 
@@ -33,7 +34,7 @@ TEMPLATES = [
             "libraries": {
                 "md": "reptor.utils.templatetags.md",
             },
-        }
+        },
     },
 ]
 

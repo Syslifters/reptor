@@ -1,0 +1,9 @@
+description = """Du hast weak ciphers: 
+<!-- start weak_ciphers_list
+prepend = "Die folgenden CIopher wurden gefunden: "
+append = "Das waren jetzt alle Cipher." -->
+Die folgenden CIopher wurden gefunden: 
+<!-- end weak_ciphers_list -->"""
+
+
+

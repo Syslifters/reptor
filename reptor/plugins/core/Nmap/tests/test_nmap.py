@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -9,14 +10,12 @@ from ..Nmap import Nmap
 
 
 class TestNmap(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        Nmap.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        Nmap.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.nmap = Nmap(reptor=self.reptor)
 

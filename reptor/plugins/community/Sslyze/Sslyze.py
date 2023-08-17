@@ -304,5 +304,23 @@ class Sslyze(ToolBase):
             return {"target": data[0]}
         return {"data": data}
 
+    def finding_vulnerabilities(self):
+        # probably return as dict
+        result = {
+            'protocols' : [],
+            'weak_ciphers_list': [],
+            'weak_ciphers_table': [],
+        }
+        return result
+
+    def finding_weak_ciphers(self):
+        # probably return as dict
+        result = {
+            'protocols' : [],
+            'weak_ciphers_list': [],
+            'weak_ciphers_table': [],
+        }
+        return False, result
+        return self.get_weak_ciphers()
 
 loader = Sslyze

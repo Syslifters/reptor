@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -9,14 +10,12 @@ from ..Sslyze import Sslyze
 
 
 class TestSslyze(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        Sslyze.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        Sslyze.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.sslyze = Sslyze(reptor=self.reptor)
 
@@ -151,3 +150,23 @@ class TestSslyze(TestCaseToolPlugin):
             protocols_result,
         ]:
             assert content in self.sslyze.formatted_input
+
+    def test_path_methods(self):
+        plugin_path = Path(os.path.normpath(Path(os.path.dirname(__file__)) / ".."))
+        template_paths = self.sslyze.get_plugin_dir_paths(
+            plugin_path, "templates", skip_user_plugins=True
+        )
+        assert len(template_paths) == 1
+        assert isinstance(template_paths[0], Path)
+        assert template_paths[0] == plugin_path / "templates"
+
+        templates = self.sslyze.get_filenames_from_paths(template_paths, "md")
+        template_names = [
+            "certinfo",
+            "default_summary",
+            "misconfigurations",
+            "protocols",
+            "vulnerabilities",
+            "weak_ciphers",
+        ]
+        assert all([t in templates for t in template_names])

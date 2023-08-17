@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from xml.etree import ElementTree
 
 import pytest
@@ -10,9 +11,7 @@ from ..Nikto import Nikto
 
 
 class TestNikto(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
     xml_sample = """<?xml version="1.0" ?>
 <!DOCTYPE niktoscans SYSTEM "/var/lib/nikto/docs/nikto.dtd">
 <niktoscans>
@@ -22,8 +21,8 @@ class TestNikto(TestCaseToolPlugin):
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        Nikto.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        Nikto.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.nikto = Nikto(reptor=self.reptor)
 

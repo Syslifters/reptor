@@ -2,7 +2,9 @@ import glob
 import json
 import logging
 import os
+import typing
 import sys
+from pathlib import Path
 from xml.etree import ElementTree
 
 import xmltodict
@@ -46,41 +48,66 @@ class ToolBase(Base):
             settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
     @classmethod
-    def set_template_vars(cls, plugin_path, skip_user_plugins=False):
-        template_paths = list()
-        # Get template paths from plugin and userdir
+    def get_plugin_dir_paths(
+        cls,
+        plugin_path: Path,
+        dirname: str,
+        skip_user_plugins: bool = False,
+    ) -> typing.List[Path]:
+        dir_paths = list()
         if skip_user_plugins:
             user_plugin_path = None
         else:
-            user_plugin_path = os.path.join(
-                settings.PLUGIN_DIRS_USER, os.path.basename(plugin_path)
-            )
+            user_plugin_path = settings.PLUGIN_DIRS_USER / os.path.basename(plugin_path)
         for path in [
             user_plugin_path,
             plugin_path,
-        ]:  # Keep order: user templates override
+        ]:  # Keep order: files from user directory override
             if path is None:
                 continue
-            path = os.path.normpath(
-                os.path.join(path, settings.PLUGIN_TEMPLATES_DIR_NAME)
-            )
-            if path not in template_paths:
-                template_paths.append(path)
+            dir_path = os.path.normpath(Path(path) / dirname)
 
-        # Add to paths if template paths exist
-        cls.template_paths = [p for p in template_paths if os.path.isdir(p)]
+            if dir_path not in dir_paths:
+                dir_paths.append(dir_path)
 
+        # Return list of existing template paths
+        return [Path(p) for p in dir_paths if os.path.isdir(p)]
+
+    @classmethod
+    def get_filenames_from_paths(cls, dir_paths: list, filetype: str):
+        """
+        takes a list of paths and returns a list of filenames without file extension
+        """
+        filetype = f"*.{filetype.strip('.')}"
         # Get template names from paths
-        cls.templates = list()
-        for path in cls.template_paths:
-            templates = [
+        files_from_plugin_dir = list()
+        for path in dir_paths:
+            files = [
                 os.path.basename(f).rsplit(".", 1)[0]
-                for f in glob.glob(os.path.join(path, "*.md"))
+                for f in glob.glob(os.path.join(path, filetype))
             ]
-            cls.templates.extend([t for t in templates if t not in cls.templates])
+            files_from_plugin_dir.extend(
+                [t for t in files if t not in files_from_plugin_dir]
+            )
+        return files_from_plugin_dir
 
+    @classmethod
+    def setup_class(cls, plugin_path: Path, skip_user_plugins: bool = False):
+        # Get template and finding paths from plugin and userdir
+        cls.finding_paths = cls.get_plugin_dir_paths(
+            plugin_path,
+            settings.FINDING_TEMPLATES_DIR_NAME,
+            skip_user_plugins=skip_user_plugins,
+        )
+        cls.template_paths = cls.get_plugin_dir_paths(
+            plugin_path,
+            settings.PLUGIN_TEMPLATES_DIR_NAME,
+            skip_user_plugins=skip_user_plugins,
+        )
+        cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
+
+        # Choose default template
         if cls.templates:
-            # Choose default template
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
             else:
@@ -94,7 +121,7 @@ class ToolBase(Base):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         if plugin_filepath:
-            cls.set_template_vars(os.path.dirname(plugin_filepath))
+            cls.setup_class(Path(os.path.dirname(plugin_filepath)))
         if cls.templates:
             parser.add_argument(
                 "-t",
