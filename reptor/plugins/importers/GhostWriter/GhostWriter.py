@@ -14,8 +14,8 @@ class GhostWriter(BaseImporter):
     """
     Imports findings from GhostWriter
 
-    Connects to the API of a GhostWriter instance and imports its
-    finding templates.
+    Connects to the GraqhQL API of a GhostWriter instance and imports its
+    finding templates to SysReptor via API.
     """
 
     meta = {

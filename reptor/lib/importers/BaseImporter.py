@@ -111,6 +111,6 @@ class BaseImporter(Base):
             new_finding = self._create_finding_item(external_finding)
             if not new_finding:
                 continue
-            self.display(f'Uploading "{new_finding.data.title}"')
+            self.display(f'Uploading "{new_finding.translations[0].data.title}"')
             self.debug(new_finding)
             self._upload_finding_template(new_finding)

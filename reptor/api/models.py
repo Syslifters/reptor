@@ -116,11 +116,11 @@ class BaseModel:
 
     def to_json(self):
         # data = {}
-        # for key, value in self.__dict__.items():
+        # for key, value in vars(self).items():
         #    if key not in ["created", "updated"]:
         #        data.update({key: value})
         # return data
-        return self.__dict__
+        return vars(self)
 
 
 class User(BaseModel):
@@ -228,7 +228,7 @@ class FindingDataRaw(SectionDataRaw):
     evidence: str = ""
 
     def to_json(self) -> dict:
-        return self.__dict__
+        return vars(self)
 
 
 class ProjectDesignField(BaseModel):
@@ -468,7 +468,7 @@ class SectionData(BaseModel):
     def __iter__(self):
         """Recursive iteration through cls attributes
         returns FindingDataField"""
-        for _, finding_field in self.__dict__.items():
+        for _, finding_field in vars(self).items():
             for nested_field in finding_field:
                 yield nested_field
 
@@ -477,7 +477,7 @@ class SectionData(BaseModel):
 
     def to_json(self) -> dict:
         result = dict()
-        for key, value in self.__dict__.items():
+        for key, value in vars(self).items():
             result[key] = value.to_json()
         return result
 
@@ -540,8 +540,13 @@ class FindingTemplateTranslation(BaseModel):
     is_main: bool = True
     data: FindingDataRaw
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Init mandatory fields
+        self.is_main = True
+
     def to_json(self) -> dict:
-        result = self.__dict__
+        result = vars(self)
         result["data"] = self.data.to_json()
         return result
 
@@ -567,7 +572,7 @@ class FindingTemplate(BaseModel):
     translations: typing.List[FindingTemplateTranslation] = []
 
     def to_json(self) -> dict:
-        result = self.__dict__
+        result = vars(self)
         if isinstance(self.source, FindingTemplateSources):
             result["source"] = self.source.value
         result["translations"] = [t.to_json() for t in self.translations]
