@@ -1,13 +1,13 @@
 import datetime
 from typing import Any
 from uuid import UUID
-from reptor.api.models.Base import BaseModel
+from reptor.models.Base import BaseModel
 
 
 import typing
 
-from reptor.api.models.Project import ProjectDesign, ProjectDesignField
-from reptor.api.models.Base import ProjectFieldTypes
+from reptor.models.Project import ProjectDesign, ProjectDesignField
+from reptor.models.Base import ProjectFieldTypes
 from reptor.lib.interfaces.api.models import SectionProtocol
 
 

@@ -1,6 +1,6 @@
-from reptor.api.models.Base import BaseModel
-from reptor.api.models.User import User
-from reptor.api.models.Base import ProjectFieldTypes
+from reptor.models.Base import BaseModel
+from reptor.models.User import User
+from reptor.models.Base import ProjectFieldTypes
 
 
 import typing

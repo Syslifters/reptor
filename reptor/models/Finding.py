@@ -1,11 +1,13 @@
-from reptor.api.models.Base import BaseModel
-from reptor.api.models.Project import ProjectDesign, ProjectDesignField
-from reptor.api.models.Section import SectionData, SectionDataField, SectionDataRaw, SectionRaw
-
+from reptor.models.Project import ProjectDesign, ProjectDesignField
+from reptor.models.Section import (
+    SectionData,
+    SectionDataField,
+    SectionDataRaw,
+    SectionRaw,
+)
 
 import typing
 
-from reptor.api.models.Base import FindingTemplateSources
 from reptor.lib.interfaces.api.models import FindingProtocol
 
 
@@ -82,51 +84,6 @@ class FindingData(SectionData):
 
 class FindingRaw(SectionRaw):
     data: FindingDataRaw
-
-
-class FindingTemplateTranslation(BaseModel):
-    language: str = "en-US"
-    status: str = "in-progress"
-    is_main: bool = True
-    data: FindingDataRaw
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Init mandatory fields
-        self.is_main = True
-
-    def to_json(self) -> dict:
-        result = vars(self)
-        result["data"] = self.data.to_json()
-        return result
-
-
-class FindingTemplate(BaseModel):
-    """
-    Attributes:
-        details:
-        images:
-        lock_info:
-        usage_count:
-        source:
-        tags:
-        translations:
-    """
-
-    details: str = ""
-    images: str = ""
-    lock_info: bool = False
-    usage_count: int = 0
-    source: FindingTemplateSources = FindingTemplateSources.CREATED
-    tags: typing.List[str] = []
-    translations: typing.List[FindingTemplateTranslation] = []
-
-    def to_json(self) -> dict:
-        result = vars(self)
-        if isinstance(self.source, FindingTemplateSources):
-            result["source"] = self.source.value
-        result["translations"] = [t.to_json() for t in self.translations]
-        return result
 
 
 class Finding(FindingRaw, FindingProtocol):

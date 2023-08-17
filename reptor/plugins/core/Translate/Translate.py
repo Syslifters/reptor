@@ -2,16 +2,17 @@ import re
 from typing import Union
 
 from requests.exceptions import HTTPError
-from reptor.api.models.Finding import Finding
-from reptor.api.models.Section import Section
+from reptor.models.Finding import Finding
+from reptor.models.Section import Section
 
-from reptor.api.models.Base import ProjectFieldTypes
+from reptor.models.Base import ProjectFieldTypes
 from reptor.lib.plugins.Base import Base
 
 try:
     import deepl
 except ImportError:
     deepl = None
+
 
 class Translate(Base):
     """ """

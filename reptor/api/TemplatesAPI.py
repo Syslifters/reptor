@@ -2,7 +2,7 @@ import typing
 from posixpath import join as urljoin
 
 from reptor.api.APIClient import APIClient
-from reptor.api.models.Finding import FindingTemplate
+from reptor.models.FindingTemplate import FindingTemplate
 
 
 class TemplatesAPI(APIClient):
@@ -31,7 +31,9 @@ class TemplatesAPI(APIClient):
             return_data.append(FindingTemplate(item))
         return return_data
 
-    def upload_new_template(self, template: FindingTemplate) -> typing.Optional[FindingTemplate]:
+    def upload_new_template(
+        self, template: FindingTemplate
+    ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
         Args:

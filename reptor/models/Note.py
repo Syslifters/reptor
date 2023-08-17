@@ -1,4 +1,4 @@
-from reptor.api.models.Base import BaseModel
+from reptor.models.Base import BaseModel
 
 
 class Note(BaseModel):

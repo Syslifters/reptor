@@ -4,9 +4,9 @@ from copy import deepcopy
 import pytest
 
 from reptor.api.manager import APIManager
-from reptor.api.models.Finding import FindingRaw
-from reptor.api.models.Project import ProjectDesign
-from reptor.api.models.Finding import Finding
+from reptor.models.Finding import FindingRaw
+from reptor.models.Project import ProjectDesign
+from reptor.models.Finding import Finding
 from reptor.lib.reptor import Reptor
 
 from ..Translate import Translate
@@ -116,12 +116,19 @@ class TestTranslate:
         assert translated_finding.data.title.value == self.finding.data.title.value
 
         # Fields that should not be translated
-        assert translated_finding.data.combobox_field.value == self.finding.data.combobox_field.value
+        assert (
+            translated_finding.data.combobox_field.value
+            == self.finding.data.combobox_field.value
+        )
         assert translated_finding.data.cvss.value == self.finding.data.cvss.value
-        assert translated_finding.data.enum_field.value == self.finding.data.enum_field.value
-        assert translated_finding.data.list_field.value[0].value[
-            "enum_in_object"
-        ].value == self.finding.data.list_field.value[0].value["enum_in_object"].value
+        assert (
+            translated_finding.data.enum_field.value
+            == self.finding.data.enum_field.value
+        )
+        assert (
+            translated_finding.data.list_field.value[0].value["enum_in_object"].value
+            == self.finding.data.list_field.value[0].value["enum_in_object"].value
+        )
 
     def test_language_code_mapping(self):
         class Reptor:

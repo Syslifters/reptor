@@ -40,15 +40,15 @@ class BaseModel:
             data (str): API Return Data
         """
         # Import here to prevent circular imports
-        from reptor.api.models.Finding import (
-            FindingDataRaw,
+        from reptor.models.Finding import FindingDataRaw
+        from reptor.models.FindingTemplate import (
             FindingTemplate,
             FindingTemplateTranslation,
         )
-        from reptor.api.models.Note import Note
-        from reptor.api.models.Project import Project, ProjectDesign, ProjectDesignField
-        from reptor.api.models.Section import SectionDataRaw
-        from reptor.api.models.User import User
+        from reptor.models.Note import Note
+        from reptor.models.Project import Project, ProjectDesign, ProjectDesignField
+        from reptor.models.Section import SectionDataRaw
+        from reptor.models.User import User
 
         combined_class_type_hints = self._get_combined_class_type_hints()
 

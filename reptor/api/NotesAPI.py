@@ -8,7 +8,7 @@ from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
 from reptor.api.errors import LockedException
-from reptor.api.models.Note import Note
+from reptor.models.Note import Note
 from reptor.lib.errors import MissingArgumentError
 from reptor.utils.file_operations import guess_filetype
 
@@ -52,12 +52,7 @@ class NotesAPI(APIClient):
         return notes
 
     def create_note(
-        self,
-        title="CLI Note",
-        parent_id: str = "",
-        order=None,
-        checked=None,
-        icon=None
+        self, title="CLI Note", parent_id: str = "", order=None, checked=None, icon=None
     ) -> Note:
         self.debug("Creating Note")
         note = self.post(
@@ -105,8 +100,7 @@ class NotesAPI(APIClient):
                     note_text += ": "
 
             note_text += content
-            self.debug(
-                f"We are sending data with a lenght of: {len(note_text)}")
+            self.debug(f"We are sending data with a lenght of: {len(note_text)}")
             url = urljoin(self.base_endpoint, note.id, "")
             r = self.put(url, {"text": note_text})
 
@@ -130,8 +124,7 @@ class NotesAPI(APIClient):
                 break
         else:
             # Note does not exist. Create.
-            note = self.create_note(
-                title=title, parent_id=parent_id, icon=icon)
+            note = self.create_note(title=title, parent_id=parent_id, icon=icon)
 
         return note
 
@@ -164,8 +157,7 @@ class NotesAPI(APIClient):
                 continue
 
             # Lock during upload to prevent unnecessary uploads and for endpoint setup
-            note = self.get_note_by_title(
-                notename, parent_notename=parent_notename)
+            note = self.get_note_by_title(notename, parent_notename=parent_notename)
             if self.private_note:
                 url = urljoin(self.base_endpoint, "upload/")
             else:
@@ -175,11 +167,9 @@ class NotesAPI(APIClient):
             ) if not force_unlock else contextlib.nullcontext():
                 # TODO this might be streamed
                 files = {"file": (filename, content)}
-                response_json = self.post(
-                    url, files=files, json_content=False).json()
+                response_json = self.post(url, files=files, json_content=False).json()
                 is_image = (
-                    True if response_json.get(
-                        "resource_type") == "image" else False
+                    True if response_json.get("resource_type") == "image" else False
                 )
                 if is_image:
                     file_path = f"/images/name/{response_json['name']}"
@@ -211,14 +201,14 @@ class NotesAPI(APIClient):
             r = self._lock_note(note_id)
         except HTTPError as e:
             if e.response.status_code == 403:
-                raise LockedException(
-                "Cannot force unlock. Locked by other user.")
+                raise LockedException("Cannot force unlock. Locked by other user.")
             else:
                 raise e
         if r.status_code == 200:
             raise LockedException(
-                    "The section you want to write to is locked. "
-                    "(Unlock or force: --force-unlock)")
+                "The section you want to write to is locked. "
+                "(Unlock or force: --force-unlock)"
+            )
 
         yield
 

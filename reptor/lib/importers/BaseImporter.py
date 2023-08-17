@@ -1,11 +1,8 @@
 import typing
-from reptor.api.models.Finding import FindingDataRaw, FindingTemplateTranslation
 
-from reptor.api.models.Finding import (
-    FindingTemplate,
-)
 from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.plugins.Base import Base
+from reptor.models.FindingTemplate import FindingTemplate
 
 
 class BaseImporter(Base):
