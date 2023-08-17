@@ -1,6 +1,5 @@
 import pathlib
 
-from reptor.models.ProjectsAPI import ProjectsAPI
 from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
 
