@@ -1,0 +1,4 @@
+[data]
+title = "IDOR"
+description = "Insecure Direct Object Reference (IDOR) at <!--{{ idor_url }}-->"
+recommendation = "<!--{% include 'recommendation.md' %}-->"

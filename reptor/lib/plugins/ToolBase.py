@@ -2,15 +2,20 @@ import glob
 import json
 import logging
 import os
-import typing
 import sys
+import typing
 from pathlib import Path
 from xml.etree import ElementTree
 
+import toml
 import xmltodict
+from django.template import Context, Template
+from django.template import base as django_base
 from django.template.loader import render_to_string
 
+from reptor.utils.django_tags import django_tags
 import reptor.settings as settings
+from reptor.models.Finding import FindingRaw
 
 from .Base import Base
 
@@ -27,6 +32,8 @@ class ToolBase(Base):
         template: The .md file to be used during formatting
     """
 
+    FINDING_PREFIX = "finding_"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
@@ -34,6 +41,7 @@ class ToolBase(Base):
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
+        self.findings = None
         self.no_timestamp = (
             self.reptor.get_config().get("cli", dict()).get("no_timestamp")
         )
@@ -67,11 +75,11 @@ class ToolBase(Base):
                 continue
             dir_path = os.path.normpath(Path(path) / dirname)
 
-            if dir_path not in dir_paths:
-                dir_paths.append(dir_path)
+            if dir_path not in dir_paths and os.path.isdir(dir_path):
+                dir_paths.append(Path(dir_path))
 
         # Return list of existing template paths
-        return [Path(p) for p in dir_paths if os.path.isdir(p)]
+        return dir_paths
 
     @classmethod
     def get_filenames_from_paths(cls, dir_paths: list, filetype: str):
@@ -107,10 +115,11 @@ class ToolBase(Base):
         cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
 
         # Choose default template
+        cls.template = None
         if cls.templates:
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
-            else:
+            elif len(cls.templates) > 1:
                 default_templates = [t for t in cls.templates if "default" in t]
                 try:
                     cls.template = default_templates[0]
@@ -270,9 +279,6 @@ class ToolBase(Base):
 
         data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(f"{self.template}.md", data)
-        # TODO there might be a more elegant solution, maybe.
-        while "\n\n\n" in self.formatted_input:
-            self.formatted_input = self.formatted_input.replace("\n\n\n", "\n\n")
 
     def process_parsed_input_for_template(self):
         return {"data": self.parsed_input}
@@ -292,3 +298,85 @@ class ToolBase(Base):
             no_timestamp=self.no_timestamp,
             force_unlock=self.force_unlock,
         )
+
+    def generate_findings(self) -> typing.List[FindingRaw]:
+        """Generates findings from the parsed input.
+
+        The findings are generated from the `self.parsed_input` and are
+        written to the `self.findings` list
+        """
+        if not self.parsed_input:
+            self.parse()
+        self.findings = list()
+        finding_methods = [
+            func
+            for func in dir(self)
+            if callable(getattr(self, func)) and func.startswith(self.FINDING_PREFIX)
+        ]
+        for method in finding_methods:
+            finding_context = getattr(self, method)()
+            if finding_context is None:
+                # Don't create finding if method returns None
+                continue
+
+            finding_name = method[len(self.FINDING_PREFIX) :]
+            # TODO: Check if remote finding exists
+            # Check if findings toml exists
+            finding = self.get_finding_from_local_template(finding_name)
+            if not finding:
+                self.log.warning(
+                    f"Did not find finding template for {finding_name}. Creating default finding."
+                )
+                description = (
+                    f"```{json.dumps(finding_context, indent=2)}```"
+                    if finding_context
+                    else "No description"
+                )
+                finding = FindingRaw(
+                    {
+                        "data": {
+                            "title": finding_name.replace("_", " ").title(),
+                            "description": description,
+                        },
+                    }
+                )
+
+            # TODO Django rendering
+            finding_context = Context(finding_context)
+            for k, v in finding.data.to_json().items():
+                # TODO: Complex data types
+                with django_tags(format="html"):
+                    setattr(finding.data, k, Template(v).render(finding_context))
+                pass
+
+            self.findings.append(finding)
+
+        return self.findings
+
+    def get_finding_from_local_template(self, name: str) -> typing.Optional[FindingRaw]:
+        """Loads a finding template from the local findings directory.
+
+        Args:
+            name: The name of the finding template to load
+
+        Returns:
+            A FindingRaw object or None if the template does not exist
+        """
+        if not self.finding_paths:
+            return None
+        if not name.endswith(".toml"):
+            name = f"{name}.toml"
+
+        for path in self.finding_paths:
+            finding_template_path = path / name
+            if os.path.isfile(finding_template_path):
+                with open(finding_template_path, "r") as f:
+                    try:
+                        finding_template = toml.load(f)
+                    except (toml.TomlDecodeError, TypeError) as e:
+                        self.log.warning(
+                            f"Error while loading toml finding template {name}."
+                        )
+                        return None
+                return FindingRaw(finding_template)
+        return None
