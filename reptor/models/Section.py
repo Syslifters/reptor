@@ -6,9 +6,10 @@ from reptor.models.Base import BaseModel
 
 import typing
 
-from reptor.models.Project import ProjectDesign, ProjectDesignField
+from reptor.models.ProjectDesign import ProjectDesignField
 from reptor.models.Base import ProjectFieldTypes
 from reptor.lib.interfaces.api.models import SectionProtocol
+from reptor.models.ProjectDesign import ProjectDesign
 
 
 class SectionDataRaw(BaseModel):
@@ -74,6 +75,8 @@ class SectionDataField(ProjectDesignField):
             self.value = property_value
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
+            if not isinstance(value, list):
+                raise ValueError(f"Value of '{self.name}' must be list.")
             for v in value:  # type: ignore
                 self.value.append(self.__class__(self.items, v))  # type: ignore
         else:
@@ -133,7 +136,7 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.date.value:
                 try:
                     datetime.datetime.strptime(__value, "%Y-%m-%d")
-                except ValueError:
+                except (ValueError, TypeError):
                     raise ValueError(
                         f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
                     )
@@ -149,15 +152,32 @@ class SectionDataField(ProjectDesignField):
                         f"Value of '{self.name}' must be list  (got '{type(__value)}')."
                     )
                 if not all([isinstance(v, self.__class__) for v in __value]):
-                    raise ValueError(
-                        f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
-                    )
+                    try:
+                        # Iterate through list and create objects of self's class
+                        if self.items.type in [
+                            ProjectFieldTypes.list.value,
+                            ProjectFieldTypes.object.value,
+                        ]:
+                            raise ValueError()
+
+                        new_value = list()
+                        for v in __value:
+                            if isinstance(v, self.__class__):
+                                new_value.append(v)
+                            else:
+                                new_value.append(self.__class__(self.items, v))
+                        __value = new_value
+                    except ValueError:
+                        raise ValueError(
+                            f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
+                        )
                 types = set([v.type for v in __value])
                 if len(types) > 1:
                     raise ValueError(
                         f"Values of '{self.name}' must not contain {self.__class__.__name__}s"
                         f"of multiple types (got {','.join(types)})."
                     )
+
             elif self.type == ProjectFieldTypes.object.value:
                 if not isinstance(__value, dict):
                     raise ValueError(
@@ -182,7 +202,7 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.user.value:
                 try:
                     UUID(__value, version=4)
-                except ValueError:
+                except (ValueError, AttributeError):
                     raise ValueError(
                         f"'{self.name}' expects v4 uuid (got '{__value}')."
                     )

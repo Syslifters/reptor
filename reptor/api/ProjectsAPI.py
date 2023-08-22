@@ -140,7 +140,7 @@ class ProjectsAPI(APIClient):
             self.project_design = self.reptor.api.project_designs.project_design
 
         for item in response:
-            finding = Finding(self.project_design, FindingRaw(item))
+            finding = Finding(FindingRaw(item), project_design=self.project_design)
             return_data.append(finding)
         return return_data
 

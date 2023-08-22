@@ -2,7 +2,7 @@ from functools import cached_property
 from posixpath import join as urljoin
 
 from reptor.api.APIClient import APIClient
-from reptor.models.Project import ProjectDesign
+from reptor.models.ProjectDesign import ProjectDesign
 
 
 class ProjectDesignsAPI(APIClient):

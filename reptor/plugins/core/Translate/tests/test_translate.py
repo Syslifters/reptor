@@ -5,7 +5,7 @@ import pytest
 
 from reptor.api.manager import APIManager
 from reptor.models.Finding import FindingRaw
-from reptor.models.Project import ProjectDesign
+from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Finding import Finding
 from reptor.lib.reptor import Reptor
 
@@ -86,7 +86,7 @@ class TestTranslate:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_finding_fields_only)
         )
-        self.finding = Finding(project_design, finding_raw)
+        self.finding = Finding(finding_raw, project_design=project_design)
 
     def test_translate(self):
         assert self.translate.chars_count_to_translate == 0
