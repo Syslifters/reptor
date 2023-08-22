@@ -1,18 +1,19 @@
-import contextlib
 import re
-import typing
 
 from django.template import base as django_base
 from django.template.base import Token, TokenType
-import django.template.loader_tags as django_loader_tags
 
-HTML_PREFIX = "<!--"
-HTML_SUFFIX = "-->"
-HTML_REGEX = r"(<!--{%.*?%}-->|<!--{{.*?}}-->|<!--{#.*?#}-->)"
+# HMTL comment tags
+HTML_REGEX = re.compile(r"(<!--{%.*?%}-->|<!--{{.*?}}-->|<!--{#.*?#}-->)")
+BLOCK_TAG_START = "<!--{%"
+BLOCK_TAG_END = "%}-->"
+VARIABLE_TAG_START = "<!--{{"
+VARIABLE_TAG_END = "}}-->"
+COMMENT_TAG_START = "<!--{#"
+COMMENT_TAG_END = "#}-->"
 
 
-@contextlib.contextmanager
-def django_tags(format: typing.Optional[str] = None):
+def setup_django_tags():
     def create_token(self, token_string, position, lineno, in_tag):
         """
         Convert the given token string into a new Token object and return it.
@@ -28,7 +29,7 @@ def django_tags(format: typing.Optional[str] = None):
             token_start = token_string[0 : len(django_base.BLOCK_TAG_START)]
             if token_start == django_base.BLOCK_TAG_START:
                 content = token_string[
-                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_START)
+                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_END)
                 ].strip()
                 if self.verbatim:
                     # Then a verbatim block is being processed.
@@ -42,7 +43,7 @@ def django_tags(format: typing.Optional[str] = None):
                 return Token(TokenType.BLOCK, content, position, lineno)
             if not self.verbatim:
                 content = token_string[
-                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_START)
+                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_END)
                 ].strip()
                 if token_start == django_base.VARIABLE_TAG_START:
                     return Token(TokenType.VAR, content, position, lineno)
@@ -51,37 +52,8 @@ def django_tags(format: typing.Optional[str] = None):
                 return Token(TokenType.COMMENT, content, position, lineno)
         return Token(TokenType.TEXT, token_string, position, lineno)
 
-    if format == "html":
-        # HMTL comment tags
-        tag_re = re.compile(HTML_REGEX)
-        BLOCK_TAG_START = "<!--{%"
-        BLOCK_TAG_END = "%}-->"
-        VARIABLE_TAG_START = "<!--{{"
-        VARIABLE_TAG_END = "}}-->"
-        COMMENT_TAG_START = "<!--{#"
-        COMMENT_TAG_END = "#}-->"
-    else:
-        # Original Django Tags
-        tag_re = re.compile(r"({%.*?%}|{{.*?}}|{#.*?#})")
-        BLOCK_TAG_START = "{%"
-        BLOCK_TAG_END = "%}"
-        VARIABLE_TAG_START = "{{"
-        VARIABLE_TAG_END = "}}"
-        COMMENT_TAG_START = "{#"
-        COMMENT_TAG_END = "#}"
-
-    # Save original values
-    _tag_re = django_base.tag_re
-    _create_token = django_base.Lexer.create_token
-    _BLOCK_TAG_START = django_base.BLOCK_TAG_START
-    _BLOCK_TAG_END = django_base.BLOCK_TAG_END
-    _VARIABLE_TAG_START = django_base.VARIABLE_TAG_START
-    _VARIABLE_TAG_END = django_base.VARIABLE_TAG_END
-    _COMMENT_TAG_START = django_base.COMMENT_TAG_START
-    _COMMENT_TAG_END = django_base.COMMENT_TAG_END
-
     # Monkey patch
-    django_base.tag_re = tag_re
+    django_base.tag_re = HTML_REGEX
     django_base.Lexer.create_token = create_token
     django_base.BLOCK_TAG_START = BLOCK_TAG_START
     django_base.BLOCK_TAG_END = BLOCK_TAG_END
@@ -89,19 +61,3 @@ def django_tags(format: typing.Optional[str] = None):
     django_base.VARIABLE_TAG_END = VARIABLE_TAG_END
     django_base.COMMENT_TAG_START = COMMENT_TAG_START
     django_base.COMMENT_TAG_END = COMMENT_TAG_END
-
-    yield
-
-    # Restore original values
-    django_base.tag_re = _tag_re
-    django_base.Lexer.create_token = _create_token
-    django_base.BLOCK_TAG_START = _BLOCK_TAG_START
-    django_base.BLOCK_TAG_END = _BLOCK_TAG_END
-    django_base.VARIABLE_TAG_START = _VARIABLE_TAG_START
-    django_base.VARIABLE_TAG_END = _VARIABLE_TAG_END
-    django_base.COMMENT_TAG_START = _COMMENT_TAG_START
-    django_base.COMMENT_TAG_END = _COMMENT_TAG_END
-
-
-# do_include should always use the original django tags without HTML prefix and suffix
-do_include = django_tags()(django_loader_tags.do_include)

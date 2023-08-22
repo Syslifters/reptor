@@ -10,10 +10,8 @@ from xml.etree import ElementTree
 import toml
 import xmltodict
 from django.template import Context, Template
-from django.template import base as django_base
 from django.template.loader import render_to_string
 
-from reptor.utils.django_tags import django_tags
 import reptor.settings as settings
 from reptor.models.Finding import FindingRaw
 
@@ -345,8 +343,8 @@ class ToolBase(Base):
             finding_context = Context(finding_context)
             for k, v in finding.data.to_json().items():
                 # TODO: Complex data types
-                with django_tags(format="html"):
-                    setattr(finding.data, k, Template(v).render(finding_context))
+                # with setup_django_tags(format="html"):
+                setattr(finding.data, k, Template(v).render(finding_context))
                 pass
 
             self.findings.append(finding)

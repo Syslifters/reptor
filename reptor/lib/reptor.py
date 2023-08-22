@@ -6,18 +6,20 @@ import traceback
 
 import django
 from django.conf import settings as django_settings
+
 import reptor.settings as settings
 import reptor.subcommands as subcommands
+from reptor.api.manager import APIManager
 from reptor.lib.conf import Config
 from reptor.lib.console import Console, reptor_console
 from reptor.lib.logger import ReptorAdapter, reptor_logger
-from reptor.lib.plugins.DocParser import PluginDocs
-from reptor.utils.markdown import convert_markdown_to_console
 from reptor.lib.pluginmanager import PluginManager
-from reptor.api.manager import APIManager
+from reptor.lib.plugins.DocParser import PluginDocs
+from reptor.utils.django_tags import setup_django_tags
+from reptor.utils.markdown import convert_markdown_to_console
 
-from .interfaces.reptor import ReptorProtocol
 from .interfaces.pluginmanager import PluginManagerProtocol
+from .interfaces.reptor import ReptorProtocol
 
 root_logger = logging.getLogger("root")
 
@@ -62,6 +64,9 @@ class Reptor(ReptorProtocol):
         # Load the config
         self._config = Config()
         self._config.load_config()
+
+        # Setup Django tags
+        setup_django_tags()
 
         self.plugin_manager = PluginManager(self)
 

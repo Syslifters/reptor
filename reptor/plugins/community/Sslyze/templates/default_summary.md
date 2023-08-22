@@ -1,25 +1,25 @@
-{% load l10n %}{% load md %}
-{% for target in data %}
-# {{ target.hostname }}:{{ target.port|unlocalize }} ({{ target.ip_address }})
+<!--{% load l10n %}--><!--{% load md %}-->
+<!--{% for target in data %}-->
+# <!--{{ target.hostname }}-->:<!--{{ target.port|unlocalize }}--> (<!--{{ target.ip_address }}-->)
 
 **Protocols**
 
-{% include "protocols.md" %}
+<!--{% include "protocols.md" %}-->
 
 **Certificate Information**
 
-{% include "certinfo.md" %}
+<!--{% include "certinfo.md" %}-->
 
 **Vulnerabilities**
 
-{% include "vulnerabilities.md" %}
+<!--{% include "vulnerabilities.md" %}-->
 
 
 **Misconfigurations**
 
-{% include "misconfigurations.md" %}
+<!--{% include "misconfigurations.md" %}-->
 
 **Weak Cipher Suites**
 
-{% include "weak_ciphers.md" %}
-{% endfor %}
+<!--{% include "weak_ciphers.md" %}-->
+<!--{% endfor %}-->
