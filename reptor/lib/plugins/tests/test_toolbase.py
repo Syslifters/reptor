@@ -4,7 +4,7 @@ import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from pathlib import Path
-from reptor.models.Finding import FindingRaw
+from reptor.models.Finding import Finding
 
 from ..ToolBase import ToolBase
 
@@ -50,12 +50,12 @@ class TestToolbase(TestCaseToolPlugin):
 
     def test_load_local_finding_template(self):
         finding = self.example_tool.get_finding_from_local_template("idor")
-        assert finding.data.title == "IDOR"
+        assert finding.data.title.value == "IDOR"
         assert (
-            finding.data.description
+            finding.data.description.value
             == "Insecure Direct Object Reference (IDOR) at <!--{{ idor_url }}-->"
         )
-        assert finding.data.recommendation == "<!--{% include 'recommendation.md' %}-->"
+        assert finding.data.recommendation.value == "<!--{% include 'recommendation.md' %}-->"
         finding_1 = self.example_tool.get_finding_from_local_template("idor.toml")
         assert finding == finding_1
 
@@ -69,26 +69,26 @@ class TestToolbase(TestCaseToolPlugin):
         assert len(self.example_tool.findings) == 3
 
         idor_finding = self.example_tool.findings[0]
-        assert isinstance(idor_finding, FindingRaw)
-        assert idor_finding.data.title == "IDOR"
+        assert isinstance(idor_finding, Finding)
+        assert idor_finding.data.title.value == "IDOR"
         assert (
-            idor_finding.data.description
+            idor_finding.data.description.value
             == "Insecure Direct Object Reference (IDOR) at https://example.com/idor/1337"
         )
         assert (
-            idor_finding.data.recommendation
+            idor_finding.data.recommendation.value
             == "Please fix the IDOR at https://example.com/idor/1337!"
         )
 
         no_template_empty_finding = self.example_tool.findings[2]
-        assert isinstance(no_template_empty_finding, FindingRaw)
-        assert no_template_empty_finding.data.title == "Without Template Empty"
-        assert no_template_empty_finding.data.description == "No description"
+        assert isinstance(no_template_empty_finding, Finding)
+        assert no_template_empty_finding.data.title.value == "Without Template Empty"
+        assert no_template_empty_finding.data.description.value == "No description"
 
         no_template_finding = self.example_tool.findings[1]
-        assert isinstance(no_template_finding, FindingRaw)
-        assert no_template_finding.data.title == "Without Template"
+        assert isinstance(no_template_finding, Finding)
+        assert no_template_finding.data.title.value == "Without Template"
         assert (
-            no_template_finding.data.description
+            no_template_finding.data.description.value
             == f"```{json.dumps({'payload': '2=2'}, indent=2)}```"
         )

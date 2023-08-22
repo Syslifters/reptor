@@ -13,7 +13,7 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
-from reptor.models.Finding import FindingRaw
+from reptor.models.Finding import Finding
 
 from .Base import Base
 
@@ -297,7 +297,7 @@ class ToolBase(Base):
             force_unlock=self.force_unlock,
         )
 
-    def generate_findings(self) -> typing.List[FindingRaw]:
+    def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.
 
         The findings are generated from the `self.parsed_input` and are
@@ -330,7 +330,7 @@ class ToolBase(Base):
                     if finding_context
                     else "No description"
                 )
-                finding = FindingRaw(
+                finding = Finding(
                     {
                         "data": {
                             "title": finding_name.replace("_", " ").title(),
@@ -339,19 +339,19 @@ class ToolBase(Base):
                     }
                 )
 
-            # TODO Django rendering
             finding_context = Context(finding_context)
-            for k, v in finding.data.to_json().items():
-                # TODO: Complex data types
-                # with setup_django_tags(format="html"):
-                setattr(finding.data, k, Template(v).render(finding_context))
-                pass
+
+            for finding_data in finding.data:
+                if finding_data.value:
+                    finding_data.value = Template(finding_data.value).render(
+                        finding_context
+                    )
 
             self.findings.append(finding)
 
         return self.findings
 
-    def get_finding_from_local_template(self, name: str) -> typing.Optional[FindingRaw]:
+    def get_finding_from_local_template(self, name: str) -> typing.Optional[Finding]:
         """Loads a finding template from the local findings directory.
 
         Args:
@@ -376,5 +376,5 @@ class ToolBase(Base):
                             f"Error while loading toml finding template {name}."
                         )
                         return None
-                return FindingRaw(finding_template)
+                return Finding(finding_template)
         return None

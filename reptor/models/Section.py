@@ -141,7 +141,7 @@ class SectionDataField(ProjectDesignField):
                         f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
                     )
             elif self.type == ProjectFieldTypes.enum.value:
-                valid_enums = [choice["value"] for choice in self.choices]
+                valid_enums = [choice["value"] for choice in self.choices] + [""]
                 if __value not in valid_enums:
                     raise ValueError(
                         f"'{__value}' is not an valid enum choice for '{self.name}'."
@@ -149,7 +149,7 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.list.value:
                 if not isinstance(__value, list):
                     raise ValueError(
-                        f"Value of '{self.name}' must be list  (got '{type(__value)}')."
+                        f"Value of '{self.name}' must be list (got '{type(__value)}')."
                     )
                 if not all([isinstance(v, self.__class__) for v in __value]):
                     try:

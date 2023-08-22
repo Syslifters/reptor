@@ -89,10 +89,14 @@ class Finding(FindingRaw):
     data: FindingData
 
     def __init__(
-        self, raw: FindingRaw, project_design: typing.Optional[ProjectDesign] = None
+        self,
+        raw: typing.Union[FindingRaw, typing.Dict],
+        project_design: typing.Optional[ProjectDesign] = None,
     ):
         if project_design is None:
             project_design = ProjectDesign()
+        if isinstance(raw, dict):
+            raw = FindingRaw(raw)
 
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(FindingRaw).items():

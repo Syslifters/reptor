@@ -127,9 +127,8 @@ class TestFindingModelParsing:
         with pytest.raises(ValueError):
             Finding(finding_raw)
 
-    def test_finding_without_design(self):
-        finding_raw = FindingRaw(json.loads(self.finding_with_predefined_fields))
-        finding = Finding(finding_raw)
+    def test_finding_without_design_from_dict(self):
+        finding = Finding(json.loads(self.finding_with_predefined_fields))
         assert finding.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
         assert finding.data.title.value == "Test"
         finding.data.title.value = "New"
