@@ -225,6 +225,11 @@ class SectionData(BaseModel):
                 design_field.name,
                 self.field_class(design_field, value),
             )
+        missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
+        if len(missing_fields) > 0:
+            raise ValueError(
+                f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
+            )
 
     def __iter__(self):
         """Recursive iteration through cls attributes

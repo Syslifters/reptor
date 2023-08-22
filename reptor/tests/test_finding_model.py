@@ -71,38 +71,12 @@ class TestFindingModelParsing:
         "id": "c8941493-c5e2-4a89-b82e-a3513f54c1b4",
         "created": "2023-08-22T09:22:38.896650Z",
         "updated": "2023-08-22T09:22:38.899219Z",
-        "project": "4820bd5d-51f1-4dca-a4a4-78ba935b615c",
-        "project_type": "c9b00138-8079-40d8-8030-1aecf3b66e8e",
+        "project": "4820bd5d-51f1-4dca-a4a4-78ba115b615c",
+        "project_type": "c9b00138-8079-40d8-8030-1aecf3b66e11",
         "language": "en-US",
-        "lock_info": {
-            "created": "2023-08-22T09:22:39.514861Z",
-            "updated": "2023-08-22T09:22:39.515130Z",
-            "last_ping": "2023-08-22T09:22:39.514878Z",
-            "expires": "2023-08-22T09:24:09.514878Z",
-            "user": {
-                "id": "bc5c9c67-43e3-467f-924b-02bd76807d24",
-                "username": "aron",
-                "name": "Aron Molnar",
-                "title_before": null,
-                "first_name": "Aron",
-                "middle_name": null,
-                "last_name": "Molnar",
-                "title_after": null,
-                "is_active": true
-            }
-        },
+        "lock_info": {},
         "template": null,
-        "assignee": {
-            "id": "bc5c9c67-43e3-467f-924b-02bd76807d24",
-            "username": "aron",
-            "name": "Aron Molnar",
-            "title_before": null,
-            "first_name": "Aron",
-            "middle_name": null,
-            "last_name": "Molnar",
-            "title_after": null,
-            "is_active": true
-        },
+        "assignee": {},
         "status": "in-progress",
         "order": 1,
         "data": {
@@ -124,89 +98,115 @@ class TestFindingModelParsing:
         }
     }
 """
+    incompatible_finding = """
+    {
+        "id": "c8941493-c5e2-4a89-b82e-a3513f54c1b4",
+        "created": "2023-08-22T09:22:38.896650Z",
+        "updated": "2023-08-22T09:22:38.899219Z",
+        "project": "4820bd5d-51f1-4dca-a4a4-78ba115b615c",
+        "project_type": "c9b00138-8079-40d8-8030-1aecf3b66e11",
+        "language": "en-US",
+        "lock_info": {},
+        "template": null,
+        "assignee": {},
+        "status": "in-progress",
+        "order": 1,
+        "data": {
+            "cvss": "n/a",
+            "title": "Test",
+            "impact": "TODO: impact of finding",
+            "affected_components": [],
+            "short_recommendation": "TODO: short recommendation",
+            "not_predefined_field": "definitely not predefined."
+        }
+    }
+"""
+
+    def test_incompatible_finding_without_design(self):
+        finding_raw = FindingRaw(json.loads(self.incompatible_finding))
+        with pytest.raises(ValueError):
+            Finding(finding_raw)
 
     def test_finding_without_design(self):
-        finding_raw = Finding(
-            FindingRaw(json.loads(self.finding_with_predefined_fields))
-        )
-        assert finding_raw.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
-        assert finding_raw.data.title.value == "Test"
-        finding_raw.data.title.value = "New"
+        finding_raw = FindingRaw(json.loads(self.finding_with_predefined_fields))
+        finding = Finding(finding_raw)
+        assert finding.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
+        assert finding.data.title.value == "Test"
+        finding.data.title.value = "New"
         with pytest.raises(ValueError):
-            finding_raw.data.title.value = 12
+            finding.data.title.value = 12
 
-        finding_raw.data.cvss.value = "n/a"
+        finding.data.cvss.value = "n/a"
         with pytest.raises(ValueError):
-            finding_raw.data.cvss.value = 12
+            finding.data.cvss.value = 12
 
-        finding_raw.data.impact.value = "new"
+        finding.data.impact.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.impact.value = 12
+            finding.data.impact.value = 12
 
-        finding_raw.data.summary.value = "new"
+        finding.data.summary.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.summary.value = 12
+            finding.data.summary.value = 12
 
-        finding_raw.data.severity.value = "info"
+        finding.data.severity.value = "info"
         with pytest.raises(ValueError):
-            finding_raw.data.severity.value = 12
+            finding.data.severity.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.severity.value = "very_high"
+            finding.data.severity.value = "very_high"
 
-        finding_raw.data.references.value = ["new"]
+        finding.data.references.value = ["new"]
         with pytest.raises(ValueError):
-            finding_raw.data.references.value = 12
+            finding.data.references.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.references.value = ["new", 12]
+            finding.data.references.value = ["new", 12]
         with pytest.raises(ValueError):
-            finding_raw.data.references.value = "abc"
+            finding.data.references.value = "abc"
 
-        finding_raw.data.description.value = "new"
+        finding.data.description.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.description.value = 12
+            finding.data.description.value = 12
 
-        finding_raw.data.precondition.value = "new"
+        finding.data.precondition.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.precondition.value = 12
+            finding.data.precondition.value = 12
 
-        finding_raw.data.retest_notes.value = "new"
+        finding.data.retest_notes.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.retest_notes.value = 12
+            finding.data.retest_notes.value = 12
 
-        finding_raw.data.retest_status.value = "open"
+        finding.data.retest_status.value = "open"
         with pytest.raises(ValueError):
-            finding_raw.data.retest_status.value = 12
+            finding.data.retest_status.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.retest_status.value = "invalid"
+            finding.data.retest_status.value = "invalid"
 
-        finding_raw.data.wstg_category.value = "INFO"
+        finding.data.wstg_category.value = "INFO"
         with pytest.raises(ValueError):
-            finding_raw.data.wstg_category.value = 12
+            finding.data.wstg_category.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.wstg_category.value = "invalid"
+            finding.data.wstg_category.value = "invalid"
 
-        finding_raw.data.recommendation.value = "new"
+        finding.data.recommendation.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.recommendation.value = 12
+            finding.data.recommendation.value = 12
 
-        finding_raw.data.owasp_top10_2021.value = "A01_2021"
+        finding.data.owasp_top10_2021.value = "A01_2021"
         with pytest.raises(ValueError):
-            finding_raw.data.owasp_top10_2021.value = 12
+            finding.data.owasp_top10_2021.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.owasp_top10_2021.value = "invalid"
-        
-        finding_raw.data.affected_components.value = ["new"]
+            finding.data.owasp_top10_2021.value = "invalid"
+
+        finding.data.affected_components.value = ["new"]
         with pytest.raises(ValueError):
-            finding_raw.data.affected_components.value = 12
+            finding.data.affected_components.value = 12
         with pytest.raises(ValueError):
-            finding_raw.data.affected_components.value = ["new", 12]
+            finding.data.affected_components.value = ["new", 12]
         with pytest.raises(ValueError):
-            finding_raw.data.affected_components.value = "abc"
-        
-        finding_raw.data.short_recommendation.value = "new"
+            finding.data.affected_components.value = "abc"
+
+        finding.data.short_recommendation.value = "new"
         with pytest.raises(ValueError):
-            finding_raw.data.short_recommendation.value = 12
-        
+            finding.data.short_recommendation.value = 12
 
     def test_finding(self):
         finding_raw = FindingRaw(json.loads(self.example_finding))
