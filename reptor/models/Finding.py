@@ -47,9 +47,6 @@ class FindingDataRaw(SectionDataRaw):
     retest_status: str = ""
     severity: str = ""
 
-    def to_json(self) -> dict:
-        return vars(self)
-
 
 class FindingDataField(SectionDataField):
     ...

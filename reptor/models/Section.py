@@ -104,7 +104,9 @@ class SectionDataField(ProjectDesignField):
             result = list()
             for subfield in self.value:
                 if subfield.type == ProjectFieldTypes.enum.value:
-                    result.append({subfield.name: subfield.value})
+                    valid_enums = [choice["value"] for choice in subfield.choices]
+                    if subfield.value in valid_enums:
+                        result.append({subfield.name: subfield.value})
                 else:
                     result.append(subfield.to_json())
         elif self.type == ProjectFieldTypes.object.value:
@@ -239,8 +241,8 @@ class SectionData(BaseModel):
 
     def to_json(self) -> dict:
         result = dict()
-        for key, value in vars(self).items():
-            result[key] = value.to_json()
+        for k, v in vars(self).items():
+            result[k] = v.to_json()
         return result
 
 
@@ -263,7 +265,7 @@ class SectionRaw(BaseModel):
     lock_info: bool = False
     template: str = ""
     assignee: str = ""
-    status: str = ""
+    status: str = "in-progress"
     data: SectionDataRaw
 
     def __init__(self, data, *args, **kwargs):

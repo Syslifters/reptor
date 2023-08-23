@@ -152,6 +152,10 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         return self.patch(url, data).json()
 
+    def create_finding(self, data: dict) -> dict:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
+        return self.post(url, data).json()
+
     def update_section(self, section_id: str, data: dict) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
         return self.patch(url, data).json()

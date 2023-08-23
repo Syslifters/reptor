@@ -3,14 +3,17 @@ title = "Weak SSL ciphers"
 recommendation = "Update your server configuration to allow secure ciphers only."
 references = [
     "https://ssl-config.mozilla.org/",
-    "https://ciphersuite.info/"
+    "https://ciphersuite.info/",
 ]
 
-affected_components = """<!--{% for a in affected_components %}-->
+affected_components = """
+<!--{% for a in affected_components %}-->
   <!--{{ a }}-->
-<!--{% endfor %}-->"""
+<!--{% endfor %}-->
+"""
 
-description = """We detected weak SSL/TLS ciphers on your server.
+description = """
+We detected weak SSL/TLS ciphers on your server.
 <!--{% load md %}--><!--{% noemptylines %}-->
     <!--{% for target in data %}-->
         <!--{% if target.has_weak_ciphers %}-->

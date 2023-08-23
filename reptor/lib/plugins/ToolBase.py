@@ -37,11 +37,12 @@ class ToolBase(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
+        self.push_findings = kwargs.get("action")
         self.note_icon = "🛠️"
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
-        self.findings = None
+        self.findings = []
         self.no_timestamp = (
             self.reptor.get_config().get("cli", dict()).get("no_timestamp")
         )
@@ -167,16 +168,15 @@ class ToolBase(Base):
             const="upload",
             default="format",
         )
+        action_group.add_argument(
+            "-push-findings",
+            "--push-findings",
+            action="store_true",
+        )
 
-        if any(
-            [
-                cls.parse_xml != ToolBase.parse_xml,
-                cls.parse_json != ToolBase.parse_json,
-                cls.parse_csv != ToolBase.parse_csv,
-            ]
-        ):
-            input_format_group = parser.add_mutually_exclusive_group()
-            input_format_group.title = "input_format_group"
+        input_format_group = parser.add_mutually_exclusive_group()
+        input_format_group.title = "input_format_group"
+
         # Add parsing options only if implemented by modules
         if cls.parse_xml != ToolBase.parse_xml:
             input_format_group.add_argument(
@@ -222,6 +222,10 @@ class ToolBase(Base):
             self.reptor.logger.display(self.formatted_input)
         elif self.action == "upload":
             self.upload()
+
+        if self.push_findings:
+            self.generate_and_push_findings()
+            # self.reptor.api.findings.push_findings(self.findings)
 
     def load(self):
         """Puts the stdin into raw_input"""
@@ -298,6 +302,26 @@ class ToolBase(Base):
             no_timestamp=self.no_timestamp,
             force_unlock=self.force_unlock,
         )
+
+    def generate_and_push_findings(self) -> None:
+        self.generate_findings()
+        if len(self.findings) == 0:
+            self.log.info("No findings generated.")
+            return
+        for finding in self.findings:
+            self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
+            finding_titles = [
+                f.data.title.value for f in self.reptor.api.projects.get_findings()
+            ]
+            if finding.data.title.value in finding_titles:
+                self.log.info(
+                    f'Finding "{finding.data.title.value}" already exists. Skipping.'
+                )
+                continue
+
+            self.log.info(f'Pushing finding "{finding.data.title.value}"')
+            self.reptor.api.projects.create_finding(finding.to_json())
+            pass
 
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.

@@ -25,6 +25,11 @@ class TestSslyze(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.sslyze.raw_input = f.read()
 
+    def test_generate_and_push_findings(self):
+        self._load_json_data()
+        self.sslyze.generate_and_push_findings()
+        pass
+
     def test_generate_findings(self):
         self._load_json_data()
         self.sslyze.generate_findings()
