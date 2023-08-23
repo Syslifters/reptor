@@ -1,12 +1,13 @@
 import pathlib
 import typing
+from functools import cached_property
 from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
 from reptor.models.Finding import Finding, FindingRaw
-from reptor.models.Section import Section, SectionRaw
 from reptor.models.Project import Project
+from reptor.models.Section import Section, SectionRaw
 
 
 class ProjectsAPI(APIClient):
@@ -61,12 +62,15 @@ class ProjectsAPI(APIClient):
             return_data.append(Project(item))
         return return_data
 
-    def get_project(self) -> Project:
+    @cached_property
+    def project(self) -> Project:
+        return self._get_project()
+
+    def _get_project(self) -> Project:
         if not self.project_id:
             raise ValueError("Make sure you have a project specified.")
         url = self.object_endpoint
         response = self.get(url)
-        # TODO we might want to save Project to attribute to avoid redundant requests
         return Project(response.json())
 
     def export(self, file_name: typing.Optional[pathlib.Path] = None):
@@ -119,7 +123,7 @@ class ProjectsAPI(APIClient):
             self.project_design = self.reptor.api.project_designs.project_design
 
         for item in response:
-            section = Section(self.project_design, SectionRaw(item))
+            section = Section(SectionRaw(item), self.project_design)
             return_data.append(section)
         return return_data
 
@@ -156,7 +160,9 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
         return self.patch(url, data).json()
 
-    def get_enabled_language_codes(self) -> list:
+    def get_enabled_language_codes(
+        self,
+    ) -> list:  # TODO should not be in ProjectsAPI probably
         url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
         settings = self.get(url).json()
         languages = [

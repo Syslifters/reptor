@@ -1,0 +1,7 @@
+[data]
+title = "SQL issue"
+evidence = "My evidence"
+payloads = """
+<!--{% for p in payloads %}-->
+    <!--{{ p }}-->
+<!--{% endfor %}-->"""

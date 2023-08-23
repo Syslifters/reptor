@@ -13,7 +13,9 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
+from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
+from reptor.models.ProjectDesign import ProjectDesign
 
 from .Base import Base
 
@@ -305,6 +307,7 @@ class ToolBase(Base):
         """
         if not self.parsed_input:
             self.parse()
+        project_design = None
         self.findings = list()
         finding_methods = [
             func
@@ -320,8 +323,20 @@ class ToolBase(Base):
             finding_name = method[len(self.FINDING_PREFIX) :]
             # TODO: Check if remote finding exists
             # Check if findings toml exists
-            finding = self.get_finding_from_local_template(finding_name)
-            if not finding:
+            template_dict = self.get_local_template_data(finding_name)
+
+            django_context = Context(finding_context)
+            if template_dict:
+                try:
+                    self.pre_render_lists(template_dict, django_context)
+                except IncompatibleDesignException:
+                    # Fetch remote project design
+                    project_design = self.reptor.api.project_designs.project_design
+                    self.pre_render_lists(
+                        template_dict, django_context, project_design=project_design
+                    )
+                    pass
+            if not template_dict:
                 self.log.warning(
                     f"Did not find finding template for {finding_name}. Creating default finding."
                 )
@@ -330,28 +345,67 @@ class ToolBase(Base):
                     if finding_context
                     else "No description"
                 )
-                finding = Finding(
-                    {
-                        "data": {
-                            "title": finding_name.replace("_", " ").title(),
-                            "description": description,
-                        },
-                    }
-                )
+                template_dict = {
+                    "data": {
+                        "title": finding_name.replace("_", " ").title(),
+                        "description": description,
+                    },
+                }
 
-            finding_context = Context(finding_context)
-
+            finding = Finding(template_dict, project_design=project_design)
             for finding_data in finding.data:
-                if finding_data.value:
+                # Iterate over all finding fields
+                if isinstance(finding_data.value, list):
+                    # Iterate over list to render list items
+                    finding_data_list = list()
+                    for v in finding_data.value:
+                        finding_data_list.append(
+                            Template(v.value).render(django_context)
+                        )
+                    finding_data.value = finding_data_list
+                elif finding_data.value:
+                    # If value not empty, render template
                     finding_data.value = Template(finding_data.value).render(
-                        finding_context
+                        django_context
                     )
 
             self.findings.append(finding)
 
         return self.findings
 
-    def get_finding_from_local_template(self, name: str) -> typing.Optional[Finding]:
+    def pre_render_lists(
+        self,
+        finding_dict: dict,
+        django_context: typing.Optional[Context] = None,
+        project_design: typing.Optional[ProjectDesign] = None,
+    ) -> dict:
+        if project_design is None:
+            project_design = ProjectDesign()
+        if django_context is None:
+            django_context = Context({})
+        project_design_finding_fields = {
+            f.name: f.type for f in project_design.finding_fields
+        }
+        for k, v in finding_dict["data"].items():
+            if k in project_design_finding_fields:
+                if project_design_finding_fields[k] == "list" and isinstance(v, str):
+                    # Prerender strings that should be lists
+                    finding_dict["data"][k] = list(
+                        filter(
+                            None,
+                            [
+                                s.strip()
+                                for s in Template(v).render(django_context).splitlines()
+                            ],
+                        )
+                    )
+            else:
+                raise IncompatibleDesignException(
+                    "Finding data is incompatible with project design. Use predefined fields for maximum compatibility."
+                )
+        return finding_dict
+
+    def get_local_template_data(self, name: str) -> typing.Optional[dict]:
         """Loads a finding template from the local findings directory.
 
         Args:
@@ -376,5 +430,5 @@ class ToolBase(Base):
                             f"Error while loading toml finding template {name}."
                         )
                         return None
-                return Finding(finding_template)
+                return finding_template
         return None

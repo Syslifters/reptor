@@ -7,7 +7,7 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.api.errors import LockedException
+from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
 from reptor.lib.errors import MissingArgumentError
 from reptor.utils.file_operations import guess_filetype

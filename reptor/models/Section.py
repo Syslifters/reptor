@@ -1,15 +1,11 @@
 import datetime
+import typing
 from typing import Any
 from uuid import UUID
-from reptor.models.Base import BaseModel
 
-
-import typing
-
-from reptor.models.ProjectDesign import ProjectDesignField
-from reptor.models.Base import ProjectFieldTypes
-from reptor.lib.interfaces.api.models import SectionProtocol
-from reptor.models.ProjectDesign import ProjectDesign
+from reptor.lib.exceptions import IncompatibleDesignException
+from reptor.models.Base import BaseModel, ProjectFieldTypes
+from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 
 
 class SectionDataRaw(BaseModel):
@@ -227,7 +223,7 @@ class SectionData(BaseModel):
             )
         missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
         if len(missing_fields) > 0:
-            raise ValueError(
+            raise IncompatibleDesignException(
                 f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
             )
 
@@ -270,13 +266,26 @@ class SectionRaw(BaseModel):
     status: str = ""
     data: SectionDataRaw
 
+    def __init__(self, data, *args, **kwargs):
+        if "data" not in data:
+            data["data"] = dict()
+        super().__init__(data, *args, **kwargs)
 
-class Section(SectionRaw, SectionProtocol):
+
+class Section(SectionRaw):
     data: SectionData
 
-    def __init__(self, project_design: ProjectDesign, raw: SectionRaw):
-        # Set attributes from FindingRaw
+    def __init__(
+        self,
+        raw: typing.Union[SectionRaw, typing.Dict],
+        project_design: typing.Optional[ProjectDesign] = None,
+    ):
+        if project_design is None:
+            project_design = ProjectDesign()
+        if isinstance(raw, dict):
+            raw = SectionRaw(raw)
+
+        # Set attributes from SectionRaw
         for attr in typing.get_type_hints(SectionRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-
         self.data = SectionData(project_design.report_fields, raw.data)

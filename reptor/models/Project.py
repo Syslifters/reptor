@@ -3,10 +3,8 @@ from reptor.models.User import User
 
 import typing
 
-from reptor.lib.interfaces.api.models import ProjectProtocol
 
-
-class Project(BaseModel, ProjectProtocol):
+class Project(BaseModel):
     """
     Attributes:
         name:

@@ -3,12 +3,13 @@ from copy import deepcopy
 
 import pytest
 
+from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import (
+    Finding,
     FindingData,
     FindingDataField,
     FindingDataRaw,
     FindingRaw,
-    Finding,
 )
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -124,7 +125,7 @@ class TestFindingModelParsing:
 
     def test_incompatible_finding_without_design(self):
         finding_raw = FindingRaw(json.loads(self.incompatible_finding))
-        with pytest.raises(ValueError):
+        with pytest.raises(IncompatibleDesignException):
             Finding(finding_raw)
 
     def test_finding_without_design_from_dict(self):

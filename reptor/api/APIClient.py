@@ -35,7 +35,6 @@ class APIClient:
                 raise e
             self.project_id = ""
 
-
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()
         if json_content:

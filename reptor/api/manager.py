@@ -1,8 +1,8 @@
 from reptor.lib.interfaces.apimanager import APIManagerProtocol
 
 from .NotesAPI import NotesAPI
-from .ProjectsAPI import ProjectsAPI
 from .ProjectDesignsAPI import ProjectDesignsAPI
+from .ProjectsAPI import ProjectsAPI
 from .TemplatesAPI import TemplatesAPI
 
 
@@ -19,9 +19,7 @@ class APIManager(APIManagerProtocol):
     @property
     def notes(self) -> NotesAPI:
         if not self._notes:
-            self._notes = NotesAPI(
-                reptor=self._reptor, project_id=self._project_id
-            )
+            self._notes = NotesAPI(reptor=self._reptor, project_id=self._project_id)
         return self._notes
 
     @property
@@ -42,10 +40,10 @@ class APIManager(APIManagerProtocol):
     @property
     def project_designs(self) -> ProjectDesignsAPI:
         if not self._project_designs:
-            project_design_id = self.projects.get_project().project_type
+            project_design_id = self.projects.project.project_type
             self._project_designs = ProjectDesignsAPI(
-                reptor=self._reptor,
-                project_design_id=project_design_id)
+                reptor=self._reptor, project_design_id=project_design_id
+            )
         return self._project_designs
 
     @property

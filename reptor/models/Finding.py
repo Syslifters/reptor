@@ -28,7 +28,7 @@ class FindingDataRaw(SectionDataRaw):
         wstg_category:
         retest_notes:
         retest_status:
-        evidence:
+        severity:
     """
 
     title: str = ""
@@ -45,7 +45,6 @@ class FindingDataRaw(SectionDataRaw):
     wstg_category: str = ""
     retest_notes: str = ""
     retest_status: str = ""
-    evidence: str = ""
     severity: str = ""
 
     def to_json(self) -> dict:
@@ -71,7 +70,7 @@ class FindingData(SectionData):
     wstg_category: FindingDataField
     retest_notes: FindingDataField
     retest_status: FindingDataField
-    evidence: FindingDataField
+    severity: FindingDataField
 
     field_class = FindingDataField
 
