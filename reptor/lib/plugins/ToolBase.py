@@ -321,7 +321,6 @@ class ToolBase(Base):
 
             self.log.info(f'Pushing finding "{finding.data.title.value}"')
             self.reptor.api.projects.create_finding(finding.to_json())
-            pass
 
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.
@@ -348,18 +347,6 @@ class ToolBase(Base):
             # TODO: Check if remote finding exists
             # Check if findings toml exists
             template_dict = self.get_local_template_data(finding_name)
-
-            django_context = Context(finding_context)
-            if template_dict:
-                try:
-                    self.pre_render_lists(template_dict, django_context)
-                except IncompatibleDesignException:
-                    # Fetch remote project design
-                    project_design = self.reptor.api.project_designs.project_design
-                    self.pre_render_lists(
-                        template_dict, django_context, project_design=project_design
-                    )
-                    pass
             if not template_dict:
                 self.log.warning(
                     f"Did not find finding template for {finding_name}. Creating default finding."
@@ -376,11 +363,24 @@ class ToolBase(Base):
                     },
                 }
 
-            finding = Finding(template_dict, project_design=project_design)
+            django_context = Context(finding_context)
+            try:
+                finding = Finding(template_dict, project_design=project_design)
+            except IncompatibleDesignException:
+                self.log.info(
+                    "Finding data not compatible with project design. Fetching project design from project."
+                )
+                project_design = self.reptor.api.project_designs.project_design
+                finding = Finding(template_dict, project_design=project_design)
             for finding_data in finding.data:
                 # Iterate over all finding fields
                 if isinstance(finding_data.value, list):
                     # Iterate over list to render list items
+                    if finding_data.name == "affected_components":
+                        finding_data.value = finding_context.get(
+                            "affected_components", []
+                        )
+                        continue
                     finding_data_list = list()
                     for v in finding_data.value:
                         finding_data_list.append(
@@ -396,42 +396,6 @@ class ToolBase(Base):
             self.findings.append(finding)
 
         return self.findings
-
-    def pre_render_lists(
-        self,
-        finding_dict: dict,
-        django_context: typing.Optional[Context] = None,
-        project_design: typing.Optional[ProjectDesign] = None,
-    ) -> dict:
-        if project_design is None:
-            project_design = ProjectDesign()
-        if django_context is None:
-            django_context = Context({})
-        project_design_finding_fields = {
-            f.name: f.type for f in project_design.finding_fields
-        }
-        if "data" not in finding_dict:
-            raise ValueError(
-                "No [data] defined in finding. Need data to create finding."
-            )
-        for k, v in finding_dict["data"].items():
-            if k in project_design_finding_fields:
-                if project_design_finding_fields[k] == "list" and isinstance(v, str):
-                    # Prerender strings that should be lists
-                    finding_dict["data"][k] = list(
-                        filter(
-                            None,
-                            [
-                                s.strip()
-                                for s in Template(v).render(django_context).splitlines()
-                            ],
-                        )
-                    )
-            else:
-                raise IncompatibleDesignException(
-                    "Finding data is incompatible with project design. Use predefined fields for maximum compatibility."
-                )
-        return finding_dict
 
     def get_local_template_data(self, name: str) -> typing.Optional[dict]:
         """Loads a finding template from the local findings directory.

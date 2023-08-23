@@ -6,12 +6,6 @@ references = [
     "https://ciphersuite.info/",
 ]
 
-affected_components = """
-<!--{% for a in affected_components %}-->
-  <!--{{ a }}-->
-<!--{% endfor %}-->
-"""
-
 description = """
 We detected weak SSL/TLS ciphers on your server.
 <!--{% load md %}--><!--{% noemptylines %}-->

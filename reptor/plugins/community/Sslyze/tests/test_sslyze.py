@@ -1,10 +1,12 @@
 import json
 import os
 from pathlib import Path
+from unittest.mock import Mock, MagicMock
 
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
+from reptor.models.Finding import Finding
 
 from ..Sslyze import Sslyze
 
@@ -27,8 +29,20 @@ class TestSslyze(TestCaseToolPlugin):
 
     def test_generate_and_push_findings(self):
         self._load_json_data()
+        # Assert "create_finding" is called if no findings exist
+        self.sslyze.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.sslyze.reptor.api.projects.create_finding = MagicMock()
+
         self.sslyze.generate_and_push_findings()
-        pass
+        assert self.sslyze.reptor.api.projects.create_finding.called
+
+        # Assert "create_finding" is not called if finding with same title exists
+        finding = Finding({"data": {"title": "Weak SSL ciphers"}})
+        self.sslyze.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        self.sslyze.reptor.api.projects.create_finding = MagicMock()
+
+        self.sslyze.generate_and_push_findings()
+        assert not self.sslyze.reptor.api.projects.create_finding.called
 
     def test_generate_findings(self):
         self._load_json_data()

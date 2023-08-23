@@ -16,5 +16,3 @@ wstg_category = "ATHZ"
 retest_notes = "My restest notes"
 retest_status = "open"
 severity = "high"
-affected_components = """abc
-def"""

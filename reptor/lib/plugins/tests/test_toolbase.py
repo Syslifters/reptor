@@ -3,9 +3,7 @@ import os
 from pathlib import Path
 
 import pytest
-from django.template import Context
 
-from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Finding import Finding
 from reptor.models.Project import Project
@@ -16,9 +14,7 @@ from ..ToolBase import ToolBase
 
 class SQLTool(ToolBase):
     def finding_sql(self):
-        return {
-            "payloads": ["1=2", "1=1", "1=3"],
-        }
+        return {}
 
 
 class ExampleTool(ToolBase):
@@ -100,53 +96,6 @@ class TestToolbase(TestCaseToolPlugin):
         invalid_finding = self.example_tool.get_local_template_data("invalid_finding")
         assert invalid_finding is None
 
-    @pytest.mark.parametrize(
-        "affected_components_template,affected_components_rendered",
-        [
-            ("one\ntwo", ["one", "two"]),
-            ("one\n\ntwo", ["one", "two"]),
-            ("one\n  \ntwo", ["one", "two"]),
-            ("one\n\t\t \ntwo", ["one", "two"]),
-            (
-                """
-                <!--{% for a in affected_components %}-->
-                  <!--{{ a }}-->
-                <!--{% endfor %}-->
-                """,
-                ["example.com", "example.org"],
-            ),
-        ],
-    )
-    def test_pre_render_lists(
-        self, affected_components_template, affected_components_rendered
-    ):
-        django_context = Context(
-            {"affected_components": ["example.com", "example.org"]}
-        )
-        finding_dict = {
-            "data": {
-                "title": "My title",
-                "affected_components": affected_components_template,
-            }
-        }
-        rendered_dict = self.example_tool.pre_render_lists(finding_dict, django_context)
-        assert (
-            rendered_dict["data"]["affected_components"] == affected_components_rendered
-        )
-
-    def test_pre_render_lists_exception(self):
-        finding_dict = {
-            "data": {
-                "not_exists": "custom field",
-            }
-        }
-        with pytest.raises(IncompatibleDesignException):
-            self.example_tool.pre_render_lists(finding_dict)
-
-        finding_dict = {}
-        with pytest.raises(ValueError):
-            assert self.example_tool.pre_render_lists(finding_dict) == {}
-
     def test_generate_findings_with_custom_fields(self):
         # Patch API query
         self.reptor.api.projects.project = Project(
@@ -166,9 +115,8 @@ class TestToolbase(TestCaseToolPlugin):
         assert findings[0].data.title.value == "SQL issue"
         assert findings[0].data.evidence.value == "My evidence"
         assert [p.value for p in findings[0].data.payloads.value] == [
-            "1=2",
             "1=1",
-            "1=3",
+            "2=2",
         ]
         pass
 
