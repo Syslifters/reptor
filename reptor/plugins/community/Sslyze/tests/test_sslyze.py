@@ -25,6 +25,25 @@ class TestSslyze(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.sslyze.raw_input = f.read()
 
+    def test_generate_findings(self):
+        self._load_json_data()
+        self.sslyze.generate_findings()
+        assert len(self.sslyze.findings) == 1
+        cipher = self.sslyze.findings[0]
+        assert cipher.data.title.value == "Weak SSL ciphers"
+        assert (
+            cipher.data.description.value
+            == 'We detected weak SSL/TLS ciphers on your server.\n# www.example.com:443 (127.0.0.1)\n&nbsp;\n * <span style="color: red">DHE-RSA-AES256-SHA256</span> (TLS 1.2)\n * <span style="color: red">AES256-SHA256</span> (TLS 1.2)\n * <span style="color: red">ECDHE-RSA-AES256-SHA384</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES256-SHA</span> (TLS 1.2)\n * <span style="color: red">AES256-SHA</span> (TLS 1.2)\n * <span style="color: red">AES256-GCM-SHA384</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES128-SHA256</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES128-SHA</span> (TLS 1.2)\n * <span style="color: red">AES128-SHA</span> (TLS 1.2)\n * <span style="color: red">AES128-SHA256</span> (TLS 1.2)\n * <span style="color: red">AES128-GCM-SHA256</span> (TLS 1.2)\n * <span style="color: red">ECDHE-RSA-AES128-SHA256</span> (TLS 1.2)\n'
+        )
+        assert (
+            cipher.data.affected_components.value[0].value
+            == "www.example.com:443 (127.0.0.1)"
+        )
+        assert [r.value for r in cipher.data.references.value] == [
+            "https://ssl-config.mozilla.org/",
+            "https://ciphersuite.info/",
+        ]
+
     def test_parse(self):
         result_dict = {"a": "b"}
         self.sslyze.raw_input = json.dumps(result_dict)
@@ -36,7 +55,7 @@ class TestSslyze(TestCaseToolPlugin):
             "data": [
                 {
                     "hostname": "www.example.com",
-                    "port": 443,
+                    "port": "443",
                     "ip_address": "127.0.0.1",
                     "protocols": {
                         "tlsv1_2": {

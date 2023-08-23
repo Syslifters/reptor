@@ -1,6 +1,6 @@
 <!--{% load l10n %}--><!--{% load md %}-->
 <!--{% for target in data %}-->
-# <!--{{ target.hostname }}-->:<!--{{ target.port|unlocalize }}--> (<!--{{ target.ip_address }}-->)
+# <!--{{ target.hostname }}-->:<!--{{ target.port }}--> (<!--{{ target.ip_address }}-->)
 
 **Protocols**
 

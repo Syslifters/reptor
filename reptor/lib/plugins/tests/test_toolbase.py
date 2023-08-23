@@ -143,6 +143,10 @@ class TestToolbase(TestCaseToolPlugin):
         with pytest.raises(IncompatibleDesignException):
             self.example_tool.pre_render_lists(finding_dict)
 
+        finding_dict = {}
+        with pytest.raises(ValueError):
+            assert self.example_tool.pre_render_lists(finding_dict) == {}
+
     def test_generate_findings_with_custom_fields(self):
         # Patch API query
         self.reptor.api.projects.project = Project(
@@ -161,7 +165,11 @@ class TestToolbase(TestCaseToolPlugin):
         assert len(findings) == 1
         assert findings[0].data.title.value == "SQL issue"
         assert findings[0].data.evidence.value == "My evidence"
-        assert [p.value for p in findings[0].data.payloads.value] == ["1=2", "1=1", "1=3"]
+        assert [p.value for p in findings[0].data.payloads.value] == [
+            "1=2",
+            "1=1",
+            "1=3",
+        ]
         pass
 
     def test_generate_findings_with_predefined_fields(self):

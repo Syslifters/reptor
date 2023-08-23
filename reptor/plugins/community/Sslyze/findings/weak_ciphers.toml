@@ -1,9 +1,25 @@
-description = """Du hast weak ciphers: 
-<!-- start weak_ciphers_list
-prepend = "Die folgenden CIopher wurden gefunden: "
-append = "Das waren jetzt alle Cipher." -->
-Die folgenden CIopher wurden gefunden: 
-<!-- end weak_ciphers_list -->"""
+[data]
+title = "Weak SSL ciphers"
+recommendation = "Update your server configuration to allow secure ciphers only."
+references = [
+    "https://ssl-config.mozilla.org/",
+    "https://ciphersuite.info/"
+]
 
+affected_components = """<!--{% for a in affected_components %}-->
+  <!--{{ a }}-->
+<!--{% endfor %}-->"""
 
+description = """We detected weak SSL/TLS ciphers on your server.
+<!--{% load md %}--><!--{% noemptylines %}-->
+    <!--{% for target in data %}-->
+        <!--{% if target.has_weak_ciphers %}-->
 
+# <!--{{ target.hostname }}-->:<!--{{ target.port }}--> (<!--{{ target.ip_address }}-->)
+&nbsp;
+<!--{% include "weak_ciphers.md" %}-->
+
+        <!--{% endif %}-->
+    <!--{% endfor %}-->
+<!--{% endnoemptylines %}-->
+"""

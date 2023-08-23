@@ -280,7 +280,7 @@ class ToolBase(Base):
         data = self.process_parsed_input_for_template()
         self.formatted_input = render_to_string(f"{self.template}.md", data)
 
-    def process_parsed_input_for_template(self):
+    def process_parsed_input_for_template(self) -> typing.Optional[dict]:
         return {"data": self.parsed_input}
 
     def upload(self):
@@ -386,6 +386,10 @@ class ToolBase(Base):
         project_design_finding_fields = {
             f.name: f.type for f in project_design.finding_fields
         }
+        if "data" not in finding_dict:
+            raise ValueError(
+                "No [data] defined in finding. Need data to create finding."
+            )
         for k, v in finding_dict["data"].items():
             if k in project_design_finding_fields:
                 if project_design_finding_fields[k] == "list" and isinstance(v, str):
