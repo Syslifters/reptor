@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -53,6 +54,34 @@ class TestToolbase(TestCaseToolPlugin):
         self.sql_tool = SQLTool(reptor=self.reptor)
         self.sql_tool.input_format = "json"
         self.sql_tool.raw_input = "{}"
+
+    def test_generate_and_push_findings(self):
+        # Patch API query
+        self.reptor.api.projects.project = Project(
+            {
+                "id": "db837c68-ff58-4f63-9161-d2310d71999b",
+                "project_type": "c357c387-baff-42ce-8e79-eb0597c3e0e8",
+            }
+        )
+        project_design = """{"id":"c357c387-baff-42ce-8e79-eb0597c3e0e8","created":"2023-08-23T07:28:38.416312Z","updated":"2023-08-23T07:28:38.432044Z","source":"snapshot","scope":"project","name":"Project Design","language":"en-US","details":"","assets":"","copy_of":"7db59c50-275e-4eee-8242-5fef9fbc7abd","lock_info":null,"report_template":"<div>","report_styles":"/* Global styles */","report_fields":{"title":{"type":"string","label":"Title","origin":"core","default":"TODO report title","required":true,"spellcheck":true}},"report_sections":[],"finding_fields":{"title":{"type":"string","label":"Titel","origin":"core","default":"TODO finding title","required":true,"spellcheck":true},"evidence":{"type":"markdown","label":"Evidence","origin":"custom","default":null,"required":true},"payloads":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"Payloads","origin":"custom","required":true}},"finding_field_order":[],"finding_ordering":[]}"""
+        self.reptor.api.project_designs.project_design = ProjectDesign(
+            json.loads(project_design)
+        )
+
+        # Assert "create_finding" is called if no findings exist
+        self.sql_tool.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.sql_tool.reptor.api.projects.create_finding = MagicMock()
+
+        self.sql_tool.generate_and_push_findings()
+        assert self.sql_tool.reptor.api.projects.create_finding.called
+
+        # Assert "create_finding" is not called if finding with same title exists
+        finding = Finding({"data": {"title": "SQL issue"}})
+        self.sql_tool.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        self.sql_tool.reptor.api.projects.create_finding = MagicMock()
+
+        self.sql_tool.generate_and_push_findings()
+        assert not self.sql_tool.reptor.api.projects.create_finding.called
 
     def test_no_function_methods(self):
         # There should be no finding_ methods in ToolBase
