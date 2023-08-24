@@ -28,6 +28,9 @@ class TestSslyze(TestCaseToolPlugin):
             self.sslyze.raw_input = f.read()
 
     def test_generate_and_push_findings(self):
+        # Patch API
+        self.reptor.api.templates.search = Mock(return_value=[])
+
         self._load_json_data()
         # Assert "create_finding" is called if no findings exist
         self.sslyze.reptor.api.projects.get_findings = Mock(return_value=[])
@@ -45,6 +48,9 @@ class TestSslyze(TestCaseToolPlugin):
         assert not self.sslyze.reptor.api.projects.create_finding.called
 
     def test_generate_findings(self):
+        # Patch API
+        self.reptor.api.templates.search = Mock(return_value=[])
+
         self._load_json_data()
         self.sslyze.generate_findings()
         assert len(self.sslyze.findings) == 1

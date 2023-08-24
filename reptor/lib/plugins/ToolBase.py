@@ -15,7 +15,7 @@ from django.template.loader import render_to_string
 import reptor.settings as settings
 from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
-from reptor.models.ProjectDesign import ProjectDesign
+from reptor.api.TemplatesAPI import TemplatesAPI
 
 from .Base import Base
 
@@ -338,40 +338,72 @@ class ToolBase(Base):
             if callable(getattr(self, func)) and func.startswith(self.FINDING_PREFIX)
         ]
         for method in finding_methods:
+            finding = None
             finding_context = getattr(self, method)()
             if finding_context is None:
                 # Don't create finding if method returns None
                 continue
 
             finding_name = method[len(self.FINDING_PREFIX) :]
-            # TODO: Check if remote finding exists
-            # Check if findings toml exists
-            template_dict = self.get_local_template_data(finding_name)
-            if not template_dict:
-                self.log.warning(
-                    f"Did not find finding template for {finding_name}. Creating default finding."
-                )
-                description = (
-                    f"```{json.dumps(finding_context, indent=2)}```"
-                    if finding_context
-                    else "No description"
-                )
-                template_dict = {
-                    "data": {
-                        "title": finding_name.replace("_", " ").title(),
-                        "description": description,
-                    },
-                }
+
+            # Check if remote finding exists
+            template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
+            for finding_template in self.reptor.api.templates.search(template_tag):
+                if template_tag in finding_template.tags:
+                    # Take first matching template and fetch full data (search returns partial data only)
+                    self.log.info(f"Found remote finding template for {template_tag}.")
+                    finding_template = self.reptor.api.templates.get_template(
+                        finding_template.id
+                    )
+                    # Get project language
+                    language = self.reptor.api.projects.project.language
+                    try:
+                        translation = [
+                            t
+                            for t in finding_template.translations
+                            if t.language == language
+                        ][0]
+                    except IndexError:
+                        translation = [
+                            t for t in finding_template.translations if t.is_main
+                        ][0]
+                        self.log.info(
+                            f"No translation found for {language}. Taking main translation {translation.language}."
+                        )
+                    translation.template = finding_template.id
+                    finding = Finding(translation.to_json())
+                    break
+
+            if not finding:
+                # Check if findings toml exists
+                template_dict = self.get_local_template_data(finding_name)
+                if not template_dict:
+                    # TODO maybe add to get_local_template_data
+                    self.log.warning(
+                        f"Did not find finding template for {finding_name}. Creating default finding."
+                    )
+                    description = (
+                        f"```{json.dumps(finding_context, indent=2)}```"
+                        if finding_context
+                        else "No description"
+                    )
+                    template_dict = {
+                        "data": {
+                            "title": finding_name.replace("_", " ").title(),
+                            "description": description,
+                        },
+                    }
+
+                try:
+                    finding = Finding(template_dict, project_design=project_design)
+                except IncompatibleDesignException:
+                    self.log.info(
+                        "Finding data not compatible with project design. Fetching project design from project."
+                    )
+                    project_design = self.reptor.api.project_designs.project_design
+                    finding = Finding(template_dict, project_design=project_design)
 
             django_context = Context(finding_context)
-            try:
-                finding = Finding(template_dict, project_design=project_design)
-            except IncompatibleDesignException:
-                self.log.info(
-                    "Finding data not compatible with project design. Fetching project design from project."
-                )
-                project_design = self.reptor.api.project_designs.project_design
-                finding = Finding(template_dict, project_design=project_design)
             for finding_data in finding.data:
                 # Iterate over all finding fields
                 if isinstance(finding_data.value, list):
@@ -394,7 +426,6 @@ class ToolBase(Base):
                     )
 
             self.findings.append(finding)
-
         return self.findings
 
     def get_local_template_data(self, name: str) -> typing.Optional[dict]:

@@ -148,13 +148,19 @@ class ProjectsAPI(APIClient):
             return_data.append(finding)
         return return_data
 
-    def update_finding(self, finding_id: str, data: dict) -> dict:
+    def update_finding(
+        self, finding_id: str, data: dict
+    ) -> dict:  # TODO maybe return objects instead
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         return self.patch(url, data).json()
 
     def create_finding(self, data: dict) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         return self.post(url, data).json()
+
+    def create_finding_from_template(self, template_id: str) -> dict:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
+        return self.post(url, {"template": template_id}).json()
 
     def update_section(self, section_id: str, data: dict) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")

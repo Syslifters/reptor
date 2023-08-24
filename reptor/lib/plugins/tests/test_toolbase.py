@@ -67,6 +67,7 @@ class TestToolbase(TestCaseToolPlugin):
         self.reptor.api.project_designs.project_design = ProjectDesign(
             json.loads(project_design)
         )
+        self.reptor.api.templates.search = Mock(return_value=[])
 
         # Assert "create_finding" is called if no findings exist
         self.sql_tool.reptor.api.projects.get_findings = Mock(return_value=[])
@@ -137,6 +138,7 @@ class TestToolbase(TestCaseToolPlugin):
         self.reptor.api.project_designs.project_design = ProjectDesign(
             json.loads(project_design)
         )
+        self.reptor.api.templates.search = Mock(return_value=[])
 
         # Generate finding with custom fields
         findings = self.sql_tool.generate_findings()
@@ -150,6 +152,9 @@ class TestToolbase(TestCaseToolPlugin):
         pass
 
     def test_generate_findings_with_predefined_fields(self):
+        # Patch API query
+        self.reptor.api.templates.search = Mock(return_value=[])
+
         self.example_tool.generate_findings()
         assert len(self.example_tool.findings) == 3
 
