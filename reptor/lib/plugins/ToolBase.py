@@ -308,19 +308,37 @@ class ToolBase(Base):
         if len(self.findings) == 0:
             self.log.info("No findings generated.")
             return
+        project_finding_titles = [
+            f.data.title.value for f in self.reptor.api.projects.get_findings()
+        ]
+        project_findings_from_templates = [
+            f.template for f in self.reptor.api.projects.get_findings()
+        ]
         for finding in self.findings:
             self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
-            finding_titles = [
-                f.data.title.value for f in self.reptor.api.projects.get_findings()
-            ]
-            if finding.data.title.value in finding_titles:
+            if finding.template and finding.template in project_findings_from_templates:
+                self.log.info(
+                    f'Finding "{finding.data.title.value}" already created from template. Skipping.'
+                )
+                continue
+            elif finding.data.title.value in project_finding_titles:
                 self.log.info(
                     f'Finding "{finding.data.title.value}" already exists. Skipping.'
                 )
                 continue
 
             self.log.info(f'Pushing finding "{finding.data.title.value}"')
-            self.reptor.api.projects.create_finding(finding.to_json())
+            if finding.template:
+                # First create from template to keep template reference
+                created_finding = self.reptor.api.projects.create_finding_from_template(
+                    finding.template
+                )
+                # ...then update and add data
+                self.reptor.api.projects.update_finding(
+                    created_finding["id"], finding.to_json()
+                )
+            else:
+                self.reptor.api.projects.create_finding(finding.to_json())
 
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.

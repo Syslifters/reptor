@@ -242,6 +242,11 @@ class SectionData(BaseModel):
     def to_json(self) -> dict:
         result = dict()
         for k, v in vars(self).items():
+            if v.type == ProjectFieldTypes.enum.value:
+                valid_enums = [choice["value"] for choice in v.choices]
+                if not v.value in valid_enums:
+                    # Prevent adding empty enums because server will complain
+                    continue
             result[k] = v.to_json()
         return result
 

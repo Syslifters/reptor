@@ -70,19 +70,47 @@ class TestToolbase(TestCaseToolPlugin):
         self.reptor.api.templates.search = Mock(return_value=[])
 
         # Assert "create_finding" is called if no findings exist
-        self.sql_tool.reptor.api.projects.get_findings = Mock(return_value=[])
-        self.sql_tool.reptor.api.projects.create_finding = MagicMock()
+        self.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.reptor.api.projects.create_finding = MagicMock()
 
         self.sql_tool.generate_and_push_findings()
-        assert self.sql_tool.reptor.api.projects.create_finding.called
+        assert self.reptor.api.projects.create_finding.called
 
         # Assert "create_finding" is not called if finding with same title exists
         finding = Finding({"data": {"title": "SQL issue"}})
-        self.sql_tool.reptor.api.projects.get_findings = Mock(return_value=[finding])
-        self.sql_tool.reptor.api.projects.create_finding = MagicMock()
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        self.reptor.api.projects.create_finding = MagicMock()
 
         self.sql_tool.generate_and_push_findings()
-        assert not self.sql_tool.reptor.api.projects.create_finding.called
+        assert not self.reptor.api.projects.create_finding.called
+
+        # Assert finding is pushed if no finding from same template exists
+        finding = Finding({"template": "12345"})
+        self.reptor.api.templates.search = Mock(return_value=[finding])
+        self.reptor.api.templates.get_template = Mock(return_value=[finding])
+        self.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.sql_tool.generate_findings = Mock(return_value=None)
+        self.sql_tool.findings = [finding]
+        self.reptor.api.projects.create_finding_from_template = MagicMock()
+        self.reptor.api.projects.update_finding = MagicMock()
+
+        self.sql_tool.generate_and_push_findings()
+        assert self.reptor.api.projects.create_finding_from_template.called
+        assert self.reptor.api.projects.update_finding.called
+
+        # Assert finding is not pushed if finding from same template exists
+        finding = Finding({"template": "12345"})
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        self.reptor.api.templates.get_template = Mock(return_value=[finding])
+        self.reptor.api.templates.search = Mock(return_value=[finding])
+        self.sql_tool.generate_findings = Mock(return_value=None)
+        self.sql_tool.findings = [finding]
+        self.reptor.api.projects.create_finding_from_template = MagicMock()
+        self.reptor.api.projects.update_finding = MagicMock()
+
+        self.sql_tool.generate_and_push_findings()
+        assert not self.reptor.api.projects.create_finding_from_template.called
+        assert not self.reptor.api.projects.update_finding.called
 
     def test_no_function_methods(self):
         # There should be no finding_ methods in ToolBase
