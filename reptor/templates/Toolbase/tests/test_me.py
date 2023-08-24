@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -8,14 +9,12 @@ from ..Toolbase import MYMODULENAME
 
 
 class TestMyModule(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        MYMODULENAME.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        MYMODULENAME.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.mymodule = MYMODULENAME(reptor=self.reptor)
 

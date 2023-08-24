@@ -22,6 +22,11 @@ class TemplatesAPI(APIClient):
             return_data.append(FindingTemplate(item))
         return return_data
 
+    def get_template(self, template_id: str) -> FindingTemplate:
+        """Gets a single Template by ID"""
+        response = self.get(urljoin(self.base_endpoint, template_id))
+        return FindingTemplate(response.json())
+
     def search(self, search_term) -> typing.List[FindingTemplate]:
         """Searches through the templates"""
 

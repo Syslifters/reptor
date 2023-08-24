@@ -1,14 +1,11 @@
 import datetime
+import typing
 from typing import Any
 from uuid import UUID
-from reptor.models.Base import BaseModel
 
-
-import typing
-
-from reptor.models.Project import ProjectDesign, ProjectDesignField
-from reptor.models.Base import ProjectFieldTypes
-from reptor.lib.interfaces.api.models import SectionProtocol
+from reptor.lib.exceptions import IncompatibleDesignException
+from reptor.models.Base import BaseModel, ProjectFieldTypes
+from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 
 
 class SectionDataRaw(BaseModel):
@@ -74,6 +71,8 @@ class SectionDataField(ProjectDesignField):
             self.value = property_value
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
+            if not isinstance(value, list):
+                raise ValueError(f"Value of '{self.name}' must be list.")
             for v in value:  # type: ignore
                 self.value.append(self.__class__(self.items, v))  # type: ignore
         else:
@@ -105,7 +104,9 @@ class SectionDataField(ProjectDesignField):
             result = list()
             for subfield in self.value:
                 if subfield.type == ProjectFieldTypes.enum.value:
-                    result.append({subfield.name: subfield.value})
+                    valid_enums = [choice["value"] for choice in subfield.choices]
+                    if subfield.value in valid_enums:
+                        result.append({subfield.name: subfield.value})
                 else:
                     result.append(subfield.to_json())
         elif self.type == ProjectFieldTypes.object.value:
@@ -133,12 +134,12 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.date.value:
                 try:
                     datetime.datetime.strptime(__value, "%Y-%m-%d")
-                except ValueError:
+                except (ValueError, TypeError):
                     raise ValueError(
                         f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
                     )
             elif self.type == ProjectFieldTypes.enum.value:
-                valid_enums = [choice["value"] for choice in self.choices]
+                valid_enums = [choice["value"] for choice in self.choices] + [""]
                 if __value not in valid_enums:
                     raise ValueError(
                         f"'{__value}' is not an valid enum choice for '{self.name}'."
@@ -146,18 +147,35 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.list.value:
                 if not isinstance(__value, list):
                     raise ValueError(
-                        f"Value of '{self.name}' must be list  (got '{type(__value)}')."
+                        f"Value of '{self.name}' must be list (got '{type(__value)}')."
                     )
                 if not all([isinstance(v, self.__class__) for v in __value]):
-                    raise ValueError(
-                        f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
-                    )
+                    try:
+                        # Iterate through list and create objects of self's class
+                        if self.items.type in [
+                            ProjectFieldTypes.list.value,
+                            ProjectFieldTypes.object.value,
+                        ]:
+                            raise ValueError()
+
+                        new_value = list()
+                        for v in __value:
+                            if isinstance(v, self.__class__):
+                                new_value.append(v)
+                            else:
+                                new_value.append(self.__class__(self.items, v))
+                        __value = new_value
+                    except ValueError:
+                        raise ValueError(
+                            f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
+                        )
                 types = set([v.type for v in __value])
                 if len(types) > 1:
                     raise ValueError(
                         f"Values of '{self.name}' must not contain {self.__class__.__name__}s"
                         f"of multiple types (got {','.join(types)})."
                     )
+
             elif self.type == ProjectFieldTypes.object.value:
                 if not isinstance(__value, dict):
                     raise ValueError(
@@ -182,7 +200,7 @@ class SectionDataField(ProjectDesignField):
             elif self.type == ProjectFieldTypes.user.value:
                 try:
                     UUID(__value, version=4)
-                except ValueError:
+                except (ValueError, AttributeError):
                     raise ValueError(
                         f"'{self.name}' expects v4 uuid (got '{__value}')."
                     )
@@ -205,6 +223,11 @@ class SectionData(BaseModel):
                 design_field.name,
                 self.field_class(design_field, value),
             )
+        missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
+        if len(missing_fields) > 0:
+            raise IncompatibleDesignException(
+                f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
+            )
 
     def __iter__(self):
         """Recursive iteration through cls attributes
@@ -218,8 +241,13 @@ class SectionData(BaseModel):
 
     def to_json(self) -> dict:
         result = dict()
-        for key, value in vars(self).items():
-            result[key] = value.to_json()
+        for k, v in vars(self).items():
+            if v.type == ProjectFieldTypes.enum.value:
+                valid_enums = [choice["value"] for choice in v.choices]
+                if not v.value in valid_enums:
+                    # Prevent adding empty enums because server will complain
+                    continue
+            result[k] = v.to_json()
         return result
 
 
@@ -242,16 +270,29 @@ class SectionRaw(BaseModel):
     lock_info: bool = False
     template: str = ""
     assignee: str = ""
-    status: str = ""
+    status: str = "in-progress"
     data: SectionDataRaw
 
+    def __init__(self, data, *args, **kwargs):
+        if "data" not in data:
+            data["data"] = dict()
+        super().__init__(data, *args, **kwargs)
 
-class Section(SectionRaw, SectionProtocol):
+
+class Section(SectionRaw):
     data: SectionData
 
-    def __init__(self, project_design: ProjectDesign, raw: SectionRaw):
-        # Set attributes from FindingRaw
+    def __init__(
+        self,
+        raw: typing.Union[SectionRaw, typing.Dict],
+        project_design: typing.Optional[ProjectDesign] = None,
+    ):
+        if project_design is None:
+            project_design = ProjectDesign()
+        if isinstance(raw, dict):
+            raw = SectionRaw(raw)
+
+        # Set attributes from SectionRaw
         for attr in typing.get_type_hints(SectionRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-
         self.data = SectionData(project_design.report_fields, raw.data)

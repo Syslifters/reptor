@@ -1,0 +1,18 @@
+[data]
+title = "IDOR"
+description = "Insecure Direct Object Reference (IDOR) at <!--{{ idor_url }}-->"
+recommendation = "<!--{% include 'recommendation.md' %}-->"
+cvss = "My cvss"
+summary = "My summary"
+precondition = "My precondition"
+impact = "My impact"
+short_recommendation = "My short recommendation"
+references = [
+    "https://reference1.example.com",
+    "https://reference2.example.com"
+]
+owasp_top10_2021 = "A01_2021"
+wstg_category = "ATHZ"
+retest_notes = "My restest notes"
+retest_status = "open"
+severity = "high"

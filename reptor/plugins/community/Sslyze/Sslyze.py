@@ -1,4 +1,5 @@
 from reptor.lib.plugins.ToolBase import ToolBase
+import typing
 
 
 class Sslyze(ToolBase):
@@ -263,11 +264,11 @@ class Sslyze(ToolBase):
         result_server_info = dict()
         server_info = target.get("server_info")
         result_server_info["hostname"] = server_info["hostname"]
-        result_server_info["port"] = server_info["port"]
+        result_server_info["port"] = str(server_info["port"])
         result_server_info["ip_address"] = server_info["ip_address"]
         return result_server_info
 
-    def process_parsed_input_for_template(self):
+    def process_parsed_input_for_template(self) -> typing.Optional[dict]:
         data = list()
         if not isinstance(self.parsed_input, dict):
             return None
@@ -303,6 +304,24 @@ class Sslyze(ToolBase):
                 )
             return {"target": data[0]}
         return {"data": data}
+
+    def finding_weak_ciphers(self):
+        finding_context = self.process_parsed_input_for_template()
+        if finding_context is None:
+            return None
+        if any(
+            [
+                target.get("has_weak_ciphers")
+                for target in finding_context.get("data", [])
+            ]
+        ):
+            # Add affected components
+            finding_context["affected_components"] = [
+                f'{t["hostname"]}:{t["port"]} ({t["ip_address"]})'
+                for t in finding_context["data"]
+            ]
+            return finding_context
+        return None
 
 
 loader = Sslyze

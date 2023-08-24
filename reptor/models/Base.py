@@ -46,7 +46,8 @@ class BaseModel:
             FindingTemplateTranslation,
         )
         from reptor.models.Note import Note
-        from reptor.models.Project import Project, ProjectDesign, ProjectDesignField
+        from reptor.models.Project import Project
+        from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
         from reptor.models.Section import SectionDataRaw
         from reptor.models.User import User
 
@@ -89,6 +90,14 @@ class BaseModel:
                     self.__setattr__(attr[0], data[attr[0]])
 
     def to_json(self):
+        dict_values = vars(self)
+        for k, v in dict_values.items():
+            if isinstance(v, datetime.datetime):
+                dict_values[k] = v.isoformat()
+            try:
+                dict_values[k] = v.to_json()
+            except AttributeError:
+                pass
         return vars(self)
 
 

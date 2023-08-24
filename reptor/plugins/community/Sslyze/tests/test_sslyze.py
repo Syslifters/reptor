@@ -1,22 +1,23 @@
 import json
 import os
+from pathlib import Path
+from unittest.mock import Mock, MagicMock
 
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
+from reptor.models.Finding import Finding
 
 from ..Sslyze import Sslyze
 
 
 class TestSslyze(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        Sslyze.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        Sslyze.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.sslyze = Sslyze(reptor=self.reptor)
 
@@ -25,6 +26,49 @@ class TestSslyze(TestCaseToolPlugin):
         filepath = os.path.join(os.path.dirname(__file__), "./data/sslyze.json")
         with open(filepath, "r") as f:
             self.sslyze.raw_input = f.read()
+
+    def test_generate_and_push_findings(self):
+        # Patch API
+        self.reptor.api.templates.search = Mock(return_value=[])
+        
+
+        self._load_json_data()
+        # Assert "create_finding" is called if no findings exist
+        self.sslyze.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.reptor.api.projects.create_finding = MagicMock()
+
+        self.sslyze.generate_and_push_findings()
+        assert self.reptor.api.projects.create_finding.called
+
+        # Assert "create_finding" is not called if finding with same title exists
+        finding = Finding({"data": {"title": "Weak SSL ciphers"}})
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        self.reptor.api.projects.create_finding = MagicMock()
+
+        self.sslyze.generate_and_push_findings()
+        assert not self.sslyze.reptor.api.projects.create_finding.called
+
+    def test_generate_findings(self):
+        # Patch API
+        self.reptor.api.templates.search = Mock(return_value=[])
+
+        self._load_json_data()
+        self.sslyze.generate_findings()
+        assert len(self.sslyze.findings) == 1
+        cipher = self.sslyze.findings[0]
+        assert cipher.data.title.value == "Weak SSL ciphers"
+        assert (
+            cipher.data.description.value
+            == 'We detected weak SSL/TLS ciphers on your server.\n# www.example.com:443 (127.0.0.1)\n&nbsp;\n * <span style="color: red">DHE-RSA-AES256-SHA256</span> (TLS 1.2)\n * <span style="color: red">AES256-SHA256</span> (TLS 1.2)\n * <span style="color: red">ECDHE-RSA-AES256-SHA384</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES256-SHA</span> (TLS 1.2)\n * <span style="color: red">AES256-SHA</span> (TLS 1.2)\n * <span style="color: red">AES256-GCM-SHA384</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES128-SHA256</span> (TLS 1.2)\n * <span style="color: red">DHE-RSA-AES128-SHA</span> (TLS 1.2)\n * <span style="color: red">AES128-SHA</span> (TLS 1.2)\n * <span style="color: red">AES128-SHA256</span> (TLS 1.2)\n * <span style="color: red">AES128-GCM-SHA256</span> (TLS 1.2)\n * <span style="color: red">ECDHE-RSA-AES128-SHA256</span> (TLS 1.2)\n'
+        )
+        assert (
+            cipher.data.affected_components.value[0].value
+            == "www.example.com:443 (127.0.0.1)"
+        )
+        assert [r.value for r in cipher.data.references.value] == [
+            "https://ssl-config.mozilla.org/",
+            "https://ciphersuite.info/",
+        ]
 
     def test_parse(self):
         result_dict = {"a": "b"}
@@ -37,7 +81,7 @@ class TestSslyze(TestCaseToolPlugin):
             "data": [
                 {
                     "hostname": "www.example.com",
-                    "port": 443,
+                    "port": "443",
                     "ip_address": "127.0.0.1",
                     "protocols": {
                         "tlsv1_2": {
@@ -151,3 +195,23 @@ class TestSslyze(TestCaseToolPlugin):
             protocols_result,
         ]:
             assert content in self.sslyze.formatted_input
+
+    def test_path_methods(self):
+        plugin_path = Path(os.path.normpath(Path(os.path.dirname(__file__)) / ".."))
+        template_paths = self.sslyze.get_plugin_dir_paths(
+            plugin_path, "templates", skip_user_plugins=True
+        )
+        assert len(template_paths) == 1
+        assert isinstance(template_paths[0], Path)
+        assert template_paths[0] == plugin_path / "templates"
+
+        templates = self.sslyze.get_filenames_from_paths(template_paths, "md")
+        template_names = [
+            "certinfo",
+            "default_summary",
+            "misconfigurations",
+            "protocols",
+            "vulnerabilities",
+            "weak_ciphers",
+        ]
+        assert all([t in templates for t in template_names])

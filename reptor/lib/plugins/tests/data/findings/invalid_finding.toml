@@ -1,0 +1,3 @@
+[data-invalid
+title = "IDOR"
+description = "Insecure Direct Object Reference (IDOR) Description"

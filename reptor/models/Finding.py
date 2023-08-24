@@ -1,14 +1,12 @@
-from reptor.models.Project import ProjectDesign, ProjectDesignField
+import typing
+
+from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 from reptor.models.Section import (
     SectionData,
     SectionDataField,
     SectionDataRaw,
     SectionRaw,
 )
-
-import typing
-
-from reptor.lib.interfaces.api.models import FindingProtocol
 
 
 class FindingDataRaw(SectionDataRaw):
@@ -30,7 +28,7 @@ class FindingDataRaw(SectionDataRaw):
         wstg_category:
         retest_notes:
         retest_status:
-        evidence:
+        severity:
     """
 
     title: str = ""
@@ -47,10 +45,7 @@ class FindingDataRaw(SectionDataRaw):
     wstg_category: str = ""
     retest_notes: str = ""
     retest_status: str = ""
-    evidence: str = ""
-
-    def to_json(self) -> dict:
-        return vars(self)
+    severity: str = ""
 
 
 class FindingDataField(SectionDataField):
@@ -72,7 +67,7 @@ class FindingData(SectionData):
     wstg_category: FindingDataField
     retest_notes: FindingDataField
     retest_status: FindingDataField
-    evidence: FindingDataField
+    severity: FindingDataField
 
     field_class = FindingDataField
 
@@ -86,12 +81,20 @@ class FindingRaw(SectionRaw):
     data: FindingDataRaw
 
 
-class Finding(FindingRaw, FindingProtocol):
+class Finding(FindingRaw):
     data: FindingData
 
-    def __init__(self, project_design: ProjectDesign, raw: FindingRaw):
+    def __init__(
+        self,
+        raw: typing.Union[FindingRaw, typing.Dict],
+        project_design: typing.Optional[ProjectDesign] = None,
+    ):
+        if project_design is None:
+            project_design = ProjectDesign()
+        if isinstance(raw, dict):
+            raw = FindingRaw(raw)
+
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-
         self.data = FindingData(project_design.finding_fields, raw.data)

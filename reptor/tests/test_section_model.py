@@ -3,7 +3,7 @@ import json
 import pytest
 
 from reptor.models.FindingTemplate import FindingTemplate
-from reptor.models.Project import ProjectDesign
+from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 from reptor.models.Section import SectionData, SectionDataField, SectionRaw
 
 
@@ -199,3 +199,56 @@ class TestSectionModelParsing:
         assert test_finding_template.translations[1].data.title == "Template Titel"
         assert test_finding_template.translations[1].status == "in-progress"
         assert test_finding_template.translations[1].language == "de-DE"
+
+    @pytest.mark.parametrize(
+        "type",
+        [
+            "list",
+            "object",
+        ],
+    )
+    def test_list_unsupported_section_data_field(self, type):
+        fld = ProjectDesignField(
+            {
+                "type": "list",
+                "items": {"type": type, "items": {"type": "string"}, "properties": {}},
+            }
+        )
+        with pytest.raises(ValueError):
+            SectionDataField(fld, "invalid_value")
+
+    @pytest.mark.parametrize(
+        "type,value,invalid_value",
+        [
+            ("string", "test", 12),
+            ("cvss", "test", 12),
+            ("markdown", "test", 12),
+            ("combobox", "test", 12),
+            ("user", "3d503331-77d8-4d5e-b3de-e95875f959c4", 12),
+            ("user", "3d503331-77d8-4d5e-b3de-e95875f959c4", "12"),
+            ("date", "2023-01-01", "12"),
+            ("date", "2023-01-31", "2023-01-32"),
+            ("date", "2023-01-31", 12),
+            ("number", 12, "12"),
+            ("boolean", False, "12"),
+            ("boolean", True, "true"),
+            ("boolean", False, 1),
+            ("boolean", False, 0),
+            ("enum", "a", "12"),
+            ("enum", "b", 12),
+            ("enum", "b", False),
+        ],
+    )
+    def test_list_section_data_field(self, type, value, invalid_value):
+        fld = ProjectDesignField(
+            {
+                "choices": [
+                    {"label": "A", "value": "a"},
+                    {"label": "B", "value": "b"},
+                ],
+                "type": type,
+            }
+        )
+        SectionDataField(fld, value)
+        with pytest.raises(ValueError):
+            SectionDataField(fld, invalid_value)

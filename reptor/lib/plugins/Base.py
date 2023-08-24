@@ -1,7 +1,8 @@
 import sys
 import typing
-from reptor.lib.interfaces.reptor import ReptorProtocol
+
 from reptor.lib.console import reptor_console
+from reptor.lib.interfaces.reptor import ReptorProtocol
 
 
 class Base:

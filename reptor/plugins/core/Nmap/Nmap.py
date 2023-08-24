@@ -80,7 +80,7 @@ class Nmap(ToolBase):
                     s.parse(
                         {
                             "ip": ip,
-                            "port": int(port),
+                            "port": port,
                             "protocol": protocol,
                             "service": service.replace("|", "/"),
                             "version": version.replace("|", "/"),
@@ -109,7 +109,7 @@ class Nmap(ToolBase):
                             "hostname": (host.get("hostnames") or {})
                             .get("hostname", {})
                             .get("@name"),
-                            "port": int(port.get("@portid")),
+                            "port": port.get("@portid"),
                             "protocol": port.get("@protocol"),
                             "service": port.get("service", {}).get("@name"),
                             "version": port.get("service", {}).get("@product"),

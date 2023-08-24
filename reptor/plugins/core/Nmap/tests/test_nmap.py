@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -9,14 +10,12 @@ from ..Nmap import Nmap
 
 
 class TestNmap(TestCaseToolPlugin):
-    templates_path = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), "../templates")
-    )
+    templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        Nmap.set_template_vars(
-            os.path.dirname(self.templates_path), skip_user_plugins=True
+        Nmap.setup_class(
+            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.nmap = Nmap(reptor=self.reptor)
 
@@ -37,7 +36,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": "nginx (reverse proxy)",
@@ -45,7 +44,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "ssl/http",
                 "version": "nginx (reverse proxy)",
@@ -53,7 +52,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 8080,
+                "port": "8080",
                 "protocol": "tcp",
                 "service": "",
                 "version": "",
@@ -69,7 +68,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "142.250.180.228",
                 "hostname": "www.google.com",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": "gws",
@@ -77,7 +76,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "142.250.180.228",
                 "hostname": "www.google.com",
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "https",
                 "version": "gws",
@@ -85,7 +84,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "34.249.200.254",
                 "hostname": "www.syslifters.com",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": None,
@@ -93,7 +92,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "34.249.200.254",
                 "hostname": "www.syslifters.com",
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "https",
                 "version": None,
@@ -110,7 +109,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "63.35.51.142",
                 "hostname": "www.syslifters.com",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": None,
@@ -127,7 +126,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "142.251.208.164",
                 "hostname": None,
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": None,
@@ -135,7 +134,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "142.251.208.164",
                 "hostname": None,
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "https",
                 "version": None,
@@ -154,7 +153,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": "nginx (reverse proxy)",
@@ -162,7 +161,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "ssl/http",
                 "version": "nginx (reverse proxy)",
@@ -181,7 +180,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
-                "port": 80,
+                "port": "80",
                 "protocol": "tcp",
                 "service": "http",
                 "version": "nginx (reverse proxy)",
@@ -189,7 +188,7 @@ class TestNmap(TestCaseToolPlugin):
             {
                 "ip": "127.0.0.1",
                 "hostname": "localhost",
-                "port": 443,
+                "port": "443",
                 "protocol": "tcp",
                 "service": "ssl/http",
                 "version": "nginx (reverse proxy)",
