@@ -95,7 +95,7 @@ class BaseModel:
             if isinstance(v, datetime.datetime):
                 dict_values[k] = v.isoformat()
             try:
-                dict_values[k] = v.to_dict()
+                dict_values[k] = v.to_dict() # type: ignore
             except AttributeError:
                 pass
         return vars(self)

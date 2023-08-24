@@ -17,7 +17,7 @@ class PluginManager:
 
     LOADED_PLUGINS: typing.Dict = dict()
 
-    _reptor: typing.TypeAlias = "Reptor"
+    _reptor: typing.Any
 
     def __init__(self, reptor) -> None:
         self._reptor = reptor

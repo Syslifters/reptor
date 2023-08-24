@@ -9,7 +9,7 @@ from reptor.lib.console import reptor_console
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods"""
 
-    reptor: typing.TypeAlias = "Reptor"
+    reptor: typing.Any
     base_endpoint: str
     endpoint: str
     item_id: str

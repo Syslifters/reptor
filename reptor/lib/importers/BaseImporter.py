@@ -5,7 +5,7 @@ from reptor.models.FindingTemplate import FindingTemplate
 
 
 class BaseImporter(Base):
-    reptor: typing.TypeAlias = "Reptor"
+    reptor: typing.Any
     mapping: typing.Dict
     meta: typing.Dict = {
         "name": "",

@@ -13,7 +13,7 @@ class Base:
         notename: The Notename to be used when uploading
     """
 
-    reptor: typing.TypeAlias = "Reptor"
+    reptor: typing.Any
     meta: typing.Dict = {
         "name": "",
         "author": "",
