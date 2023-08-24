@@ -89,13 +89,13 @@ class BaseModel:
                     # Fill each attribute
                     self.__setattr__(attr[0], data[attr[0]])
 
-    def to_json(self):
+    def to_dict(self):
         dict_values = vars(self)
         for k, v in dict_values.items():
             if isinstance(v, datetime.datetime):
                 dict_values[k] = v.isoformat()
             try:
-                dict_values[k] = v.to_json()
+                dict_values[k] = v.to_dict()
             except AttributeError:
                 pass
         return vars(self)

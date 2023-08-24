@@ -354,10 +354,10 @@ class ToolBase(Base):
                 )
                 # ...then update and add data
                 self.reptor.api.projects.update_finding(
-                    created_finding["id"], finding.to_json()
+                    created_finding["id"], finding.to_dict()
                 )
             else:
-                self.reptor.api.projects.create_finding(finding.to_json())
+                self.reptor.api.projects.create_finding(finding.to_dict())
 
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.
@@ -408,7 +408,7 @@ class ToolBase(Base):
                             f"No translation found for {language}. Taking main translation {translation.language}."
                         )
                     translation.template = finding_template.id
-                    finding = Finding(translation.to_json())
+                    finding = Finding(translation.to_dict())
                     break
 
             if not finding:

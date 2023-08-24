@@ -239,7 +239,7 @@ class Translate(Base):
         )
         for section in sections:
             translated_section = self._translate_section(section)
-            translated_section_data = translated_section.data.to_json()
+            translated_section_data = translated_section.data.to_dict()
             if not self.dry_run:
                 if translated_section.__class__ == Finding:
                     self.reptor.api.projects.update_finding(
