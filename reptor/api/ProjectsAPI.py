@@ -5,7 +5,7 @@ from posixpath import join as urljoin
 from typing import Optional
 
 from reptor.api.APIClient import APIClient
-from reptor.models.Finding import Finding, FindingRaw
+from reptor.models.Finding import FindingRaw
 from reptor.models.Project import Project
 from reptor.models.Section import Section, SectionRaw
 
@@ -127,48 +127,38 @@ class ProjectsAPI(APIClient):
             return_data.append(section)
         return return_data
 
-    def get_findings(self) -> typing.List[Finding]:
+    def get_findings(self) -> typing.List[FindingRaw]:
         """Gets all findings of a project
 
         Returns:
-            typing.List[Finding]: List of findings for this project
+            typing.List[FindingRaw]: List of findings for this project
         """
-        return_data = list()
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         response = self.get(url).json()
 
         if not response:
             return return_data
+        return [FindingRaw(f) for f in response]
 
-        if not self.project_design:
-            self.project_design = self.reptor.api.project_designs.project_design
-
-        for item in response:
-            finding = Finding(FindingRaw(item), project_design=self.project_design)
-            return_data.append(finding)
-        return return_data
-
-    def update_finding(
-        self, finding_id: str, data: dict
-    ) -> dict:  # TODO maybe return objects instead
+    def update_finding(self, finding_id: str, data: dict) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
-        return self.patch(url, data).json()
+        return FindingRaw(self.patch(url, data).json())
 
-    def create_finding(self, data: dict) -> dict:
+    def create_finding(self, data: dict) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        return self.post(url, data).json()
+        return FindingRaw(self.post(url, data).json())
 
-    def create_finding_from_template(self, template_id: str) -> dict:
+    def create_finding_from_template(self, template_id: str) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
-        return self.post(url, {"template": template_id}).json()
+        return FindingRaw(self.post(url, {"template": template_id}).json())
 
-    def update_section(self, section_id: str, data: dict) -> dict:
+    def update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
-        return self.patch(url, data).json()
+        return SectionRaw(self.patch(url, data).json())
 
-    def update_project(self, data: dict) -> dict:
+    def update_project(self, data: dict) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
-        return self.patch(url, data).json()
+        return Project(self.patch(url, data).json())
 
     def get_enabled_language_codes(
         self,

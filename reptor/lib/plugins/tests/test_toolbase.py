@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
-from reptor.models.Finding import Finding
+from reptor.models.Finding import Finding, FindingRaw
 from reptor.models.Project import Project
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -77,8 +77,9 @@ class TestToolbase(TestCaseToolPlugin):
         assert self.reptor.api.projects.create_finding.called
 
         # Assert "create_finding" is not called if finding with same title exists
-        finding = Finding({"data": {"title": "SQL issue"}})
-        self.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        finding_raw = FindingRaw({"data": {"title": "SQL issue"}})
+        finding = Finding(finding_raw)
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.projects.create_finding = MagicMock()
 
         self.sql_tool.generate_and_push_findings()
@@ -99,8 +100,9 @@ class TestToolbase(TestCaseToolPlugin):
         assert self.reptor.api.projects.update_finding.called
 
         # Assert finding is not pushed if finding from same template exists
-        finding = Finding({"template": "12345"})
-        self.reptor.api.projects.get_findings = Mock(return_value=[finding])
+        finding_raw = FindingRaw({"template": "12345"})
+        finding = Finding(finding_raw)
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
         self.reptor.api.templates.search = Mock(return_value=[finding])
         self.sql_tool.generate_findings = Mock(return_value=None)

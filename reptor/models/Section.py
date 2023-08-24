@@ -99,7 +99,7 @@ class SectionDataField(ProjectDesignField):
     def __len__(self) -> int:
         return len([e for e in self])
 
-    def to_json(self) -> typing.Union[dict, list, str]:
+    def to_dict(self) -> typing.Union[dict, list, str]:
         if self.type == ProjectFieldTypes.list.value:
             result = list()
             for subfield in self.value:
@@ -108,13 +108,13 @@ class SectionDataField(ProjectDesignField):
                     if subfield.value in valid_enums:
                         result.append({subfield.name: subfield.value})
                 else:
-                    result.append(subfield.to_json())
+                    result.append(subfield.to_dict())
         elif self.type == ProjectFieldTypes.object.value:
             result = dict()
             for name, subfield in self.value.items():
                 if subfield.type == ProjectFieldTypes.enum.value:
                     result[name] = {subfield.name: subfield.value}
-                result[name] = subfield.to_json()
+                result[name] = subfield.to_dict()
         else:
             return self.value
         return result
@@ -239,7 +239,7 @@ class SectionData(BaseModel):
     def __len__(self) -> int:
         return len([e for e in self])
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         result = dict()
         for k, v in vars(self).items():
             if v.type == ProjectFieldTypes.enum.value:
@@ -247,7 +247,7 @@ class SectionData(BaseModel):
                 if not v.value in valid_enums:
                     # Prevent adding empty enums because server will complain
                     continue
-            result[k] = v.to_json()
+            result[k] = v.to_dict()
         return result
 
 

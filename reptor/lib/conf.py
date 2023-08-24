@@ -5,11 +5,10 @@ from uuid import UUID
 import yaml
 
 from .. import settings as settings
-from .interfaces.conf import ConfigProtocol
 from .logger import reptor_logger
 
 
-class Config(ConfigProtocol):
+class Config:
     _raw_config: dict = {
         "server": "https://demo.sysre.pt",
         "token": None,

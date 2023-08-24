@@ -279,7 +279,7 @@ class TestFindingModelParsing:
             == "My String in List in Object"
         )
 
-        assert finding_data.to_json() == json_example["data"]
+        assert finding_data.to_dict() == json_example["data"]
 
         # Try to set attributes
         finding_data.enum_field.value = "enum_val_1"

@@ -15,9 +15,9 @@ class FindingTemplateTranslation(BaseModel):
         # Init mandatory fields
         self.is_main = True
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         result = vars(self)
-        result["data"] = self.data.to_json()
+        result["data"] = self.data.to_dict()
         return result
 
 
@@ -41,9 +41,9 @@ class FindingTemplate(BaseModel):
     tags: typing.List[str] = []
     translations: typing.List[FindingTemplateTranslation] = []
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         result = vars(self)
         if isinstance(self.source, FindingTemplateSources):
             result["source"] = self.source.value
-        result["translations"] = [t.to_json() for t in self.translations]
+        result["translations"] = [t.to_dict() for t in self.translations]
         return result
