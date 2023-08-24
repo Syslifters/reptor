@@ -34,21 +34,28 @@ class Nmap(ToolBase):
         self.notename = "nmap scan"
         self.note_icon = "👁️‍🗨️"
         if self.input_format == "raw":
-            self.input_format = "grepable"
+            self.input_format = "xml"
+        self.multi_notes = kwargs.get("multi_notes", False)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
+        parser.add_argument(
+            "-multi-notes",
+            "--multi-notes",
+            help="Uploads multiple notes (one per IP) instead of one note with all IPs",
+            action="store_true",
+        )
+
         # Find input_format_group
         for group in parser._mutually_exclusive_groups:
             if group.title == "input_format_group":
                 break
         else:
             return
-
         group.add_argument(
             "-oX",
-            help="nmap XML output format, same as --xml",
+            help="nmap XML output format, same as --xml (recommended)",
             action="store_const",
             dest="format",
             const="xml",
@@ -122,10 +129,23 @@ class Nmap(ToolBase):
         if self.input_format == "grepable":
             self.parse_grepable()
 
-    def process_parsed_input_for_template(self, template=None):
+    def process_parsed_input_for_template(self):
         data = dict()
-        data["data"] = self.parsed_input
-        data["show_hostname"] = any([s.hostname for s in self.parsed_input])
+        if not self.multi_notes:
+            data["data"] = self.parsed_input
+            data["show_hostname"] = any([s.hostname for s in self.parsed_input])
+        else:
+            # Group data per IP
+            for d in self.parsed_input:
+                # Key of the dict (d.ip) will be title of the note
+                data.setdefault(d.ip, list()).append(d)
+            # Show hostname or not
+            for ip, port_data in data.items():
+                data[ip] = {
+                    "data": port_data,
+                    "show_hostname": any([s.hostname for s in port_data]),
+                }
+
         return data
 
 

@@ -115,7 +115,7 @@ class NotesAPI(APIClient):
     def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
         parent_id = None
         if parent_notename:
-            note = self.get_note_by_title(parent_notename)
+            note = self.get_note_by_title(parent_notename, icon=icon)
             parent_id = note.id
         notes_list = self.get_notes()
 
@@ -124,6 +124,8 @@ class NotesAPI(APIClient):
                 break
         else:
             # Note does not exist. Create.
+            if title == "Uploads":
+                icon = "📤"
             note = self.create_note(title=title, parent_id=parent_id, icon=icon)
 
         return note
