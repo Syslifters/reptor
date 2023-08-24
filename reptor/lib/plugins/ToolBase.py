@@ -13,9 +13,9 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
+from reptor.api.TemplatesAPI import TemplatesAPI
 from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
-from reptor.api.TemplatesAPI import TemplatesAPI
 
 from .Base import Base
 
@@ -327,12 +327,12 @@ class ToolBase(Base):
         if len(self.findings) == 0:
             self.log.info("No findings generated.")
             return
-        project_finding_titles = [
-            f.data.title.value for f in self.reptor.api.projects.get_findings()
+        project_findings = [
+            Finding(f, project_design=self.reptor.api.project_designs.project_design)
+            for f in self.reptor.api.projects.get_findings()
         ]
-        project_findings_from_templates = [
-            f.template for f in self.reptor.api.projects.get_findings()
-        ]
+        project_finding_titles = [f.data.title.value for f in project_findings]
+        project_findings_from_templates = [f.template for f in project_findings]
         for finding in self.findings:
             self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
             if finding.template and finding.template in project_findings_from_templates:
@@ -354,7 +354,7 @@ class ToolBase(Base):
                 )
                 # ...then update and add data
                 self.reptor.api.projects.update_finding(
-                    created_finding["id"], finding.to_dict()
+                    created_finding.id, finding.to_dict()
                 )
             else:
                 self.reptor.api.projects.create_finding(finding.to_dict())

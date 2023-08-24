@@ -233,10 +233,10 @@ class Translate(Base):
         self._duplicate_and_update_project(project_title=project.name)
 
         self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
-        sections = (
-            self.reptor.api.projects.get_findings()
-            + self.reptor.api.projects.get_sections()
-        )
+        sections = [
+            Finding(f, self.reptor.api.project_designs.project_design)
+            for f in self.reptor.api.projects.get_findings()
+        ] + self.reptor.api.projects.get_sections()
         for section in sections:
             translated_section = self._translate_section(section)
             translated_section_data = translated_section.data.to_dict()
