@@ -39,6 +39,7 @@ class ToolBase(Base):
         self.action = kwargs.get("action")
         self.push_findings = kwargs.get("action")
         self.note_icon = "🛠️"
+        self.multi_notes = False
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
@@ -282,7 +283,14 @@ class ToolBase(Base):
             self.parse()
 
         data = self.process_parsed_input_for_template()
-        self.formatted_input = render_to_string(f"{self.template}.md", data)
+        if self.multi_notes:
+            self.formatted_input = dict()
+            for title, data in data.items():
+                self.formatted_input[title] = render_to_string(
+                    f"{self.template}.md", data
+                )
+        else:
+            self.formatted_input = render_to_string(f"{self.template}.md", data)
 
     def process_parsed_input_for_template(self) -> typing.Optional[dict]:
         return {"data": self.parsed_input}
@@ -292,16 +300,27 @@ class ToolBase(Base):
         if not self.formatted_input:
             self.format()
         notename = self.notename or self.__class__.__name__.lower()
-        parent_notename = "Uploads" if notename != "Uploads" else ""
 
-        self.reptor.api.notes.write_note(
-            self.formatted_input,
-            notename=notename,
-            parent_notename=parent_notename,
-            icon=self.note_icon,
-            no_timestamp=self.no_timestamp,
-            force_unlock=self.force_unlock,
-        )
+        if self.multi_notes:
+            for title, content in self.formatted_input.items():
+                self.reptor.api.notes.write_note(
+                    content=content,
+                    notename=title,
+                    icon=self.note_icon,
+                    parent_notename=notename,
+                    no_timestamp=self.no_timestamp,
+                    force_unlock=self.force_unlock,
+                )
+        else:
+            parent_notename = "Uploads" if notename != "Uploads" else ""
+            self.reptor.api.notes.write_note(
+                content=self.formatted_input,
+                notename=notename,
+                parent_notename=parent_notename,
+                icon=self.note_icon,
+                no_timestamp=self.no_timestamp,
+                force_unlock=self.force_unlock,
+            )
 
     def generate_and_push_findings(self) -> None:
         self.generate_findings()

@@ -104,6 +104,85 @@ class TestNmap(TestCaseToolPlugin):
         for entry in entries:
             assert entry in parsed_input_dict
 
+    def test_multi_notes(self):
+        """
+        result = {
+            "142.250.180.228": {
+                "data": [
+                    {
+                        "hostname": "www.google.com",
+                        "ip": "142.250.180.228",
+                        "port": "80",
+                        "protocol": "tcp",
+                        "service": "http",
+                        "version": "gws",
+                    },
+                    {
+                        "hostname": "www.google.com",
+                        "ip": "142.250.180.228",
+                        "port": "443",
+                        "protocol": "tcp",
+                        "service": "https",
+                        "version": "gws",
+                    },
+                ],
+                "show_hostname": True,
+            },
+            "34.249.200.254": {
+                "data": [
+                    {
+                        "hostname": "www.syslifters.com",
+                        "ip": "34.249.200.254",
+                        "port": "80",
+                        "protocol": "tcp",
+                        "service": "http",
+                        "version": None,
+                    },
+                    {
+                        "hostname": "www.syslifters.com",
+                        "ip": "34.249.200.254",
+                        "port": "443",
+                        "protocol": "tcp",
+                        "service": "https",
+                        "version": None,
+                    },
+                ],
+                "show_hostname": True,
+            },
+        }
+        """
+
+        self._load_xml_data("nmap_multi_target.xml")
+        self.nmap.multi_notes = True
+        self.nmap.parse()
+        data = self.nmap.process_parsed_input_for_template()
+        assert "34.249.200.254" in data
+        assert "142.250.180.228" in data
+        assert isinstance(data["34.249.200.254"], dict)
+        assert isinstance(data["142.250.180.228"], dict)
+        assert "data" in data["34.249.200.254"]
+        assert "data" in data["142.250.180.228"]
+        assert "show_hostname" in data["34.249.200.254"]
+        assert "show_hostname" in data["142.250.180.228"]
+        assert len(data["34.249.200.254"]["data"]) == 2
+        assert len(data["142.250.180.228"]["data"]) == 2
+
+        assert data["142.250.180.228"]["data"][0].ip == "142.250.180.228"
+        assert data["34.249.200.254"]["data"][0].ip == "34.249.200.254"
+
+        self.nmap.format()
+        assert isinstance(self.nmap.formatted_input, dict)
+        assert "142.250.180.228" in self.nmap.formatted_input
+        assert "34.249.200.254" in self.nmap.formatted_input
+        assert (
+            self.nmap.formatted_input["34.249.200.254"]
+            == "| Hostname | IP | Port | Service | Version |\n| ------- | ------- | ------- | ------- | ------- |\n| www.syslifters.com | 34.249.200.254 | 80/tcp | http | n/a |\n| www.syslifters.com | 34.249.200.254 | 443/tcp | https | n/a |"
+        )
+        assert (
+            self.nmap.formatted_input["142.250.180.228"]
+            == "| Hostname | IP | Port | Service | Version |\n| ------- | ------- | ------- | ------- | ------- |\n| www.google.com | 142.250.180.228 | 80/tcp | http | gws |\n| www.google.com | 142.250.180.228 | 443/tcp | https | gws |"
+        )
+
     def test_xml_parse_single_target(self):
         entries = [
             {
@@ -211,7 +290,7 @@ class TestNmap(TestCaseToolPlugin):
         self.nmap.format()
         assert self.nmap.formatted_input == result
 
-        result = """| Hostname | Host | Port | Service | Version |
+        result = """| Hostname | IP | Port | Service | Version |
 | ------- | ------- | ------- | ------- | ------- |
 | www.syslifters.com | 63.35.51.142 | 80/tcp | http | n/a |"""
         self.nmap.parsed_input = None
