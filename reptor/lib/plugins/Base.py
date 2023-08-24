@@ -2,7 +2,6 @@ import sys
 import typing
 
 from reptor.lib.console import reptor_console
-from reptor.lib.interfaces.reptor import ReptorProtocol
 
 
 class Base:
@@ -14,7 +13,7 @@ class Base:
         notename: The Notename to be used when uploading
     """
 
-    reptor: ReptorProtocol
+    reptor: typing.TypeAlias = "Reptor"
     meta: typing.Dict = {
         "name": "",
         "author": "",

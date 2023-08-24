@@ -3,15 +3,13 @@ import typing
 import requests
 
 import reptor.settings as settings
-
-from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.console import reptor_console
 
 
 class APIClient:
     """Base API Client, holds all endpoint configuration and supplies subclasses with HTTP methods"""
 
-    reptor: ReptorProtocol
+    reptor: typing.TypeAlias = "Reptor"
     base_endpoint: str
     endpoint: str
     item_id: str

@@ -5,8 +5,6 @@ import typing
 
 import reptor.settings as settings
 import reptor.subcommands as subcommands
-
-from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.plugins.DocParser import DocParser
 
 
@@ -19,7 +17,7 @@ class PluginManager:
 
     LOADED_PLUGINS: typing.Dict = dict()
 
-    _reptor: ReptorProtocol
+    _reptor: typing.TypeAlias = "Reptor"
 
     def __init__(self, reptor) -> None:
         self._reptor = reptor

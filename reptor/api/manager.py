@@ -1,4 +1,3 @@
-from reptor.lib.interfaces.apimanager import APIManagerProtocol
 
 from .NotesAPI import NotesAPI
 from .ProjectDesignsAPI import ProjectDesignsAPI
@@ -6,7 +5,7 @@ from .ProjectsAPI import ProjectsAPI
 from .TemplatesAPI import TemplatesAPI
 
 
-class APIManager(APIManagerProtocol):
+class APIManager:
     _notes: NotesAPI = None
     _projects: ProjectsAPI = None
     _project_designs: ProjectDesignsAPI = None

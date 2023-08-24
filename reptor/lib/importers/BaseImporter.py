@@ -1,12 +1,11 @@
 import typing
 
-from reptor.lib.interfaces.reptor import ReptorProtocol
 from reptor.lib.plugins.Base import Base
 from reptor.models.FindingTemplate import FindingTemplate
 
 
 class BaseImporter(Base):
-    reptor: ReptorProtocol
+    reptor: typing.TypeAlias = "Reptor"
     mapping: typing.Dict
     meta: typing.Dict = {
         "name": "",

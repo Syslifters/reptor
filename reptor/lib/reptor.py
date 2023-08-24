@@ -18,8 +18,6 @@ from reptor.lib.plugins.DocParser import PluginDocs
 from reptor.utils.django_tags import setup_django_tags
 from reptor.utils.markdown import convert_markdown_to_console
 
-from .interfaces.pluginmanager import PluginManagerProtocol
-from .interfaces.reptor import ReptorProtocol
 
 root_logger = logging.getLogger("root")
 
@@ -29,7 +27,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-class Reptor(ReptorProtocol):
+class Reptor:
     """The reptor class is the main App.
 
     It is responsible for the correct loading of plugins via the PluginManager,
@@ -100,11 +98,11 @@ class Reptor(ReptorProtocol):
         """
         return self.logger
 
-    def get_plugin_manager(self) -> PluginManagerProtocol:
+    def get_plugin_manager(self) -> PluginManager:
         """Returns the PluginManager with all loaded plugins.
 
         Returns:
-            PluginManagerProtocol: _description_
+            PluginManager: _description_
         """
         return self.plugin_manager
 
