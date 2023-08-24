@@ -207,6 +207,13 @@ class ToolBase(Base):
                 default="raw",
             )
 
+    @classmethod
+    def get_input_format_group(cls, parser):
+        # Find input_format_group
+        for group in parser._mutually_exclusive_groups:
+            if group.title == "input_format_group":
+                return group
+
     def run(self):
         """
         The run method is always called by the main reptor application.

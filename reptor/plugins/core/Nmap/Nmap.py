@@ -40,33 +40,28 @@ class Nmap(ToolBase):
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
-        parser.add_argument(
-            "-multi-notes",
-            "--multi-notes",
-            help="Uploads multiple notes (one per IP) instead of one note with all IPs",
-            action="store_true",
-        )
-
-        # Find input_format_group
-        for group in parser._mutually_exclusive_groups:
-            if group.title == "input_format_group":
-                break
-        else:
-            return
-        group.add_argument(
+        input_format_group = cls.get_input_format_group(parser)
+        input_format_group.add_argument(
             "-oX",
             help="nmap XML output format, same as --xml (recommended)",
             action="store_const",
             dest="format",
             const="xml",
         )
-        group.add_argument(
+        input_format_group.add_argument(
             "-oG",
             "--grepable",
             help="nmap Grepable output format",
             action="store_const",
             dest="format",
             const="grepable",
+        )
+
+        parser.add_argument(
+            "-multi-notes",
+            "--multi-notes",
+            help="Uploads multiple notes (one per IP) instead of one note with all IPs",
+            action="store_true",
         )
 
     def parse_grepable(self):

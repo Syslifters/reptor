@@ -27,18 +27,15 @@ class MYMODULENAME(ToolBase):
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         """Any arguments added in here are accessible via kwargs in the constructor"""
-        super().add_arguments(
-            parser
-        )  # gives access to --call parse/format/upload and --format xml/json/csv/raw
-        myarguments_group = parser.add_argument_group()
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
 
         # Simple Toggle
-        myarguments_group.add_argument(
+        parser.add_argument(
             "--foo", help="Create as numeric list", action="store_true", default=False
         )
 
         # Simple Integer only valid from a selection of integers
-        myarguments_group.add_argument(
+        parser.add_argument(
             "--bar",
             help="More complex example",
             action="store",
@@ -51,24 +48,19 @@ class MYMODULENAME(ToolBase):
         """This is called automatically if the user provices --format xml
         For more infos look at the parent parse() method in ToolBase
         """
-        ...
+        super().parse_xml()
 
     def parse_json(self):
         """This is called automatically if the user provices --format json
         For more infos look at the parent parse() method in ToolBase
         """
-        ...
+        super().parse_json()
 
     def parse_csv(self):
         """This is called automatically if the user provices --format csv
         For more infos look at the parent parse() method in ToolBase
         """
         ...
-
-    def parse(self):
-        super().parse()
-        # set the parsed_input
-        self.parsed_input = ""
 
     def format(self):
         super().format()
