@@ -105,7 +105,7 @@ printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor x
 
 Now we want to bring our data into a beautiful and human-readable format. SysReptor uses markdown and allows HTML syntax there.
 
-reptor uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/) with a slightly different syntax for formatting.  
+reptor uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/){ target=_blank } with a slightly different syntax for formatting.  
 
 BLOCK_TAG_START = "<!--{%"
 BLOCK_TAG_END = "%}-->"
@@ -209,4 +209,157 @@ We can rename the file `default-template.md` to `default-xss-table.md` to have c
 ```
 -t {default-xss-table,xss-list}
 ```
+
+## Uploading to notes
+
+If you haven't done this so far, you can now add the configuration of your SysReptor installation.  
+Create an API token at `https://yourinstallation.local/users/self/apitokens/` and run `reptor conf` to add all information.
+
+Let's upload our formatted data to the project notes:
+
+```bash
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --upload
+Successfully uploaded to notes.
+```
+
+If you experience any problems during upload, check if the user has permission for the project ID from your configuration. Use the `--debug` switch for further troubleshooting.
+
+Your formatted output is now uploaded to your project notes:
+
+![XssTool Note](/assets/xsstool-note.png)
+
+Use `--notename "My Notename"` for a different title and `--personal-note` to not add it to a project, but to your personal notes instead.  
+
+You can also update the default note title and replace your note icon in the `__init__` method:
+
+```python
+self.notename = kwargs.get("notename", "XSS Tool")
+self.note_icon = "🔥"
+```
+
+### One note per target
+
+What if we would like to have one note per target:
+
+![XssTool Multiple Notes](/assets/xsstool-multinote.png)
+
+Let's add the `--multi-notes` switch to the `add_arguments` method:
+
+```python
+parser.add_argument(
+    "-multi-notes",
+    "--multi-notes",
+    help="Uploads multiple notes (one per target)",
+    action="store_true",
+)
+```
+
+(If your multiple notes should be the only option, omit the `add_argument` option and add `self.multi_notes = True` to your `__init__`.)
+
+We now need to expand the `process_parsed_input_for_template` method.  
+It should still return a dictionary with the expected note titles as a key and a compatible data structure:
+
+```json
+{
+  "https://example.com/alert(1)": {
+    "data": [
+      "https://example.com/alert(1)"
+    ]
+  },
+  "https://example.com/q=alert(1)": {
+    "data": [
+      "https://example.com/q=alert(1)"
+    ]
+  }
+}
+```
+
+We can do this by implementing:
+
+```python
+def process_parsed_input_for_template(self):
+    if not self.multi_notes:
+        return super().process_parsed_input_for_template()
+    else:
+        return {t: {"data": [t]} for t in self.parsed_input}
+```
+
+We can now upload one note per target as seen in the screenshot above:
+
+```python
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --upload --multi-notes                      
+Successfully uploaded to notes.
+```
+
+## Create findings
+
+Now we've reached the interesting path.  
+Creating notes is nice but... We want to automate our report.
+
+The first thing we need to define is a name for your finding and a condition when the finding should be triggered.
+
+We call our finding `xss`. This means, we need to implement a method called `finding_xss`. This method should return data that can be used by Django templates. It many cases, the data might equal the return value of `process_parsed_input_for_template`. The method should return `None` if no issue should be triggered.
+
+In our case, we want to trigger an issue if the list in parsed input is not empty. Let's implement this method:
+
+```python
+def finding_xss(self):
+    if len(self.parsed_input) > 0:
+        return self.process_parsed_input_for_template()
+    return None
+```
+
+As soon as you have defined a `finding_*` method, you should have another option in your plugin's help message: `-push-findings, --push-findings`.
+
+Now we have to define, what the contents of the findings should be. Find a sample finding in the `findings` directory.  
+Rename this file to `xss.toml` to match it our vulnerability name.
+
+The findings definitions are in [TOML](https://toml.io/){ target=_blank } format. Adapt the contents of the file, as needed, e. g.:
+
+```toml
+[data]
+title = "Reflected Cross-Site Scripting (XSS)"
+
+description = """
+We detected a reflected XSS vulnerability.
+
+<!--{% include "xss-list.md" %}-->
+"""
+
+recommendation = "HTML encode user-supplied inputs."
+references = [
+    "https://owasp.org/www-community/attacks/xss/",
+]
+
+```
+
+You can use the adapted Django template language in the fields in the TOML structure.
+Note that you can now include templates that we defined earlier as `xss-list.md`.  
+
+
+We can use our new switch `--push-findings` and create a new finding in our SysReptor report:
+
+```python
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --push-findings
+Pushed finding "Reflected Cross-Site Scripting (XSS)"
+```
+
+It was pushed to the SysReptor server and can be found in the project from the configuration:
+
+![Pushed XSS finding](/assets/pushed-finding.png)
+
+Note that no affected components were added to the finding. We can add the field `affected_components` as a list to the dictionary returned by our `finding_xss` method to be filled out:
+
+```python
+def finding_xss(self):
+    if len(self.parsed_input) > 0:
+        result = self.process_parsed_input_for_template()
+        result["affected_components"] = self.parsed_input
+        return result
+    return None
+```
+
+If you now push the finding again, it will not work because a finding with the same title already exists.  
+Delete or rename the first finding, push again and the affected components will also be present in your finding.
+
 

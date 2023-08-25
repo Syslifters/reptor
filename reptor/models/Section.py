@@ -1,5 +1,6 @@
 import datetime
 import typing
+from copy import deepcopy
 from typing import Any
 from uuid import UUID
 
@@ -241,7 +242,7 @@ class SectionData(BaseModel):
 
     def to_dict(self) -> dict:
         result = dict()
-        for k, v in vars(self).items():
+        for k, v in deepcopy(vars(self)).items():
             if v.type == ProjectFieldTypes.enum.value:
                 valid_enums = [choice["value"] for choice in v.choices]
                 if not v.value in valid_enums:

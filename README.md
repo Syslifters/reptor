@@ -54,7 +54,7 @@ pipx install reptor
 
 ```
 ❯ python -m reptor --help
-usage: reptor [-h] [-s SERVER] [-t TOKEN] [-f] [--insecure] [-p PROJECT_ID | --private-note] [-v] [--debug] [-n NOTENAME] [-nt] [-file FILE]
+usage: reptor [-h] [-s SERVER] [-t TOKEN] [-f] [--insecure] [-p PROJECT_ID | --personal-note] [-v] [--debug] [-n NOTENAME] [-nt] [-file FILE]
 
 Examples:
                 python -m reptor projects --search "matrix"
@@ -104,7 +104,7 @@ configuration:
   --insecure            do not verify server certificate
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
-  --private-note        add notes to private notes
+  --personal-note        add notes to private notes
 
 ```
 

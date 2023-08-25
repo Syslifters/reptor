@@ -31,7 +31,7 @@ class Nmap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = "nmap scan"
+        self.notename = kwargs.get("notename", "Nmap Scan")
         self.note_icon = "👁️‍🗨️"
         if self.input_format == "raw":
             self.input_format = "xml"

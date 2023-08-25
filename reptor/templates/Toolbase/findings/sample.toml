@@ -1,0 +1,14 @@
+[data]
+title = "TODO: Sample title"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"
+
+summary = "TODO: Summary"
+description = """
+TODO: Add your description here
+<!--{% include "default-template.md" %}-->
+"""
+
+recommendation = "TODO: Add your recommendation here."
+references = [
+    "https://example.com/",
+]

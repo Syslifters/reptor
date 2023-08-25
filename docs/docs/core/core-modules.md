@@ -15,7 +15,7 @@ The following list of arguments is available in every plugin (core, community, u
 |--server / -s | Endpoint Server overwrites config |
 |--token / -t | Endpoint Token overwrites config |
 |--project-id  / -p | Project ID overwrites config |
-|--private-note | Writes notes into the user's notes |
+|--personal-note | Writes notes into the user's notes |
 |--force-unlock / -f | Force unlock notes and sections |
 |--insecure | Disables SSL verification (Useful for self-hosted instances) |
 |--n | Specify Notename |

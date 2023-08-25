@@ -1,4 +1,5 @@
 import typing
+from copy import deepcopy
 
 from reptor.models.Base import BaseModel, FindingTemplateSources
 from reptor.models.Finding import FindingDataRaw
@@ -16,7 +17,7 @@ class FindingTemplateTranslation(BaseModel):
         self.is_main = True
 
     def to_dict(self) -> dict:
-        result = vars(self)
+        result = deepcopy(vars(self))
         result["data"] = self.data.to_dict()
         return result
 
@@ -42,7 +43,7 @@ class FindingTemplate(BaseModel):
     translations: typing.List[FindingTemplateTranslation] = []
 
     def to_dict(self) -> dict:
-        result = vars(self)
+        result = deepcopy(vars(self))
         if isinstance(self.source, FindingTemplateSources):
             result["source"] = self.source.value
         result["translations"] = [t.to_dict() for t in self.translations]

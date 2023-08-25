@@ -13,7 +13,6 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
-from reptor.api.TemplatesAPI import TemplatesAPI
 from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
 
@@ -235,6 +234,13 @@ class ToolBase(Base):
 
         Parsing -> Formatting -> Uploading
         """
+        if self.push_findings:
+            self.generate_and_push_findings()
+            if self.action == "upload":
+                # Also upload to notes
+                self.upload()
+            return
+
         if self.action == "parse":
             self.parse()
             self.reptor.logger.display(self.parsed_input)
@@ -243,9 +249,6 @@ class ToolBase(Base):
             self.reptor.logger.display(self.formatted_input)
         elif self.action == "upload":
             self.upload()
-
-        if self.push_findings:
-            self.generate_and_push_findings()
 
     def load(self):
         """Puts the stdin into raw_input"""
@@ -340,11 +343,12 @@ class ToolBase(Base):
                 no_timestamp=self.no_timestamp,
                 force_unlock=self.force_unlock,
             )
+        self.log.success("Successfully uploaded to notes.")
 
     def generate_and_push_findings(self) -> None:
         self.generate_findings()
         if len(self.findings) == 0:
-            self.log.info("No findings generated.")
+            self.log.display("No findings generated.")
             return
         project_findings = [
             Finding(f, project_design=self.reptor.api.project_designs.project_design)
@@ -355,12 +359,12 @@ class ToolBase(Base):
         for finding in self.findings:
             self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
             if finding.template and finding.template in project_findings_from_templates:
-                self.log.info(
+                self.log.display(
                     f'Finding "{finding.data.title.value}" already created from template. Skipping.'
                 )
                 continue
             elif finding.data.title.value in project_finding_titles:
-                self.log.info(
+                self.log.display(
                     f'Finding "{finding.data.title.value}" already exists. Skipping.'
                 )
                 continue
@@ -377,6 +381,7 @@ class ToolBase(Base):
                 )
             else:
                 self.reptor.api.projects.create_finding(finding.to_dict())
+            self.log.success(f'Pushed finding "{finding.data.title.value}"')
 
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.
@@ -419,7 +424,7 @@ class ToolBase(Base):
                         translation = [
                             t for t in finding_template.translations if t.is_main
                         ][0]
-                        self.log.info(
+                        self.log.display(
                             f"No translation found for {language}. Taking main translation {translation.language}."
                         )
                     translation.template = finding_template.id
@@ -430,7 +435,6 @@ class ToolBase(Base):
                 # Check if findings toml exists
                 template_dict = self.get_local_template_data(finding_name)
                 if not template_dict:
-                    # TODO maybe add to get_local_template_data
                     self.log.warning(
                         f"Did not find finding template for {finding_name}. Creating default finding."
                     )
@@ -476,7 +480,6 @@ class ToolBase(Base):
                     finding_data.value = Template(finding_data.value).render(
                         django_context
                     )
-
             self.findings.append(finding)
         return self.findings
 
