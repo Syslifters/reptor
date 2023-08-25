@@ -35,7 +35,6 @@ class Nmap(ToolBase):
         self.note_icon = "👁️‍🗨️"
         if self.input_format == "raw":
             self.input_format = "xml"
-        self.multi_notes = kwargs.get("multi_notes", False)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

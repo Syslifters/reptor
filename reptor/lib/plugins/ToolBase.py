@@ -39,7 +39,7 @@ class ToolBase(Base):
         self.action = kwargs.get("action")
         self.push_findings = kwargs.get("action")
         self.note_icon = "🛠️"
-        self.multi_notes = False
+        self.multi_notes = kwargs.get("multi_notes", False)
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
@@ -133,6 +133,7 @@ class ToolBase(Base):
         super().add_arguments(parser, plugin_filepath)
         if plugin_filepath:
             cls.setup_class(Path(os.path.dirname(plugin_filepath)))
+
         if cls.templates:
             parser.add_argument(
                 "-t",
@@ -169,11 +170,13 @@ class ToolBase(Base):
             const="upload",
             default="format",
         )
-        action_group.add_argument(
-            "-push-findings",
-            "--push-findings",
-            action="store_true",
-        )
+
+        if cls._get_finding_methods():
+            action_group.add_argument(
+                "-push-findings",
+                "--push-findings",
+                action="store_true",
+            )
 
         input_format_group = parser.add_mutually_exclusive_group()
         input_format_group.title = "input_format_group"
@@ -214,6 +217,15 @@ class ToolBase(Base):
             if group.title == "input_format_group":
                 return group
 
+    @classmethod
+    def _get_finding_methods(cls) -> typing.List[typing.Callable]:
+        finding_method_names = [
+            func
+            for func in dir(cls)
+            if callable(getattr(cls, func)) and func.startswith(cls.FINDING_PREFIX)
+        ]
+        return [getattr(cls, n) for n in finding_method_names]
+
     def run(self):
         """
         The run method is always called by the main reptor application.
@@ -233,7 +245,6 @@ class ToolBase(Base):
 
         if self.push_findings:
             self.generate_and_push_findings()
-            # self.reptor.api.findings.push_findings(self.findings)
 
     def load(self):
         """Puts the stdin into raw_input"""
@@ -376,19 +387,15 @@ class ToolBase(Base):
             self.parse()
         project_design = None
         self.findings = list()
-        finding_methods = [
-            func
-            for func in dir(self)
-            if callable(getattr(self, func)) and func.startswith(self.FINDING_PREFIX)
-        ]
+        finding_methods = self._get_finding_methods()
         for method in finding_methods:
             finding = None
-            finding_context = getattr(self, method)()
+            finding_context = method(self)
             if finding_context is None:
                 # Don't create finding if method returns None
                 continue
 
-            finding_name = method[len(self.FINDING_PREFIX) :]
+            finding_name = method.__name__[len(self.FINDING_PREFIX) :]
 
             # Check if remote finding exists
             template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
