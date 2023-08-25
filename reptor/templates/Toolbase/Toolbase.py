@@ -62,10 +62,8 @@ class MYMODULENAME(ToolBase):
         """
         ...
 
-    def format(self):
-        super().format()
-        # set the formatted_input
-        self.formatted_input = ""
+    def process_parsed_input_for_template(self):
+        return super().process_parsed_input_for_template()
 
 
 loader = MYMODULENAME

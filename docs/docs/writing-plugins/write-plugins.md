@@ -87,10 +87,126 @@ def add_arguments(cls, parser, plugin_filepath=None):
     )
 ```
 
-We are now done with implementing our parser.
+The default `input_format` is `raw`. Specify the default `input_format` in the `__init__` method:
+
+```python
+if self.input_format == "raw":
+    self.input_format = "plaintext"
+```
+
+We are now done with implementing our parser. We can test it using:
+
+```bash
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --parse      
+['https://example.com/alert(1)', 'https://example.com/q=alert(1)']
+```
 
 ## Formatting tool output
 
+Now we want to bring our data into a beautiful and human-readable format. SysReptor uses markdown and allows HTML syntax there.
 
+reptor uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/) with a slightly different syntax for formatting.  
 
+BLOCK_TAG_START = "<!--{%"
+BLOCK_TAG_END = "%}-->"
+VARIABLE_TAG_START = "<!--{{"
+VARIABLE_TAG_END = "}}-->"
+COMMENT_TAG_START = "<!--{#"
+COMMENT_TAG_END = "#}-->"
+
+The Django start tags are prepended with the HTML comment start tag and become:
+* `{{` -> `<!--{{`
+* `{%` -> `<!--{%`
+* `{#` -> `<!--{#`
+
+An HTML comment end tag is appended to the Django end tags:
+
+* `}}` -> `}}-->`
+* `%}` -> `%}-->`
+* `#}` -> `#}-->`
+
+(Find the reason for this later in this tutorial.)
+
+Let's bring the list of our XSS outputs into the format of a markdown table.  
+We find an empty template at `templates/default-template.md` in which we place the following template:
+
+```md
+| XSS target |
+| ------- |
+<!--{% for xss_target in data %}-->
+| <!--{{xss_target}}--> |
+<!--{% endfor %}-->
+```
+
+However, we have never defined the `data` variable.  
+This was automatically done in the `process_parsed_input_for_template` method: 
+
+```python
+def process_parsed_input_for_template(self) -> typing.Optional[dict]:
+    return {"data": self.parsed_input}
+```
+
+This method is like a second parsing step for preparing the parsed data for usage in a template. You can add entries to the dictionary for easier template processing.
+
+We can now try to format our output:
+
+```bash
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --format 
+| XSS target |
+| ------- |
+
+| https://example.com/alert(1) |
+
+| https://example.com/q=alert(1) |
+```
+
+This gives us bad newlines within the table because the Django template engine leaves the newlines from the `for` loop there.  
+However, in markdown newlines matter (contrarily to HTML).
+
+We can resolve this by using the `noemptylines` tag (provided by reptor, not by Django):
+
+```md
+<!--{% load md %}--><!--{% noemptylines %}-->
+| XSS target |
+| ------- |
+<!--{% for xss_target in data %}-->
+| <!--{{xss_target}}--> |
+<!--{% endfor %}-->
+<!--{% endnoemptylines %}-->
+```
+
+You can now copy this template and add an additional template to get a markdown list instead of a table. Let's create `xss-list.md`:
+
+```md
+**XSS targets**
+
+<!--{% load md %}--><!--{% noemptylines %}-->
+<!--{% for xss_target in data %}-->
+* <!--{{xss_target}}-->
+<!--{% endfor %}-->
+<!--{% endnoemptylines %}-->
+```
+
+Format your data using this template:
+
+```bash
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --format --template xss-list
+**XSS target**
+
+* https://example.com/alert(1)
+* https://example.com/q=alert(1)
+```
+
+If you run `reptor xsstool --help` you see that the `--template` switch now takes two options:
+
+```
+-t {default-template,xss-list}
+```
+
+Those template names are taken from the filenames. The default template is the first in the list. Templates containing the word `default` are preferred.  
+We can rename the file `default-template.md` to `default-xss-table.md` to have clearer options:
+
+```
+-t {default-xss-table,xss-list}
+```
 

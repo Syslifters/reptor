@@ -154,22 +154,23 @@ class ToolBase(Base):
             const="parse",
             default="format",
         )
-        action_group.add_argument(
-            "-format",
-            "--format",
-            action="store_const",
-            dest="action",
-            const="format",
-            default="format",
-        )
-        action_group.add_argument(
-            "-upload",
-            "--upload",
-            action="store_const",
-            dest="action",
-            const="upload",
-            default="format",
-        )
+        if cls.templates:
+            action_group.add_argument(
+                "-format",
+                "--format",
+                action="store_const",
+                dest="action",
+                const="format",
+                default="format",
+            )
+            action_group.add_argument(
+                "-upload",
+                "--upload",
+                action="store_const",
+                dest="action",
+                const="upload",
+                default="format",
+            )
 
         if cls._get_finding_methods():
             action_group.add_argument(
