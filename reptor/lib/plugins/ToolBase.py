@@ -243,10 +243,14 @@ class ToolBase(Base):
 
         if self.action == "parse":
             self.parse()
-            self.reptor.logger.display(self.parsed_input)
+            self.console.print(self.parsed_input)
         elif self.action == "format":
             self.format()
-            self.reptor.logger.display(self.formatted_input)
+            if self.multi_notes:
+                for title, content in self.formatted_input.items():
+                    self.console.print(f"### {title}\n\n{content}")
+            else:
+                self.console.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
 

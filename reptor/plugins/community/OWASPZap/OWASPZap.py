@@ -23,6 +23,8 @@ class OWASPZap(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = kwargs.get("notename", "OWASP Zap")
+        self.multi_notes = True
+        self.note_icon = "🌩️"
         if self.input_format == "raw":
             self.input_format = "json"
 
@@ -56,6 +58,13 @@ class OWASPZap(ToolBase):
                 site[attr.strip("@")] = site.pop(attr)
             parsed_input.append(site)
         self.parsed_input = parsed_input
+
+    def process_parsed_input_for_template(self):
+        data = dict()
+        for site in self.parsed_input:
+            title = f"{site.name} ({len(site.alerts)})"
+            data[title] = site
+        return data
 
 
 loader = OWASPZap
