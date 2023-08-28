@@ -1,6 +1,6 @@
 import typing
 
-from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
+from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import (
     SectionData,
     SectionDataField,
@@ -71,11 +71,6 @@ class FindingData(SectionData):
 
     field_class = FindingDataField
 
-    def __init__(
-        self, design_fields: typing.List[ProjectDesignField], data_raw: FindingDataRaw
-    ):
-        super().__init__(design_fields, data_raw)
-
 
 class FindingRaw(SectionRaw):
     data: FindingDataRaw
@@ -88,6 +83,7 @@ class Finding(FindingRaw):
         self,
         raw: typing.Union[FindingRaw, typing.Dict],
         project_design: typing.Optional[ProjectDesign] = None,
+        force_compatible: bool = True,
     ):
         if project_design is None:
             project_design = ProjectDesign()
@@ -97,4 +93,17 @@ class Finding(FindingRaw):
         # Set attributes from FindingRaw
         for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-        self.data = FindingData(project_design.finding_fields, raw.data)
+        self.data = FindingData(
+            project_design.finding_fields, raw.data, force_compatible=force_compatible
+        )
+
+    @classmethod
+    def from_translation(
+        cls,
+        translation: typing.Any,  # translation = FindingTemplateTranslation
+        **kwargs,
+    ):
+        raw = FindingRaw(
+            {"language": translation.language, "data": translation.data.to_dict()}
+        )
+        return cls(raw, **kwargs)

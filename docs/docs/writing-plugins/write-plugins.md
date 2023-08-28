@@ -293,7 +293,7 @@ Successfully uploaded to notes.
 
 ## Create findings
 
-Now we've reached the interesting path.  
+Now we've reached the interesting part.  
 Creating notes is nice but... We want to automate our report.
 
 The first thing we need to define is a name for your finding and a condition when the finding should be triggered.
@@ -319,8 +319,9 @@ The findings definitions are in [TOML](https://toml.io/){ target=_blank } format
 ```toml
 [data]
 title = "Reflected Cross-Site Scripting (XSS)"
+cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N"
 
-description = """
+summary = """
 We detected a reflected XSS vulnerability.
 
 <!--{% include "xss-list.md" %}-->
@@ -362,4 +363,34 @@ def finding_xss(self):
 If you now push the finding again, it will not work because a finding with the same title already exists.  
 Delete or rename the first finding, push again and the affected components will also be present in your finding.
 
+## Create findings from SysReptor templates
+
+We just created a finding from a TOML file.  
+However, if you maintain your finding templates in SysReptor, you might want to create your findings from your centrally managed library.  
+
+That's easier done than said: Add a tag to your finding template in the format `<plugin name>:<finding name>`. 
+In our case this is `xsstool:xss`.
+
+![Tag for finding template](/assets/template-tag.png)
+
+We can use the string and markdown fields to insert our Django templates:
+
+![Tag for finding template](/assets/django-template-in-finding-template.png)
+
+The Django templates are now HTML comments. If you manually use your finding templates, the Django templates will not be rendered into your report. This is the reason the modified the Django tags.
+
+Templates from the SysReptor template library are preferred over TOML-templates.
+
+You can now generate your finding from your template library:
+
+```bash
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --push-findings
+Pushed finding "Reflected Cross-Site Scripting (XSS)"
+```
+
+The finding was created successfully. You see from the "T" at the top that the finding was created from a template.
+
+![Finding created from template library](/assets/finding-from-library.png)
+
+If you now re-run the command, reptor will refuse to push the finding again. This is because the report holds a finding that was created from the same finding template.
 
