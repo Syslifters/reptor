@@ -171,31 +171,29 @@ class PluginManager:
                 plugin_docs.set_private()
 
             # Add it to the correct commands group
-            if module.loader.__base__ in subcommands.SUBCOMMANDS_GROUPS:
+            subcommands_idx = (
+                module.loader.__base__
+                if module.loader.__base__ in subcommands.SUBCOMMANDS_GROUPS
+                else "other"
+            )
+
+            for index, existing_module in enumerate(
+                subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1]
+            ):
                 # check if the module is already in the list,
                 # if so a later loaded module, from community or private
                 # needs to overwrite it
+                if existing_module.name == plugin_docs.name:
+                    # we have the case of an overwrite
+                    # save the overwritten module details
+                    plugin_docs.set_overwrites_plugin(existing_module)
 
-                for index, existing_module in enumerate(
-                    subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1]
-                ):
-                    if existing_module.name == plugin_docs.name:
-                        # we have the case of an overwrite
-                        # save the overwritten module details
-                        plugin_docs.set_overwrites_plugin(existing_module)
-
-                        # remove the original item
-                        subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1].pop(
-                            index
-                        )
-                # add the module data to the end
-                subcommands.SUBCOMMANDS_GROUPS[module.loader.__base__][1].append(
-                    plugin_docs
-                )
-
-            else:
-                # Todo: Other section shouldn't be left out, maybe refactor logic above to easily reuse
-                subcommands.SUBCOMMANDS_GROUPS["other"][1].append(plugin_docs)
+                    # remove the original item
+                    subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1].pop(index)
+            # add the module data to the end
+            subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1].append(
+                plugin_docs
+            )
 
             # because it is a dictionary, an overwritten module is automatically overwritten
             self.LOADED_PLUGINS[plugin_docs.name] = module
