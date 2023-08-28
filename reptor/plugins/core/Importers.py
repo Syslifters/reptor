@@ -32,9 +32,9 @@ class Importers(Base):
         project_parser.add_argument(
             "--search", help="Search for term", action="store", default=None
         )
-        project_parser.add_argument(
-            "--new", help="Create a new module", action="store_true", default=False
-        )
+        # project_parser.add_argument(
+        #    "--new", help="Create a new module", action="store_true", default=False
+        # )
 
     def _list(self, importers):
         table = make_table(["Name", "Short Help"])
@@ -69,14 +69,14 @@ class Importers(Base):
 
         self._list(results)
 
-    def _create_new_importer(self):
-        ...
+    # def _create_new_importer(self):
+    #    ...
 
     def run(self):
         if self.arg_search:
             self._search(subcommands.SUBCOMMANDS_GROUPS[BaseImporter][1])
-        elif self.arg_new_module:
-            self._create_new_importer()
+        # elif self.arg_new_module:
+        #    self._create_new_importer()
         else:
             self._list(subcommands.SUBCOMMANDS_GROUPS[BaseImporter][1])
 
