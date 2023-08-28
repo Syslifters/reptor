@@ -482,9 +482,8 @@ class ToolBase(Base):
                         continue
                     finding_data_list = list()
                     for v in finding_data.value:
-                        finding_data_list.append(
-                            Template(v.value).render(django_context)
-                        )
+                        if content := Template(v.value).render(django_context):
+                            finding_data_list.append(content)
                     finding_data.value = finding_data_list
                 elif finding_data.value:
                     # If value not empty, render template
