@@ -133,7 +133,7 @@ class Reptor:
         # Argument parser description
         description = ""
         for (
-            short_help_class,
+            _,
             short_help_group_meta,
         ) in subcommands.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
