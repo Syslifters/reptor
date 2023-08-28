@@ -1,4 +1,7 @@
 import pathlib
+import json
+import toml
+import yaml
 
 from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
@@ -35,9 +38,12 @@ class Projects(Base):
         project_parser.add_argument(
             "-export",
             "--export",
-            help="Export project to tar.gz file",
-            action="store_true",
+            help="Export project",
+            choices=["archive", "json", "toml", "yaml"],
+            type=str.lower,
+            action="store",
             dest="export",
+            default=None,
         )
         project_parser.add_argument(
             "-duplicate",
@@ -47,11 +53,21 @@ class Projects(Base):
             dest="duplicate",
         )
 
-    def _export_project(self):
-        filepath = pathlib.Path().cwd()
-        file_name = filepath / f"{self.reptor.api.projects.project_id}.tar.gz"
-        self.reptor.api.projects.export(file_name=file_name)
-        self.log.success(f"Written to: {file_name}")
+    def _export_project(self, format="archive"):
+        if format == "archive":
+            filepath = pathlib.Path().cwd()
+            file_name = filepath / f"{self.reptor.api.projects.project_id}.tar.gz"
+            self.reptor.api.projects.export(file_name=file_name)
+            return
+
+        # Get Project
+        project = self.reptor.api.projects.project.to_dict()
+        if format == "json":
+            self.log.display(json.dumps(project, indent=2))
+        elif format == "toml":
+            self.log.display(toml.dumps(project))
+        elif format == "yaml":
+            self.log.display(yaml.dump(project))
 
     def _search_project(self):
         if self.search is not None:
@@ -77,7 +93,7 @@ class Projects(Base):
 
     def run(self):
         if self.export:
-            self._export_project()
+            self._export_project(self.export)
         elif self.duplicate:
             self._duplicate_project()
         else:

@@ -50,6 +50,8 @@ class BaseModel:
         from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
         from reptor.models.Section import SectionDataRaw
         from reptor.models.User import User
+        from reptor.models.Finding import Finding
+        from reptor.models.Section import Section
 
         combined_class_type_hints = self._get_combined_class_type_hints()
 
@@ -65,6 +67,8 @@ class BaseModel:
 
                 if model_class in [
                     User,
+                    Finding,
+                    Section,
                     FindingTemplate,
                     FindingDataRaw,
                     SectionDataRaw,
@@ -94,10 +98,16 @@ class BaseModel:
         for k, v in dict_values.items():
             if isinstance(v, datetime.datetime):
                 dict_values[k] = v.isoformat()
-            try:
-                dict_values[k] = v.to_dict()  # type: ignore
-            except AttributeError:
-                pass
+            elif isinstance(v, list):
+                try:
+                    dict_values[k] = [i.to_dict() for i in v]
+                except AttributeError:
+                    dict_values[k] = v
+            else:
+                try:
+                    dict_values[k] = v.to_dict()  # type: ignore
+                except AttributeError:
+                    pass
         return dict_values
 
 
