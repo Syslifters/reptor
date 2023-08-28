@@ -213,7 +213,10 @@ class SectionData(BaseModel):
     field_class = SectionDataField
 
     def __init__(
-        self, design_fields: typing.List[ProjectDesignField], data_raw: SectionDataRaw
+        self,
+        design_fields: typing.List[ProjectDesignField],
+        data_raw: SectionDataRaw,
+        force_compatible: bool = True,
     ):
         for design_field in design_fields:
             try:
@@ -224,11 +227,12 @@ class SectionData(BaseModel):
                 design_field.name,
                 self.field_class(design_field, value),
             )
-        missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
-        if len(missing_fields) > 0:
-            raise IncompatibleDesignException(
-                f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
-            )
+        if force_compatible:
+            missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
+            if len(missing_fields) > 0:
+                raise IncompatibleDesignException(
+                    f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
+                )
 
     def __iter__(self):
         """Recursive iteration through cls attributes

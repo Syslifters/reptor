@@ -358,11 +358,12 @@ class ToolBase(Base):
         project_findings_from_templates = [f.template for f in project_findings]
         for finding in self.findings:
             self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
-            if finding.template and finding.template in project_findings_from_templates:
-                self.log.display(
-                    f'Finding "{finding.data.title.value}" already created from template. Skipping.'
-                )
-                continue
+            if finding.template:
+                if finding.template in project_findings_from_templates:
+                    self.log.display(
+                        f'Finding "{finding.data.title.value}" already created from template. Skipping.'
+                    )
+                    continue
             elif finding.data.title.value in project_finding_titles:
                 self.log.display(
                     f'Finding "{finding.data.title.value}" already exists. Skipping.'
@@ -427,8 +428,11 @@ class ToolBase(Base):
                         self.log.display(
                             f"No translation found for {language}. Taking main translation {translation.language}."
                         )
-                    translation.template = finding_template.id
-                    finding = Finding(translation.to_dict())
+
+                    finding = Finding.from_translation(
+                        translation, force_compatible=False
+                    )
+                    finding.template = finding_template.id
                     break
 
             if not finding:
@@ -451,13 +455,20 @@ class ToolBase(Base):
                     }
 
                 try:
-                    finding = Finding(template_dict, project_design=project_design)
+                    finding = Finding(
+                        template_dict,
+                        project_design=project_design,
+                    )
                 except IncompatibleDesignException:
                     self.log.info(
                         "Finding data not compatible with project design. Fetching project design from project."
                     )
                     project_design = self.reptor.api.project_designs.project_design
-                    finding = Finding(template_dict, project_design=project_design)
+                    finding = Finding(
+                        template_dict,
+                        project_design=project_design,
+                        force_compatible=False,
+                    )
 
             django_context = Context(finding_context)
             for finding_data in finding.data:

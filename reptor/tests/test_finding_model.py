@@ -125,6 +125,9 @@ class TestFindingModelParsing:
 
     def test_incompatible_finding_without_design(self):
         finding_raw = FindingRaw(json.loads(self.incompatible_finding))
+        Finding(finding_raw, force_compatible=False)
+        with pytest.raises(IncompatibleDesignException):
+            Finding(finding_raw, force_compatible=True)
         with pytest.raises(IncompatibleDesignException):
             Finding(finding_raw)
 

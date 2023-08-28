@@ -78,7 +78,6 @@ class TestToolbase(TestCaseToolPlugin):
 
         # Assert "create_finding" is not called if finding with same title exists
         finding_raw = FindingRaw({"data": {"title": "SQL issue"}})
-        finding = Finding(finding_raw)
         self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.projects.create_finding = MagicMock()
 
@@ -89,7 +88,7 @@ class TestToolbase(TestCaseToolPlugin):
         finding = Finding({"template": "12345"})
         self.reptor.api.templates.search = Mock(return_value=[finding])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
-        self.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.sql_tool.generate_findings = Mock(return_value=None)
         self.sql_tool.findings = [finding]
         self.reptor.api.projects.create_finding_from_template = MagicMock()
@@ -180,7 +179,6 @@ class TestToolbase(TestCaseToolPlugin):
             "1=1",
             "2=2",
         ]
-        pass
 
     def test_generate_findings_with_predefined_fields(self):
         # Patch API query
