@@ -1,7 +1,3 @@
-import typing
-
-from django.template.loader import render_to_string
-
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.plugins.community.OWASPZap.models import Alert, Instance, Site
 
@@ -21,7 +17,7 @@ class OWASPZap(ToolBase):
         "version": "1.0",
         "license": "MIT",
         "tags": ["web", "owasp", "zap"],
-        "summary": "Parses OWASPZap XML and JSON reports",
+        "summary": "Parses OWASPZap reports (JSON, XML)",
     }
 
     def __init__(self, **kwargs):
@@ -51,6 +47,15 @@ class OWASPZap(ToolBase):
             return_data.append(site)
 
         self.parsed_input = return_data
+
+    def parse_json(self):
+        super().parse_json()
+        parsed_input = list()
+        for site in self.parsed_input.get("site", []):
+            for attr in list(site.keys()):
+                site[attr.strip("@")] = site.pop(attr)
+            parsed_input.append(site)
+        self.parsed_input = parsed_input
 
 
 loader = OWASPZap
