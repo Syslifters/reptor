@@ -3,6 +3,7 @@ import typing
 from functools import cached_property
 from posixpath import join as urljoin
 from typing import Optional
+import sys
 
 from reptor.api.APIClient import APIClient
 from reptor.models.Finding import FindingRaw
@@ -77,7 +78,7 @@ class ProjectsAPI(APIClient):
         """Exports a Project to a .tar.gz file locally.
 
         Args:
-            file_name (typing.Optional[pathlib.Path], optional): Local File path. Defaults to None.
+            file_name (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
 
         Raises:
             ValueError: Requires project_id
@@ -87,14 +88,13 @@ class ProjectsAPI(APIClient):
                 "No project ID. Specify in reptor conf or via -p / --project-id"
             )
 
-        if not file_name:
-            filepath = pathlib.Path().cwd()
-            file_name = filepath / f"{self.project_id}.tar.gz"
-
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
         data = self.post(url)
-        with open(file_name, "wb") as f:
-            f.write(data.content)
+        if file_name:
+            with open(file_name, "wb") as f:
+                f.write(data.content)
+        else:
+            sys.stdout.buffer.write(data.content)
 
     def duplicate(self) -> Project:
         """Duplicates Projects

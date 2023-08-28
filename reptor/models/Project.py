@@ -1,7 +1,9 @@
-from reptor.models.Base import BaseModel
-from reptor.models.User import User
-
 import typing
+
+from reptor.models.Base import BaseModel
+from reptor.models.Finding import Finding
+from reptor.models.Section import Section
+from reptor.models.User import User
 
 
 class Project(BaseModel):
@@ -26,4 +28,11 @@ class Project(BaseModel):
     readonly: bool = False
     source: str = ""
     copy_of: str = ""
+    override_finding_order: bool = False
     members: typing.List[User] = []
+    imported_members: typing.List[User] = []
+    details: str = ""
+    notes: str = ""
+    images: str = ""
+    findings: typing.List[Finding] = []
+    sections: typing.List[Section] = []
