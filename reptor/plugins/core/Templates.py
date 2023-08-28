@@ -1,6 +1,4 @@
 from reptor.lib.plugins.Base import Base
-from reptor.api.TemplatesAPI import TemplatesAPI
-
 from reptor.utils.table import make_table
 
 
@@ -32,15 +30,16 @@ class Templates(Base):
         else:
             templates = self.reptor.api.templates.search(self.arg_search)
 
-        table = make_table(["Title", "ID"])
+        table = make_table(["Title", "Usage Count", "Tags", "Translations", "ID"])
         for template in templates:
-            finding = template.data
-            if finding:
-                table.add_row(finding.title, template.id)
-            else:
-                self.console.print(
-                    f"Template [yellow]{template.id}[/yellow] has no finding data."
-                )
+            main_translation = [t for t in template.translations if t.is_main][0]
+            table.add_row(
+                main_translation.data.title,
+                str(template.usage_count),
+                ",".join(template.tags),
+                ",".join(t.language for t in template.translations),
+                template.id,
+            )
 
         self.console.print(table)
 
