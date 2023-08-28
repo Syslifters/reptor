@@ -137,7 +137,7 @@ class ProjectsAPI(APIClient):
         response = self.get(url).json()
 
         if not response:
-            return return_data
+            return []
         return [FindingRaw(f) for f in response]
 
     def update_finding(self, finding_id: str, data: dict) -> FindingRaw:

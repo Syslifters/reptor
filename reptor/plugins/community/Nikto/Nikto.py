@@ -30,7 +30,7 @@ class Nikto(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = "Nikto"
+        self.notename = kwargs.get("notename", "Nikto")
 
     def parse_json(self):
         raise NotImplementedError("JSON parsing is not implemented for nikto")

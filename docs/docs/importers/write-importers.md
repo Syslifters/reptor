@@ -47,7 +47,7 @@ reptor settings are managed in `.sysreptor/config.yaml` in your home directory. 
 
 ```yaml
 community: true
-private_note: false
+personal_note: false
 project_id: 42c2f73a-4383-4ec2-a3fa-281598edb0e8
 server: https://demo.sysre.pt
 token: sysreptor_TOKEN

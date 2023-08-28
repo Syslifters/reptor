@@ -188,7 +188,7 @@ class Reptor:
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
-            "--private-note", help="add notes to private notes", action="store_true"
+            "--personal-note", help="add notes to private notes", action="store_true"
         )
         config_parser.add_argument(
             "-f",
@@ -264,10 +264,10 @@ class Reptor:
         self.logger.info("Reptor is starting...")
 
         # Todo: remove current hack for debug and verbose logging
-        if "-v" in sys.argv or "--verbose" in sys.argv:
+        if "-v" in sys.argv or "--verbose" in sys.argv or "-verbose" in sys.argv:
             reptor_logger.logger.setLevel(logging.INFO)
             root_logger.setLevel(logging.INFO)
-        if "--debug" in sys.argv:
+        if "--debug" in sys.argv or "-debug" in sys.argv:
             reptor_logger.logger.setLevel(logging.DEBUG)
             root_logger.setLevel(logging.DEBUG)
 

@@ -26,7 +26,7 @@ class OWASPZap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = "OWASP Zap"
+        self.notename = kwargs.get("notename", "OWASP Zap")
         if self.input_format == "raw":
             self.input_format = "json"
 

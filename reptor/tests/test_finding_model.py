@@ -128,6 +128,16 @@ class TestFindingModelParsing:
         with pytest.raises(IncompatibleDesignException):
             Finding(finding_raw)
 
+    def test_finding_unwanted_casting(self):
+        finding = Finding(json.loads(self.finding_with_predefined_fields))
+        assert isinstance(finding, Finding)
+        assert isinstance(finding.data, FindingData)
+        assert isinstance(finding.data.title, FindingDataField)
+        finding.to_dict()
+        assert isinstance(finding, Finding)
+        assert isinstance(finding.data, FindingData)
+        assert isinstance(finding.data.title, FindingDataField)
+
     def test_finding_without_design_from_dict(self):
         finding = Finding(json.loads(self.finding_with_predefined_fields))
         assert finding.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
@@ -280,6 +290,7 @@ class TestFindingModelParsing:
         )
 
         assert finding_data.to_dict() == json_example["data"]
+        assert not isinstance(finding_data, dict)
 
         # Try to set attributes
         finding_data.enum_field.value = "enum_val_1"

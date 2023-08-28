@@ -1,7 +1,7 @@
 import datetime
 import enum
-import sys
 import typing
+from copy import deepcopy
 from dataclasses import dataclass
 
 
@@ -90,15 +90,15 @@ class BaseModel:
                     self.__setattr__(attr[0], data[attr[0]])
 
     def to_dict(self):
-        dict_values = vars(self)
+        dict_values = deepcopy(vars(self))
         for k, v in dict_values.items():
             if isinstance(v, datetime.datetime):
                 dict_values[k] = v.isoformat()
             try:
-                dict_values[k] = v.to_dict() # type: ignore
+                dict_values[k] = v.to_dict()  # type: ignore
             except AttributeError:
                 pass
-        return vars(self)
+        return dict_values
 
 
 class ProjectFieldTypes(enum.Enum):

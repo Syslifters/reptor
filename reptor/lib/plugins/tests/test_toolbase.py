@@ -122,6 +122,7 @@ class TestToolbase(TestCaseToolPlugin):
             if callable(getattr(ToolBase, func)) and func.startswith("finding_")
         ]
         assert len(finding_method_list) == 0
+        assert ToolBase._get_finding_methods() == []
 
     def test_load_local_finding_template(self):
         finding = self.example_tool.get_local_template_data("idor")
