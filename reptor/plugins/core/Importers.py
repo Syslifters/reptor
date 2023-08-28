@@ -40,16 +40,23 @@ class Importers(Base):
         table = make_table(["Name", "Short Help"])
 
         for item in importers:
+            try:
+                name = item.name
+            except AttributeError:
+                continue
+            try:
+                summary = item.summary
+            except AttributeError:
+                summary = ""
             table.add_row(
-                f"{item.name}",
-                f"{item.short_help}",
+                name,
+                summary,
             )
-
         self.console.print(table)
 
     def _search(self, importers):
         """Searches modules"""
-        self.console.print(f"\nSearching for: [red]{self.arg_search}[/red]\n")
+        self.log.info(f'Searching for: "{self.arg_search}"')
         results = list()
         for item in importers:
             if self.arg_search in item.tags:

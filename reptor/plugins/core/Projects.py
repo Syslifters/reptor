@@ -63,11 +63,11 @@ class Projects(Base):
         # Get Project
         project = self.reptor.api.projects.project.to_dict()
         if format == "json":
-            self.log.display(json.dumps(project, indent=2))
+            self.console.print(json.dumps(project, indent=2))
         elif format == "toml":
-            self.log.display(toml.dumps(project))
+            self.console.print(toml.dumps(project))
         elif format == "yaml":
-            self.log.display(yaml.dump(project))
+            self.console.print(yaml.dump(project))
 
     def _search_project(self):
         if self.search is not None:

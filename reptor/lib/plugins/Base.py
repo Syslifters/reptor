@@ -58,7 +58,7 @@ class Base:
         ```
         """
         config_updated = False
-        for key, val in self.keys.items():
+        for key in self.keys:
             config_value = self.reptor.get_config().get(key, "", plugin=plugin_name)
             if not config_value:
                 self.console.print(
