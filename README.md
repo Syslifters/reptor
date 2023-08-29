@@ -57,8 +57,9 @@ pipx install reptor
 usage: reptor [-h] [-s SERVER] [-t TOKEN] [-f] [--insecure] [-p PROJECT_ID | --personal-note] [-v] [--debug] [-n NOTENAME] [-nt] [-file FILE]
 
 Examples:
-                python -m reptor projects --search "matrix"
-                python -m reptor nikto --xml --file ./nikto_results.xml
+                reptor conf  # Configure reptor
+                reptor file data/*  # Upload all files from data directory to note
+                reptor nikto --xml --file ./nikto_results.xml
 
 options:
   -h, --help            show this help message and exit

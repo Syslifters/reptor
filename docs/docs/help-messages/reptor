@@ -1,0 +1,51 @@
+usage: reptor [-h] [-s SERVER] [-t TOKEN] [--insecure] [-p PROJECT_ID] [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
+              [-file FILE]
+
+Examples:
+                python -m reptor projects --search "matrix"
+                python -m reptor nikto --xml --file ./nikto_results.xml
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         increase output verbosity (> INFO)
+  --debug               sets logging to DEBUG
+  -n NOTENAME, --notename NOTENAME
+  -nt, --no-timestamp   do not prepent timestamp to note
+  -file FILE, --file FILE
+                        Local file to read
+
+subcommands:
+
+  configuration:
+  conf                  Shows config and sets config
+
+  upload evidences:
+  file                  Uploads a file
+  note                  Uploads and lists a notes
+
+  tool output processing:
+  nmap                  format nmap output
+  nikto                 Formats Nikto output (XML)
+  owaspzap              Parses OWASPZap reports (JSON, XML)
+  sslyze                format sslyze JSON output
+  xsstool
+
+  other:
+  importers             Show importers to use to import finding templates
+  plugins               Allows plugin management & development
+  projects              Queries Projects from reptor.api
+  templates             Queries Finding Templates from reptor.api
+  translate             Translate Projects and Templates to other languages
+
+  finding templates importers:
+  ghostwriter           Imports GhostWriter finding templates
+
+configuration:
+  -s SERVER, --server SERVER
+  -t TOKEN, --token TOKEN
+                        SysReptor API token
+  --insecure            do not verify server certificate
+  -p PROJECT_ID, --project-id PROJECT_ID
+                        SysReptor project ID
+  --personal-note       add notes to private notes
+  -f, --force-unlock    force unlock notes

@@ -145,8 +145,11 @@ class Reptor:
         # Argument parser
         main_description = """
             Examples:
-                python -m reptor projects --search "matrix"
-                python -m reptor nikto --xml --file ./nikto_results.xml
+                reptor conf
+                echo "Upload this!" | reptor note
+                reptor file data/*
+                cat sslyze.json | reptor sslyze --json --push-findings
+                cat nmap.xml | reptor nmap --xml --upload --multi-notes
 """
         self._parser = argparse.ArgumentParser(
             prog="reptor",
