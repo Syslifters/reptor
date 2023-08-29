@@ -1,4 +1,4 @@
-# How to write a plugin
+# How to write a tool plugin
 ## What a plugin does
 
 A plugin can...

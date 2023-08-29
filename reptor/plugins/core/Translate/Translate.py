@@ -19,7 +19,7 @@ class Translate(Base):
 
     meta = {
         "name": "Translate",
-        "summary": "Translate Projects and Templates to other languages",
+        "summary": "Translate Projects to other languages via Deepl",
     }
 
     PREDEFINED_SKIP_FIELDS = [
