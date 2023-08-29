@@ -139,10 +139,10 @@ We find an empty template at `templates/default-template.md` in which we place t
 ```
 
 However, we have never defined the `data` variable.  
-This was automatically done in the `process_parsed_input_for_template` method: 
+This was automatically done in the `preprocess_for_template` method: 
 
 ```python
-def process_parsed_input_for_template(self):
+def preprocess_for_template(self):
     return {"data": self.parsed_input}
 ```
 
@@ -256,7 +256,7 @@ parser.add_argument(
 
 (If your multiple notes should be the only option, omit the `add_argument` option and add `self.multi_notes = True` to your `__init__`.)
 
-We now need to expand the `process_parsed_input_for_template` method.  
+We now need to expand the `preprocess_for_template` method.  
 It should still return a dictionary with the expected note titles as a key and a compatible data structure:
 
 ```json
@@ -277,9 +277,9 @@ It should still return a dictionary with the expected note titles as a key and a
 We can do this by implementing:
 
 ```python
-def process_parsed_input_for_template(self):
+def preprocess_for_template(self):
     if not self.multi_notes:
-        return super().process_parsed_input_for_template()
+        return super().preprocess_for_template()
     else:
         return {t: {"data": [t]} for t in self.parsed_input}
 ```
@@ -298,14 +298,14 @@ Creating notes is nice but... We want to automate our report.
 
 The first thing we need to define is a name for your finding and a condition when the finding should be triggered.
 
-We call our finding `xss`. This means, we need to implement a method called `finding_xss`. This method should return data that can be used by Django templates. It many cases, the data might equal the return value of `process_parsed_input_for_template`. The method should return `None` if no issue should be triggered.
+We call our finding `xss`. This means, we need to implement a method called `finding_xss`. This method should return data that can be used by Django templates. It many cases, the data might equal the return value of `preprocess_for_template`. The method should return `None` if no issue should be triggered.
 
 In our case, we want to trigger an issue if the list in parsed input is not empty. Let's implement this method:
 
 ```python
 def finding_xss(self):
     if len(self.parsed_input) > 0:
-        return self.process_parsed_input_for_template()
+        return self.preprocess_for_template()
     return None
 ```
 
@@ -354,7 +354,7 @@ Note that no affected components were added to the finding. We can add the field
 ```python
 def finding_xss(self):
     if len(self.parsed_input) > 0:
-        result = self.process_parsed_input_for_template()
+        result = self.preprocess_for_template()
         result["affected_components"] = self.parsed_input
         return result
     return None

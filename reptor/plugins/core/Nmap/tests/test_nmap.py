@@ -155,7 +155,7 @@ class TestNmap(TestCaseToolPlugin):
         self._load_xml_data("nmap_multi_target.xml")
         self.nmap.multi_notes = True
         self.nmap.parse()
-        data = self.nmap.process_parsed_input_for_template()
+        data = self.nmap.preprocess_for_template()
         assert "34.249.200.254" in data
         assert "142.250.180.228" in data
         assert isinstance(data["34.249.200.254"], dict)
@@ -250,7 +250,7 @@ class TestNmap(TestCaseToolPlugin):
             s.parse(d)
             self.nmap.parsed_input.append(s)
 
-        data = self.nmap.process_parsed_input_for_template()
+        data = self.nmap.preprocess_for_template()
         assert data == {"data": self.nmap.parsed_input, "show_hostname": False}
 
         # test with hostname
@@ -277,7 +277,7 @@ class TestNmap(TestCaseToolPlugin):
             s.parse(d)
             self.nmap.parsed_input.append(s)
 
-        data = self.nmap.process_parsed_input_for_template()
+        data = self.nmap.preprocess_for_template()
         assert data == {"data": self.nmap.parsed_input, "show_hostname": True}
 
     def test_format_nmap(self):

@@ -308,7 +308,7 @@ class ToolBase(Base):
         if not self.parsed_input:
             self.parse()
 
-        data = self.process_parsed_input_for_template()
+        data = self.preprocess_for_template()
         if self.multi_notes:
             self.formatted_input = dict()
             for title, data in data.items():
@@ -318,7 +318,7 @@ class ToolBase(Base):
         else:
             self.formatted_input = render_to_string(f"{self.template}.md", data)
 
-    def process_parsed_input_for_template(self) -> typing.Optional[dict]:
+    def preprocess_for_template(self) -> typing.Optional[dict]:
         return {"data": self.parsed_input}
 
     def upload(self):

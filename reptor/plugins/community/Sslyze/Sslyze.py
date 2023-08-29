@@ -269,7 +269,7 @@ class Sslyze(ToolBase):
         result_server_info["ip_address"] = server_info["ip_address"]
         return result_server_info
 
-    def process_parsed_input_for_template(self):
+    def preprocess_for_template(self):
         data = list()
         if not isinstance(self.parsed_input, dict):
             return None
@@ -307,7 +307,7 @@ class Sslyze(ToolBase):
         return {"data": data}
 
     def finding_weak_ciphers(self):
-        finding_context = self.process_parsed_input_for_template()
+        finding_context = self.preprocess_for_template()
         if finding_context is None:
             return None
         if any(

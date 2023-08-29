@@ -93,7 +93,7 @@ class OWASPZap(ToolBase):
             parsed_input.append(site)
         self.parsed_input = parsed_input
 
-    def process_parsed_input_for_template(self):
+    def preprocess_for_template(self):
         data = dict()
         for site in self.parsed_input:
             title = f"{site['name']} ({len(site['alerts'])})"

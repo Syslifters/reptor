@@ -62,10 +62,10 @@ class TestOwaspZap(TestCaseToolPlugin):
         assert self.zap.parsed_input[1]["name"] == "http://localhost"
         assert len(self.zap.parsed_input[1]["alerts"]) == 7
 
-    def test_process_parsed_input_for_template(self):
+    def test_preprocess_for_template(self):
         self._load_xml_data("zap-report.xml")
         self.zap.parse()
-        processed_input = self.zap.process_parsed_input_for_template()
+        processed_input = self.zap.preprocess_for_template()
         assert len(processed_input) == 2
         assert list(processed_input.keys()) == [
             "http://localhost (7)",

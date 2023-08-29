@@ -79,7 +79,7 @@ class TestSslyze(TestCaseToolPlugin):
         self.sslyze.parse()
         assert self.sslyze.parsed_input == result_dict
 
-    def test_process_parsed_input_for_template(self):
+    def test_preprocess_for_template(self):
         result = {
             "data": [
                 {
@@ -128,7 +128,7 @@ class TestSslyze(TestCaseToolPlugin):
         self._load_json_data()
         self.sslyze.parsed_input = None
         self.sslyze.parse()
-        data = self.sslyze.process_parsed_input_for_template()
+        data = self.sslyze.preprocess_for_template()
         assert data == result
 
     def test_format(self):
