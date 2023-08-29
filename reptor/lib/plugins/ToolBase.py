@@ -36,7 +36,7 @@ class ToolBase(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
-        self.push_findings = kwargs.get("action")
+        self.push_findings = kwargs.get("push_findings")
         self.note_icon = "🛠️"
         self.multi_notes = kwargs.get("multi_notes", False)
         self.raw_input = None

@@ -10,18 +10,14 @@
 
 *Description*
 
-<!--{{alert.desc}}-->
+<!--{% autoescape off %}--><!--{{alert.desc}}--><!--{% endautoescape %}-->
 
 *Solution*
 
-<!--{{alert.solution}}-->
+<!--{% autoescape off %}--><!--{{alert.solution}}--><!--{% endautoescape %}-->
 
 <!--{% if alert.reference %}-->*References*
 
-<!--{% noemptylines %}-->
-<!--{% for reference in alert.references_as_list_items %}-->
-- [<!--{{reference}}-->](<!--{{reference}}-->)
-<!--{% endfor %}-->
-<!--{% endnoemptylines %}-->
+<!--{% autoescape off %}--><!--{{reference}}--><!--{% endautoescape %}-->
 <!--{% endif %}-->
 <!--{% endfor %}-->

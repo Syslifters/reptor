@@ -142,7 +142,7 @@ However, we have never defined the `data` variable.
 This was automatically done in the `process_parsed_input_for_template` method: 
 
 ```python
-def process_parsed_input_for_template(self) -> typing.Optional[dict]:
+def process_parsed_input_for_template(self):
     return {"data": self.parsed_input}
 ```
 

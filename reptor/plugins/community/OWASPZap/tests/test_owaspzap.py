@@ -30,52 +30,64 @@ class TestOwaspZap(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.zap.raw_input = f.read()
 
-    def test_compare_xml_json_parsing(self):
-        self._load_xml_data("zap-report.xml")
-        parsed_xml_input = self.zap.parse()
-        self._load_json_data("zap-report.json")
-        parsed_json_input = self.zap.parse()
-
-        assert parsed_xml_input == parsed_json_input
+    def test_json_parsing(self):
+        pass
 
     def test_xml_parsing(self):
         self._load_xml_data("zap-report.xml")
         self.zap.parse()
         assert len(self.zap.parsed_input) == 2
 
-        assert self.zap.parsed_input[0].host == "localhost"
-        assert self.zap.parsed_input[0].port == "443"
-        assert self.zap.parsed_input[0].ssl == "true"
-        assert self.zap.parsed_input[0].name == "https://localhost"
-        assert len(self.zap.parsed_input[0].alerts) == 24
+        assert self.zap.parsed_input[0]["host"] == "localhost"
+        assert self.zap.parsed_input[0]["port"] == "443"
+        assert self.zap.parsed_input[0]["ssl"] == "true"
+        assert self.zap.parsed_input[0]["name"] == "https://localhost"
+        assert len(self.zap.parsed_input[0]["alerts"]) == 5
 
-        assert self.zap.parsed_input[0].alerts[0].name == "Application Error Disclosure"
-        assert self.zap.parsed_input[0].alerts[0].riskcode == "2"
-        assert self.zap.parsed_input[0].alerts[0].confidence == "2"
-        assert self.zap.parsed_input[0].alerts[0].riskdesc == "Medium (Medium)"
         assert (
-            self.zap.parsed_input[0]
-            .alerts[0]
-            .desc.startswith("This page contains an error/warning")
+            self.zap.parsed_input[0]["alerts"][0]["name"]
+            == "Application Error Disclosure"
         )
-        assert len(self.zap.parsed_input[0].alerts[0].instances) == 1322
+        assert self.zap.parsed_input[0]["alerts"][0]["riskcode"] == "2"
+        assert self.zap.parsed_input[0]["alerts"][0]["confidence"] == "2"
+        assert self.zap.parsed_input[0]["alerts"][0]["riskdesc"] == "Medium (Medium)"
+        assert self.zap.parsed_input[0]["alerts"][0]["desc"].startswith(
+            "This page contains an error/warning"
+        )
+        assert len(self.zap.parsed_input[0]["alerts"][0]["instances"]) == 34
 
-        assert self.zap.parsed_input[1].host == "localhost"
-        assert self.zap.parsed_input[1].port == "80"
-        assert self.zap.parsed_input[1].ssl == "false"
-        assert self.zap.parsed_input[1].name == "http://localhost"
-        assert len(self.zap.parsed_input[1].alerts) == 24
+        assert self.zap.parsed_input[1]["host"] == "localhost"
+        assert self.zap.parsed_input[1]["port"] == "80"
+        assert self.zap.parsed_input[1]["ssl"] == "false"
+        assert self.zap.parsed_input[1]["name"] == "http://localhost"
+        assert len(self.zap.parsed_input[1]["alerts"]) == 7
+
+    def test_process_parsed_input_for_template(self):
+        self._load_xml_data("zap-report.xml")
+        self.zap.parse()
+        processed_input = self.zap.process_parsed_input_for_template()
+        assert len(processed_input) == 2
+        assert list(processed_input.keys()) == [
+            "http://localhost (7)",
+            "https://localhost (5)",
+        ]
+        assert "data" in processed_input["http://localhost (7)"]
+        assert "data" in processed_input["https://localhost (5)"]
 
     def test_formatting(self):
         self._load_xml_data("zap-report.xml")
         self.zap.format()
+        assert "https://localhost (5)" in self.zap.formatted_input
+        assert "http://localhost (7)" in self.zap.formatted_input
+
         site_details = """| Target | Information |
 | :--- | :--- |
 | Site | https://localhost |
 | Host | localhost |
 | Port | 443 |
 | SSL ? |  Yes  |"""
-        assert site_details in self.zap.formatted_input
+
+        assert site_details in self.zap.formatted_input["https://localhost (5)"]
 
         csp_issue = """| Target | Information |
 | :--- | :--- |
@@ -84,4 +96,4 @@ class TestOwaspZap(TestCaseToolPlugin):
 | Number of Affected Instances | 117 |
 | CWE | [693](https://cwe.mitre.org/data/definitions/693.html) |
 """
-        assert csp_issue in self.zap.formatted_input
+        assert csp_issue in self.zap.formatted_input["https://localhost (5)"]

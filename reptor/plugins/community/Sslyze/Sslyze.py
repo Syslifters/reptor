@@ -1,5 +1,6 @@
-from reptor.lib.plugins.ToolBase import ToolBase
 import typing
+
+from reptor.lib.plugins.ToolBase import ToolBase
 
 
 class Sslyze(ToolBase):
@@ -268,7 +269,7 @@ class Sslyze(ToolBase):
         result_server_info["ip_address"] = server_info["ip_address"]
         return result_server_info
 
-    def process_parsed_input_for_template(self) -> typing.Optional[dict]:
+    def process_parsed_input_for_template(self):
         data = list()
         if not isinstance(self.parsed_input, dict):
             return None
