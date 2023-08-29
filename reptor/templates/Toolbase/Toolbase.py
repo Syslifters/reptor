@@ -62,8 +62,8 @@ class MYMODULENAME(ToolBase):
         """
         ...
 
-    def process_parsed_input_for_template(self):
-        return super().process_parsed_input_for_template()
+    def preprocess_for_template(self):
+        return super().preprocess_for_template()
 
 
 loader = MYMODULENAME

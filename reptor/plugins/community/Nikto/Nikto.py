@@ -6,8 +6,6 @@ from reptor.plugins.community.Nikto.models import (
     Statistics,
 )
 
-# Todo: Refactor to global --xml, --json
-
 
 class Nikto(ToolBase):
     """
@@ -31,9 +29,6 @@ class Nikto(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = kwargs.get("notename", "Nikto")
-
-    def parse_json(self):
-        raise NotImplementedError("JSON parsing is not implemented for nikto")
 
     def parse_xml(self):
         """Parses XML file from Nikto, tested with version 2.5.0

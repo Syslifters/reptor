@@ -123,7 +123,7 @@ class Nmap(ToolBase):
         if self.input_format == "grepable":
             self.parse_grepable()
 
-    def process_parsed_input_for_template(self):
+    def preprocess_for_template(self):
         data = dict()
         if not self.multi_notes:
             data["data"] = self.parsed_input
