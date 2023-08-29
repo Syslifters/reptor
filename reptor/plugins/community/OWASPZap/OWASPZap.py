@@ -98,7 +98,6 @@ class OWASPZap(ToolBase):
         for site in self.parsed_input:
             title = f"{site['name']} ({len(site['alerts'])})"
             data[title] = {"data": [site]}
-        # create ordereddict of data sorted by len('alerts')
         data = dict(
             sorted(
                 data.items(), key=lambda x: len(x[1]["data"][0]["alerts"]), reverse=True

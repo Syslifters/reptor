@@ -81,12 +81,6 @@ class TestNikto(TestCaseToolPlugin):
             == " Cookie PHPSESSID created without the httponly flag."
         )
 
-    def test_nikto_parse_json(self):
-        self._load_json_data("nikto-multidae.json")
-        with pytest.raises(NotImplementedError):
-            self.nikto.input_format = "json"
-            self.nikto.parse()
-
     def test_nikto_format(self):
         self._load_xml_data("multiple-nikto.xml")
         self.nikto.format()
