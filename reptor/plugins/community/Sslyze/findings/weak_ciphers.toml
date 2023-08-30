@@ -12,7 +12,7 @@ We detected weak SSL/TLS ciphers on your server.
     <!--{% for target in data %}-->
         <!--{% if target.has_weak_ciphers %}-->
 
-# <!--{{ target.hostname }}-->:<!--{{ target.port }}--> (<!--{{ target.ip_address }}-->)
+**<!--{{ target.hostname }}-->:<!--{{ target.port }}--> (<!--{{ target.ip_address }}-->)**
 &nbsp;
 <!--{% include "weak_ciphers.md" %}-->
 
