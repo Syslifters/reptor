@@ -8,9 +8,9 @@ from reptor.lib.plugins.UploadBase import UploadBase
 SUBCOMMANDS_GROUPS = OrderedDict(
     {
         ConfBase: ("configuration", list()),
-        UploadBase: ("upload evidences", list()),
-        ToolBase: ("tool output processing", list()),
+        UploadBase: ("uploads", list()),
+        ToolBase: ("tools", list()),
+        BaseImporter: ("importers", list()),
         "other": ("other", list()),
-        BaseImporter: ("finding templates importers", list()),
     }
 )

@@ -42,11 +42,6 @@ class Conf(ConfBase):
         project_id = self.reptor.get_config().get_project_id()
         table.add_row("Project ID", project_id or "Writing globally.")
 
-        community_enabled = "[green]Enabled[/green]"
-        if not self.reptor.is_community_enabled:
-            community_enabled = "[yellow]Disabled[/yellow]"
-        table.add_row("Community Modules", community_enabled)
-
         self.console.print(table)
 
     def run(self):

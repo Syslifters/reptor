@@ -1,4 +1,5 @@
 import importlib
+import os
 import pathlib
 import sys
 import typing
@@ -23,21 +24,8 @@ class PluginManager:
         self._reptor = reptor
 
     def run_loading_sequence(self):
-        """The plugin loading hierachy is as followed
-        System Plugins -> Community Plugins -> User Plugins
-        This allows the User to overwrite any Community Plugins
-        and Community Plugins can overwrite System Plugins
-        """
         self._reptor.logger.info("Loading plugins...")
-        self._load_core_modules()
-        self._load_syslifters_modules()
-        if self._reptor.get_config().get("community", False):
-            self._load_community_modules()
-
-        self._load_importers()
-        self._load_exporters()
-
-        self._load_user_modules()
+        self._load_modules()
 
     def is_loaded(self, plugin_name: str) -> bool:
         """Checks if a plugin is loaded
@@ -98,35 +86,10 @@ class PluginManager:
 
         self._reptor.logger.debug(f"Found Plugin Paths: {plugin_paths}")
 
-    def _load_core_modules(self):
+    def _load_modules(self):
         """Loads the core modules for reptor to function"""
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_CORE)
-
-    def _load_syslifters_modules(self):
-        """Loads the official modules created by syslifters"""
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_OFFICIAL)
-
-    def _load_community_modules(self):
-        """If the user enabled community modules, these are loaded AFTER
-        the system modules. Hence overwriting the system modules
-        """
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_COMMUNITY)
-
-    def _load_user_modules(self):
-        """Finally the user can have their own "private" modules or
-        overwrite any of the official or community modules.
-        """
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_USER)
-
-    def _load_importers(self):
-        """Finally the user can have their own "private" modules or
-        overwrite any of the official or community modules.
-        """
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_IMPORTERS)
-
-    def _load_exporters(self):
-        """Export Project findings to CSV or similar..."""
-        self._load_plugin_from_path(settings.PLUGIN_DIRS_EXPORTERS)
+        for plugin_path in settings.PLUGIN_IMPORT_DIRS:
+            self._load_plugin_from_path(plugin_path)
 
     def load_plugins(self):
         """Loads each plugin from _plugin_paths
@@ -161,14 +124,10 @@ class PluginManager:
             plugin_docs.path = plugin_path
 
             # Check what type of module it is and mark it as such
-            if str(settings.PLUGIN_DIRS_CORE) in plugin_path:
-                plugin_docs.set_core()
-            if str(settings.PLUGIN_DIRS_OFFICIAL) in plugin_path:
-                plugin_docs.set_core()
-            if str(settings.PLUGIN_DIRS_COMMUNITY) in plugin_path:
-                plugin_docs.set_community()
             if str(settings.PLUGIN_DIRS_USER) in plugin_path:
-                plugin_docs.set_private()
+                plugin_docs.category = "private"
+            else:
+                plugin_docs.category = os.path.basename(plugin_path)
 
             # Add it to the correct commands group
             subcommands_idx = (
@@ -181,7 +140,7 @@ class PluginManager:
                 subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1]
             ):
                 # check if the module is already in the list,
-                # if so a later loaded module, from community or private
+                # if so a later loaded module (e.g. private plugin from home dir)
                 # needs to overwrite it
                 if existing_module.name == plugin_docs.name:
                     # we have the case of an overwrite
@@ -191,9 +150,7 @@ class PluginManager:
                     # remove the original item
                     subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1].pop(index)
             # add the module data to the end
-            subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1].append(
-                plugin_docs
-            )
+            subcommands.SUBCOMMANDS_GROUPS[subcommands_idx][1].append(plugin_docs)
 
             # because it is a dictionary, an overwritten module is automatically overwritten
             self.LOADED_PLUGINS[plugin_docs.name] = module

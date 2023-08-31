@@ -1,5 +1,5 @@
 from reptor.lib.plugins.ToolBase import ToolBase
-from reptor.plugins.core.Nmap.models import Service
+from reptor.plugins.tools.Nmap.models import Service
 
 
 class Nmap(ToolBase):

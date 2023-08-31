@@ -12,7 +12,6 @@ Description
   - [Custom Plugins](#custom-plugins)
     - [nmap](#nmap)
     - [sslyze](#sslyze)
-  - [Community Plugins](#community-plugins)
   - [Private Plugins](#private-plugins)
 - [How to contribute](#how-to-contribute)
 - [Testing](#testing)

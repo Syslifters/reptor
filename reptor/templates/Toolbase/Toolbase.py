@@ -3,20 +3,18 @@ from reptor.lib.plugins.ToolBase import ToolBase
 
 class MYMODULENAME(ToolBase):
     """
-    Author: AUTHOR_NAME
-    Version: 1.0
-    Website: https://github.com/Syslifters/reptor
-    License: MIT
-    Tags: TAGS_LIST
-
-    Short Help:
-    Please provide a short description, that is shown in the modules overview
-
-    Description:
-
-    You can provide a long description here, that will also be shown in the official a documentation,
-    if you wish to make this a community module.
+    Example Commands:
+        TODO: Add example commands
     """
+
+    meta = {
+        "author": "",
+        "name": "",
+        "version": "0.1",
+        "license": "MIT",
+        "tags": [],
+        "summary": "",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

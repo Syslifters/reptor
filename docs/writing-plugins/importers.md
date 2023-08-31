@@ -47,8 +47,6 @@ Access your arguments via the `kwargs` dictionary in `__init__.py`, e. g. `self.
 reptor settings are managed in `.sysreptor/config.yaml` in your home directory. You can add plugin specific settings there, e. g.:
 
 ```yaml
-community: true
-personal_note: false
 project_id: 42c2f73a-4383-4ec2-a3fa-281598edb0e8
 server: https://demo.sysre.pt
 token: sysreptor_TOKEN

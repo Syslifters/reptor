@@ -3,12 +3,8 @@ import typing
 
 # Todo: Because we are not using the docs anymore, we should refactor this and rename this
 
-class PluginDocs:
-    TYPE_CORE = "CORE"
-    TYPE_COMMUNITY = "COMMUNITY"
-    TYPE_PRIVATE = "PRIVATE"
 
-    _type: typing.Literal["CORE", "COMMUNITY", "PRIVATE"] = TYPE_CORE
+class PluginDocs:
     _overwrites = None
 
     name: str = ""
@@ -18,37 +14,9 @@ class PluginDocs:
     license: str = ""
     tags: list = []
     summary: str = ""
+    category: str = ""
 
     path: pathlib.Path = None  # type: ignore
-
-    def is_community(self) -> bool:
-        return self._type == self.TYPE_COMMUNITY
-
-    def is_core(self) -> bool:
-        return self._type == self.TYPE_CORE
-
-    def is_private(self) -> bool:
-        return self._type == self.TYPE_PRIVATE
-
-    def set_community(self):
-        self._type = self.TYPE_COMMUNITY
-
-    def set_core(self):
-        self._type = self.TYPE_CORE
-
-    def set_private(self):
-        self._type = self.TYPE_PRIVATE
-
-    @property
-    def space_label(self) -> str:
-        if self.is_private():
-            return self.TYPE_PRIVATE.capitalize()
-        if self.is_core():
-            return self.TYPE_CORE.capitalize()
-        if self.is_community():
-            return self.TYPE_COMMUNITY.capitalize()
-
-        return ""
 
     def set_overwrites_plugin(self, plugin):
         self._overwrites = plugin
