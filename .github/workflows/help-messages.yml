@@ -14,9 +14,9 @@ jobs:
         cache: 'pip'
     - run: pip install .[all]
     - run: |
-        reptor --help | tee docs/help-messages/reptor
+        reptor --help > docs/help-messages/reptor
         for p in $plugins; do
-          reptor "$p" --help | tee docs/help-messages/"$p"
+          reptor "$p" --help > docs/help-messages/"$p"
         done
     - uses: EndBug/add-and-commit@v9.1.3
       with:
