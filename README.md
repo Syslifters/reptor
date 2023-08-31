@@ -13,3 +13,5 @@ reptor is a CLI tool that allows you to automate pentest reporting with SysRepto
 
 ## Usage
 
+```
+```
