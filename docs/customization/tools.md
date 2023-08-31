@@ -1,1 +1,1 @@
-TODO: Not yet documented.
+```raise NotImplementedError('Coming soon.')```
