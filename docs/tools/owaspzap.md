@@ -1,4 +1,4 @@
 ## Usage
 ```
---8<-- "docs/cli/assets/help-messages/owaspzap"
+--8<-- "docs/cli/help-messages/owaspzap"
 ```

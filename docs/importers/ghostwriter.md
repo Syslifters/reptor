@@ -1,4 +1,4 @@
 ## Usage
 ```
---8<-- "docs/cli/assets/help-messages/ghostwriter"
+--8<-- "docs/cli/help-messages/ghostwriter"
 ```
