@@ -1,3 +1,5 @@
+[10:47:19] WARNING  No config file found. You can create one with     conf.py:86
+                    'reptor conf'                                               
 usage: reptor file [-h] [-fn FILENAME] [file [file ...]]
 
 Uploads a file

@@ -1,3 +1,5 @@
+[10:47:16] WARNING  No config file found. You can create one with     conf.py:86
+                    'reptor conf'                                               
 usage: reptor nmap [-h] [-t {nmap_table}] [-parse | -format | -upload]
                    [-xml | -oX | -oG] [-multi-notes]
 
