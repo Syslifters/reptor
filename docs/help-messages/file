@@ -1,0 +1,11 @@
+usage: reptor file [-h] [-fn FILENAME] [file [file ...]]
+
+Uploads a file
+
+positional arguments:
+  file                  files to upload; leave empty for stdin
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -fn FILENAME, --filename FILENAME
+                        filename if file provided via stdin

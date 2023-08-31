@@ -6,12 +6,24 @@ PERSONAL_SYSREPTOR_HOME: pathlib.Path = pathlib.Path.home() / ".sysreptor"
 PERSONAL_CONFIG_FILE: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "config.yaml"
 
 PLUGIN_DIRS: pathlib.Path = BASE_DIR / "plugins"
+
 PLUGIN_DIRS_CORE: pathlib.Path = PLUGIN_DIRS / "core"
-PLUGIN_DIRS_OFFICIAL: pathlib.Path = PLUGIN_DIRS / "syslifters"
-PLUGIN_DIRS_COMMUNITY: pathlib.Path = PLUGIN_DIRS / "community"
+PLUGIN_DIRS_TOOLS: pathlib.Path = PLUGIN_DIRS / "tools"
+PLUGIN_DIRS_PROJECTS: pathlib.Path = PLUGIN_DIRS / "projects"
+PLUGIN_DIRS_UPLOADS: pathlib.Path = PLUGIN_DIRS / "uploads"
 PLUGIN_DIRS_IMPORTERS: pathlib.Path = PLUGIN_DIRS / "importers"
 PLUGIN_DIRS_EXPORTERS: pathlib.Path = PLUGIN_DIRS / "exporters"
 PLUGIN_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "plugins"
+
+PLUGIN_IMPORT_DIRS = [
+    PLUGIN_DIRS_CORE,
+    PLUGIN_DIRS_TOOLS,
+    PLUGIN_DIRS_PROJECTS,
+    PLUGIN_DIRS_UPLOADS,
+    PLUGIN_DIRS_IMPORTERS,
+    PLUGIN_DIRS_EXPORTERS,
+    PLUGIN_DIRS_USER,  # Should be last to override other plugins
+]
 
 PLUGIN_TEMPLATES_DIR_NAME: str = "templates"
 FINDING_TEMPLATES_DIR_NAME: str = "findings"

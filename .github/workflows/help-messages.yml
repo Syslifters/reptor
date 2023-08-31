@@ -1,0 +1,43 @@
+name: generate-docs
+run-name: help-messages
+on: [push]
+env:
+  plugins: 'nmap nikto zap sslyze file note projects templates translate ghostwriter projects'
+jobs:
+  help-messages:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        cache: 'pip'
+    - run: pip install .[all]
+    - run: |
+        reptor --help > docs/help-messages/reptor
+        for p in $plugins; do
+          reptor "$p" --help > docs/help-messages/"$p"
+        done
+    - uses: EndBug/add-and-commit@v9.1.3
+      with:
+        add: 'docs/help-messages/'
+        author_name: License Bot
+        author_email: hello@syslifters.com
+        message: 'Update help messages'
+
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+    - run: cat docs/getting-started.md | sed "/## Usage/q" > README.md
+    - run: |
+        printf "\n\`\`\`" >> README.md
+        cat docs/help-messages/reptor >> README.md
+        printf "\n\`\`\`" >> README.md
+    - uses: EndBug/add-and-commit@v9.1.3
+      with:
+        add: 'README.md'
+        author_name: License Bot
+        author_email: hello@syslifters.com
+        message: 'Update README.md'

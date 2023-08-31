@@ -13,7 +13,6 @@ class Config:
         "server": "https://demo.sysre.pt",
         "token": None,
         "project_id": None,
-        "community": False,
         "log_file": False,
     }
 
@@ -113,20 +112,6 @@ class Config:
             or default_project_id
         )
 
-        # default_community_enabled = self._raw_config.get("community")
-        # is_community_enabled = "No"
-        # if default_community_enabled:
-        #    is_community_enabled = "Yes"
-
-        # community = input(
-        #    f"Enable Community Plugins?{ f'[Currently: {is_community_enabled}]'} [y/n]: "
-        # )[:1].lower()
-        community = "y"  # Enable as long as there are not many plugins
-        if community == "y":
-            self._raw_config["community"] = True
-        elif community == "n":
-            self._raw_config["community"] = False
-
         self.store_config()
 
     def store_config(self):
@@ -211,14 +196,6 @@ class Config:
             typing.Dict: Holds all CLI arguments
         """
         return self.get("cli", {})
-
-    def get_community_enabled(self) -> bool:
-        """Checks if the community plugins are enabled.
-
-        Returns:
-            bool: Default False
-        """
-        return self.get("community", False)
 
     def get_log_file(self) -> bool:
         """Checks if the user wants to keep a log file in their home directory

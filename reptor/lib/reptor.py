@@ -18,7 +18,6 @@ from reptor.lib.plugins.DocParser import PluginDocs
 from reptor.utils.django_tags import setup_django_tags
 from reptor.utils.markdown import convert_markdown_to_console
 
-
 root_logger = logging.getLogger("root")
 
 
@@ -79,17 +78,6 @@ class Reptor:
         """
         return self._config
 
-    @property
-    def is_community_enabled(self):
-        """Returns True or False if the community plugins are enabled or not
-
-        Community content can be enabled/disabled in the config
-
-        Returns:
-            bool: Status of community enabled
-        """
-        return self.get_config().get_community_enabled()
-
     def get_logger(self) -> ReptorAdapter:
         """Returns the active logger. Use this for logging
 
@@ -145,8 +133,11 @@ class Reptor:
         # Argument parser
         main_description = """
             Examples:
-                python -m reptor projects --search "matrix"
-                python -m reptor nikto --xml --file ./nikto_results.xml
+                reptor conf
+                echo "Upload this!" | reptor note
+                reptor file data/*
+                cat sslyze.json | reptor sslyze --json --push-findings
+                cat nmap.xml | reptor nmap --xml --upload --multi-notes
 """
         self._parser = argparse.ArgumentParser(
             prog="reptor",

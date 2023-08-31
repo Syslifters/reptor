@@ -1,0 +1,14 @@
+usage: reptor sslyze [-h]
+                     [-t {certinfo,default_summary,vulnerabilities,misconfigurations,weak_ciphers,protocols}]
+                     [-parse | -format | -upload | -push-findings]
+
+format sslyze JSON output
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t {certinfo,default_summary,vulnerabilities,misconfigurations,weak_ciphers,protocols}, --template {certinfo,default_summary,vulnerabilities,misconfigurations,weak_ciphers,protocols}
+                        Template for output formatting
+  -parse, --parse
+  -format, --format
+  -upload, --upload
+  -push-findings, --push-findings

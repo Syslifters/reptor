@@ -96,31 +96,22 @@ class Plugins(Base):
                 ]
             )
 
-        self.console.print(
-            "plugin Colors: [blue]Core[/blue], [green]Community[/green], [magenta]Private[/magenta], [red]Overwrites other plugin[/red] "
-        )
-
         for tool in plugins:
             color = "blue"
-            if tool.is_community():
-                color = "green"
-            elif tool.is_private():
-                color = "magenta"
-
             tool_name = f"[{color}]{tool.name}[/{color}]"
 
             overwritten_plugin = tool.get_overwritten_plugin()
             overwrites_name = ""
             if overwritten_plugin:
-                overwrites_name = f"[red]{overwritten_plugin.name}({overwritten_plugin.space_label})[/red]"
-                tool_name = f"[red]{tool.name}({tool.space_label})\nOverwrites: {overwritten_plugin.space_label}[/red]"
+                overwrites_name = f"[red]{overwritten_plugin.name}({overwritten_plugin.category})[/red]"
+                tool_name = f"[red]{tool.name}({tool.category})\nOverwrites: {overwritten_plugin.category}[/red]"
                 color = "red"
 
             if self.verbose:
                 table.add_row(
                     f"[{color}]{tool.name}[/{color}]",
                     f"[{color}]{tool.summary}[/{color}]",
-                    f"[{color}]{tool.space_label}[/{color}]",
+                    f"[{color}]{tool.category}[/{color}]",
                     overwrites_name,
                     f"[{color}]{tool.author}[/{color}]",
                     f"[{color}]{tool.version}[/{color}]",
@@ -172,10 +163,8 @@ class Plugins(Base):
         introduction = """
         Please answer the following questions.
 
-        Based on the answer we will create a raw plugin for you to work on.
-
+        Based on the answers we will create a raw plugin for you to work on.
         You will find the new plugin in your ~/.sysrepter/plugins folder.
-        Once you are happy with it you should offer it as a community plugin!
 
         Let's get started...
         """
@@ -249,7 +238,7 @@ class Plugins(Base):
         # Copy plugin
 
         dest = dest / plugin.parent.name
-        self.log.display(f"Trying to copy \"{plugin.parent}\" to \"{dest}\"")
+        self.log.display(f'Trying to copy "{plugin.parent}" to "{dest}"')
         shutil.copytree(plugin.parent, dest)
         self.log.success(f"Copied successfully. ({dest})")
 

@@ -2,7 +2,7 @@ name: generate license notice file
 run-name: licenses
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  generate:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

@@ -178,37 +178,44 @@ class ToolBase(Base):
                 action="store_true",
             )
 
-        input_format_group = parser.add_mutually_exclusive_group()
-        input_format_group.title = "input_format_group"
+        if any(
+            [
+                cls.parse_xml != ToolBase.parse_xml,
+                cls.parse_json != ToolBase.parse_json,
+                cls.parse_csv != ToolBase.parse_csv,
+            ]
+        ):  # Prevent adding input_format_group if no parsing methods are implemented
+            input_format_group = parser.add_mutually_exclusive_group()
+            input_format_group.title = "input_format_group"
 
-        # Add parsing options only if implemented by modules
-        if cls.parse_xml != ToolBase.parse_xml:
-            input_format_group.add_argument(
-                "-xml",
-                "--xml",
-                action="store_const",
-                dest="format",
-                const="xml",
-                default="raw",
-            )
-        if cls.parse_json != ToolBase.parse_json:
-            input_format_group.add_argument(
-                "-json",
-                "--json",
-                action="store_const",
-                dest="format",
-                const="json",
-                default="raw",
-            )
-        if cls.parse_csv != ToolBase.parse_csv:
-            input_format_group.add_argument(
-                "-csv",
-                "--csv",
-                action="store_const",
-                dest="format",
-                const="csv",
-                default="raw",
-            )
+            # Add parsing options only if implemented by modules
+            if cls.parse_xml != ToolBase.parse_xml:
+                input_format_group.add_argument(
+                    "-xml",
+                    "--xml",
+                    action="store_const",
+                    dest="format",
+                    const="xml",
+                    default="raw",
+                )
+            if cls.parse_json != ToolBase.parse_json:
+                input_format_group.add_argument(
+                    "-json",
+                    "--json",
+                    action="store_const",
+                    dest="format",
+                    const="json",
+                    default="raw",
+                )
+            if cls.parse_csv != ToolBase.parse_csv:
+                input_format_group.add_argument(
+                    "-csv",
+                    "--csv",
+                    action="store_const",
+                    dest="format",
+                    const="csv",
+                    default="raw",
+                )
 
     @classmethod
     def get_input_format_group(cls, parser):
