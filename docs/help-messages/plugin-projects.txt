@@ -1,0 +1,13 @@
+usage: reptor projects [-h]
+                       [-search SEARCHTERM | -export {archive,json,toml,yaml} | -duplicate]
+
+Queries Projects from reptor.api
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -search SEARCHTERM, --search SEARCHTERM
+                        Search for term
+  -export {archive,json,toml,yaml}, --export {archive,json,toml,yaml}
+                        Export project
+  -duplicate, --duplicate
+                        Duplicate project

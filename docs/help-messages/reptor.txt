@@ -1,11 +1,16 @@
-usage: reptor [-h] [-s SERVER] [-t TOKEN] [--insecure] [-p PROJECT_ID] [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
+No .sysreptor folder found in home directory...Creating one
+usage: reptor [-h] [-s SERVER] [-t TOKEN] [--insecure] [-p PROJECT_ID]
+              [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
               [-file FILE]
 
 Examples:
-                python -m reptor projects --search "matrix"
-                python -m reptor nikto --xml --file ./nikto_results.xml
+                reptor conf
+                echo "Upload this!" | reptor note
+                reptor file data/*
+                cat sslyze.json | reptor sslyze --json --push-findings
+                cat nmap.xml | reptor nmap --xml --upload --multi-notes
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
@@ -15,28 +20,24 @@ options:
                         Local file to read
 
 subcommands:
-
+  
   configuration:
   conf                  Shows config and sets config
-
+  
   upload evidences:
   file                  Uploads a file
   note                  Uploads and lists a notes
-
+  
   tool output processing:
   nmap                  format nmap output
-  nikto                 Formats Nikto output (XML)
-  owaspzap              Parses OWASPZap reports (JSON, XML)
-  sslyze                format sslyze JSON output
-  xsstool
-
+  
   other:
-  importers             Show importers to use to import finding templates
-  plugins               Allows plugin management & development
   projects              Queries Projects from reptor.api
+  importers             Show importers to use to import finding templates
   templates             Queries Finding Templates from reptor.api
-  translate             Translate Projects and Templates to other languages
-
+  translate             Translate Projects to other languages via Deepl
+  plugins               Allows plugin management & development
+  
   finding templates importers:
   ghostwriter           Imports GhostWriter finding templates
 
