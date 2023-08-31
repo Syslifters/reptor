@@ -3,7 +3,7 @@
 ## Usage
 
 ```
---8<-- "docs/cli/assets/help-messages/translate"
+--8<-- "docs/cli/help-messages/translate"
 ```
 
 ## Sample commands

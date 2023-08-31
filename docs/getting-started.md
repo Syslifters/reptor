@@ -24,6 +24,6 @@ TODO copy templates and findings
 TODO autogenerate help messages
 
 ```
---8<-- "docs/cli/assets/help-messages/reptor"
+--8<-- "docs/cli/help-messages/reptor"
 ```
 
