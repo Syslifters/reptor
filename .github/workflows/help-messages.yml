@@ -1,6 +1,9 @@
 name: generate-docs
 run-name: help-messages
-on: [push]
+on:
+  push:
+    branches:
+      - 'main'
 env:
   plugins: 'nmap nikto zap sslyze file note projects templates translate ghostwriter projects'
 jobs:
