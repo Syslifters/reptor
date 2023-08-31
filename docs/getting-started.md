@@ -1,29 +1,17 @@
 # reptor
-reptor is a CLI tool that allows you to automate pentest reporting.
+reptor is a CLI tool that allows you to automate pentest reporting with SysReptor.
 
  * Create findings and notes from tool outputs
  * Upload evidences (also bulk upload)
  * Import data from other reporting tools
 
-## Use cases
-TODO
-
-### Create findings from tool outputs
-
-### Upload notes from tool outputs
-TODO allow checkbox instead of icons
-
-### Customize templates
-TODO copy templates and findings
-
-
-### Translate reports
+**GitHub:** https://github.com/Syslifters/reptor/  
+**Docs:** https://docs.sysreptor.com/cli/getting-started  
+**Setup:** https://docs.sysreptor.com/cli/setup  
+**PyPi:** https://pypi.org/project/reptor/  
 
 
 ## Usage
-TODO autogenerate help messages
-
 ```
 --8<-- "docs/cli/help-messages/reptor"
 ```
-
