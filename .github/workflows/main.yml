@@ -2,7 +2,7 @@ name: main unittests
 run-name: unittests
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  run:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
