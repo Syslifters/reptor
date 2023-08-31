@@ -20,9 +20,7 @@ class Note(UploadBase):
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
-        parser.add_argument(
-            "--list", help="list available notes", action="store_true"
-        )
+        parser.add_argument("--list", help="list available notes", action="store_true")
 
     def run(self):
         if self.list:
@@ -65,6 +63,7 @@ class Note(UploadBase):
             force_unlock=force_unlock,  # type: ignore
             no_timestamp=no_timestamp,  # type: ignore
         )
+        self.log.success("Successfully uploaded to notes.")
 
 
 loader = Note
