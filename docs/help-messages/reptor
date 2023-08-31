@@ -24,22 +24,25 @@ subcommands:
   configuration:
   conf                  Shows config and sets config
   
-  upload evidences:
+  uploads:
   file                  Uploads a file
   note                  Uploads and lists a notes
   
-  tool output processing:
+  tools:
+  sslyze                format sslyze JSON output
   nmap                  format nmap output
+  zap                   Parses ZAP reports (JSON, XML)
+  nikto                 Formats Nikto output (XML)
+  
+  importers:
+  ghostwriter           Imports GhostWriter finding templates
   
   other:
-  projects              Queries Projects from reptor.api
   importers             Show importers to use to import finding templates
+  plugins               Allows plugin management & development
+  projects              Queries Projects from reptor.api
   templates             Queries Finding Templates from reptor.api
   translate             Translate Projects to other languages via Deepl
-  plugins               Allows plugin management & development
-  
-  finding templates importers:
-  ghostwriter           Imports GhostWriter finding templates
 
 configuration:
   -s SERVER, --server SERVER

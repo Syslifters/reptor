@@ -1,0 +1,17 @@
+usage: reptor nmap [-h] [-t {nmap_table}] [-parse | -format | -upload]
+                   [-xml | -oX | -oG] [-multi-notes]
+
+format nmap output
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t {nmap_table}, --template {nmap_table}
+                        Template for output formatting
+  -parse, --parse
+  -format, --format
+  -upload, --upload
+  -xml, --xml
+  -oX                   nmap XML output format, same as --xml (recommended)
+  -oG, --grepable       nmap Grepable output format
+  -multi-notes, --multi-notes
+                        Uploads multiple notes (one per IP) instead of one note with all IPs
