@@ -83,7 +83,7 @@ class Config:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 self._raw_config = yaml.safe_load(f.read())
         except FileNotFoundError:
-            pass
+            reptor_logger.warning("No config file found. You can create one with 'reptor conf'")
 
     def get_config_from_user(self):
         """Asks the user for the individiual settings and offers to
