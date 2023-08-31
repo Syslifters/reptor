@@ -33,7 +33,7 @@ jobs:
     - run: cat docs/getting-started.md | sed "/## Usage/q" > README.md
     - run: |
         printf "\n\`\`\`" >> README.md
-        cat docs/help-messages/reptor | >> README.md
+        cat docs/help-messages/reptor >> README.md
         printf "\n\`\`\`" >> README.md
     - uses: EndBug/add-and-commit@v9.1.3
       with:
