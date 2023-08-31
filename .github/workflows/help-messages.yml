@@ -2,7 +2,7 @@ name: generate help messages
 run-name: help-messages
 on: [push]
 env:
-  plugins: 'ghostwriter projects'
+  plugins: 'nmap nikto zap sslyze file note projects templates translate ghostwriter projects'
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -14,9 +14,9 @@ jobs:
         cache: 'pip'
     - run: pip install .
     - run: |
-        reptor --help > docs/help-messages/reptor.txt
+        reptor --help > docs/help-messages/reptor
         for p in $plugins; do
-          reptor "$p" --help > docs/help-messages/plugin-"$p".txt
+          reptor "$p" --help > docs/help-messages/"$p"
         done
     - uses: EndBug/add-and-commit@v9.1.3
       with:
