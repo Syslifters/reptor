@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reptor"
-version = "0.1"
+version = "0.0.3"
 authors = [
   { name="Richard Schwabe" },
   { name="Aron Molnar", email="aron@syslifters.com" }
@@ -12,7 +12,7 @@ authors = [
 maintainers = [
   {name = 'Syslifters', email = 'hello@syslifters.com'}
 ]
-description = "reptor takes pentesting tool outputs, transforms them to markdown and integrates into the pentest reporting tool SysReptor."
+description = "reptor allows you automating pentest reporting with SysReptor."
 readme = "README.md"
 license = {file = 'LICENSE'}
 dependencies = [

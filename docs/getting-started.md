@@ -1,5 +1,5 @@
-# reptor
-reptor is a CLI tool that allows you to automate pentest reporting with SysReptor.
+# reptor (ALPHA)
+reptor allows you to automating pentest reporting with SysReptor.
 
  * Create findings and notes from tool outputs
  * Upload evidences (also bulk upload)

@@ -15,6 +15,7 @@ class Config:
         "project_id": None,
         "log_file": False,
     }
+    _no_config_file: bool = False
 
     """These keys are ignored when writing the config to a file
     By default this should be cli and insecure
@@ -83,7 +84,7 @@ class Config:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 self._raw_config = yaml.safe_load(f.read())
         except FileNotFoundError:
-            reptor_logger.warning("No config file found. You can create one with 'reptor conf'")
+            self._no_config_file = True
 
     def get_config_from_user(self):
         """Asks the user for the individiual settings and offers to

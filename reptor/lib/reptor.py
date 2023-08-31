@@ -283,6 +283,10 @@ class Reptor:
 
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
+            if self._config._no_config_file:
+                self.logger.warning(
+                    "No config file found. You can create one with 'reptor conf'"
+                )
             try:
                 plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
                 self.logger.debug(f"Loading Plugin: {plugin.__name__}")
