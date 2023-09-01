@@ -11,7 +11,7 @@
 ```
 python3 -m reptor translate -to DE --dry-run
 python3 -m reptor translate --from EN -to DE
-python3 -m reptor translate -to DE --skip-fields recommendation,summary --dry-run
+python3 -m reptor translate -to DE --skip-fields recommendation,summary
 ```
 
 ## Installation
@@ -30,6 +30,3 @@ translate:
 ```
 
 `skip_fields` can be used to do not translate certain report or finding fields.
-
-## Dry run
-Use 
