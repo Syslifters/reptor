@@ -14,6 +14,7 @@ from reptor.lib.conf import Config
 from reptor.lib.console import Console, reptor_console
 from reptor.lib.logger import ReptorAdapter, reptor_logger
 from reptor.lib.pluginmanager import PluginManager
+from reptor.lib.plugins.ConfBase import ConfBase
 from reptor.lib.plugins.DocParser import PluginDocs
 from reptor.utils.django_tags import setup_django_tags
 from reptor.utils.markdown import convert_markdown_to_console
@@ -283,13 +284,15 @@ class Reptor:
 
         # Subcommands
         if args.command in self.plugin_manager.LOADED_PLUGINS:
-            if self._config._no_config_file:
-                self.logger.warning(
-                    "No config file found. You can create one with 'reptor conf'"
-                )
             try:
                 plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
                 self.logger.debug(f"Loading Plugin: {plugin.__name__}")
+                if self._config._no_config_file and not issubclass(
+                    plugin.loader, ConfBase
+                ):
+                    self.logger.warning(
+                        "No config file found. You can create one with 'reptor conf'"
+                    )
                 plugin.loader(reptor=self, **self._config.get("cli")).run()
             except Exception as e:
                 self.logger.debug(traceback.format_exc())
