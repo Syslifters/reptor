@@ -1,4 +1,4 @@
-# reptor (ALPHA)
+# reptor (alpha version)
 reptor allows you to automating pentest reporting with SysReptor.
 
  * Create findings and notes from tool outputs

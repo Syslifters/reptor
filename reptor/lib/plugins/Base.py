@@ -31,7 +31,7 @@ class Base:
         self.file_path = kwargs.get("file", "")
         self.reptor = kwargs.get("reptor", None)
 
-        plugin_name = self.__class__.__name__.lower()
+        plugin_name = self.__class__.__name__.lower()            
         for plugin_config_key in self.reptor.get_config().get_config_keys(
             plugin=plugin_name
         ):
