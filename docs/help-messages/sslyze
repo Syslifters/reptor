@@ -1,5 +1,3 @@
-[10:47:18] WARNING  No config file found. You can create one with     conf.py:86
-                    'reptor conf'                                               
 usage: reptor sslyze [-h]
                      [-t {certinfo,default_summary,vulnerabilities,misconfigurations,weak_ciphers,protocols}]
                      [-parse | -format | -upload | -push-findings]

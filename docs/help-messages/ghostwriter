@@ -1,5 +1,3 @@
-[10:47:21] WARNING  No config file found. You can create one with     conf.py:86
-                    'reptor conf'                                               
 usage: reptor ghostwriter [-h] [-tags TAGS] [-url [URL]]
 
 Imports GhostWriter finding templates

@@ -1,5 +1,3 @@
-[10:47:22] WARNING  No config file found. You can create one with     conf.py:86
-                    'reptor conf'                                               
 usage: reptor projects [-h]
                        [-search SEARCHTERM | -export {archive,json,toml,yaml} | -duplicate]
 
