@@ -14,8 +14,6 @@ reptor allows you to automating pentest reporting with SysReptor.
 ## Usage
 
 ```No .sysreptor folder found in home directory...Creating one
-[10:47:16] WARNING  No config file found. You can create one with     conf.py:86
-                    'reptor conf'                                               
 usage: reptor [-h] [-s SERVER] [-t TOKEN] [--insecure] [-p PROJECT_ID]
               [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
               [-file FILE]
