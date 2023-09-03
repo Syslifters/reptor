@@ -94,7 +94,7 @@ class Finding(FindingRaw):
         for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
         self.data = FindingData(
-            project_design.finding_fields, raw.data, force_compatible=force_compatible
+            raw.data, project_design.finding_fields, force_compatible=force_compatible
         )
 
     @classmethod

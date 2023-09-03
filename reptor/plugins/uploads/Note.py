@@ -9,7 +9,7 @@ class Note(UploadBase):
 
     meta = {
         "name": "Note",
-        "summary": "Uploads and lists a notes",
+        "summary": "Uploads and lists notes",
     }
 
     def __init__(self, **kwargs):

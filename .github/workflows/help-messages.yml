@@ -5,7 +5,11 @@ on:
     branches:
       - 'main'
 env:
+<<<<<<< Updated upstream
   plugins: 'nmap nikto zap sslyze file note projects templates translate ghostwriter projects'
+=======
+  plugins: 'nmap nikto zap ghostwriter projects'
+>>>>>>> Stashed changes
 jobs:
   help-messages:
     runs-on: ubuntu-latest

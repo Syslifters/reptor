@@ -124,7 +124,7 @@ class TestSectionModelParsing:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_report_fields_only)
         )
-        section_data = SectionData(project_design.report_fields, section_raw.data)
+        section_data = SectionData(section_raw.data, project_design.report_fields)
         assert section_data.draft.name == "draft"
         assert section_data.draft.type == "boolean"
         assert section_data.draft.value == True
