@@ -37,10 +37,12 @@ class TestFinding:
 
     def test_read_invalid_finding(self):
         with pytest.raises(ValueError):
-            self.finding._read_finding(content="invalid")
+            list(self.finding._read_findings(content="invalid"))
 
     def test_read_toml_finding(self):
-        finding_content = self.finding._read_finding(content=self.finding_toml)
+        finding_content = list(self.finding._read_findings(content=self.finding_toml))[
+            0
+        ]
         assert isinstance(finding_content, FindingModel)
         assert finding_content.data.title.value == "Reflected XSS"
         assert finding_content.data.summary.value.startswith(
@@ -48,7 +50,21 @@ class TestFinding:
         )
 
     def test_read_json_finding(self):
-        finding_content = self.finding._read_finding(content=self.finding_json)
+        finding_content = list(self.finding._read_findings(content=self.finding_json))[
+            0
+        ]
+        assert isinstance(finding_content, FindingModel)
+        assert finding_content.data.title.value == "Reflected XSS"
+        assert finding_content.data.summary.value.startswith(
+            "We detected a reflected XSS vulnerability."
+        )
+
+    def test_read_multiple_json_findings(self):
+        findings = f"[{self.finding_json}, {self.finding_json}, {self.finding_json}]"
+        finding_content = list(self.finding._read_findings(content=findings))
+        assert len(finding_content) == 3
+
+        finding_content = finding_content[0]
         assert isinstance(finding_content, FindingModel)
         assert finding_content.data.title.value == "Reflected XSS"
         assert finding_content.data.summary.value.startswith(

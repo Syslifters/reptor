@@ -1,6 +1,7 @@
+import contextlib
 import json
 import sys
-import contextlib
+import typing
 
 import toml
 
@@ -17,11 +18,17 @@ class Finding(UploadBase):
     }
 
     def run(self):
-        finding = self._read_finding()
-        self.reptor.api.projects.create_finding(finding.to_dict())
-        self.log.success("Finding uploaded successfully")
+        findings = list(self._read_findings())
+        for finding in findings:
+            self.reptor.api.projects.create_finding(finding.to_dict())
+        findings_count = len(findings)
+        self.log.success(
+            f"Successfully uploaded {findings_count} finding{'s'[:findings_count^1]}"
+        )
 
-    def _read_finding(self, content=None) -> FindingModel:
+    def _read_findings(
+        self, content: typing.Optional[str] = None
+    ) -> typing.Iterator[FindingModel]:
         if content is None:
             # Read finding from stdin
             self.info("Reading from stdin...")
@@ -29,12 +36,17 @@ class Finding(UploadBase):
 
         with contextlib.suppress(json.JSONDecodeError):
             content = json.loads(content, strict=False)
-        if not isinstance(content, dict):
+        if isinstance(content, str):
             with contextlib.suppress(toml.TomlDecodeError):
                 content = toml.loads(content)
-        if not isinstance(content, dict):
+        if isinstance(content, str):
             raise ValueError("Could not decode stdin (excepted JSON or TOML)")
-        return FindingModel(content, force_compatible=False)
+
+        if isinstance(content, dict):
+            content = [content]
+
+        for finding in content:
+            yield FindingModel(finding, force_compatible=False)
 
 
 loader = Finding
