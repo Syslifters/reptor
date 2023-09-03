@@ -176,7 +176,7 @@ class Reptor:
         config_parser.add_argument("-s", "--server")
         config_parser.add_argument("-t", "--token", help="SysReptor API token")
         config_parser.add_argument(
-            "--insecure", help="do not verify server certificate", action="store_true"
+            "-k", "--insecure", help="do not verify server certificate", action="store_true"
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
