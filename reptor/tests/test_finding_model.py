@@ -238,7 +238,7 @@ class TestFindingModelParsing:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_finding_fields_only)
         )
-        finding_data = FindingData(project_design.finding_fields, finding_raw.data)
+        finding_data = FindingData(finding_raw.data, project_design.finding_fields)
         assert finding_data.boolean_field.name == "boolean_field"
         assert finding_data.boolean_field.type == "boolean"
         assert finding_data.boolean_field.value == True

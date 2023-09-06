@@ -214,8 +214,8 @@ class SectionData(BaseModel):
 
     def __init__(
         self,
-        design_fields: typing.List[ProjectDesignField],
         data_raw: SectionDataRaw,
+        design_fields: typing.List[ProjectDesignField],
         force_compatible: bool = True,
     ):
         for design_field in design_fields:
@@ -300,4 +300,4 @@ class Section(SectionRaw):
         # Set attributes from SectionRaw
         for attr in typing.get_type_hints(SectionRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-        self.data = SectionData(project_design.report_fields, raw.data)
+        self.data = SectionData(raw.data, project_design.report_fields)
