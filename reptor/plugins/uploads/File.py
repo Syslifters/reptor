@@ -58,6 +58,7 @@ class File(UploadBase):
             force_unlock=force_unlock,
             icon=icon,
         )
+        self.log.success("Successfully uploaded.")
 
 
 loader = File

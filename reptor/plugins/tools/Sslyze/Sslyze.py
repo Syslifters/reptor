@@ -6,10 +6,10 @@ from reptor.lib.plugins.ToolBase import ToolBase
 class Sslyze(ToolBase):
     """
     target="app1.example.com:443{127.0.0.1} app2.example.com:443{127.0.0.2}"
-    sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --http_get --hide_rejected_ciphers --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.txt | reptor sslyze
+    sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --http_get --hide_rejected_ciphers --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.json | reptor sslyze
 
     # Format and upload
-    cat sslyze_result.txt | reptor ssylyze -c upload
+    cat sslyze.json | reptor sslyze --upload
     """
 
     meta = {
