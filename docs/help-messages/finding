@@ -1,0 +1,6 @@
+usage: reptor finding [-h]
+
+Uploads findings from JSON or TOML
+
+optional arguments:
+  -h, --help  show this help message and exit

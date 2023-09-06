@@ -1,6 +1,6 @@
 usage: reptor note [-h] [--list]
 
-Uploads and lists a notes
+Uploads and lists notes
 
 optional arguments:
   -h, --help  show this help message and exit
