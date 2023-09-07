@@ -13,8 +13,7 @@ reptor allows you to automating pentest reporting with SysReptor.
 
 ## Usage
 
-```No .sysreptor folder found in home directory...Creating one
-usage: reptor [-h] [-s SERVER] [-t TOKEN] [--insecure] [-p PROJECT_ID]
+```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
               [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
               [-file FILE]
 
@@ -40,8 +39,9 @@ subcommands:
   conf                  Shows config and sets config
   
   uploads:
+  finding               Uploads findings from JSON or TOML
   file                  Uploads a file
-  note                  Uploads and lists a notes
+  note                  Uploads and lists notes
   
   tools:
   sslyze                format sslyze JSON output
@@ -63,7 +63,7 @@ configuration:
   -s SERVER, --server SERVER
   -t TOKEN, --token TOKEN
                         SysReptor API token
-  --insecure            do not verify server certificate
+  -k, --insecure        do not verify server certificate
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
   --personal-note       add notes to private notes
