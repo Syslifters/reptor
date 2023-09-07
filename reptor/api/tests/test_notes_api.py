@@ -74,7 +74,7 @@ class TestNotesAPI:
     def setUp(self):
         self.reptor = Reptor()
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config["cli"] = {"personal_note": False}
+        self.reptor._config._raw_config["cli"] = {"personal_note": True}
         self.notes = NotesAPI(reptor=self.reptor)
 
     def _mock_methods(self):
