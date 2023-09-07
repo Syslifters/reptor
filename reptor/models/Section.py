@@ -216,7 +216,7 @@ class SectionData(BaseModel):
         self,
         data_raw: SectionDataRaw,
         design_fields: typing.List[ProjectDesignField],
-        force_compatible: bool = True,
+        force_compatible: bool = False,
     ):
         for design_field in design_fields:
             try:
