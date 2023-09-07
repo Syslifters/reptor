@@ -71,6 +71,14 @@ class FindingData(SectionData):
 
     field_class = FindingDataField
 
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        kwargs.setdefault("force_compatible", True)
+        super().__init__(*args, **kwargs)
+
 
 class FindingRaw(SectionRaw):
     data: FindingDataRaw
