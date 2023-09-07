@@ -7,9 +7,9 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
+from reptor.lib.errors import MissingArgumentError
 from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
-from reptor.lib.errors import MissingArgumentError
 from reptor.utils.file_operations import guess_filetype
 
 
@@ -87,9 +87,7 @@ class NotesAPI(APIClient):
         )
         self.debug(f"Working with note: {note.id}")
 
-        with self._auto_lock_note(
-            note.id
-        ) if not force_unlock else contextlib.nullcontext():
+        with self._auto_lock_note(note.id, force_unlock=force_unlock):
             note_text = note.text + "\n\n"
             if not no_timestamp:
                 note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
@@ -164,9 +162,7 @@ class NotesAPI(APIClient):
                 url = urljoin(self.base_endpoint, "upload/")
             else:
                 url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
-            with self._auto_lock_note(
-                note.id
-            ) if not force_unlock else contextlib.nullcontext():
+            with self._auto_lock_note(note.id, force_unlock=force_unlock):
                 # TODO this might be streamed
                 files = {"file": (filename, content)}
                 response_json = self.post(url, files=files, json_content=False).json()
@@ -198,18 +194,26 @@ class NotesAPI(APIClient):
         return self.post(url)
 
     @contextlib.contextmanager
-    def _auto_lock_note(self, note_id: str):
+    def _auto_lock_note(self, note_id: str, force_unlock: bool = False):
         try:
             r = self._lock_note(note_id)
         except HTTPError as e:
             if e.response.status_code == 403:
-                raise LockedException("Cannot force unlock. Locked by other user.")
+                locked_by = (
+                    e.response.json()
+                    .get("lock_info", {})
+                    .get("user", {})
+                    .get("username")
+                )
+                if locked_by:
+                    raise LockedException(f"Cannot unlock. Locked by @{locked_by}.")
+                else:
+                    raise LockedException("Cannot unlock. Locked by other user.")
             else:
                 raise e
-        if r.status_code == 200:
+        if not force_unlock and r.status_code == 200:
             raise LockedException(
-                "The section you want to write to is locked. "
-                "(Unlock or force: --force-unlock)"
+                "This note is locked. (Unlock or force: --force-unlock)"
             )
 
         yield
