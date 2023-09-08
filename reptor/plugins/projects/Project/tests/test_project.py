@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,6 +13,7 @@ class TestProject:
     @pytest.fixture(autouse=True)
     def setUp(self):
         reptor = Reptor()
+        reptor._config._raw_config["server"] = "https://demo.sysre.pt"
         reptor._config._raw_config[
             "project_id"
         ] = "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
@@ -33,12 +35,19 @@ class TestProject:
 
         # self.project.reptor.api.projects.export = MagicMock()
         self.project.reptor.api.projects.project = MagicMock()
-        self.project.console.print = MagicMock()
-        self.project.reptor.api.projects.console.print = MagicMock()
+        self.project.print = MagicMock()
+        sys.stdout.buffer.write = MagicMock()
         self.project.reptor.api.projects.post = MagicMock(return_value=MockResponse())
         self.project.reptor.api.projects.project.to_dict = MagicMock(
             return_value={"a": "b"}
         )
 
-        assert self.project._export_project(format=format, filename=None) is None
-        self.project.console.print.assert_called_once_with(expected)
+        if format == "archive":
+            assert self.project._export_project(format=format, filename=None) is None
+            sys.stdout.buffer.write.assert_not_called()
+
+            assert self.project._export_project(format=format, filename="-") is None
+            sys.stdout.buffer.write.assert_called_once_with(expected)
+        else:
+            assert self.project._export_project(format=format, filename=None) is None
+            self.project.print.assert_called_once_with(expected)

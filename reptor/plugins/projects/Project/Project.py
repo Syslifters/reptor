@@ -22,6 +22,7 @@ class Project(Base):
         super().__init__(**kwargs)
         self.search = kwargs.get("search")
         self.export = kwargs.get("export")
+        self.render = kwargs.get("render")
         self.duplicate = kwargs.get("duplicate")
         self.output = kwargs.get("output")
 
@@ -59,6 +60,13 @@ class Project(Base):
             default=None,
         )
         project_parser.add_argument(
+            "-render",
+            "--render",
+            help="Render project",
+            action="store_true",
+            dest="render",
+        )
+        project_parser.add_argument(
             "-duplicate",
             "--duplicate",
             help="Duplicate project",
@@ -68,6 +76,14 @@ class Project(Base):
 
     def _export_project(self, format="archive", filename=None):
         if format == "archive":
+            if not filename:
+                filename = (
+                    self.reptor.api.projects.project.name or "archive"
+                ) + ".tar.gz"
+            elif filename == "-":
+                # Write to stdout
+                filename = None
+
             self.reptor.api.projects.export(filename=filename)
             if filename:
                 self.log.success(f"Exported to {filename}")
@@ -83,7 +99,7 @@ class Project(Base):
             output = yaml.dump(project)
 
         if not filename:
-            self.console.print(output)
+            self.print(output)
         else:
             with open(filename, "w") as f:
                 f.write(output)
@@ -111,9 +127,22 @@ class Project(Base):
         project_id = duplicated_project.id
         self.success(f"Duplicated to '{project_title}' ({project_id})")
 
+    def _render_project(self, filename=None):
+        if not filename:
+            filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
+        elif filename == "-":
+            # Write to stdout
+            filename = None
+        self.reptor.api.projects.render(filename=filename)
+        if filename:
+            self.log.success(f"Exported to {filename}")
+        return
+
     def run(self):
         if self.export:
             self._export_project(self.export, filename=self.output)
+        elif self.render:
+            self._render_project(filename=self.output)
         elif self.duplicate:
             self._duplicate_project()
         else:

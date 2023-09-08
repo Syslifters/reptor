@@ -250,14 +250,14 @@ class ToolBase(Base):
 
         if self.action == "parse":
             self.parse()
-            self.console.print(self.parsed_input)
+            self.print(self.parsed_input)
         elif self.action == "format":
             self.format()
             if self.multi_notes:
                 for title, content in self.formatted_input.items():
-                    self.console.print(f"### {title}\n\n{content}")
+                    self.print(f"### {title}\n\n{content}")
             else:
-                self.console.print(self.formatted_input)
+                self.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
 

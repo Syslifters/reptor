@@ -31,7 +31,7 @@ class Base:
         self.file_path = kwargs.get("file", "")
         self.reptor = kwargs.get("reptor", None)
 
-        plugin_name = self.__class__.__name__.lower()            
+        plugin_name = self.__class__.__name__.lower()
         for plugin_config_key in self.reptor.get_config().get_config_keys(
             plugin=plugin_name
         ):
@@ -95,6 +95,9 @@ class Base:
             Console: rich console
         """
         return reptor_console
+
+    def print(self, *args, **kwargs):
+        print(*args, **kwargs)
 
     def success(self, msg, *args, **kwargs):
         """Use this to print Green text by default. You can change colors etc.

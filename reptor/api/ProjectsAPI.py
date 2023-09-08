@@ -68,8 +68,6 @@ class ProjectsAPI(APIClient):
         return self._get_project()
 
     def _get_project(self) -> Project:
-        if not self.project_id:
-            raise ValueError("Make sure you have a project specified.")
         url = self.object_endpoint
         response = self.get(url)
         return Project(response.json())
@@ -79,22 +77,47 @@ class ProjectsAPI(APIClient):
 
         Args:
             filename (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
-
-        Raises:
-            ValueError: Requires project_id
         """
-        if not self.project_id:
-            raise ValueError(
-                "No project ID. Specify in reptor conf or via -p / --project-id"
-            )
-
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
         data = self.post(url)
         if filename:
             with open(filename, "wb") as f:
                 f.write(data.content)
         else:
-            self.console.print(data.content)
+            sys.stdout.buffer.write(data.content)
+
+    def render(self, filename: typing.Optional[pathlib.Path] = None):
+        """Renders project to PDF
+
+        Args:
+            filename (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
+        """
+        # Get report checks
+        checks = self.check_report(group_messages=True)
+        for check, warnings in checks.items():
+            if any([w.get("level") == "warning" for w in warnings]):
+                self.log.warning(f'Report Check Warning: "{check}" (x{len(warnings)})')
+
+        # Render report
+        url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
+        data = self.post(url)
+        if filename:
+            with open(filename, "wb") as f:
+                f.write(data.content)
+        else:
+            sys.stdout.buffer.write(data.content)
+
+    def check_report(self, group_messages=False) -> dict:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/check")
+        data = self.get(url).json()
+        if group_messages:
+            data = data.get("messages")
+            # data is a list of dicts. group by "message" key
+            grouped = dict()
+            for item in data:
+                grouped.setdefault(item["message"], []).append(item)
+            return grouped
+        return data
 
     def duplicate(self) -> Project:
         """Duplicates Projects

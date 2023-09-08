@@ -60,6 +60,9 @@ class APIClient:
         """
         return reptor_console
 
+    def print(self, *args, **kwargs):
+        print(*args, **kwargs)
+
     def success(self, msg, *args, **kwargs):
         """Use this to print Green text by default. You can change colors etc.
 
