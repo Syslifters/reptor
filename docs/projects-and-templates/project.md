@@ -6,7 +6,7 @@ reptor project --render  # Render report to PDF and download
 reptor project --render -o -  # Render report to PDF and write to stdout
 ```
 
-```bash title="Render reports"
+```bash title="Export reports"
 reptor project --export archive  # Export your report to tar.gz
 reptor project --export archive -o -  # Export your report to tar.gz, write to stdout
 reptor project --export json  # Export your report as json

@@ -1,5 +1,6 @@
 import pathlib
 import typing
+from contextlib import nullcontext
 from functools import cached_property
 from posixpath import join as urljoin
 from typing import Optional
@@ -86,12 +87,12 @@ class ProjectsAPI(APIClient):
         else:
             sys.stdout.buffer.write(data.content)
 
-    def render(self, filename: typing.Optional[pathlib.Path] = None):
-        """Renders project to PDF
-
-        Args:
-            filename (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
-        """
+    def render(
+        self,
+        file: typing.Optional[typing.IO] = None,
+        filename: typing.Optional[pathlib.Path] = None,
+    ):
+        """Renders project to PDF"""
         # Get report checks
         checks = self.check_report(group_messages=True)
         for check, warnings in checks.items():
@@ -101,8 +102,12 @@ class ProjectsAPI(APIClient):
         # Render report
         url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
         data = self.post(url)
+        if file:
+            filename = file.name
         if filename:
-            with open(filename, "wb") as f:
+            with open(filename, "wb") if not file else nullcontext() as f:
+                if not f:
+                    f = file
                 f.write(data.content)
         else:
             sys.stdout.buffer.write(data.content)

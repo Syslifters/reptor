@@ -50,9 +50,9 @@ class File(UploadBase):
 
         self.reptor.api.notes.upload_file(
             files=files,
+            notename=notename,
             filename=filename,
             caption=filename,
-            notename=notename,
             parent_notename=parent_notename,
             no_timestamp=no_timestamp,
             force_unlock=force_unlock,

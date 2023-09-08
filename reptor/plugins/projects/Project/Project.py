@@ -1,5 +1,8 @@
 import json
-import pathlib
+import tempfile
+import typing
+from contextlib import nullcontext
+from io import DEFAULT_BUFFER_SIZE
 
 import toml
 import yaml
@@ -23,6 +26,7 @@ class Project(Base):
         self.search = kwargs.get("search")
         self.export = kwargs.get("export")
         self.render = kwargs.get("render")
+        self.upload = kwargs.get("upload")
         self.duplicate = kwargs.get("duplicate")
         self.output = kwargs.get("output")
 
@@ -38,6 +42,13 @@ class Project(Base):
             help="Filename to store output, empty for stdout",
             action="store",
             default=None,
+        )
+        parser.add_argument(
+            "-upload",
+            "--upload",
+            action="store_true",
+            help="Used with --export or --render; uploads file to note",
+            dest="upload",
         )
 
         # Mutually exclusive options
@@ -74,15 +85,12 @@ class Project(Base):
             dest="duplicate",
         )
 
-    def _export_project(self, format="archive", filename=None):
+    def _export_project(self, format="archive", filename=None, upload=False):
         if format == "archive":
-            if not filename:
-                filename = (
-                    self.reptor.api.projects.project.name or "archive"
-                ) + ".tar.gz"
-            elif filename == "-":
-                # Write to stdout
-                filename = None
+            default_filename = (
+                self.reptor.api.projects.project.name or "archive"
+            ) + ".tar.gz"
+            filename = self._get_filename(filename, default_filename, upload)
 
             self.reptor.api.projects.export(filename=filename)
             if filename:
@@ -127,22 +135,44 @@ class Project(Base):
         project_id = duplicated_project.id
         self.success(f"Duplicated to '{project_title}' ({project_id})")
 
-    def _render_project(self, filename=None):
+    def _get_filename(self, filename, default, upload) -> typing.Tuple[str, str]:
+        if upload and (not filename or filename == "-"):
+            return "tmp", ""
         if not filename:
-            filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
-        elif filename == "-":
-            # Write to stdout
-            filename = None
-        self.reptor.api.projects.render(filename=filename)
-        if filename:
-            self.log.success(f"Exported to {filename}")
-        return
+            return "file", default
+        if filename == "-":
+            return "stdout", ""
+        return "file", filename
+
+    def _render_project(self, filename=None, upload=False):
+        # TODO: implement as context manager - also for export
+        # TODO: Address rendering errors
+        # TODO: Documentation
+        default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
+        filetype, filename = self._get_filename(filename, default_filename, upload)
+
+        with tempfile.NamedTemporaryFile(
+            buffering=DEFAULT_BUFFER_SIZE
+        ) if filetype == "tmp" else nullcontext() as f:
+            if f:
+                filename = f.name
+                self.reptor.api.projects.render(file=f)
+            else:
+                self.reptor.api.projects.render(filename=filename)
+            if upload:
+                if not f:
+                    f = open(filename, "rb")
+                f.seek(0)
+                self.reptor.api.notes.upload_file([f], filename=default_filename)
+                self.log.success(f"Uploaded to notes")
+            elif filename:
+                self.log.success(f"Exported to {filename}")
 
     def run(self):
         if self.export:
-            self._export_project(self.export, filename=self.output)
+            self._export_project(self.export, filename=self.output, upload=self.upload)
         elif self.render:
-            self._render_project(filename=self.output)
+            self._render_project(filename=self.output, upload=self.upload)
         elif self.duplicate:
             self._duplicate_project()
         else:

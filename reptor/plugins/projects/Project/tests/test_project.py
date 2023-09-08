@@ -21,6 +21,20 @@ class TestProject:
         self.project = Project(reptor=reptor)
 
     @pytest.mark.parametrize(
+        "filename,default,upload,expected",
+        [
+            ("test.pdf", "default.pdf", False, ("file", "test.pdf")),
+            (None, "default.pdf", False, ("file", "default.pdf")),
+            ("-", "default.pdf", False, ("stdout", "")),
+            ("test.pdf", "default.pdf", True, ("file", "test.pdf")),
+            (None, "default.pdf", True, ("tmp", "")),
+            ("-", "default.pdf", True, ("tmp", "")),
+        ],
+    )
+    def test_get_filename(self, filename, default, upload, expected):
+        assert self.project._get_filename(filename, default, upload) == expected
+
+    @pytest.mark.parametrize(
         "format,expected",
         [
             ("archive", b"binary-data"),

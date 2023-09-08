@@ -130,10 +130,10 @@ class NotesAPI(APIClient):
 
     def upload_file(
         self,
-        files=None,
+        files,
+        notename=None,
         filename=None,
         caption=None,
-        notename=None,
         parent_notename=None,
         icon: str = "",
         no_timestamp=False,
@@ -141,13 +141,18 @@ class NotesAPI(APIClient):
     ):
         if not files:
             return
+        if notename is None:
+            notename = "Uploads"
 
         for file in files:
             if file.name == "<stdin>":
                 self.info("Reading from stdin...")
-            else:
+            elif not filename:
                 filename = basename(file.name)
-            content = file.buffer.read()
+            try:
+                content = file.buffer.read()
+            except AttributeError:
+                content = file.read()
             if not filename:
                 filetype = guess_filetype(content) or "dat"
                 filename = f"data.{filetype}"
