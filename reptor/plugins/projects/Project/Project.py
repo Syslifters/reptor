@@ -1,5 +1,6 @@
-import pathlib
 import json
+import pathlib
+
 import toml
 import yaml
 
@@ -7,14 +8,14 @@ from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
 
 
-class Projects(Base):
+class Project(Base):
     """
-    This plugin is used to interact with the projects via the sysreptor API.
+    This plugin is used to interact with projects via the sysreptor API.
     """
 
     meta = {
-        "name": "Projects",
-        "summary": "Queries Projects from reptor.api",
+        "name": "Project",
+        "summary": "Work with projects",
     }
 
     def __init__(self, **kwargs):
@@ -22,11 +23,23 @@ class Projects(Base):
         self.search = kwargs.get("search")
         self.export = kwargs.get("export")
         self.duplicate = kwargs.get("duplicate")
+        self.output = kwargs.get("output")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         project_parser = parser.add_mutually_exclusive_group()
+        parser.add_argument(
+            "-o",
+            "-output",
+            "--output",
+            metavar="FILENAME",
+            help="Filename to store output, empty for stdout",
+            action="store",
+            default=None,
+        )
+
+        # Mutually exclusive options
         project_parser.add_argument(
             "-search",
             "--search",
@@ -53,21 +66,28 @@ class Projects(Base):
             dest="duplicate",
         )
 
-    def _export_project(self, format="archive"):
+    def _export_project(self, format="archive", filename=None):
         if format == "archive":
-            filepath = pathlib.Path().cwd()
-            file_name = filepath / f"{self.reptor.api.projects.project_id}.tar.gz"
-            self.reptor.api.projects.export(file_name=file_name)
+            self.reptor.api.projects.export(filename=filename)
+            if filename:
+                self.log.success(f"Exported to {filename}")
             return
 
-        # Get Project
         project = self.reptor.api.projects.project.to_dict()
+        output = ""
         if format == "json":
-            self.console.print(json.dumps(project, indent=2))
+            output = json.dumps(project, indent=2)
         elif format == "toml":
-            self.console.print(toml.dumps(project))
+            output = toml.dumps(project)
         elif format == "yaml":
-            self.console.print(yaml.dump(project))
+            output = yaml.dump(project)
+
+        if not filename:
+            self.console.print(output)
+        else:
+            with open(filename, "w") as f:
+                f.write(output)
+            self.log.success(f"Exported to {filename}")
 
     def _search_project(self):
         if self.search is not None:
@@ -93,11 +113,11 @@ class Projects(Base):
 
     def run(self):
         if self.export:
-            self._export_project(self.export)
+            self._export_project(self.export, filename=self.output)
         elif self.duplicate:
             self._duplicate_project()
         else:
             self._search_project()
 
 
-loader = Projects
+loader = Project

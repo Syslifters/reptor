@@ -74,11 +74,11 @@ class ProjectsAPI(APIClient):
         response = self.get(url)
         return Project(response.json())
 
-    def export(self, file_name: typing.Optional[pathlib.Path] = None):
+    def export(self, filename: typing.Optional[pathlib.Path] = None):
         """Exports a Project to a .tar.gz file locally.
 
         Args:
-            file_name (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
+            filename (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
 
         Raises:
             ValueError: Requires project_id
@@ -90,11 +90,11 @@ class ProjectsAPI(APIClient):
 
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
         data = self.post(url)
-        if file_name:
-            with open(file_name, "wb") as f:
+        if filename:
+            with open(filename, "wb") as f:
                 f.write(data.content)
         else:
-            sys.stdout.buffer.write(data.content)
+            self.console.print(data.content)
 
     def duplicate(self) -> Project:
         """Duplicates Projects
