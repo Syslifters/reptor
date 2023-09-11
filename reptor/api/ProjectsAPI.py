@@ -73,25 +73,12 @@ class ProjectsAPI(APIClient):
         response = self.get(url)
         return Project(response.json())
 
-    def export(self, filename: typing.Optional[pathlib.Path] = None):
-        """Exports a Project to a .tar.gz file locally.
-
-        Args:
-            filename (typing.Optional[pathlib.Path], optional): Local File path. Defaults to stdout.
-        """
+    def export(self) -> bytes:
+        """Exports a Project in archive format (tar.gz)"""
         url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
-        data = self.post(url)
-        if filename:
-            with open(filename, "wb") as f:
-                f.write(data.content)
-        else:
-            sys.stdout.buffer.write(data.content)
+        return self.post(url).content
 
-    def render(
-        self,
-        file: typing.Optional[typing.IO] = None,
-        filename: typing.Optional[pathlib.Path] = None,
-    ):
+    def render(self) -> bytes:
         """Renders project to PDF"""
         # Get report checks
         checks = self.check_report(group_messages=True)
@@ -101,16 +88,7 @@ class ProjectsAPI(APIClient):
 
         # Render report
         url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
-        data = self.post(url)
-        if file:
-            filename = file.name
-        if filename:
-            with open(filename, "wb") if not file else nullcontext() as f:
-                if not f:
-                    f = file
-                f.write(data.content)
-        else:
-            sys.stdout.buffer.write(data.content)
+        return self.post(url).content
 
     def check_report(self, group_messages=False) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/check")

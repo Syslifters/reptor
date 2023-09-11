@@ -60,7 +60,7 @@ class TestProjectsAPI:
         self.project.post = MagicMock(return_value=MockGenerateResponse())
         self.project.log.warning = MagicMock()
 
-        self.project.render(filename=None)
+        self.project.render()
         self.project.check_report.assert_called_once()
         self.project.post.assert_called_once()
         self.project.log.warning.assert_called_once_with(

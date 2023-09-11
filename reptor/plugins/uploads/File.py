@@ -48,16 +48,17 @@ class File(UploadBase):
         force_unlock = self.reptor.get_config().get("cli").get("force_unlock")
         no_timestamp = self.reptor.get_config().get("cli").get("no_timestamp")
 
-        self.reptor.api.notes.upload_file(
-            files=files,
-            notename=notename,
-            filename=filename,
-            caption=filename,
-            parent_notename=parent_notename,
-            no_timestamp=no_timestamp,
-            force_unlock=force_unlock,
-            icon=icon,
-        )
+        for file in files:
+            self.reptor.api.notes.upload_file(
+                file=file,
+                notename=notename,
+                filename=filename,
+                caption=filename,
+                parent_notename=parent_notename,
+                no_timestamp=no_timestamp,
+                force_unlock=force_unlock,
+                icon=icon,
+            )
 
 
 loader = File
