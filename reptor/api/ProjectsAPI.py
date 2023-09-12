@@ -7,7 +7,7 @@ from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
 from reptor.models.Finding import FindingRaw
-from reptor.models.Project import Project
+from reptor.models.Project import Project, ProjectOverview
 from reptor.models.Section import Section, SectionRaw
 
 
@@ -28,7 +28,7 @@ class ProjectsAPI(APIClient):
         self.object_endpoint = urljoin(self.base_endpoint, self.project_id)
         self.debug(self.base_endpoint)
 
-    def get_projects(self, readonly: bool = False) -> typing.List[Project]:
+    def get_projects(self, readonly: bool = False) -> typing.List[ProjectOverview]:
         """Gets list of projects
 
         Args:
@@ -43,24 +43,24 @@ class ProjectsAPI(APIClient):
         response = self.get(url)
         return_data = list()
         for item in response.json()["results"]:
-            return_data.append(Project(item))
+            return_data.append(ProjectOverview(item))
         return return_data
 
-    def search(self, search_term: Optional[str] = "") -> typing.List[Project]:
+    def search(self, search_term: Optional[str] = "") -> typing.List[ProjectOverview]:
         """Searches projects by search term and retrieves all projects that match
 
         Args:
             search_term (Optional[str], optional): Search Term to look for. Defaults to None.
 
         Returns:
-            typing.List[Project]: List of projects that match search
+            typing.List[Project]: List of project overviews (without sections, findings) that match search
         """
 
         response = self.get(f"{self.base_endpoint}?search={search_term}")
 
         return_data = list()
         for item in response.json()["results"]:
-            return_data.append(Project(item))
+            return_data.append(ProjectOverview(item))
         return return_data
 
     @cached_property

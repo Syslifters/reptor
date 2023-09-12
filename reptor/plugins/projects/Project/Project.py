@@ -142,6 +142,16 @@ class Project(Base):
 
     def _render_project(self, filename=None, upload=False):
         default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
+        if self.design:
+            # Duplicate project
+            to_project = self.reptor.api.projects.duplicate()
+            to_project_id = to_project.id
+            self.log.info(f"Duplicated project to {to_project_id}")
+            self.reptor.api.switch_project(to_project_id)
+            # Update design
+
+            # Cleanup duplicated project
+
         pdf_content = self.reptor.api.projects.render()
         self._deliver_file(pdf_content, filename, default_filename, upload)
 

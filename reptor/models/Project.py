@@ -36,3 +36,15 @@ class Project(BaseModel):
     images: str = ""
     findings: typing.List[Finding] = []
     sections: typing.List[Section] = []
+
+    def __init__(self, data: dict):
+        if isinstance(data.get("findings"), str):
+            raise ValueError("Findings should be list. Use ProjectOverview instead.")
+        if isinstance(data.get("sections"), str):
+            raise ValueError("Sections should be list. Use ProjectOverview instead.")
+        super().__init__(data)
+
+
+class ProjectOverview(Project):
+    findings: str = ""
+    sections: str = ""

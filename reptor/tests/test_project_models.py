@@ -56,6 +56,34 @@ class TestProjectModelParsing:
             "notes": "http://localhost:8000/api/v1/pentestprojects/4cf78324-8502-4fb0-936a-724892d3c539/notes",
             "images": "http://localhost:8000/api/v1/pentestprojects/4cf78324-8502-4fb0-936a-724892d3c539/images"
         }"""
+    example_project_overview = """{
+        "id": "4820bd5d-51f1-4dca-a4a4-78ba935b615c",
+        "created": "2023-08-22T09:22:26.874121Z",
+        "updated": "2023-09-08T06:25:15.574675Z",
+        "name": "Project Funghi",
+        "project_type": "5755c339-9ca7-4f83-a251-5490cfcf67e7",
+        "language": "en-US",
+        "tags": [],
+        "readonly": false,
+        "source": "created",
+        "copy_of": null,
+        "override_finding_order": false,
+        "members": [],
+        "imported_members": [],
+        "details": "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c",
+        "findings": "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/findings",
+        "sections": "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/sections",
+        "notes": "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/notes",
+        "images": "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/images"
+    }"""
+
+    def test_project_overview_parsing(self):
+        api_test_data = json.loads(self.example_project_overview)
+        test_project = Project(api_test_data)
+        assert test_project.id == "4820bd5d-51f1-4dca-a4a4-78ba935b615c"
+        assert test_project.name == "Project Funghi"
+        assert not test_project.sections
+        assert not test_project.findings
 
     def test_project_parsing(self):
         api_test_data = json.loads(self.example_project)
@@ -84,7 +112,7 @@ class TestProjectModelParsing:
             test_project.findings[0].data.title.value
             == "Reflected Cross-Site Scripting (XSS)"
         )
-        assert test_project.sections[0].data.title.value == "Test"
+        assert test_project.sections[0].data.title.value == "Test"  # type: ignore
 
         assert (
             test_project_dict["findings"][0]["data"]["title"]

@@ -186,7 +186,7 @@ class Translate(Base):
             target_lang=self.to_lang,
             preserve_formatting=True,
         )
-        return result.text
+        return result.text  # type: ignore
 
     def _translate_section(
         self, section: Union[Finding, Section]
