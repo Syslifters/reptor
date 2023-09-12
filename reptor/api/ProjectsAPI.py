@@ -1,10 +1,9 @@
-import pathlib
 import typing
-from contextlib import nullcontext
 from functools import cached_property
 from posixpath import join as urljoin
 from typing import Optional
-import sys
+
+from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
 from reptor.models.Finding import FindingRaw
@@ -88,7 +87,18 @@ class ProjectsAPI(APIClient):
 
         # Render report
         url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
-        return self.post(url).content
+        try:
+            return self.post(url).content
+        except HTTPError as e:
+            try:
+                for msg in e.response.json().get("messages", []):
+                    if msg.get("level") == "error":
+                        self.log.error(msg.get("message"))
+                    elif msg.get("level") == "warning":
+                        self.log.warning(msg.get("message"))
+            except Exception:
+                pass
+            raise e
 
     def check_report(self, group_messages=False) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/check")

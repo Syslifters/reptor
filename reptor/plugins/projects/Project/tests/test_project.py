@@ -112,13 +112,14 @@ class TestProject:
         )
         self.project.reptor.api.projects.project = MagicMock()
         self.project.reptor.api.projects.project.name = "error-project"
-        self.project.log.error = MagicMock()
-        self.project.log.warning = MagicMock()
+        self.project.reptor.api.projects.log.error = MagicMock()
+        self.project.reptor.api.projects.log.warning = MagicMock()
 
         # Assert rendering errors are logged
-        self.project._render_project()
-        self.project.log.error.assert_called_once()
-        self.project.log.warning.assert_called_once()
+        with pytest.raises(HTTPError):
+            self.project._render_project()
+        self.project.reptor.api.projects.log.error.assert_called_once()
+        self.project.reptor.api.projects.log.warning.assert_called_once()
 
         # Assert reraise if no json message
         exception.response.json = MagicMock(side_effect=NotImplementedError)

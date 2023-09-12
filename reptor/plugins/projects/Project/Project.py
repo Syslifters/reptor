@@ -25,6 +25,7 @@ class Project(Base):
         self.search: typing.Optional[str] = kwargs.get("search")
         self.export: typing.Optional[str] = kwargs.get("export")
         self.render: bool = kwargs.get("render", False)
+        self.design: typing.Optional[str] = kwargs.get("design")
         self.upload: bool = kwargs.get("upload", False)
         self.duplicate: bool = kwargs.get("duplicate", False)
         self.output: typing.Optional[str] = kwargs.get("output")
@@ -33,23 +34,6 @@ class Project(Base):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         project_parser = parser.add_mutually_exclusive_group()
-        parser.add_argument(
-            "-o",
-            "-output",
-            "--output",
-            metavar="FILENAME",
-            help="Filename to store output, empty for stdout",
-            action="store",
-            default=None,
-        )
-        parser.add_argument(
-            "-upload",
-            "--upload",
-            action="store_true",
-            help="Used with --export or --render; uploads file to note",
-            dest="upload",
-        )
-
         # Mutually exclusive options
         project_parser.add_argument(
             "-search",
@@ -82,6 +66,33 @@ class Project(Base):
             help="Duplicate project",
             action="store_true",
             dest="duplicate",
+        )
+
+        # Additional options
+        parser.add_argument(
+            "-o",
+            "-output",
+            "--output",
+            metavar="FILENAME",
+            help="Filename to store output, empty for stdout",
+            action="store",
+            default=None,
+        )
+        parser.add_argument(
+            "-d",
+            "-design",
+            "--design",
+            metavar="DESIGN ID",
+            help="Render project with alternative design",
+            action="store",
+            default=None,
+        )
+        parser.add_argument(
+            "-upload",
+            "--upload",
+            action="store_true",
+            help="Used with --export or --render; uploads file to note",
+            dest="upload",
         )
 
     def _export_project(self, format="archive", filename=None, upload=False):
@@ -130,20 +141,8 @@ class Project(Base):
         self.success(f"Duplicated to '{project_title}' ({project_id})")
 
     def _render_project(self, filename=None, upload=False):
-        # TODO: Documentation
         default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
-        try:
-            pdf_content = self.reptor.api.projects.render()
-        except HTTPError as e:
-            try:
-                for msg in e.response.json().get("messages", []):
-                    if msg.get("level") == "error":
-                        self.log.error(msg.get("message"))
-                    elif msg.get("level") == "warning":
-                        self.log.warning(msg.get("message"))
-            except Exception:
-                raise e
-            return
+        pdf_content = self.reptor.api.projects.render()
         self._deliver_file(pdf_content, filename, default_filename, upload)
 
     def run(self):
