@@ -469,6 +469,7 @@ class ToolBase(Base):
                     finding = Finding(
                         template_dict,
                         project_design=project_design,
+                        force_compatible=True,
                     )
                 except IncompatibleDesignException:
                     self.log.info(

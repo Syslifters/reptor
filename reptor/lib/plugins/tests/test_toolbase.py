@@ -85,7 +85,7 @@ class TestToolbase(TestCaseToolPlugin):
         assert not self.reptor.api.projects.create_finding.called
 
         # Assert finding is pushed if no finding from same template exists
-        finding = Finding({"template": "12345"})
+        finding = Finding({"template": "12345"}, force_compatible=True)
         self.reptor.api.templates.search = Mock(return_value=[finding])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
         self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
@@ -100,7 +100,7 @@ class TestToolbase(TestCaseToolPlugin):
 
         # Assert finding is not pushed if finding from same template exists
         finding_raw = FindingRaw({"template": "12345"})
-        finding = Finding(finding_raw)
+        finding = Finding(finding_raw, force_compatible=True)
         self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
         self.reptor.api.templates.search = Mock(return_value=[finding])
