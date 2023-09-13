@@ -9,8 +9,6 @@ reptor translate -to DE --skip-fields recommendation,summary
 Make sure you installed the correct dependency by using `pip install reptor[translate]` or `pip install reptor[all]`.
 
 ## Configuration
-Run `reptor conf` to setup your initial configuration.
-
 The translate module needs additional configurations, which you can add to `~/.sysreptor/config.yaml`:
 
 ```
@@ -27,8 +25,3 @@ translate:
 ```
 --8<-- "docs/cli/help-messages/translate"
 ```
-
-
-
-
-
