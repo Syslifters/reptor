@@ -91,7 +91,7 @@ class Finding(FindingRaw):
         self,
         raw: typing.Union[FindingRaw, typing.Dict],
         project_design: typing.Optional[ProjectDesign] = None,
-        force_compatible: bool = True,
+        force_compatible: bool = False,
     ):
         if project_design is None:
             project_design = ProjectDesign()

@@ -80,7 +80,6 @@ class Project(Base):
             default=None,
         )
         parser.add_argument(
-            "-d",
             "-design",
             "--design",
             metavar="DESIGN ID",

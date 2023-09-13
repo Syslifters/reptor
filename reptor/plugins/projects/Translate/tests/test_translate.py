@@ -85,7 +85,7 @@ class TestTranslate:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_finding_fields_only)
         )
-        self.finding = Finding(finding_raw, project_design=project_design)
+        self.finding = Finding(finding_raw, project_design=project_design, force_compatible=True)
 
     def test_translate(self):
         assert self.translate.chars_count_to_translate == 0

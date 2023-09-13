@@ -129,10 +129,12 @@ class TestFindingModelParsing:
         with pytest.raises(IncompatibleDesignException):
             Finding(finding_raw, force_compatible=True)
         with pytest.raises(IncompatibleDesignException):
-            Finding(finding_raw)
+            Finding(finding_raw, force_compatible=True)
 
     def test_finding_unwanted_casting(self):
-        finding = Finding(json.loads(self.finding_with_predefined_fields))
+        finding = Finding(
+            json.loads(self.finding_with_predefined_fields), force_compatible=True
+        )
         assert isinstance(finding, Finding)
         assert isinstance(finding.data, FindingData)
         assert isinstance(finding.data.title, FindingDataField)
@@ -142,7 +144,9 @@ class TestFindingModelParsing:
         assert isinstance(finding.data.title, FindingDataField)
 
     def test_finding_without_design_from_dict(self):
-        finding = Finding(json.loads(self.finding_with_predefined_fields))
+        finding = Finding(
+            json.loads(self.finding_with_predefined_fields), force_compatible=True
+        )
         assert finding.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
         assert finding.data.title.value == "Test"
         finding.data.title.value = "New"
@@ -226,7 +230,9 @@ class TestFindingModelParsing:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_finding_fields_only)
         )
-        finding = Finding(finding_raw, project_design=project_design)
+        finding = Finding(
+            finding_raw, project_design=project_design, force_compatible=True
+        )
         assert finding.id == "d3658ee5-2d43-40f6-9b97-1b98480afe78"
         assert finding.data.boolean_field.value == True
         assert finding.data.boolean_field.type == "boolean"
