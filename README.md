@@ -55,9 +55,9 @@ subcommands:
   other:
   importers             Show importers to use to import finding templates
   plugins               Allows plugin management & development
-  projects              Queries Projects from reptor.api
-  templates             Queries Finding Templates from reptor.api
+  project               Work with projects
   translate             Translate Projects to other languages via Deepl
+  template              Queries Finding Templates from reptor.api
 
 configuration:
   -s SERVER, --server SERVER
