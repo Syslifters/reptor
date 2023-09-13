@@ -111,6 +111,8 @@ class Reptor:
 
     @property
     def api(self) -> APIManager:
+        if not self._api:
+            self._api = APIManager(reptor=self)
         return self._api
 
     def _create_parsers(self):

@@ -1,4 +1,3 @@
-
 from .NotesAPI import NotesAPI
 from .ProjectDesignsAPI import ProjectDesignsAPI
 from .ProjectsAPI import ProjectsAPI
@@ -28,13 +27,6 @@ class APIManager:
                 reptor=self._reptor, project_id=self._project_id
             )
         return self._projects
-
-    def switch_project(self, new_project_id) -> None:
-        self._project_id = new_project_id
-        self._projects = None
-        self._notes = None
-        self._project_designs = None
-        self._templates = None
 
     @property
     def project_designs(self) -> ProjectDesignsAPI:

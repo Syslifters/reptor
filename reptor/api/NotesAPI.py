@@ -52,7 +52,12 @@ class NotesAPI(APIClient):
         return notes
 
     def create_note(
-        self, title="CLI Note", parent_id: str = "", order=None, checked=None, icon=None
+        self,
+        title="CLI Note",
+        parent_id: typing.Optional[str] = None,
+        order=None,
+        checked=None,
+        icon=None,
     ) -> Note:
         self.debug("Creating Note")
         note = self.post(
@@ -76,9 +81,9 @@ class NotesAPI(APIClient):
     def write_note(
         self,
         content: str,
-        notename: str = "",
-        parent_notename: str = "",
-        icon: str = "",
+        notename: str = "Uploads",
+        parent_notename: typing.Optional[str] = None,
+        icon: typing.Optional[str] = None,
         no_timestamp: bool = False,
         force_unlock: bool = False,
     ):
@@ -87,7 +92,7 @@ class NotesAPI(APIClient):
         )
         self.debug(f"Working with note: {note.id}")
 
-        with self._auto_lock_note(note.id, force_unlock=force_unlock):
+        with self._lock_note(note.id, force_unlock=force_unlock):
             note_text = note.text + "\n\n"
             if not no_timestamp:
                 note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
@@ -130,73 +135,78 @@ class NotesAPI(APIClient):
 
     def upload_file(
         self,
-        files=None,
-        filename=None,
-        caption=None,
-        notename=None,
-        parent_notename=None,
-        icon: str = "",
-        no_timestamp=False,
-        force_unlock=False,
+        file: typing.Optional[typing.IO] = None,
+        content: typing.Optional[bytes] = None,
+        notename: typing.Optional[str] = None,
+        filename: typing.Optional[str] = None,
+        caption: typing.Optional[str] = None,
+        parent_notename: typing.Optional[str] = None,
+        icon: typing.Optional[str] = None,
+        no_timestamp: bool = False,
+        force_unlock: bool = False,
     ):
-        if not files:
-            return
+        assert file or content
+        assert not (file and content)
+        if notename is None:
+            notename = "Uploads"
 
-        for file in files:
+        if file:
             if file.name == "<stdin>":
-                self.info("Reading from stdin...")
-            else:
+                self.display("Reading from stdin...")
+            elif not filename:
                 filename = basename(file.name)
-            content = file.buffer.read()
+            # TODO this might be streamed to not load entire file to memory
+            try:
+                content = file.buffer.read()  # type: ignore
+            except AttributeError:
+                content = file.read()
             if not filename:
                 filetype = guess_filetype(content) or "dat"
                 filename = f"data.{filetype}"
 
             if not content:
                 self.warning(f"{file.name} is empty. Will not upload.")
-                continue
+                return
 
-            # Lock during upload to prevent unnecessary uploads and for endpoint setup
-            note = self.get_note_by_title(notename, parent_notename=parent_notename)
-            if self.personal_note:
-                url = urljoin(self.base_endpoint, "upload/")
+        # Lock during upload to prevent unnecessary uploads and for endpoint setup
+        note = self.get_note_by_title(notename, parent_notename=parent_notename)
+        if self.personal_note:
+            url = urljoin(self.base_endpoint, "upload/")
+        else:
+            url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
+        with self._lock_note(note.id, force_unlock=force_unlock):
+            response_json = self.post(
+                url, files={"file": (filename, content)}, json_content=False
+            ).json()
+            is_image = True if response_json.get("resource_type") == "image" else False
+            if is_image:
+                file_path = f"/images/name/{response_json['name']}"
+                note_content = f"\n![{caption or filename}]({file_path})"
             else:
-                url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
-            with self._auto_lock_note(note.id, force_unlock=force_unlock):
-                # TODO this might be streamed
-                files = {"file": (filename, content)}
-                response_json = self.post(url, files=files, json_content=False).json()
-                is_image = (
-                    True if response_json.get("resource_type") == "image" else False
-                )
-                if is_image:
-                    file_path = f"/images/name/{response_json['name']}"
-                    note_content = f"\n![{caption or filename}]({file_path})"
-                else:
-                    file_path = f"/files/name/{response_json['name']}"
-                    note_content = f"\n[{caption or filename}]({file_path})"
+                file_path = f"/files/name/{response_json['name']}"
+                note_content = f"\n[{caption or filename}]({file_path})"
 
-                self.write_note(
-                    notename=notename,
-                    content=note_content,
-                    parent_notename=parent_notename,
-                    icon=icon,
-                    no_timestamp=no_timestamp,
-                    force_unlock=True,
-                )
+            self.write_note(
+                notename=notename,
+                content=note_content,
+                parent_notename=parent_notename,
+                icon=icon,
+                no_timestamp=no_timestamp,
+                force_unlock=True,
+            )
 
-    def _lock_note(self, note_id: str):
+    def _do_lock(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "lock/")
         return self.post(url)
 
-    def _unlock_note(self, note_id: str):
+    def _do_unlock(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "unlock/")
         return self.post(url)
 
     @contextlib.contextmanager
-    def _auto_lock_note(self, note_id: str, force_unlock: bool = False):
+    def _lock_note(self, note_id: str, force_unlock: bool = False):
         try:
-            r = self._lock_note(note_id)
+            r = self._do_lock(note_id)
         except HTTPError as e:
             if e.response.status_code == 403:
                 locked_by = (
@@ -218,4 +228,4 @@ class NotesAPI(APIClient):
 
         yield
 
-        self._unlock_note(note_id)
+        self._do_unlock(note_id)

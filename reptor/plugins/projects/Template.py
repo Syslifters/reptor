@@ -2,13 +2,13 @@ from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
 
 
-class Templates(Base):
+class Template(Base):
     """
-    Work with the finding templates.
+    Work with finding templates.
     """
 
     meta = {
-        "name": "Templates",
+        "name": "Template",
         "summary": "Queries Finding Templates from reptor.api",
     }
 
@@ -44,4 +44,4 @@ class Templates(Base):
         self.console.print(table)
 
 
-loader = Templates
+loader = Template

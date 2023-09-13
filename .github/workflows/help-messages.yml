@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
 env:
-  plugins: 'nmap nikto zap sslyze file note projects templates translate ghostwriter projects finding'
+  plugins: 'nmap nikto zap sslyze file note project templates translate ghostwriter finding'
 jobs:
   help-messages:
     runs-on: ubuntu-latest

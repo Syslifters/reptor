@@ -6,23 +6,9 @@ from reptor.models.Section import Section
 from reptor.models.User import User
 
 
-class Project(BaseModel):
-    """
-    Attributes:
-        name:
-        project_type:
-        language:
-        tags:
-        readonly:
-        source:
-        copy_of:
-        members:
-    """
-
+class ProjectBase(BaseModel):
     name: str = ""
-
     project_type: str = ""  # is the project design id
-
     language: str = ""
     tags: typing.List[str] = []
     readonly: bool = False
@@ -34,5 +20,27 @@ class Project(BaseModel):
     details: str = ""
     notes: str = ""
     images: str = ""
+
+
+class Project(ProjectBase):
     findings: typing.List[Finding] = []
     sections: typing.List[Section] = []
+
+    def __init__(self, data: dict):
+        if isinstance(data.get("findings"), str):
+            raise ValueError("Findings should be list. Use ProjectOverview instead.")
+        if isinstance(data.get("sections"), str):
+            raise ValueError("Sections should be list. Use ProjectOverview instead.")
+        super().__init__(data)
+
+
+class ProjectOverview(ProjectBase):
+    findings: str = ""
+    sections: str = ""
+
+    def __init__(self, data: dict):
+        if isinstance(data.get("findings"), list):
+            raise ValueError("Findings should be str. Use Project instead.")
+        if isinstance(data.get("sections"), list):
+            raise ValueError("Sections should be str. Use Project instead.")
+        super().__init__(data)

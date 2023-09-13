@@ -186,7 +186,7 @@ class Translate(Base):
             target_lang=self.to_lang,
             preserve_formatting=True,
         )
-        return result.text
+        return result.text  # type: ignore
 
     def _translate_section(
         self, section: Union[Finding, Section]
@@ -211,7 +211,7 @@ class Translate(Base):
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
             # Switch project to update duplicated project instead of original
-            self.reptor.api.switch_project(to_project_id)
+            self.reptor.api.projects.switch_project(to_project_id)
 
             try:
                 data = {"name": self._translate(project_title)}
@@ -229,7 +229,7 @@ class Translate(Base):
         if self.dry_run:
             self._translate = self._dry_run_translate
 
-        project = self.reptor.api.projects.get_project()
+        project = self.reptor.api.projects.project
         self._duplicate_and_update_project(project_title=project.name)
 
         self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")

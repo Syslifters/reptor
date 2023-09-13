@@ -97,8 +97,7 @@ class ReptorAdapter(logging.LoggerAdapter):
         """
         Prints a completely yellow highlighted message to the user
         """
-        msg, kwargs = self._format(
-            f"{colored(msg, 'yellow', attrs=['bold'])}", kwargs)
+        msg, kwargs = self._format(f"{colored(msg, 'yellow', attrs=['bold'])}", kwargs)
         text = Text.from_ansi(msg)
         reptor_console.print(text, *args, **kwargs)
         self._log_console_to_file(text, *args, **kwargs)

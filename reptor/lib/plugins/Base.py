@@ -31,7 +31,7 @@ class Base:
         self.file_path = kwargs.get("file", "")
         self.reptor = kwargs.get("reptor", None)
 
-        plugin_name = self.__class__.__name__.lower()            
+        plugin_name = self.__class__.__name__.lower()
         for plugin_config_key in self.reptor.get_config().get_config_keys(
             plugin=plugin_name
         ):
@@ -95,6 +95,37 @@ class Base:
             Console: rich console
         """
         return reptor_console
+
+    def deliver_file(
+        self,
+        content: bytes,
+        filename: typing.Optional[str],
+        default_filename: typing.Optional[str],
+        upload: bool = False,
+    ) -> None:
+        if filename == "-":
+            # Write to stdout
+            filename = None
+            sys.stdout.buffer.write(content)
+        elif not filename and not upload:
+            # Set default filename
+            filename = default_filename
+
+        if filename:
+            with open(filename, "wb") as f:
+                f.write(content)
+            self.log.success(f"Exported to {filename}")
+
+        if upload:
+            filename = filename or default_filename
+            notename = "Uploads"
+            self.reptor.api.notes.upload_file(
+                content=content, filename=filename, notename=notename
+            )
+            self.log.success(f'Uploaded "{filename}" to "{notename}" note')
+
+    def print(self, *args, **kwargs):
+        print(*args, **kwargs)
 
     def success(self, msg, *args, **kwargs):
         """Use this to print Green text by default. You can change colors etc.

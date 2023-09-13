@@ -80,81 +80,81 @@ class TestNotesAPI:
     def _mock_methods(self):
         self.notes.get_note_by_title = MagicMock(return_value=Note(self.test_note))
         self.notes.put = MagicMock(return_value=self.MockResponse("", 201))
-        self.notes._unlock_note = MagicMock(return_value=self.MockResponse("", 200))
+        self.notes._do_unlock = MagicMock(return_value=self.MockResponse("", 200))
 
     def test_write_notes_lock(self):
         # Note locked by self user without force_unlock
         self._mock_methods()
-        self.notes._lock_note = MagicMock(
+        self.notes._do_lock = MagicMock(
             return_value=self.MockResponse(self.locked_note, 200)
         )
         with pytest.raises(LockedException):
             self.notes.write_note("content", force_unlock=False)
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
-        assert self.notes._unlock_note.call_count == 0
+        assert self.notes._do_unlock.call_count == 0
 
         # Note locked by self user with force_unlock
         self._mock_methods()
-        self.notes._lock_note = MagicMock(
+        self.notes._do_lock = MagicMock(
             return_value=self.MockResponse(self.locked_note, 200)
         )
         self.notes.write_note("content", force_unlock=True)
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
-        assert self.notes._unlock_note.call_count == 1
+        assert self.notes._do_unlock.call_count == 1
 
         # Note unlocked without force_unlock
         self._mock_methods()
-        self.notes._lock_note = MagicMock(
+        self.notes._do_lock = MagicMock(
             return_value=self.MockResponse(self.locked_note, 201)
         )
         self.notes.write_note("content", force_unlock=False)
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
-        assert self.notes._unlock_note.call_count == 1
+        assert self.notes._do_unlock.call_count == 1
 
         # Note unlocked with force_unlock
         self._mock_methods()
-        self.notes._lock_note = MagicMock(
+        self.notes._do_lock = MagicMock(
             return_value=self.MockResponse(self.locked_note, 201)
         )
         self.notes.write_note("content", force_unlock=True)
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
-        assert self.notes._unlock_note.call_count == 1
+        assert self.notes._do_unlock.call_count == 1
 
         # Note locked by other user without force_unlock
         self._mock_methods()
         exception = HTTPError("Raise for status 403")
         exception.response = self.MockResponse(self.locked_note, 403)
-        self.notes._lock_note = MagicMock(side_effect=exception)
+        self.notes._do_lock = MagicMock(side_effect=exception)
 
         with pytest.raises(LockedException) as e:
             self.notes.write_note("content", force_unlock=False)
         assert str(e.value) == "Cannot unlock. Locked by @timmi."
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
-        assert self.notes._unlock_note.call_count == 0
+        assert self.notes._do_unlock.call_count == 0
 
         # Note locked by other user with force_unlock
         self._mock_methods()
         exception = HTTPError("Raise for status 403")
         exception.response = self.MockResponse(self.locked_note, 403)
-        self.notes._lock_note = MagicMock(side_effect=exception)
+        self.notes._do_lock = MagicMock(side_effect=exception)
 
         with pytest.raises(LockedException) as e:
             self.notes.write_note("content", force_unlock=True)
         assert str(e.value) == "Cannot unlock. Locked by @timmi."
         assert self.notes.get_note_by_title.call_count == 1
-        assert self.notes._lock_note.call_count == 1
+        assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
-        assert self.notes._unlock_note.call_count == 0
+        assert self.notes._do_unlock.call_count == 0
 
     def test_notes_api_init(self):
         # Test valid personal note

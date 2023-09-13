@@ -60,6 +60,9 @@ class APIClient:
         """
         return reptor_console
 
+    def print(self, *args, **kwargs):
+        print(*args, **kwargs)
+
     def success(self, msg, *args, **kwargs):
         """Use this to print Green text by default. You can change colors etc.
 
@@ -208,6 +211,25 @@ class APIClient:
             url,
             headers=self._get_headers(),
             json=data,
+            verify=self.verify,
+        )
+        self.debug(f"Received response: {response.content}")
+        response.raise_for_status()
+        return response
+
+    def delete(self, url: str) -> requests.models.Response:
+        """Sends a delete request
+
+        Args:
+            url (str): Endpoint URL
+
+        Returns:
+            requests.models.Response: Returns requests Response Object
+        """
+        self.debug(f"DELETE URL:{url}")
+        response = requests.delete(
+            url,
+            headers=self._get_headers(),
             verify=self.verify,
         )
         self.debug(f"Received response: {response.content}")
