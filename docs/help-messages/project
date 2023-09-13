@@ -1,0 +1,20 @@
+usage: reptor project [-h]
+                      [-search SEARCHTERM | -export {archive,json,toml,yaml} | -render | -duplicate]
+                      [-o FILENAME] [-d DESIGN ID] [-upload]
+
+Work with projects
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -search SEARCHTERM, --search SEARCHTERM
+                        Search for term
+  -export {archive,json,toml,yaml}, --export {archive,json,toml,yaml}
+                        Export project
+  -render, --render     Render project
+  -duplicate, --duplicate
+                        Duplicate project
+  -o FILENAME, -output FILENAME, --output FILENAME
+                        Filename to store output, empty for stdout
+  -d DESIGN ID, -design DESIGN ID, --design DESIGN ID
+                        Render project with alternative design
+  -upload, --upload     Used with --export or --render; uploads file to note
