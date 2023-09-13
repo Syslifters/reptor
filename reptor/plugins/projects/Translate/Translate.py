@@ -229,7 +229,7 @@ class Translate(Base):
         if self.dry_run:
             self._translate = self._dry_run_translate
 
-        project = self.reptor.api.projects.get_project()
+        project = self.reptor.api.projects.project
         self._duplicate_and_update_project(project_title=project.name)
 
         self.display(f"Translating findings{' (dry run)' if self.dry_run else ''}.")
