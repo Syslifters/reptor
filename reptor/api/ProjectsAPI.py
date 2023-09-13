@@ -1,4 +1,5 @@
 import typing
+from contextlib import contextmanager
 from functools import cached_property
 from posixpath import join as urljoin
 from typing import Optional
@@ -14,6 +15,9 @@ from reptor.models.Section import Section, SectionRaw
 class ProjectsAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        self._init_attrs()
+
+    def _init_attrs(self) -> None:
         self.project_design = None
 
         if not (server := self.reptor.get_config().get_server()):
@@ -112,6 +116,10 @@ class ProjectsAPI(APIClient):
             return grouped
         return data
 
+    def delete_project(self) -> None:
+        url = self.object_endpoint
+        self.delete(url)
+
     def duplicate(self) -> Project:
         """Duplicates Projects
 
@@ -121,6 +129,25 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
         duplicated_project = self.post(url).json()
         return Project(duplicated_project)
+
+    @contextmanager
+    def duplicate_and_cleanup(self):
+        original_project_id = self.project_id
+        duplicated_project = self.duplicate()
+        self.switch_project(duplicated_project.id)
+        self.log.info(f"Duplicated project to {duplicated_project.id}")
+
+        yield
+
+        self.delete_project()
+        self.switch_project(original_project_id)
+        self.log.info(f"Cleaned up duplicated project")
+
+    def switch_project(self, new_project_id) -> None:
+        self.reptor._config._raw_config["project_id"] = new_project_id
+        self.project_id = new_project_id
+        self._init_attrs()
+        self.reptor._api = None
 
     def get_sections(self) -> typing.List[Section]:
         """Gets all sections of a project
@@ -175,6 +202,16 @@ class ProjectsAPI(APIClient):
     def update_project(self, data: dict) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
         return Project(self.patch(url, data).json())
+
+    def update_project_design(self, design_id, force=False) -> Project:
+        data = {
+            "project_type": design_id,
+            "force_change_project_type": True if force else False,
+        }
+        try:
+            return self.update_project(data)
+        except HTTPError as e:
+            raise(HTTPError(e.response.text))
 
     def get_enabled_language_codes(
         self,

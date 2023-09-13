@@ -1,7 +1,8 @@
 import json
+import pytest
 
 from reptor.models.Finding import Finding
-from reptor.models.Project import Project
+from reptor.models.Project import Project, ProjectOverview
 from reptor.models.Section import Section
 from reptor.models.User import User
 
@@ -79,11 +80,20 @@ class TestProjectModelParsing:
 
     def test_project_overview_parsing(self):
         api_test_data = json.loads(self.example_project_overview)
-        test_project = Project(api_test_data)
+        with pytest.raises(ValueError):
+            Project(api_test_data)
+
+        test_project = ProjectOverview(api_test_data)
         assert test_project.id == "4820bd5d-51f1-4dca-a4a4-78ba935b615c"
         assert test_project.name == "Project Funghi"
-        assert not test_project.sections
-        assert not test_project.findings
+        assert (
+            test_project.sections
+            == "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/sections"
+        )
+        assert (
+            test_project.findings
+            == "https://syslifters.sysre.pt/api/v1/pentestprojects/4820bd5d-51f1-4dca-a4a4-78ba935b615c/findings"
+        )
 
     def test_project_parsing(self):
         api_test_data = json.loads(self.example_project)

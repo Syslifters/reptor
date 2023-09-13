@@ -42,7 +42,7 @@ class TestProject:
         ],
     )
     def test_export_archive(self, filename, upload, expected):
-        self.project._deliver_file = MagicMock()
+        self.project.deliver_file = MagicMock()
         archive_data = b"binary-data"
         self.project.reptor.api.projects.export = MagicMock(return_value=archive_data)
         self.project.reptor.api.projects.project = MagicMock()
@@ -50,7 +50,7 @@ class TestProject:
 
         self.project._export_project(format="archive", filename=filename, upload=upload)
 
-        self.project._deliver_file.assert_called_once_with(*expected)
+        self.project.deliver_file.assert_called_once_with(*expected)
 
     @pytest.mark.parametrize(
         "format,expected",
@@ -70,15 +70,15 @@ class TestProject:
             return_value={"a": "b"}
         )
         self.project.reptor.api.projects.project.name = "my-project"
-        self.project._deliver_file = MagicMock()
+        self.project.deliver_file = MagicMock()
         self.project.reptor.api.projects.post = MagicMock(return_value=MockResponse())
 
         with pytest.raises(ValueError) if format == "unknown" else nullcontext():
             assert self.project._export_project(format=format, filename=None) is None
         if format != "unknown":
-            self.project._deliver_file.assert_called_once_with(*expected)
+            self.project.deliver_file.assert_called_once_with(*expected)
         else:
-            self.project._deliver_file.assert_not_called()
+            self.project.deliver_file.assert_not_called()
 
     def test_render_error(self):
         class MockResponse:
@@ -134,7 +134,7 @@ class TestProject:
         self.project.reptor.api.notes.upload_file = MagicMock()
 
         # Stdout, no upload
-        self.project._deliver_file(
+        self.project.deliver_file(
             content, filename="-", default_filename=default_filename, upload=False
         )
         sys.stdout.buffer.write.assert_called_once_with(content)
@@ -142,7 +142,7 @@ class TestProject:
 
         # Stdout, upload
         sys.stdout.buffer.write = MagicMock()
-        self.project._deliver_file(
+        self.project.deliver_file(
             content, filename="-", default_filename=default_filename, upload=True
         )
         sys.stdout.buffer.write.assert_called_once_with(content)
@@ -155,7 +155,7 @@ class TestProject:
         with patch("builtins.open", m, create=True):
             sys.stdout.buffer.write = MagicMock()
             self.project.reptor.api.notes.upload_file = MagicMock()
-            self.project._deliver_file(
+            self.project.deliver_file(
                 content,
                 filename=filename,
                 default_filename=default_filename,
@@ -172,7 +172,7 @@ class TestProject:
         with patch("builtins.open", m, create=True):
             sys.stdout.buffer.write = MagicMock()
             self.project.reptor.api.notes.upload_file = MagicMock()
-            self.project._deliver_file(
+            self.project.deliver_file(
                 content,
                 filename=filename,
                 default_filename=default_filename,
@@ -191,7 +191,7 @@ class TestProject:
         with patch("builtins.open", m, create=True):
             sys.stdout.buffer.write = MagicMock()
             self.project.reptor.api.notes.upload_file = MagicMock()
-            self.project._deliver_file(
+            self.project.deliver_file(
                 content,
                 filename=None,
                 default_filename=default_filename,
@@ -201,6 +201,4 @@ class TestProject:
             self.project.reptor.api.notes.upload_file.assert_called_once_with(
                 content=content, filename=default_filename, notename="Uploads"
             )
-            m.assert_called_once_with(default_filename, "wb")
-            handle = m()
-            handle.write.assert_called_once_with(content)
+            m.assert_not_called()

@@ -1,7 +1,6 @@
 import json
-from requests.exceptions import HTTPError
 import typing
-
+from contextlib import nullcontext
 
 import toml
 import yaml
@@ -25,7 +24,9 @@ class Project(Base):
         self.search: typing.Optional[str] = kwargs.get("search")
         self.export: typing.Optional[str] = kwargs.get("export")
         self.render: bool = kwargs.get("render", False)
-        self.design: typing.Optional[str] = kwargs.get("design")
+        self.design: typing.Optional[str]
+        self.design = kwargs.get("design") or getattr(self, "design", None)
+        self.design = None if self.design == "-" else self.design
         self.upload: bool = kwargs.get("upload", False)
         self.duplicate: bool = kwargs.get("duplicate", False)
         self.output: typing.Optional[str] = kwargs.get("output")
@@ -99,7 +100,7 @@ class Project(Base):
         default_filename = self.reptor.api.projects.project.name or "project"
         if format == "archive":
             archive_content = self.reptor.api.projects.export()
-            self._deliver_file(
+            self.deliver_file(
                 archive_content, filename, default_filename + ".tar.gz", upload
             )
             return
@@ -114,7 +115,7 @@ class Project(Base):
             output = yaml.dump(project)
         else:
             raise ValueError(f"Unknown format: {format}")
-        self._deliver_file(
+        self.deliver_file(
             output.encode(), filename, f"{default_filename}.{format}", upload
         )
 
@@ -142,18 +143,12 @@ class Project(Base):
 
     def _render_project(self, filename=None, upload=False):
         default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
-        if self.design:
-            # Duplicate project
-            to_project = self.reptor.api.projects.duplicate()
-            to_project_id = to_project.id
-            self.log.info(f"Duplicated project to {to_project_id}")
-            self.reptor.api.switch_project(to_project_id)
+        with self.reptor.api.projects.duplicate_and_cleanup() if self.design else nullcontext():
             # Update design
-
-            # Cleanup duplicated project
-
-        pdf_content = self.reptor.api.projects.render()
-        self._deliver_file(pdf_content, filename, default_filename, upload)
+            if self.design:
+                self.reptor.api.projects.update_project_design(self.design, force=True)
+            pdf_content = self.reptor.api.projects.render()
+        self.deliver_file(pdf_content, filename, default_filename, upload)
 
     def run(self):
         if self.export:

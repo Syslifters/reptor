@@ -96,7 +96,7 @@ class Base:
         """
         return reptor_console
 
-    def _deliver_file(
+    def deliver_file(
         self,
         content: bytes,
         filename: typing.Optional[str],
@@ -107,7 +107,7 @@ class Base:
             # Write to stdout
             filename = None
             sys.stdout.buffer.write(content)
-        elif not filename:
+        elif not filename and not upload:
             # Set default filename
             filename = default_filename
 
