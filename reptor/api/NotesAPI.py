@@ -74,6 +74,10 @@ class NotesAPI(APIClient):
             self.set_icon(note.get("id"), icon)
         return Note(note)
 
+    def delete_note(self, notes_id: str):
+        url = urljoin(self.base_endpoint, f"{notes_id}/")
+        self.delete(url)
+
     def set_icon(self, notes_id: str, icon: str):
         url = urljoin(self.base_endpoint, f"{notes_id}/")
         self.put(url, {"icon_emoji": icon})
@@ -122,7 +126,7 @@ class NotesAPI(APIClient):
             parent_id = note.id
         notes_list = self.get_notes()
 
-        for note in reversed(notes_list):
+        for note in notes_list:
             if note.title == title and note.parent == parent_id:
                 break
         else:

@@ -178,7 +178,10 @@ class Reptor:
         config_parser.add_argument("-s", "--server")
         config_parser.add_argument("-t", "--token", help="SysReptor API token")
         config_parser.add_argument(
-            "-k", "--insecure", help="do not verify server certificate", action="store_true"
+            "-k",
+            "--insecure",
+            help="do not verify server certificate",
+            action="store_true",
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
@@ -299,6 +302,7 @@ class Reptor:
             except Exception as e:
                 self.logger.debug(traceback.format_exc())
                 self.logger.fail(e)
+                exit(2)
         else:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all

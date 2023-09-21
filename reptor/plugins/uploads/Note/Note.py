@@ -1,3 +1,4 @@
+import json
 import sys
 
 from reptor.lib.plugins.UploadBase import UploadBase
@@ -15,12 +16,21 @@ class Note(UploadBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.list = kwargs.get("list")
+        self.format = kwargs.get("format")
         self.notename = self.reptor.get_config().get_cli_overwrite().get("notename")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath)
         parser.add_argument("--list", help="list available notes", action="store_true")
+        parser.add_argument(
+            "-json",
+            "--json",
+            action="store_const",
+            dest="format",
+            const="json",
+            default="plain",
+        )
 
     def run(self):
         if self.list:
@@ -31,10 +41,13 @@ class Note(UploadBase):
     def _list(self):
         notes = self.reptor.api.notes.get_notes()
 
-        table = make_table(["Title", "ID"])
-        for note in notes:
-            table.add_row(note.title, note.id)
-        self.console.print(table)
+        if self.format == "json":
+            self.print(json.dumps([note.to_dict() for note in notes], indent=2))
+        else:
+            table = make_table(["Title", "ID"])
+            for note in notes:
+                table.add_row(note.title, note.id)
+            self.console.print(table)
 
     def _write_note(self):
         parent_notename = None
