@@ -48,7 +48,6 @@ class TestIntegrationNote(object):
             if note["title"] == name and note["parent"] == parent:
                 return note
 
-    @pytest.mark.dependency()
     def test_notes_upload_without_notename(self):
         # Upload content to "Uploads"
         note_content = str(time.time()).encode()
@@ -64,7 +63,6 @@ class TestIntegrationNote(object):
         assert note is not None
         assert note_content.decode() in note["text"]
 
-    @pytest.mark.dependency(depends=["test_notes_upload_without_notename"])
     def test_notes_upload_with_notename(self):
         note_content = str(time.time()).encode()
         # Upload to note with notename
@@ -80,7 +78,6 @@ class TestIntegrationNote(object):
         assert note is not None
         assert note_content.decode() in note["text"]
 
-    @pytest.mark.dependency(depends=["test_notes_upload_without_notename"])
     def test_locked_notes(self):
         # Lock "Uploads" note via notes_api
         self.notes_api._do_lock(self.uploads_id)

@@ -11,22 +11,22 @@ jobs:
         python-version: '3.8'
         cache: 'pip'
     - run: pip install .[all]
-    - run: make test
+    - run: make unittest
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
         cache: 'pip'
     - run: pip install .[all]
-    - run: make test
+    - run: make unittest
     - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
         cache: 'pip'
     - run: pip install .[all]
-    - run: make test
+    - run: make unittest
     - uses: actions/setup-python@v4
       with:
         python-version: '3.11'
         cache: 'pip'
     - run: pip install .[all]
-    - run: make test
+    - run: make unittest
