@@ -39,14 +39,14 @@ subcommands:
   conf                  Shows config and sets config
   
   uploads:
-  finding               Uploads findings from JSON or TOML
   file                  Uploads a file
   note                  Uploads and lists notes
+  finding               Uploads findings from JSON or TOML
   
   tools:
   sslyze                format sslyze JSON output
-  nmap                  format nmap output
   zap                   Parses ZAP reports (JSON, XML)
+  nmap                  format nmap output
   nikto                 Formats Nikto output (XML)
   
   importers:
@@ -55,8 +55,8 @@ subcommands:
   other:
   importers             Show importers to use to import finding templates
   plugins               Allows plugin management & development
-  project               Work with projects
   translate             Translate Projects to other languages via Deepl
+  project               Work with projects
   template              Queries Finding Templates from reptor.api
 
 configuration:
