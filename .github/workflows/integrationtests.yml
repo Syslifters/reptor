@@ -17,4 +17,4 @@ jobs:
         python-version: '3.8'
         cache: 'pip'
     - run: pip install .[all]
-    - run: make integrationtests
+    - run: make integrationtest
