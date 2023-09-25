@@ -1,9 +1,11 @@
+import json
 import os
 import pathlib
 import subprocess
 import time
 
 import pytest
+import yaml
 
 
 def read_until(f, eof=": "):
@@ -18,6 +20,17 @@ def read_until(f, eof=": "):
 @pytest.mark.integration
 @pytest.fixture(scope="session", autouse=True)
 def setUp():
+    # Get existing project id
+    p = subprocess.Popen(
+        ["reptor", "project", "--json"],
+        stdout=subprocess.PIPE,
+    )
+    p.wait()
+    projects, _ = p.communicate()
+    projects = json.loads(projects.decode())
+    assert p.returncode == 0
+    project_id = projects[-1]["id"]
+
     # Rename config file
     filename_timestamp = int(time.time())
     try:
@@ -44,13 +57,20 @@ def setUp():
     p.stdin.flush()
 
     read_until(p.stdout)
-    p.stdin.write(b"\n")
+    p.stdin.write(project_id.encode("utf-8") + b"\n")
     p.stdin.flush()
 
     read_until(p.stdout)
     p.stdin.write(b"y\n")
     p.stdin.flush()
     p.wait(timeout=5)
+
+    # Assert config file was created correctly
+    with open(pathlib.Path.home() / ".sysreptor/config.yaml") as f:
+        config = yaml.safe_load(f)
+    assert config["server"] == os.environ.get("SYSREPTOR_SERVER", "")
+    assert config["token"] == os.environ.get("SYSREPTOR_API_TOKEN", "")
+    assert config["project_id"] == project_id
 
     yield
 
@@ -67,3 +87,7 @@ def setUp():
         )
     except FileNotFoundError:
         pass
+
+
+def test_dummy():
+    assert True

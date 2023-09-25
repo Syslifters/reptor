@@ -30,6 +30,7 @@ class Project(Base):
         self.upload: bool = kwargs.get("upload", False)
         self.duplicate: bool = kwargs.get("duplicate", False)
         self.output: typing.Optional[str] = kwargs.get("output")
+        self.format: str = kwargs.get("format", "plain")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -48,7 +49,7 @@ class Project(Base):
             "-export",
             "--export",
             help="Export project",
-            choices=["archive", "json", "toml", "yaml"],
+            choices=["tar.gz", "json", "toml", "yaml"],
             type=str.lower,
             action="store",
             dest="export",
@@ -94,10 +95,19 @@ class Project(Base):
             help="Used with --export or --render; uploads file to note",
             dest="upload",
         )
+        parser.add_argument(
+            "-json",
+            "--json",
+            help="Used with --search; output as json",
+            action="store_const",
+            dest="format",
+            const="json",
+            default="plain",
+        )
 
-    def _export_project(self, format="archive", filename=None, upload=False):
+    def _export_project(self, format="tar.gz", filename=None, upload=False):
         default_filename = self.reptor.api.projects.project.name or "project"
-        if format == "archive":
+        if format == "tar.gz":
             archive_content = self.reptor.api.projects.export()
             self.deliver_file(
                 archive_content, filename, default_filename + ".tar.gz", upload
@@ -124,18 +134,22 @@ class Project(Base):
         else:
             projects = self.reptor.api.projects.get_projects()
 
-        table = make_table(["Title", "ID", "Archived"])
+        if self.format == "json":
+            self.print(
+                json.dumps([project.to_dict() for project in projects], indent=2)
+            )
+        else:
+            table = make_table(["Title", "ID", "Archived"])
+            for project in projects:
+                archived = ""
+                if project.readonly:
+                    archived = "[red]Yes[/red]"
+                table.add_row(project.name, project.id, archived)
 
-        for project in projects:
-            archived = ""
-            if project.readonly:
-                archived = "[red]Yes[/red]"
-            table.add_row(project.name, project.id, archived)
-
-        self.console.print(table)
+            self.console.print(table)
 
     def _duplicate_project(self):
-        duplicated_project = self.reptor.api.projects.duplicate()
+        duplicated_project = self.reptor.api.projects.duplicate_project()
         project_title = duplicated_project.name
         project_id = duplicated_project.id
         self.success(f"Duplicated to '{project_title}' ({project_id})")

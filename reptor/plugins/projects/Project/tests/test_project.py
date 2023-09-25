@@ -48,7 +48,7 @@ class TestProject:
         self.project.reptor.api.projects.project = MagicMock()
         self.project.reptor.api.projects.project.name = "my-project"
 
-        self.project._export_project(format="archive", filename=filename, upload=upload)
+        self.project._export_project(format="tar.gz", filename=filename, upload=upload)
 
         self.project.deliver_file.assert_called_once_with(*expected)
 

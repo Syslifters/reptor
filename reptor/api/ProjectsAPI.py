@@ -22,15 +22,13 @@ class ProjectsAPI(APIClient):
 
         if not (server := self.reptor.get_config().get_server()):
             raise ValueError("No SysReptor server configured. Try 'reptor conf'.")
-        if not self.project_id:
-            raise ValueError(
-                "No Project ID configured. Try 'reptor conf' or use '--project-id'."
-            )
 
         self.base_endpoint = f"{server}/api/v1/pentestprojects"
-
-        self.object_endpoint = urljoin(self.base_endpoint, self.project_id)
         self.debug(self.base_endpoint)
+
+    @property
+    def object_endpoint(self) -> str:
+        return urljoin(self.base_endpoint, self.project_id)
 
     def get_projects(self, readonly: bool = False) -> typing.List[ProjectOverview]:
         """Gets list of projects
@@ -120,7 +118,7 @@ class ProjectsAPI(APIClient):
         url = self.object_endpoint
         self.delete(url)
 
-    def duplicate(self) -> Project:
+    def duplicate_project(self) -> Project:
         """Duplicates Projects
 
         Returns:
@@ -133,7 +131,7 @@ class ProjectsAPI(APIClient):
     @contextmanager
     def duplicate_and_cleanup(self):
         original_project_id = self.project_id
-        duplicated_project = self.duplicate()
+        duplicated_project = self.duplicate_project()
         self.switch_project(duplicated_project.id)
         self.log.info(f"Duplicated project to {duplicated_project.id}")
 
@@ -145,7 +143,7 @@ class ProjectsAPI(APIClient):
 
     def switch_project(self, new_project_id) -> None:
         self.reptor._config._raw_config["project_id"] = new_project_id
-        self.project_id = new_project_id
+        self._project_id = new_project_id
         self._init_attrs()
         self.reptor._api = None
 
@@ -183,6 +181,10 @@ class ProjectsAPI(APIClient):
             return []
         return [FindingRaw(f) for f in response]
 
+    def delete_finding(self, finding_id: str) -> None:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        self.delete(url)
+
     def update_finding(self, finding_id: str, data: dict) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         return FindingRaw(self.patch(url, data).json())
@@ -211,7 +213,7 @@ class ProjectsAPI(APIClient):
         try:
             return self.update_project(data)
         except HTTPError as e:
-            raise(HTTPError(e.response.text))
+            raise (HTTPError(e.response.text))
 
     def get_enabled_language_codes(
         self,

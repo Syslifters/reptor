@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 import pytest
 from requests.exceptions import HTTPError
 
-from reptor.lib.errors import MissingArgumentError
 from reptor.lib.exceptions import LockedException
 from reptor.lib.reptor import Reptor
 from reptor.models.Note import Note
@@ -163,7 +162,7 @@ class TestNotesAPI:
         try:
             n = NotesAPI(reptor=self.reptor)
             assert n.personal_note
-        except (ValueError, MissingArgumentError):
+        except ValueError:
             self.fail("NotesAPI raised Error")
 
         # Test valid project note
@@ -175,14 +174,14 @@ class TestNotesAPI:
         try:
             n = NotesAPI(reptor=self.reptor)
             assert not n.personal_note
-        except (ValueError, MissingArgumentError):
+        except ValueError:
             self.fail("NotesAPI raised Error")
 
         # Test missing project id and missing personal_note
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
         self.reptor._config._raw_config["cli"] = {"personal_note": False}
         self.reptor._config._raw_config["project_id"] = ""
-        with pytest.raises(MissingArgumentError):
+        with pytest.raises(ValueError):
             NotesAPI(reptor=self.reptor)
 
         # Test missing server

@@ -35,9 +35,9 @@ class TestIntegrationNote(object):
             ["reptor", "note", "--personal", "--list", "--json"],
             stdout=subprocess.PIPE,
         )
-        p.wait()
         notes, _ = p.communicate()
         notes = json.loads(notes.decode())
+        p.wait()
         assert p.returncode == 0
         return notes
 

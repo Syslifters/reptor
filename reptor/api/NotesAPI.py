@@ -7,7 +7,6 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.lib.errors import MissingArgumentError
 from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
 from reptor.utils.file_operations import guess_filetype
@@ -32,10 +31,6 @@ class NotesAPI(APIClient):
             self.base_endpoint = urljoin(
                 self.reptor.get_config().get_server(),
                 f"api/v1/pentestprojects/{self.project_id}/notes/",
-            )
-        else:
-            raise MissingArgumentError(
-                "Either specify a project ID (-p|--project_id) or use --personal-note"
             )
 
     @property

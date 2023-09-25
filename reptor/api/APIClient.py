@@ -14,7 +14,7 @@ class APIClient:
     endpoint: str
     item_id: str
     force_unlock: bool
-    project_id: str
+    _project_id: str
 
     def __init__(self, require_project_id=True, **kwargs) -> None:
         self.reptor = kwargs.get("reptor", None)
@@ -26,12 +26,20 @@ class APIClient:
         self.verify = not self.reptor.get_config().get("insecure", False)
 
         try:
-            self.project_id = self.reptor.get_active_project_id()
-            self.debug(f"Project ID is {self.project_id}")
+            self._project_id = self.reptor.get_active_project_id()
+            self.debug(f"Project ID is {self._project_id}")
         except ValueError as e:
             if require_project_id:
                 raise e
-            self.project_id = ""
+            self._project_id = ""
+
+    @property
+    def project_id(self) -> str:
+        if not self._project_id:
+            raise ValueError(
+                "No Project ID configured. Try 'reptor conf' or use '--project-id'."
+            )
+        return self._project_id
 
     def _get_headers(self, json_content=False) -> typing.Dict:
         headers = dict()

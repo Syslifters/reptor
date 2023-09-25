@@ -206,7 +206,7 @@ class Translate(Base):
     def _duplicate_and_update_project(self, project_title: str) -> None:
         self.display(f"Duplicating project{' (dry run)' if self.dry_run else ''}.")
         if not self.dry_run:
-            to_project_id = self.reptor.api.projects.duplicate().id
+            to_project_id = self.reptor.api.projects.duplicate_project().id
             self.display(
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
