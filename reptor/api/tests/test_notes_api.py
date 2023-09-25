@@ -73,7 +73,7 @@ class TestNotesAPI:
     def setUp(self):
         self.reptor = Reptor()
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config["cli"] = {"personal_note": True}
+        self.reptor._config._raw_config["cli"] = {"private_note": True}
         self.notes = NotesAPI(reptor=self.reptor)
 
     def _mock_methods(self):
@@ -158,34 +158,34 @@ class TestNotesAPI:
     def test_notes_api_init(self):
         # Test valid personal note
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config["cli"] = {"personal_note": True}
+        self.reptor._config._raw_config["cli"] = {"private_note": True}
         try:
             n = NotesAPI(reptor=self.reptor)
-            assert n.personal_note
+            assert n.private_note
         except ValueError:
             self.fail("NotesAPI raised Error")
 
         # Test valid project note
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config["cli"] = {"personal_note": False}
+        self.reptor._config._raw_config["cli"] = {"private_note": False}
         self.reptor._config._raw_config[
             "project_id"
         ] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
         try:
             n = NotesAPI(reptor=self.reptor)
-            assert not n.personal_note
+            assert not n.private_note
         except ValueError:
             self.fail("NotesAPI raised Error")
 
-        # Test missing project id and missing personal_note
+        # Test missing project id and missing private_note
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config["cli"] = {"personal_note": False}
+        self.reptor._config._raw_config["cli"] = {"private_note": False}
         self.reptor._config._raw_config["project_id"] = ""
         with pytest.raises(ValueError):
             NotesAPI(reptor=self.reptor)
 
         # Test missing server
         self.reptor._config._raw_config["server"] = ""
-        self.reptor._config._raw_config["cli"] = {"personal_note": True}
+        self.reptor._config._raw_config["cli"] = {"private_note": True}
         with pytest.raises(ValueError):
             NotesAPI(reptor=self.reptor)

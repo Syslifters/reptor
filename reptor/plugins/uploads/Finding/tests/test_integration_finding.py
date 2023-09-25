@@ -4,27 +4,12 @@ import time
 
 import pytest
 
-from reptor.api.ProjectsAPI import ProjectsAPI
-from reptor.lib.reptor import Reptor
+from reptor.plugins.core.Conf.tests.conftest import projects_api
 
 
 @pytest.mark.integration
 class TestIntegrationFinding(object):
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        self.reptor = Reptor()
-        self.projects_api = ProjectsAPI(reptor=self.reptor)
-
-        yield
-
-        # Delete findings via projects_api
-        for finding in self.projects_api.get_findings():
-            self.projects_api.delete_finding(finding.id)
-        # Assert findings are gone
-        findings = self.projects_api.get_findings()
-        assert len(findings) == 0
-
-    def test_push_valid_finding(self):
+    def test_push_valid_finding(self, projects_api):
         title = str(time.time())
         reference = "https://example.com/" + title
         affected_component = "https://example.com/affected/" + title
@@ -53,7 +38,7 @@ class TestIntegrationFinding(object):
         p.wait()
         assert p.returncode == 0
 
-        findings = self.projects_api.get_findings()
+        findings = projects_api.get_findings()
         assert title in [f.data.title for f in findings]
         all_references = list()
         all_affected_components = list()
@@ -63,7 +48,7 @@ class TestIntegrationFinding(object):
         assert reference in all_references
         assert affected_component in all_affected_components
 
-    def test_push_invalid_finding(self):
+    def test_push_invalid_finding(self, projects_api):
         title = str(time.time())
         finding = {
             "status": "in-progress",
@@ -87,7 +72,7 @@ class TestIntegrationFinding(object):
         _, err = p.communicate(input=json.dumps(finding).encode())
         p.wait()
         assert p.returncode == 2
-        findings = self.projects_api.get_findings()
+        findings = projects_api.get_findings()
         assert title not in [f.data.title for f in findings]
         assert (
             "affected_components" in err.decode()

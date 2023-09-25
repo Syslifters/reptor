@@ -7,6 +7,77 @@ import time
 import pytest
 import yaml
 
+from reptor.api.ProjectsAPI import ProjectsAPI
+from reptor.api.NotesAPI import NotesAPI
+from reptor.lib.reptor import Reptor
+
+
+@pytest.fixture(scope="session")
+def projects_api():
+    reptor = Reptor()
+    return ProjectsAPI(reptor=reptor)
+
+
+@pytest.fixture(scope="session")
+def notes_api():
+    reptor = Reptor()
+    reptor._config._raw_config["cli"] = {"private_note": False}
+    return NotesAPI(reptor=reptor)
+
+
+@pytest.fixture(scope="module")
+def uploads_id(notes_api):
+    notes_api.write_note("Create Note")
+    uploads_note = get_note("Uploads", None)
+    assert uploads_note is not None
+    return uploads_note["id"]
+
+
+@pytest.fixture(autouse=True, scope="session")
+def delete_notes(notes_api):
+    yield
+
+    # Delete all notes via notes_api
+    for note in get_notes():
+        notes_api.delete_note(note["id"])
+    # Assert notes are gone
+    notes = get_notes()
+    assert len(notes) == 0
+
+
+@pytest.fixture(autouse=True, scope="session")
+def delete_findings(projects_api):
+    # Delete findings via projects_api
+    for finding in projects_api.get_findings():
+        projects_api.delete_finding(finding.id)
+    # Assert findings are gone
+    findings = projects_api.get_findings()
+    assert len(findings) == 0
+
+
+def get_notes(private=False):
+    cmd = ["reptor", "note", "--list", "--json"]
+    if private:
+        cmd.append("--private-note")
+
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+    )
+    notes, _ = p.communicate()
+    notes = json.loads(notes.decode())
+    p.wait()
+    assert p.returncode == 0
+    return notes
+
+
+def get_note(name, parent, notes=None):
+    if notes is None:
+        notes = get_notes()
+    for note in notes:
+        if note["title"] == name and note["parent"] == parent:
+            return note
+
 
 def read_until(f, eof=": "):
     content = ""

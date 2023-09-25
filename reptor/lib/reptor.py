@@ -185,7 +185,7 @@ class Reptor:
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
-            "--personal-note", help="add notes to private notes", action="store_true"
+            "--private-note", help="add notes to private notes", action="store_true"
         )
         config_parser.add_argument(
             "-f",
