@@ -74,6 +74,8 @@ def get_notes(private=False):
 def get_note(name, parent, notes=None):
     if notes is None:
         notes = get_notes()
+    if parent:
+        pass
     for note in notes:
         if note["title"] == name and note["parent"] == parent:
             return note

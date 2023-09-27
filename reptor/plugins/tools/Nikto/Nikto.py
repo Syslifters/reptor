@@ -8,13 +8,6 @@ from reptor.plugins.tools.Nikto.models import (
 
 
 class Nikto(ToolBase):
-    """
-    cat nikto-raw-output.txt | reptor simplelist -c format
-
-    cat nikto-result.xml | python reptor simplelist --xml
-
-    """
-
     meta = {
         "author": "Richard Schwabe",
         "name": "Nikto",
@@ -29,6 +22,7 @@ class Nikto(ToolBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.notename = kwargs.get("notename", "Nikto")
+        self.input_format = "xml"
 
     def parse_xml(self):
         """Parses XML file from Nikto, tested with version 2.5.0
