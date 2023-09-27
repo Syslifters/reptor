@@ -1,4 +1,4 @@
-usage: reptor template [-h] [--search SEARCH]
+usage: reptor template [-h] [--search SEARCH] [-json]
 
 Queries Finding Templates from reptor.api
 
@@ -6,3 +6,4 @@ optional arguments:
   -h, --help       show this help message and exit
 
   --search SEARCH  Search for term
+  -json, --json    Used with --search; output as json

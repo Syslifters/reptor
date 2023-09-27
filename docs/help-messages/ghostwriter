@@ -10,4 +10,4 @@ Global Importer Settings:
                         Comma-separated tags for new templates
 
   -url [URL], --url [URL]
-                        API Url
+                        Ghostwriter API

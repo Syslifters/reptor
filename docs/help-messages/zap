@@ -1,11 +1,11 @@
-usage: reptor zap [-h] [-t {zap_default,alerts,site-details}]
+usage: reptor zap [-h] [-t {site-details,zap_default,alerts}]
                   [-parse | -format | -upload] [-xml | -json]
 
 Parses ZAP reports (JSON, XML)
 
 optional arguments:
   -h, --help            show this help message and exit
-  -t {zap_default,alerts,site-details}, --template {zap_default,alerts,site-details}
+  -t {site-details,zap_default,alerts}, --template {site-details,zap_default,alerts}
                         Template for output formatting
   -parse, --parse
   -format, --format
