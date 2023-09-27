@@ -7,7 +7,6 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.lib.errors import MissingArgumentError
 from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
 from reptor.utils.file_operations import guess_filetype
@@ -23,7 +22,7 @@ class NotesAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(require_project_id=False, **kwargs)
 
-        if self.personal_note:
+        if self.private_note:
             self.base_endpoint = urljoin(
                 self.reptor.get_config().get_server(),
                 f"api/v1/pentestusers/self/notes/",
@@ -33,14 +32,10 @@ class NotesAPI(APIClient):
                 self.reptor.get_config().get_server(),
                 f"api/v1/pentestprojects/{self.project_id}/notes/",
             )
-        else:
-            raise MissingArgumentError(
-                "Either specify a project ID (-p|--project_id) or use --personal-note"
-            )
 
     @property
-    def personal_note(self):
-        return self.reptor.get_config().get_cli_overwrite().get("personal_note")
+    def private_note(self):
+        return self.reptor.get_config().get_cli_overwrite().get("private_note")
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""
@@ -62,7 +57,7 @@ class NotesAPI(APIClient):
         self.debug("Creating Note")
         note = self.post(
             self.base_endpoint,
-            {
+            json={
                 "order": order,
                 "parent": parent_id or None,
                 "checked": checked,
@@ -80,7 +75,7 @@ class NotesAPI(APIClient):
 
     def set_icon(self, notes_id: str, icon: str):
         url = urljoin(self.base_endpoint, f"{notes_id}/")
-        self.put(url, {"icon_emoji": icon})
+        self.put(url, json={"icon_emoji": icon})
 
     def write_note(
         self,
@@ -109,7 +104,7 @@ class NotesAPI(APIClient):
             note_text += content
             self.debug(f"We are sending data with a lenght of: {len(note_text)}")
             url = urljoin(self.base_endpoint, note.id, "")
-            r = self.put(url, {"text": note_text})
+            r = self.put(url, json={"text": note_text})
 
             try:
                 r.raise_for_status()
@@ -174,7 +169,7 @@ class NotesAPI(APIClient):
 
         # Lock during upload to prevent unnecessary uploads and for endpoint setup
         note = self.get_note_by_title(notename, parent_notename=parent_notename)
-        if self.personal_note:
+        if self.private_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
             url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")

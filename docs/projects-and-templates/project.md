@@ -18,8 +18,8 @@ project:
 
 ## Export Reports
 ```bash title="Export reports"
-reptor project --export archive  # Export your report to tar.gz
-reptor project --export archive -o -  # Export your report to tar.gz, write to stdout
+reptor project --export tar.gz  # Export your report to tar.gz
+reptor project --export tar.gz -o -  # Export your report to tar.gz, write to stdout
 reptor project --export json
 reptor project --export toml -o -  # Write report as toml to stdout
 reptor project --export yaml --upload  # Export report as yaml and upload to notes

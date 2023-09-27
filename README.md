@@ -14,7 +14,7 @@ reptor allows you to automate pentest reporting with SysReptor.
 ## Usage
 
 ```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--personal-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
+              [--private-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
               [-file FILE]
 
 Examples:
@@ -66,7 +66,7 @@ configuration:
   -k, --insecure        do not verify server certificate
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
-  --personal-note       add notes to private notes
+  --private-note       add notes to private notes
   -f, --force-unlock    force unlock notes
 
 ```

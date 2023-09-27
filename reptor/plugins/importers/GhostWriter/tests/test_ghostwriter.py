@@ -41,7 +41,7 @@ class TestGhostwriter:
                 return finding_data
 
         # Test x-hasura-admin-secret
-        def AIOHTTPTransport(url, headers):
+        def AIOHTTPTransport(url, headers):  # type: ignore
             assert url == "http://localhost:8080/v1/graphql"
             assert headers == {
                 "Content-Type": "application/json",

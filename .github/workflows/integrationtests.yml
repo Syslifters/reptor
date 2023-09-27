@@ -5,11 +5,25 @@ on:
     branches:
       - main
 jobs:
-  run:
+  prod-integration:
     runs-on: ubuntu-latest
     env:
       SYSREPTOR_SERVER: ${{ secrets.SYSREPTOR_SERVER_PROD }}
       SYSREPTOR_API_TOKEN: ${{ secrets.SYSREPTOR_API_TOKEN_PROD }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        cache: 'pip'
+    - run: pip install .[all]
+    - run: make integrationtest
+
+  test-integration:
+    runs-on: ubuntu-latest
+    env:
+      SYSREPTOR_SERVER: ${{ secrets.SYSREPTOR_SERVER_TEST }}
+      SYSREPTOR_API_TOKEN: ${{ secrets.SYSREPTOR_API_TOKEN_TEST }}
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4

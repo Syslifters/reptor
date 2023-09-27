@@ -81,7 +81,7 @@ class TestProjectsAPI:
             "project_id"
         ] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
         try:
-            ProjectsAPI(reptor=self.reptor)
+            ProjectsAPI(reptor=self.reptor).object_endpoint
         except ValueError:
             self.fail("ProjectsAPI raised ValueError")
 
@@ -94,4 +94,4 @@ class TestProjectsAPI:
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
         self.reptor._config._raw_config["project_id"] = ""
         with pytest.raises(ValueError):
-            ProjectsAPI(reptor=self.reptor)
+            ProjectsAPI(reptor=self.reptor).object_endpoint

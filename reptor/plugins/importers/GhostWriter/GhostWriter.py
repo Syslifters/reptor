@@ -72,7 +72,7 @@ class GhostWriter(BaseImporter):
             action="store",
             const="",
             nargs="?",
-            help="API Url",
+            help="Ghostwriter API",
         )
 
     def convert_references(self, value):

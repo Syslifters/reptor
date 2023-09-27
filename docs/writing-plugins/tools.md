@@ -2,6 +2,7 @@
 ## What a plugin does
 
 A plugin can...
+
 * read tool outputs via stdin
 * parse them
 * format them
@@ -31,10 +32,12 @@ You can also call the help message of your plugin by `reptor xsstool --help`.
 ## Implement a parser
 
 Our XssTool has two output options:
+
 * Plaintext
 * JSON
 
 Our plugin already implements some parsing methods and the corresponding arguments:
+
 * `parse_json` (`--json`)
 * `parse_xml` (`--xml`)
 * `parse_csv` (`--csv`)
@@ -115,6 +118,7 @@ COMMENT_TAG_START = "<!--{#"
 COMMENT_TAG_END = "#}-->"
 
 The Django start tags are prepended with the HTML comment start tag and become:
+
 * `{{` -> `<!--{{`
 * `{%` -> `<!--{%`
 * `{#` -> `<!--{#`
@@ -228,7 +232,7 @@ Your formatted output is now uploaded to your project notes:
 
 ![XssTool Note](/cli/assets/xsstool-note.png)
 
-Use `--notename "My Notename"` for a different title and `--personal-note` to not add it to a project, but to your personal notes instead.  
+Use `--notename "My Notename"` for a different title and `--private-note` to not add it to a project, but to your personal notes instead.  
 
 You can also update the default note title and replace your note icon in the `__init__` method:
 
