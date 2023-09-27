@@ -136,7 +136,7 @@ class TestSslyze(TestCaseToolPlugin):
         self._load_json_data()
 
         # Protocols template
-        protocols_result = '    * <span style="color: green">TLS 1.2</span>\n'
+        protocols_result = ' * <span style="color: green">TLS 1.2</span>\n'
         self.sslyze.template = "protocols"
         self.sslyze.format()
         assert self.sslyze.formatted_input == protocols_result

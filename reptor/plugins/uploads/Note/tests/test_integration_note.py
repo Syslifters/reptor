@@ -13,7 +13,9 @@ class TestIntegrationNote(object):
         # Upload content to "Uploads"
         note_content = str(time.time()).encode()
         p = subprocess.Popen(
-            ["reptor", "note", "--personal"],
+            ["reptor", "note", "--personal", "--debug"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
         p.communicate(note_content)

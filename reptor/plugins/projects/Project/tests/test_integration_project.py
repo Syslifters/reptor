@@ -9,12 +9,20 @@ from reptor.plugins.core.Conf.tests.conftest import (
     get_notes,
     notes_api,
     projects_api,
+    project_design_api,
 )
 
 
 @pytest.mark.integration
 class TestIntegrationProject(object):
-    def test_render_project(self, projects_api):
+    def test_render_project(self, projects_api, project_design_api):
+        available_project_designs = project_design_api.get_project_designs()
+        for design in available_project_designs:
+            if projects_api.project.project_type != design.id:
+                break
+        else:
+            raise ValueError("No other project design found")
+
         projects_len = len(projects_api.get_projects())
         p = subprocess.Popen(
             [
@@ -23,7 +31,8 @@ class TestIntegrationProject(object):
                 "--render",
                 "--upload",
                 "--design",
-                "54c67723-f380-46aa-aa46-ced789fbccb6",
+                design.id,
+                "--debug",
             ],
         )
         p.wait()

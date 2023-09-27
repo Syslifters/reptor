@@ -187,23 +187,23 @@ class ProjectsAPI(APIClient):
 
     def update_finding(self, finding_id: str, data: dict) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
-        return FindingRaw(self.patch(url, data).json())
+        return FindingRaw(self.patch(url, json=data).json())
 
     def create_finding(self, data: dict) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        return FindingRaw(self.post(url, data).json())
+        return FindingRaw(self.post(url, json=data).json())
 
     def create_finding_from_template(self, template_id: str) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
-        return FindingRaw(self.post(url, {"template": template_id}).json())
+        return FindingRaw(self.post(url, json={"template": template_id}).json())
 
     def update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
-        return SectionRaw(self.patch(url, data).json())
+        return SectionRaw(self.patch(url, json=data).json())
 
     def update_project(self, data: dict) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
-        return Project(self.patch(url, data).json())
+        return Project(self.patch(url, json=data).json())
 
     def update_project_design(self, design_id, force=False) -> Project:
         data = {

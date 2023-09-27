@@ -55,25 +55,47 @@ class ProjectDesignField(BaseModel):
                 self.__setattr__(key, value)
 
 
-class ProjectDesign(BaseModel):
-    """
-    Attributes:
-        source:
-        scope:
-        name:
-        language:
-        report_fields:
-        finding_fields:
-    """
-
+class ProjectDesignBase(BaseModel):
     source: str = ""
     scope: str = ""
     name: str = ""
     language: str = ""
-    report_fields: typing.List[ProjectDesignField] = []
-    finding_fields: typing.List[ProjectDesignField] = []
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data is None:
             data = DEFAULT_PROJECT_DESIGN
+        super().__init__(data)
+
+
+class ProjectDesign(ProjectDesignBase):
+    report_fields: typing.List[ProjectDesignField] = []
+    finding_fields: typing.List[ProjectDesignField] = []
+
+    def __init__(self, data: typing.Optional[typing.Dict] = None):
+        if data:
+            if isinstance(data.get("report_fields"), list):
+                raise ValueError(
+                    "report_fields should be list. Use ProjectDesignOverview instead."
+                )
+            if isinstance(data.get("finding_fields"), list):
+                raise ValueError(
+                    "finding_fields should be list. Use ProjectDesignOverview instead."
+                )
+        super().__init__(data)
+
+
+class ProjectDesignOverview(ProjectDesignBase):
+    report_fields: str = ""
+    finding_fields: str = ""
+
+    def __init__(self, data: typing.Optional[typing.Dict] = None):
+        if data:
+            if isinstance(data.get("report_fields"), list):
+                raise ValueError(
+                    "report_fields should be str. Use ProjectDesign instead."
+                )
+            if isinstance(data.get("finding_fields"), list):
+                raise ValueError(
+                    "finding_fields should be str. Use ProjectDesign instead."
+                )
         super().__init__(data)

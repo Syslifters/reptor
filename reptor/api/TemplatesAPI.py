@@ -49,6 +49,6 @@ class TemplatesAPI(APIClient):
         """
         res = self.post(
             self.base_endpoint,
-            data=template.to_dict(),
+            json=template.to_dict(),
         )
         return FindingTemplate(res.json())

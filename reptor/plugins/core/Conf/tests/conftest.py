@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 from reptor.api.ProjectsAPI import ProjectsAPI
+from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
 from reptor.api.NotesAPI import NotesAPI
 from reptor.lib.reptor import Reptor
 
@@ -23,6 +24,13 @@ def notes_api():
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"private_note": False}
     return NotesAPI(reptor=reptor)
+
+
+@pytest.fixture(scope="session")
+def project_design_api():
+    reptor = Reptor()
+    reptor._config._raw_config["cli"] = {"private_note": False}
+    return ProjectDesignsAPI(reptor=reptor)
 
 
 @pytest.fixture(scope="module")
@@ -98,7 +106,6 @@ def setUp():
         ["reptor", "project", "--json"],
         stdout=subprocess.PIPE,
     )
-    p.wait()
     projects, _ = p.communicate()
     projects = json.loads(projects.decode())
     assert p.returncode == 0
@@ -122,20 +129,20 @@ def setUp():
         # stderr=subprocess.PIPE,
     )
     read_until(p.stdout)
-    p.stdin.write(os.environ.get("SYSREPTOR_SERVER", "").encode("utf-8") + b"\n")
-    p.stdin.flush()
+    p.stdin.write(os.environ.get("SYSREPTOR_SERVER", "").encode("utf-8") + b"\n")  # type: ignore
+    p.stdin.flush()  # type: ignore
 
     read_until(p.stdout)
-    p.stdin.write(os.environ.get("SYSREPTOR_API_TOKEN", "").encode("utf-8") + b"\n")
-    p.stdin.flush()
+    p.stdin.write(os.environ.get("SYSREPTOR_API_TOKEN", "").encode("utf-8") + b"\n")  # type: ignore
+    p.stdin.flush()  # type: ignore
 
     read_until(p.stdout)
-    p.stdin.write(project_id.encode("utf-8") + b"\n")
-    p.stdin.flush()
+    p.stdin.write(project_id.encode("utf-8") + b"\n")  # type: ignore
+    p.stdin.flush()  # type: ignore
 
     read_until(p.stdout)
-    p.stdin.write(b"y\n")
-    p.stdin.flush()
+    p.stdin.write(b"y\n")  # type: ignore
+    p.stdin.flush()  # type: ignore
     p.wait(timeout=5)
 
     # Assert config file was created correctly

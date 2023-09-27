@@ -57,7 +57,7 @@ class NotesAPI(APIClient):
         self.debug("Creating Note")
         note = self.post(
             self.base_endpoint,
-            {
+            json={
                 "order": order,
                 "parent": parent_id or None,
                 "checked": checked,
@@ -75,7 +75,7 @@ class NotesAPI(APIClient):
 
     def set_icon(self, notes_id: str, icon: str):
         url = urljoin(self.base_endpoint, f"{notes_id}/")
-        self.put(url, {"icon_emoji": icon})
+        self.put(url, json={"icon_emoji": icon})
 
     def write_note(
         self,
@@ -104,7 +104,7 @@ class NotesAPI(APIClient):
             note_text += content
             self.debug(f"We are sending data with a lenght of: {len(note_text)}")
             url = urljoin(self.base_endpoint, note.id, "")
-            r = self.put(url, {"text": note_text})
+            r = self.put(url, json={"text": note_text})
 
             try:
                 r.raise_for_status()

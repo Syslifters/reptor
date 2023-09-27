@@ -21,13 +21,11 @@ class TestIntegrationNikto(object):
         p.wait()
         assert p.returncode == 0
 
-        note = notes_api.get_note_by_title(
-            "nikto", parent_notename="Uploads"
-        )
+        note = notes_api.get_note_by_title("nikto", parent_notename="Uploads")
         note_lines = note.text.splitlines()
         lines = [
             "| IP | 127.0.0.1 |",
             "| Issues Items | 151 |",
-            "| /includes/ | GET |  Directory indexing found. | None |"
+            "| /includes/ | GET |  Directory indexing found. | None |",
         ]
         assert all([line in note_lines for line in lines])

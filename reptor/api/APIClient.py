@@ -41,7 +41,7 @@ class APIClient:
             )
         return self._project_id
 
-    def _get_headers(self, json_content=False) -> typing.Dict:
+    def _get_headers(self, json_content=True) -> typing.Dict:
         headers = dict()
         if json_content:
             headers["Content-Type"] = "application/json"
@@ -49,6 +49,16 @@ class APIClient:
         headers["Authorization"] = f"Bearer {self.reptor.get_config().get_token()}"
         self.debug(f"HTTP Headers: {headers}")
         return headers
+
+    def _prepare_kwargs(self, kwargs, json_content=True):
+        headers = self._get_headers(json_content=json_content)
+        if kwargs.get("headers"):
+            kwargs["headers"].update(headers)
+        else:
+            kwargs["headers"] = headers
+        if not kwargs.get("verify"):
+            kwargs["verify"] = self.verify
+        return kwargs
 
     @property
     def log(self):
@@ -136,110 +146,37 @@ class APIClient:
         """
         self.log.error(msg, *args, **kwargs)
 
-    def get(self, url: str) -> requests.models.Response:
-        """Sends a get request
-
-        Args:
-            url (str): Endpoint URL
-
-        Returns:
-            requests.models.Response: Returns requests Response Object
-        """
-        self.debug(f"GET URL:{url}")
-        response = requests.get(
-            url,
-            headers=self._get_headers(),
-            verify=self.verify,
-        )
-        self.debug(f"Received response: {response.content}")
-        response.raise_for_status()
-        return response
-
-    def post(
-        self, url: str, data=None, files=None, json_content: bool = True
+    def _do_request(
+        self, url, method: str = "GET", json_content: bool = True, **kwargs
     ) -> requests.models.Response:
-        """Sends a post requests, requires some json data
-
-        Args:
-            url (str): Endpoint URL
-            data (_type_, optional): _description_. Defaults to None.
-            files (_type_, optional): _description_. Defaults to None.
-            json_content (bool, optional): _description_. Defaults to True.
-
-        Returns:
-            requests.models.Response: Requests Responde Object
-        """
-
-        self.reptor.logger.debug(f"POST URL: {url}")
-
-        response = requests.post(
-            url,
-            headers=self._get_headers(json_content=json_content),
-            json=data,
-            files=files,
-            verify=self.verify,
-        )
-        self.debug(f"Received response: {response.content}")
+        methods = {
+            "GET": requests.get,
+            "POST": requests.post,
+            "PUT": requests.put,
+            "PATCH": requests.patch,
+            "DELETE": requests.delete,
+        }
+        method = method.upper()
+        if method not in methods.keys():
+            raise ValueError(f"Method {method} not supported")
+        self.debug(f"{method} URL: {url}")
+        kwargs = self._prepare_kwargs(kwargs, json_content=json_content)
+        response = methods[method](url, **kwargs)
+        self.debug(f"Received response: {response.content[:1000]}")
         response.raise_for_status()
         return response
 
-    def put(self, url: str, data: object) -> requests.models.Response:
-        """Sends a put requests, requires some json data
+    def get(self, *args, **kwargs) -> requests.models.Response:
+        return self._do_request(*args, method="GET", **kwargs)
 
-        Args:
-            url (str): Endpoint URL
-            data (object): JSON Data
+    def post(self, *args, **kwargs) -> requests.models.Response:
+        return self._do_request(*args, method="POST", **kwargs)
 
-        Returns:
-            requests.models.Response: requests Respone Object
-        """
-        self.debug(f"PUT URL:{url}")
-        response = requests.put(
-            url,
-            headers=self._get_headers(),
-            json=data,
-            verify=self.verify,
-        )
-        self.debug(f"Received response: {response.content}")
-        response.raise_for_status()
-        return response
+    def put(self, *args, **kwargs) -> requests.models.Response:
+        return self._do_request(*args, method="PUT", **kwargs)
 
-    def patch(self, url: str, data: object) -> requests.models.Response:
-        """Sends a patch requests, requires some json data
+    def patch(self, *args, **kwargs) -> requests.models.Response:
+        return self._do_request(*args, method="PATCH", **kwargs)
 
-        Args:
-            url (str): Endpoint URL
-            data (object): JSON Data
-
-        Returns:
-            requests.models.Response: requests Respone Object
-        """
-        self.debug(f"PATCH URL:{url}")
-        response = requests.patch(
-            url,
-            headers=self._get_headers(),
-            json=data,
-            verify=self.verify,
-        )
-        self.debug(f"Received response: {response.content}")
-        response.raise_for_status()
-        return response
-
-    def delete(self, url: str) -> requests.models.Response:
-        """Sends a delete request
-
-        Args:
-            url (str): Endpoint URL
-
-        Returns:
-            requests.models.Response: Returns requests Response Object
-        """
-        self.debug(f"DELETE URL:{url}")
-        response = requests.delete(
-            url,
-            headers=self._get_headers(),
-            verify=self.verify,
-        )
-        self.debug(f"Received response: {response.content}")
-        response.raise_for_status()
-        return response
+    def delete(self, *args, **kwargs) -> requests.models.Response:
+        return self._do_request(*args, method="DELETE", **kwargs)
