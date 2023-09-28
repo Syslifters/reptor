@@ -13,6 +13,52 @@ from reptor.api.NotesAPI import NotesAPI
 from reptor.lib.reptor import Reptor
 
 
+@pytest.mark.integration
+@pytest.fixture(scope="session", autouse=True)
+def setUp():
+    # Rename config file
+    filename_timestamp = int(time.time())
+    try:
+        os.rename(
+            pathlib.Path.home() / ".sysreptor/config.yaml",
+            pathlib.Path.home() / f".sysreptor/config.{filename_timestamp}.yaml",
+        )
+    except FileNotFoundError:
+        pass
+
+    # Set API Token and URL
+    conf()
+
+    # Get existing project id
+    p = subprocess.Popen(
+        ["reptor", "project", "--json"],
+        stdout=subprocess.PIPE,
+    )
+    projects, _ = p.communicate()
+    projects = json.loads(projects.decode())
+    assert p.returncode == 0
+    project_id = projects[-1]["id"]
+
+    # Also add project_id
+    conf(project_id=project_id)
+
+    yield
+
+    # Remove integration test config file
+    try:
+        os.remove(pathlib.Path.home() / ".sysreptor/config.yaml")
+    except FileNotFoundError:
+        pass
+    # Restore config file
+    try:
+        os.rename(
+            pathlib.Path.home() / f".sysreptor/config.{filename_timestamp}.yaml",
+            pathlib.Path.home() / ".sysreptor/config.yaml",
+        )
+    except FileNotFoundError:
+        pass
+
+
 @pytest.fixture(scope="session")
 def projects_api():
     reptor = Reptor()
@@ -42,7 +88,7 @@ def uploads_id(notes_api):
 
 
 @pytest.fixture(autouse=True, scope="session")
-def delete_notes(notes_api):
+def delete_notes(setUp, notes_api):
     yield
 
     # Delete all notes via notes_api
@@ -54,7 +100,9 @@ def delete_notes(notes_api):
 
 
 @pytest.fixture(autouse=True, scope="session")
-def delete_findings(projects_api):
+def delete_findings(setUp, projects_api):
+    yield
+
     # Delete findings via projects_api
     for finding in projects_api.get_findings():
         projects_api.delete_finding(finding.id)
@@ -98,29 +146,7 @@ def read_until(f, eof=": "):
     return content
 
 
-@pytest.mark.integration
-@pytest.fixture(scope="session", autouse=True)
-def setUp():
-    # Get existing project id
-    p = subprocess.Popen(
-        ["reptor", "project", "--json"],
-        stdout=subprocess.PIPE,
-    )
-    projects, _ = p.communicate()
-    projects = json.loads(projects.decode())
-    assert p.returncode == 0
-    project_id = projects[-1]["id"]
-
-    # Rename config file
-    filename_timestamp = int(time.time())
-    try:
-        os.rename(
-            pathlib.Path.home() / ".sysreptor/config.yaml",
-            pathlib.Path.home() / f".sysreptor/config.{filename_timestamp}.yaml",
-        )
-    except FileNotFoundError:
-        pass
-
+def conf(project_id=""):
     # Test reptor conf and thereby setup config file
     p = subprocess.Popen(
         ["reptor", "conf"],
@@ -150,24 +176,7 @@ def setUp():
         config = yaml.safe_load(f)
     assert config["server"] == os.environ.get("SYSREPTOR_SERVER", "")
     assert config["token"] == os.environ.get("SYSREPTOR_API_TOKEN", "")
-    assert config["project_id"] == project_id
-
-    yield
-
-    # Remove integration test config file
-    try:
-        os.remove(pathlib.Path.home() / ".sysreptor/config.yaml")
-    except FileNotFoundError:
-        pass
-    # Restore config file
-    try:
-        os.rename(
-            pathlib.Path.home() / f".sysreptor/config.{filename_timestamp}.yaml",
-            pathlib.Path.home() / ".sysreptor/config.yaml",
-        )
-    except FileNotFoundError:
-        pass
-
-
-def test_dummy():
-    assert True
+    if project_id:
+        assert config["project_id"] == project_id
+    else:
+        assert config["project_id"] is None
