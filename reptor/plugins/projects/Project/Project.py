@@ -38,7 +38,6 @@ class Project(Base):
         project_parser = parser.add_mutually_exclusive_group()
         # Mutually exclusive options
         project_parser.add_argument(
-            "-search",
             "--search",
             metavar="SEARCHTERM",
             help="Search for term",
@@ -46,7 +45,6 @@ class Project(Base):
             default=None,
         )
         project_parser.add_argument(
-            "-export",
             "--export",
             help="Export project",
             choices=["tar.gz", "json", "toml", "yaml"],
@@ -56,14 +54,12 @@ class Project(Base):
             default=None,
         )
         project_parser.add_argument(
-            "-render",
             "--render",
             help="Render project",
             action="store_true",
             dest="render",
         )
         project_parser.add_argument(
-            "-duplicate",
             "--duplicate",
             help="Duplicate project",
             action="store_true",
@@ -73,7 +69,6 @@ class Project(Base):
         # Additional options
         parser.add_argument(
             "-o",
-            "-output",
             "--output",
             metavar="FILENAME",
             help="Filename to store output, empty for stdout",
@@ -81,7 +76,6 @@ class Project(Base):
             default=None,
         )
         parser.add_argument(
-            "-design",
             "--design",
             metavar="DESIGN ID",
             help="Render project with alternative design",
@@ -89,14 +83,12 @@ class Project(Base):
             default=None,
         )
         parser.add_argument(
-            "-upload",
             "--upload",
             action="store_true",
             help="Used with --export or --render; uploads file to note",
             dest="upload",
         )
         parser.add_argument(
-            "-json",
             "--json",
             help="Used with --search; output as json",
             action="store_const",

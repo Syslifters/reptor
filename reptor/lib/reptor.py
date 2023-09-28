@@ -14,8 +14,7 @@ from reptor.lib.conf import Config
 from reptor.lib.console import Console, reptor_console
 from reptor.lib.logger import ReptorAdapter, reptor_logger
 from reptor.lib.pluginmanager import PluginManager
-from reptor.lib.plugins.ConfBase import ConfBase
-from reptor.lib.plugins.DocParser import PluginDocs
+from reptor.lib.plugins.PluginMeta import PluginMeta
 from reptor.utils.django_tags import setup_django_tags
 from reptor.utils.markdown import convert_markdown_to_console
 
@@ -129,9 +128,9 @@ class Reptor:
         ) in subcommands.SUBCOMMANDS_GROUPS.items():
             description += f"\n{short_help_group_meta[0]}:\n"
 
-            item: PluginDocs
+            item: PluginMeta
             for item in short_help_group_meta[1]:
-                description += f"{item.name:<21} {item.summary}{settings.NEWLINE}"
+                description += f" {item.name:<21} {item.summary}{settings.NEWLINE}"
 
         # Argument parser
         main_description = """
@@ -216,13 +215,12 @@ class Reptor:
         )
         self._parser.add_argument("-n", "--notename")
         self._parser.add_argument(
-            "-nt",
             "--no-timestamp",
-            help="do not prepent timestamp to note",
+            help="do not prepend timestamp to note",
             action="store_true",
         )
 
-        self._parser.add_argument("-file", "--file", help="Local file to read")
+        self._parser.add_argument("--file", help="Local file to read")
         return self._parser
 
     def _parse_main_arguments_with_subparser(self):
@@ -296,12 +294,6 @@ class Reptor:
             try:
                 plugin = self.plugin_manager.LOADED_PLUGINS[args.command]
                 self.logger.debug(f"Loading Plugin: {plugin.__name__}")
-                if self._config._no_config_file and not issubclass(
-                    plugin.loader, ConfBase
-                ):
-                    self.logger.warning(
-                        "No config file found. You can create one with 'reptor conf'"
-                    )
                 plugin.loader(reptor=self, **self._config.get("cli")).run()
             except Exception as e:
                 self.logger.debug(traceback.format_exc())

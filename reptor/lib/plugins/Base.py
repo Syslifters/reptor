@@ -2,6 +2,7 @@ import sys
 import typing
 
 from reptor.lib.console import reptor_console
+from reptor.lib.reptor import Reptor
 
 
 class Base:
@@ -13,7 +14,7 @@ class Base:
         notename: The Notename to be used when uploading
     """
 
-    reptor: typing.Any
+    reptor: Reptor
     meta: typing.Dict = {
         "name": "",
         "author": "",

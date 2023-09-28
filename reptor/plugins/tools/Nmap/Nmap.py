@@ -57,7 +57,6 @@ class Nmap(ToolBase):
         )
 
         parser.add_argument(
-            "-multi-notes",
             "--multi-notes",
             help="Uploads multiple notes (one per IP) instead of one note with all IPs",
             action="store_true",
