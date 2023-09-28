@@ -40,14 +40,14 @@ subcommands:
   
   uploads:
   file                  Uploads a file
-  note                  Uploads and lists notes
   finding               Uploads findings from JSON or TOML
+  note                  Uploads and lists notes
   
   tools:
-  sslyze                format sslyze JSON output
-  zap                   Parses ZAP reports (JSON, XML)
   nmap                  format nmap output
   nikto                 Formats Nikto output (XML)
+  zap                   Parses ZAP reports (JSON, XML)
+  sslyze                format sslyze JSON output
   
   importers:
   ghostwriter           Imports GhostWriter finding templates
@@ -55,9 +55,9 @@ subcommands:
   other:
   importers             Show importers to use to import finding templates
   plugins               Allows plugin management & development
-  translate             Translate Projects to other languages via Deepl
-  project               Work with projects
   template              Queries Finding Templates from reptor.api
+  project               Work with projects
+  translate             Translate Projects to other languages via Deepl
 
 configuration:
   -s SERVER, --server SERVER
@@ -66,7 +66,7 @@ configuration:
   -k, --insecure        do not verify server certificate
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
-  --private-note       add notes to private notes
+  --private-note        add notes to private notes
   -f, --force-unlock    force unlock notes
 
 ```
