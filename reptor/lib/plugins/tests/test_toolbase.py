@@ -124,7 +124,7 @@ class TestToolbase(TestCaseToolPlugin):
         assert ToolBase._get_finding_methods() == []
 
     def test_load_local_finding_template(self):
-        finding = self.example_tool.get_local_template_data("idor")
+        finding = self.example_tool.get_local_finding_data("idor")
         assert finding["data"]["title"] == "IDOR"
         assert (
             finding["data"]["description"]
@@ -149,11 +149,11 @@ class TestToolbase(TestCaseToolPlugin):
         assert finding["data"]["severity"] == "high"
 
         # Assert loading with file ext works
-        finding_1 = self.example_tool.get_local_template_data("idor.toml")
+        finding_1 = self.example_tool.get_local_finding_data("idor.toml")
         assert finding == finding_1
 
         # Invalid finding
-        invalid_finding = self.example_tool.get_local_template_data("invalid_finding")
+        invalid_finding = self.example_tool.get_local_finding_data("invalid_finding")
         assert invalid_finding is None
 
     def test_generate_findings_with_custom_fields(self):

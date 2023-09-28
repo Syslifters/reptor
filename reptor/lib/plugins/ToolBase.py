@@ -448,8 +448,8 @@ class ToolBase(Base):
 
             if not finding:
                 # Check if findings toml exists
-                template_dict = self.get_local_template_data(finding_name)
-                if not template_dict:
+                finding_dict = self.get_local_finding_data(finding_name)
+                if not finding_dict:
                     self.log.warning(
                         f"Did not find finding template for {finding_name}. Creating default finding."
                     )
@@ -458,7 +458,7 @@ class ToolBase(Base):
                         if finding_context
                         else "No description"
                     )
-                    template_dict = {
+                    finding_dict = {
                         "data": {
                             "title": finding_name.replace("_", " ").title(),
                             "description": description,
@@ -467,7 +467,7 @@ class ToolBase(Base):
 
                 try:
                     finding = Finding(
-                        template_dict,
+                        finding_dict,
                         project_design=project_design,
                         force_compatible=True,
                     )
@@ -477,7 +477,7 @@ class ToolBase(Base):
                     )
                     project_design = self.reptor.api.project_designs.project_design
                     finding = Finding(
-                        template_dict,
+                        finding_dict,
                         project_design=project_design,
                         force_compatible=False,
                     )
@@ -505,7 +505,7 @@ class ToolBase(Base):
             self.findings.append(finding)
         return self.findings
 
-    def get_local_template_data(self, name: str) -> typing.Optional[dict]:
+    def get_local_finding_data(self, name: str) -> typing.Optional[dict]:
         """Loads a finding template from the local findings directory.
 
         Args:
@@ -515,20 +515,27 @@ class ToolBase(Base):
             A FindingRaw object or None if the template does not exist
         """
         if not self.finding_paths:
+            self.debug("No path in finding_paths.")
             return None
         if not name.endswith(".toml"):
             name = f"{name}.toml"
 
+        self.debug(
+            f"Iterate through finding paths: {', '.join([str(p) for p in self.finding_paths])}"
+        )
         for path in self.finding_paths:
             finding_template_path = path / name
             if os.path.isfile(finding_template_path):
                 with open(finding_template_path, "r") as f:
                     try:
                         finding_template = toml.load(f)
-                    except (toml.TomlDecodeError, TypeError) as e:
+                    except (toml.TomlDecodeError, TypeError):
                         self.log.warning(
-                            f"Error while loading toml finding template {name}."
+                            f"Error while loading toml finding template {finding_template_path}."
                         )
-                        return None
+                        continue
                 return finding_template
+            else:
+                self.debug(f"No finding template found at {finding_template_path}.")
+                continue
         return None
