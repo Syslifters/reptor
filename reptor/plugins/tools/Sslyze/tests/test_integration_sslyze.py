@@ -36,7 +36,7 @@ class TestIntegrationSslyze(object):
         nmap_output_path = Path(os.path.dirname(__file__)) / "data/sslyze.json"
 
         p = subprocess.Popen(
-            ["reptor", "sslyze", "--push-findings"],
+            ["reptor", "sslyze", "--push-findings", "--debug"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
         )
