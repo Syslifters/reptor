@@ -164,8 +164,12 @@ class Reptor:
                 description=plugin.loader.meta.get("summary", ""),
                 formatter_class=argparse.RawTextHelpFormatter,
             )
+            plugin_filepath = plugin.__file__
+            self.logger.debug(
+                f"Adding arguments for {name} with filepath {plugin_filepath}"
+            )
             plugin.loader.add_arguments(
-                plugin.subparser, plugin_filepath=plugin.__file__
+                plugin.subparser, plugin_filepath=plugin_filepath
             )
 
     def _add_config_parse_options(self):
