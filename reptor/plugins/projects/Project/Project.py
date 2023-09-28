@@ -34,7 +34,7 @@ class Project(Base):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
         project_parser = parser.add_mutually_exclusive_group()
         # Mutually exclusive options
         project_parser.add_argument(

@@ -32,7 +32,7 @@ class TestIntegrationSslyze(object):
         ]
         assert all([line in note_lines for line in lines])
 
-    def test_sslyze_findings(self, notes_api, projects_api):
+    def test_sslyze_findings(self, projects_api):
         nmap_output_path = Path(os.path.dirname(__file__)) / "data/sslyze.json"
 
         p = subprocess.Popen(

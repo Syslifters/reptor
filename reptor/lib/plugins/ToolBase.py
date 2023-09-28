@@ -63,21 +63,24 @@ class ToolBase(Base):
         dirname: str,
         skip_user_plugins: bool = False,
     ) -> typing.List[Path]:
+        if plugin_path is None:
+            raise ValueError("plugin_path must not be None")
         dir_paths = list()
         if skip_user_plugins:
             user_plugin_path = None
         else:
             user_plugin_path = settings.PLUGIN_DIRS_USER / os.path.basename(plugin_path)
+
         for path in [
             user_plugin_path,
             plugin_path,
         ]:  # Keep order: files from user directory override
             if path is None:
                 continue
-            dir_path = os.path.normpath(Path(path) / dirname)
+            dir_path = Path(os.path.normpath(Path(path) / dirname))
 
             if dir_path not in dir_paths and os.path.isdir(dir_path):
-                dir_paths.append(Path(dir_path))
+                dir_paths.append(dir_path)
 
         # Return list of existing template paths
         return dir_paths
@@ -129,7 +132,7 @@ class ToolBase(Base):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
         if plugin_filepath:
             cls.setup_class(Path(os.path.dirname(plugin_filepath)))
 

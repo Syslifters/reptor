@@ -26,7 +26,7 @@ class Conf(ConfBase):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
         config_parser = parser.add_mutually_exclusive_group()
         config_parser.add_argument(
             "--show", help="Shows current connection settings", action="store_true"
