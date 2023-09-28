@@ -47,7 +47,9 @@ class APIClient:
             headers["Content-Type"] = "application/json"
         headers["User-Agent"] = settings.USER_AGENT
         headers["Authorization"] = f"Bearer {self.reptor.get_config().get_token()}"
-        self.debug(f"HTTP Headers: {headers}")
+        headers_debug = headers.copy()
+        headers_debug["Authorization"] = "[redacted]"
+        self.debug(f"HTTP Headers: {headers_debug}")
         return headers
 
     def _prepare_kwargs(self, kwargs, json_content=True):
