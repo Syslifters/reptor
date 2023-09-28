@@ -133,7 +133,6 @@ class Translate(Base):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         parser.add_argument(
-            "-from",
             "--from",
             metavar="LANGUAGE_CODE",
             help="Language code of source language",
@@ -142,7 +141,6 @@ class Translate(Base):
             default=None,
         )
         parser.add_argument(
-            "-to",
             "--to",
             metavar="LANGUAGE_CODE",
             help="Language code of dest language",
@@ -151,7 +149,6 @@ class Translate(Base):
             default=None,
         )
         parser.add_argument(
-            "-skip-fields",
             "--skip-fields",
             metavar="FIELDS",
             help="Report and Finding fields, comma-separated",
@@ -161,14 +158,12 @@ class Translate(Base):
 
         # Currently supported: Deepl
         # parser.add_argument(
-        #    "-translator",
         #    "--translator",
         #    help="Translator service to use",
         #    choices=["deepl"],
         #    default="deepl",
         # )
         parser.add_argument(
-            "-dry-run",
             "--dry-run",
             help="Do not translate, count characters to be translated and checks Deepl quota",
             action="store_true",

@@ -101,7 +101,7 @@ class ToolBase(Base):
             files_from_plugin_dir.extend(
                 [t for t in files if t not in files_from_plugin_dir]
             )
-        return files_from_plugin_dir
+        return sorted(files_from_plugin_dir)
 
     @classmethod
     def setup_class(cls, plugin_path: Path, skip_user_plugins: bool = False):
@@ -149,7 +149,6 @@ class ToolBase(Base):
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"
         action_group.add_argument(
-            "-parse",
             "--parse",
             action="store_const",
             dest="action",
@@ -158,7 +157,6 @@ class ToolBase(Base):
         )
         if cls.templates:
             action_group.add_argument(
-                "-format",
                 "--format",
                 action="store_const",
                 dest="action",
@@ -166,7 +164,6 @@ class ToolBase(Base):
                 default="format",
             )
             action_group.add_argument(
-                "-upload",
                 "--upload",
                 action="store_const",
                 dest="action",
@@ -176,7 +173,6 @@ class ToolBase(Base):
 
         if cls._get_finding_methods():
             action_group.add_argument(
-                "-push-findings",
                 "--push-findings",
                 action="store_true",
             )
@@ -194,7 +190,6 @@ class ToolBase(Base):
             # Add parsing options only if implemented by modules
             if cls.parse_xml != ToolBase.parse_xml:
                 input_format_group.add_argument(
-                    "-xml",
                     "--xml",
                     action="store_const",
                     dest="format",
@@ -203,7 +198,6 @@ class ToolBase(Base):
                 )
             if cls.parse_json != ToolBase.parse_json:
                 input_format_group.add_argument(
-                    "-json",
                     "--json",
                     action="store_const",
                     dest="format",
@@ -212,7 +206,6 @@ class ToolBase(Base):
                 )
             if cls.parse_csv != ToolBase.parse_csv:
                 input_format_group.add_argument(
-                    "-csv",
                     "--csv",
                     action="store_const",
                     dest="format",

@@ -27,7 +27,6 @@ class Template(Base):
             "--search", help="Search for term", action="store", default=None
         )
         templates_parsers.add_argument(
-            "-json",
             "--json",
             help="Used with --search; output as json",
             action="store_const",

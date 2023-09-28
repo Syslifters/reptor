@@ -24,7 +24,6 @@ class Note(UploadBase):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         parser.add_argument("--list", help="list available notes", action="store_true")
         parser.add_argument(
-            "-json",
             "--json",
             action="store_const",
             dest="format",

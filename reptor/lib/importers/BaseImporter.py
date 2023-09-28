@@ -29,7 +29,6 @@ class BaseImporter(Base):
         action_group = parser.add_argument_group()
         action_group.title = "Global Importer Settings"
         action_group.add_argument(
-            "-tags",
             "--tags",
             action="store",
             help="Comma-separated tags for new templates",

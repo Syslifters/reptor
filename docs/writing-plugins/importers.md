@@ -28,7 +28,6 @@ Use the `add_arguments` method to add your custom CLI arguments
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         action_group = parser.add_argument_group()
         action_group.add_argument(
-            "-url",
             "--url",
             metavar="URL",
             action="store",

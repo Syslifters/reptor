@@ -1,7 +1,7 @@
-from reptor.lib.plugins.DocParser import DocParser
+from reptor.lib.plugins.PluginMeta import PluginMeta
 
 
-class TestDocParser:
+class TestPluginMeta:
     example_docs = {
         "author": "Willy Wonka",
         "version": "1.5",
@@ -11,10 +11,10 @@ class TestDocParser:
     }
 
     def test_perfect_docs(self):
-        module_docs = DocParser.parse(self.example_docs)
+        plugin_meta = PluginMeta(self.example_docs)
 
-        assert module_docs.author == "Willy Wonka"
-        assert module_docs.version == "1.5"
-        assert module_docs.website == "https://github.com/Syslifters/reptor"
-        assert module_docs.license == "MIT"
-        assert module_docs.summary == "Parses OWASPZap XML and JSON reports"
+        assert plugin_meta.author == "Willy Wonka"
+        assert plugin_meta.version == "1.5"
+        assert plugin_meta.website == "https://github.com/Syslifters/reptor"
+        assert plugin_meta.license == "MIT"
+        assert plugin_meta.summary == "Parses OWASPZap XML and JSON reports"

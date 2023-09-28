@@ -81,7 +81,6 @@ def add_arguments(cls, parser, plugin_filepath=None):
     super().add_arguments(parser, plugin_filepath=plugin_filepath)
     input_format_group = cls.get_input_format_group(parser)
     input_format_group.add_argument(
-        "-plaintext",
         "--plaintext",
         help="plaintext output format",
         action="store_const",
@@ -251,7 +250,6 @@ Let's add the `--multi-notes` switch to the `add_arguments` method:
 
 ```python
 parser.add_argument(
-    "-multi-notes",
     "--multi-notes",
     help="Uploads multiple notes (one per target)",
     action="store_true",
