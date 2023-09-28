@@ -1,8 +1,8 @@
-usage: reptor note [-h] [--list] [-json]
+usage: reptor note [-h] [--list] [--json]
 
 Uploads and lists notes
 
 optional arguments:
-  -h, --help     show this help message and exit
-  --list         list available notes
-  -json, --json
+  -h, --help  show this help message and exit
+  --list      list available notes
+  --json

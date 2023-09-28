@@ -1,5 +1,5 @@
-usage: reptor nikto [-h] [-t {nikto_default}] [-parse | -format | -upload]
-                    [-xml]
+usage: reptor nikto [-h] [-t {nikto_default}] [--parse | --format | --upload]
+                    [--xml]
 
 Formats Nikto output (XML)
 
@@ -7,7 +7,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -t {nikto_default}, --template {nikto_default}
                         Template for output formatting
-  -parse, --parse
-  -format, --format
-  -upload, --upload
-  -xml, --xml
+  --parse
+  --format
+  --upload
+  --xml

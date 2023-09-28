@@ -1,14 +1,11 @@
-usage: reptor translate [-h] [-from LANGUAGE_CODE] [-to LANGUAGE_CODE]
-                        [-skip-fields FIELDS] [-dry-run]
+usage: reptor translate [-h] [--from LANGUAGE_CODE] [--to LANGUAGE_CODE]
+                        [--skip-fields FIELDS] [--dry-run]
 
 Translate Projects to other languages via Deepl
 
 optional arguments:
   -h, --help            show this help message and exit
-  -from LANGUAGE_CODE, --from LANGUAGE_CODE
-                        Language code of source language
-  -to LANGUAGE_CODE, --to LANGUAGE_CODE
-                        Language code of dest language
-  -skip-fields FIELDS, --skip-fields FIELDS
-                        Report and Finding fields, comma-separated
-  -dry-run, --dry-run   Do not translate, count characters to be translated and checks Deepl quota
+  --from LANGUAGE_CODE  Language code of source language
+  --to LANGUAGE_CODE    Language code of dest language
+  --skip-fields FIELDS  Report and Finding fields, comma-separated
+  --dry-run             Do not translate, count characters to be translated and checks Deepl quota

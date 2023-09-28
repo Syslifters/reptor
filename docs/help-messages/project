@@ -1,21 +1,18 @@
 usage: reptor project [-h]
-                      [-search SEARCHTERM | -export {tar.gz,json,toml,yaml} | -render | -duplicate]
-                      [-o FILENAME] [-design DESIGN ID] [-upload] [-json]
+                      [--search SEARCHTERM | --export {tar.gz,json,toml,yaml} | --render | --duplicate]
+                      [-o FILENAME] [--design DESIGN ID] [--upload] [--json]
 
 Work with projects
 
 optional arguments:
   -h, --help            show this help message and exit
-  -search SEARCHTERM, --search SEARCHTERM
-                        Search for term
-  -export {tar.gz,json,toml,yaml}, --export {tar.gz,json,toml,yaml}
+  --search SEARCHTERM   Search for term
+  --export {tar.gz,json,toml,yaml}
                         Export project
-  -render, --render     Render project
-  -duplicate, --duplicate
-                        Duplicate project
-  -o FILENAME, -output FILENAME, --output FILENAME
+  --render              Render project
+  --duplicate           Duplicate project
+  -o FILENAME, --output FILENAME
                         Filename to store output, empty for stdout
-  -design DESIGN ID, --design DESIGN ID
-                        Render project with alternative design
-  -upload, --upload     Used with --export or --render; uploads file to note
-  -json, --json         Used with --search; output as json
+  --design DESIGN ID    Render project with alternative design
+  --upload              Used with --export or --render; uploads file to note
+  --json                Used with --search; output as json
