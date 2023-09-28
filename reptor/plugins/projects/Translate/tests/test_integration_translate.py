@@ -12,7 +12,6 @@ class TestIntegrationTranslate(object):
         )
         _, output = p.communicate()
         output = output.decode()
-        p.wait()
         assert p.returncode == 0
 
         translated_characters = 0
@@ -37,7 +36,6 @@ class TestIntegrationTranslate(object):
         )
         _, output = p.communicate()
         output = output.decode()
-        p.wait()
         assert p.returncode == 0
 
         less_translated_characters = 0

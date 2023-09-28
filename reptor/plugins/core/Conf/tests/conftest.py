@@ -122,7 +122,6 @@ def get_notes(private=False):
     )
     notes, _ = p.communicate()
     notes = json.loads(notes.decode())
-    p.wait()
     assert p.returncode == 0
     return notes
 

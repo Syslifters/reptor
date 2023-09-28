@@ -35,7 +35,6 @@ class TestIntegrationFinding(object):
             stdin=subprocess.PIPE,
         )
         p.communicate(input=json.dumps(finding).encode())
-        p.wait()
         assert p.returncode == 0
 
         findings = projects_api.get_findings()
@@ -70,7 +69,6 @@ class TestIntegrationFinding(object):
             stdin=subprocess.PIPE,
         )
         _, err = p.communicate(input=json.dumps(finding).encode())
-        p.wait()
         assert p.returncode == 2
         findings = projects_api.get_findings()
         assert title not in [f.data.title for f in findings]

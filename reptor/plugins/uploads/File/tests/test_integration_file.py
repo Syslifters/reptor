@@ -17,7 +17,7 @@ class TestIntegrationFile(object):
             ["reptor", "file", archive_path],
             stdout=subprocess.PIPE,
         )
-        p.wait()
+        p.communicate()
         assert p.returncode == 0
 
         note = get_note("Uploads", None)
@@ -30,7 +30,7 @@ class TestIntegrationFile(object):
             ["reptor", "file", "-fn", fn, archive_path],
             stdout=subprocess.PIPE,
         )
-        p.wait()
+        p.communicate()
         assert p.returncode == 0
 
         note = get_note("Uploads", None)

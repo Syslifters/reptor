@@ -35,7 +35,7 @@ class TestIntegrationProject(object):
                 "--debug",
             ],
         )
-        p.wait()
+        p.communicate()
         assert p.returncode == 0
 
         note = get_note("Uploads", None)
@@ -56,7 +56,7 @@ class TestIntegrationProject(object):
         p = subprocess.Popen(
             ["reptor", "project", "--export", "tar.gz", "-o", fname],
         )
-        p.wait()
+        p.communicate()
         assert p.returncode == 0
 
         assert os.path.isfile(fname)
@@ -71,7 +71,6 @@ class TestIntegrationProject(object):
             ["reptor", "project", "--export", "json", "-o", "-"],
             stdout=subprocess.PIPE,
         )
-        p.wait()
         output, _ = p.communicate()
 
         assert p.returncode == 0
