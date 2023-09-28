@@ -20,7 +20,7 @@ class File(UploadBase):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
 
         parser.add_argument(
             "file",

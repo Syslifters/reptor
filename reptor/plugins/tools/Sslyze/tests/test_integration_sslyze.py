@@ -18,7 +18,6 @@ class TestIntegrationSslyze(object):
             stdout=subprocess.PIPE,
         )
         p.communicate(input=input_path.read_bytes())
-        p.wait()
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title("sslyze", parent_notename="Uploads")
@@ -32,7 +31,7 @@ class TestIntegrationSslyze(object):
         ]
         assert all([line in note_lines for line in lines])
 
-    def test_sslyze_findings(self, notes_api, projects_api):
+    def test_sslyze_findings(self, projects_api):
         nmap_output_path = Path(os.path.dirname(__file__)) / "data/sslyze.json"
 
         p = subprocess.Popen(
@@ -41,7 +40,6 @@ class TestIntegrationSslyze(object):
             stdout=subprocess.PIPE,
         )
         p.communicate(input=nmap_output_path.read_bytes())
-        p.wait()
         assert p.returncode == 0
 
         projects_api.get_findings()

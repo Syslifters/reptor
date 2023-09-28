@@ -26,7 +26,6 @@ class TestIntegrationZap(object):
             stdout=subprocess.PIPE,
         )
         p.communicate(input=input_path.read_bytes())
-        p.wait()
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title(

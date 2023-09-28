@@ -21,7 +21,7 @@ class Template(Base):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
         templates_parsers = parser.add_argument_group()
         templates_parsers.add_argument(
             "--search", help="Search for term", action="store", default=None

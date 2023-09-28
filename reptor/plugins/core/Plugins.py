@@ -42,7 +42,7 @@ class Plugins(Base):
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
 
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"

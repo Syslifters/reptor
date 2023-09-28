@@ -25,7 +25,7 @@ Use the `add_arguments` method to add your custom CLI arguments
 ```python
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        super().add_arguments(parser, plugin_filepath)
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
         action_group = parser.add_argument_group()
         action_group.add_argument(
             "-url",

@@ -13,7 +13,6 @@ class TestIntegrationTemplate(object):
         )
         templates, _ = p.communicate()
         templates = json.loads(templates.decode())
-        p.wait()
         assert p.returncode == 0
         assert len(templates) > 0
 
@@ -23,6 +22,5 @@ class TestIntegrationTemplate(object):
         )
         sql_templates, _ = p.communicate()
         sql_templates = json.loads(sql_templates.decode())
-        p.wait()
         assert p.returncode == 0
         assert len(templates) > len(sql_templates) > 0
