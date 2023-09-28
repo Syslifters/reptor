@@ -61,4 +61,4 @@ reptor = 'reptor.__main__:run'
 "Source" = "https://github.com/syslifters/reptor"
 
 [tool.setuptools.package-data]
-"*" = ["**/*.md"]
+"*" = ["**/*.md", "**/*.toml"]
