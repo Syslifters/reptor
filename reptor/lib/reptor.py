@@ -139,7 +139,7 @@ class Reptor:
                 echo "Upload this!" | reptor note
                 reptor file data/*
                 cat sslyze.json | reptor sslyze --json --push-findings
-                cat nmap.xml | reptor nmap --xml --upload --multi-notes
+                cat nmap.xml | reptor nmap --xml --upload
 """
         self._parser = argparse.ArgumentParser(
             prog="reptor",
@@ -213,7 +213,7 @@ class Reptor:
         self._parser.add_argument(
             "--debug", help="sets logging to DEBUG", action="store_true"
         )
-        self._parser.add_argument("-n", "--notename")
+        self._parser.add_argument("-n", "--notetitle")
         self._parser.add_argument(
             "--no-timestamp",
             help="do not prepend timestamp to note",

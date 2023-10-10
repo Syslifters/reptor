@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from reptor.models.Note import Note
 from reptor.plugins.core.Conf.tests.conftest import notes_api
 
 
@@ -13,7 +14,7 @@ class TestIntegrationZap(object):
     def tearDown(self, notes_api):
         yield
         # Delete Zap notes (prevents interference between xml and json)
-        note = notes_api.get_note_by_title("zap")
+        note = notes_api.get_note_by_title("Zap")
         notes_api.delete_note(note.id)
 
     @pytest.mark.parametrize("format", ["xml", "json"])
@@ -29,13 +30,25 @@ class TestIntegrationZap(object):
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title(
-            "http://localhost (7)", parent_notename="zap"
+            "http://localhost (7)", parent_notetitle="Zap"
         )
-        note_lines = note.text.splitlines()
-        assert "*Cross Site Scripting (Reflected)*" in note_lines
+        assert isinstance(note, Note)
 
         note = notes_api.get_note_by_title(
-            "https://localhost (5)", parent_notename="zap"
+            "🔴 Cross Site Scripting (Reflected)",
+            parent_notetitle="http://localhost (7)",
         )
+        assert isinstance(note, Note)
         note_lines = note.text.splitlines()
-        assert "*Application Error Disclosure*" in note_lines
+        assert "| Risk | High (Medium) |" in note_lines
+
+        note = notes_api.get_note_by_title(
+            "https://localhost (5)", parent_notetitle="Zap"
+        )
+        assert isinstance(note, Note)
+        note = notes_api.get_note_by_title(
+            "🟠 Application Error Disclosure", parent_notetitle="https://localhost (5)"
+        )
+        assert isinstance(note, Note)
+        note_lines = note.text.splitlines()
+        assert "| Number of Affected Instances | 34 |" in note_lines

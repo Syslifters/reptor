@@ -12,7 +12,6 @@ cat nmap-output.xml | reptor nmap -oX
 
 ```bash title="Upload table to notes"
 cat nmap-output.xml | reptor nmap -oX --upload
-cat nmap-output.xml | reptor nmap -oX --upload --multi-notes  # One table per host
 ```
 
 ## Usage

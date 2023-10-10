@@ -16,8 +16,9 @@ class TestIntegrationFile(object):
         p = subprocess.Popen(
             ["reptor", "file", archive_path],
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        p.communicate()
+        out, err = p.communicate()
         assert p.returncode == 0
 
         note = get_note("Uploads", None)

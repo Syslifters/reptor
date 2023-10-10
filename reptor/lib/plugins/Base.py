@@ -11,7 +11,7 @@ class Base:
 
     Attributes:
         reptor: Reptor Instance
-        notename: The Notename to be used when uploading
+        notetitle: The Notename to be used when uploading
     """
 
     reptor: Reptor
@@ -28,7 +28,7 @@ class Base:
     keys: typing.Dict = {}
 
     def __init__(self, **kwargs):
-        self.notename = kwargs.get("notename")
+        self.notetitle = kwargs.get("notetitle")
         self.file_path = kwargs.get("file", "")
         self.reptor = kwargs.get("reptor", None)
 
@@ -100,30 +100,24 @@ class Base:
     def deliver_file(
         self,
         content: bytes,
-        filename: typing.Optional[str],
-        default_filename: typing.Optional[str],
+        filename: str,
         upload: bool = False,
+        stdout: bool = False,
     ) -> None:
-        if filename == "-":
+        if stdout:
             # Write to stdout
-            filename = None
+            stdout = True
             sys.stdout.buffer.write(content)
-        elif not filename and not upload:
-            # Set default filename
-            filename = default_filename
-
-        if filename:
+        elif upload:
+            notetitle = "Uploads"
+            self.reptor.api.notes.upload_file(
+                content=content, filename=filename, notetitle=notetitle
+            )
+            self.log.success(f'Uploaded "{filename}" to "{notetitle}" note')
+        else:
             with open(filename, "wb") as f:
                 f.write(content)
             self.log.success(f"Exported to {filename}")
-
-        if upload:
-            filename = filename or default_filename
-            notename = "Uploads"
-            self.reptor.api.notes.upload_file(
-                content=content, filename=filename, notename=notename
-            )
-            self.log.success(f'Uploaded "{filename}" to "{notename}" note')
 
     def print(self, *args, **kwargs):
         print(*args, **kwargs)

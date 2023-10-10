@@ -18,7 +18,7 @@ class MYMODULENAME(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = kwargs.get("notename", "MYMODULENAME")
+        self.notetitle = kwargs.get("notetitle", "MYMODULENAME")
         self.note_icon = "📃"
         self.arg_foo = kwargs.get("foo")
 

@@ -37,25 +37,25 @@ class File(UploadBase):
         if not files:
             files = [sys.stdin]
         filename = self.reptor.get_config().get("cli").get("filename")
-        notename = self.reptor.get_config().get("cli").get("notename")
-        parent_notename = None
+        notetitle = self.reptor.get_config().get("cli").get("notetitle")
+        parent_notetitle = None
         icon = None
-        if notename:
-            parent_notename = "Uploads"
+        if notetitle:
+            parent_notetitle = "Uploads"
         else:
-            notename = "Uploads"
+            notetitle = "Uploads"
             icon = "📤"
         force_unlock = self.reptor.get_config().get("cli").get("force_unlock")
-        no_timestamp = self.reptor.get_config().get("cli").get("no_timestamp")
+        timestamp = not self.reptor.get_config().get("cli").get("no_timestamp")
 
         for file in files:
             self.reptor.api.notes.upload_file(
                 file=file,
-                notename=notename,
+                notetitle=notetitle,
                 filename=filename,
                 caption=filename,
-                parent_notename=parent_notename,
-                no_timestamp=no_timestamp,
+                parent_notetitle=parent_notetitle,
+                timestamp=timestamp,
                 force_unlock=force_unlock,
                 icon=icon,
             )

@@ -17,7 +17,7 @@ class Note(UploadBase):
         super().__init__(**kwargs)
         self.list = kwargs.get("list")
         self.format = kwargs.get("format")
-        self.notename = self.reptor.get_config().get_cli_overwrite().get("notename")
+        self.notetitle = self.reptor.get_config().get_cli_overwrite().get("notetitle")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -49,31 +49,33 @@ class Note(UploadBase):
             self.console.print(table)
 
     def _write_note(self):
-        parent_notename = None
+        parent_notetitle = None
         icon = None
-        if self.notename:
-            parent_notename = "Uploads"
+        if self.notetitle:
+            parent_notetitle = "Uploads"
         else:
-            self.notename = "Uploads"
+            self.notetitle = "Uploads"
             icon = "📤"
-        force_unlock = self.reptor.get_config().get_cli_overwrite().get("force_unlock")
-        no_timestamp = self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
+        force_unlock = bool(
+            self.reptor.get_config().get_cli_overwrite().get("force_unlock")
+        )
+        timestamp = not self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
 
         """
         Notes accept stdin only
         Notes are added as child of 'Uploads' note
-        If no notename defined, content gets appended to 'Uploads' note
+        If no notetitle defined, content gets appended to 'Uploads' note
         """
         self.info("Reading from stdin...")
         content = sys.stdin.read()
 
         self.reptor.api.notes.write_note(
-            content=content,
-            notename=self.notename,
-            parent_notename=parent_notename,
+            text=content,
+            title=self.notetitle,
+            parent_notetitle=parent_notetitle,
             icon=icon,
-            force_unlock=force_unlock,  # type: ignore
-            no_timestamp=no_timestamp,  # type: ignore
+            force_unlock=force_unlock,
+            timestamp=timestamp,
         )
         self.log.success("Successfully uploaded to notes.")
 

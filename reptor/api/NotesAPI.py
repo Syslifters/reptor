@@ -11,6 +11,8 @@ from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
 from reptor.utils.file_operations import guess_filetype
 
+from reptor.models.Note import NoteTemplate
+
 
 class NotesAPI(APIClient):
     """Interacts with Notes Endpoints
@@ -46,6 +48,21 @@ class NotesAPI(APIClient):
             notes.append(Note(note_data))
         return notes
 
+    def get_note(
+        self,
+        noteid: typing.Optional[str] = None,
+        notetitle: typing.Optional[str] = None,
+    ) -> typing.Optional[Note]:
+        for note in self.get_notes():
+            if noteid:
+                if note.id == noteid:
+                    return note
+            elif notetitle:
+                if note.title == notetitle:
+                    return note
+            else:
+                raise ValueError("Either noteid or notetitle must be provided")
+
     def create_note(
         self,
         title="CLI Note",
@@ -55,6 +72,8 @@ class NotesAPI(APIClient):
         icon=None,
     ) -> Note:
         self.debug("Creating Note")
+        if title is None:
+            raise ValueError("Note title must not be null.")
         note = self.post(
             self.base_endpoint,
             json={
@@ -77,77 +96,147 @@ class NotesAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{notes_id}/")
         self.put(url, json={"icon_emoji": icon})
 
-    def write_note(
+    def _upload_note(
         self,
-        content: str,
-        notename: str = "Uploads",
-        parent_notename: typing.Optional[str] = None,
-        icon: typing.Optional[str] = None,
-        no_timestamp: bool = False,
+        note: Note,
         force_unlock: bool = False,
     ):
-        note = self.get_note_by_title(
-            notename, parent_notename=parent_notename, icon=icon
-        )
-        self.debug(f"Working with note: {note.id}")
-
         with self._lock_note(note.id, force_unlock=force_unlock):
-            note_text = note.text + "\n\n"
-            if not no_timestamp:
-                note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
-                if "\n" in content:
-                    if not content.startswith("\n"):
-                        note_text += "\n"
-                else:
-                    note_text += ": "
-
-            note_text += content
-            self.debug(f"We are sending data with a lenght of: {len(note_text)}")
+            self.debug(f"Note has length: {len(note.text)}")
             url = urljoin(self.base_endpoint, note.id, "")
-            r = self.put(url, json={"text": note_text})
+            r = self.put(url, json=note.to_dict())
 
             try:
                 r.raise_for_status()
-                self.info(f'Note written to "{notename}".')
+                self.info(f'Note written to "{note.title}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
                 ) from e
 
-    def get_note_by_title(self, title, parent_notename=None, icon=None) -> Note:
-        parent_id = None
-        if parent_notename:
-            note = self.get_note_by_title(parent_notename, icon=icon)
-            parent_id = note.id
+    def write_note_templates(
+        self,
+        note_templates: typing.Union[NoteTemplate, typing.List[NoteTemplate]],
+        timestamp: bool = True,
+        **kwargs,
+    ):
+        if not isinstance(note_templates, list):
+            note_templates = [note_templates]
+        for note_template in note_templates:
+            if note_template.parent_notetitle and not note_template.parent:
+                note_template.parent = self.get_or_create_note_by_title(
+                    note_template.parent_notetitle
+                ).id
+
+            note = self.get_note_by_title(
+                note_template.title,
+                parent_noteid=note_template.parent,
+            )
+            if note is None:
+                new_note = True
+                note = self.get_or_create_note_by_title(
+                    title=note_template.title,
+                    parent_noteid=note_template.parent,
+                    parent_notetitle=note_template.parent_notetitle,
+                )
+            else:
+                new_note = False
+            self.debug(f"Got note from server {note.title} ({note.id})")
+
+            # Prepare note (append content to existing note, etc)
+            note_text = note.text + "\n\n" if note.text else ""
+            if (
+                timestamp and note_template.text
+            ):  # Only add timestamp if there is content
+                note_text += f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+                if "\n" in note_template.text:
+                    if not note_template.text.startswith("\n"):
+                        note_text += "\n"
+                else:
+                    note_text += ": "
+            note_text += note_template.text
+
+            if new_note:
+                upload_note = Note.from_note_template(note_template)
+                upload_note.parent = note.parent
+                upload_note.id = note.id
+                upload_note.text = note_text
+            else:
+                upload_note = note
+                upload_note.text = note_text
+
+            # Upload note and children recursively
+            self._upload_note(upload_note, **kwargs)
+            for child in note_template.children:
+                child.parent = note.id
+                self.write_note_templates(child, timestamp=timestamp, **kwargs)
+
+    def write_note(
+        self,
+        timestamp: bool = False,
+        force_unlock: bool = False,
+        **kwargs,
+    ):
+        note_template = NoteTemplate.from_kwargs(**kwargs)
+        self.write_note_templates(
+            note_template, timestamp=timestamp, force_unlock=force_unlock
+        )
+
+    def get_note_by_title(
+        self,
+        title,
+        parent_noteid=None,  # Preferred over parent_notetitle
+        parent_notetitle=None,
+        ignore_parent=False,
+    ) -> typing.Optional[Note]:
+        if not parent_noteid and parent_notetitle:
+            try:
+                parent_noteid = self.get_note_by_title(parent_notetitle, ignore_parent=True).id  # type: ignore
+            except AttributeError:
+                raise ValueError(f'Parent note "{parent_notetitle}" does not exist.')
         notes_list = self.get_notes()
 
         for note in notes_list:
-            if note.title == title and note.parent == parent_id:
+            if note.title == title and (note.parent == parent_noteid or ignore_parent):
                 break
         else:
+            return None
+        return note
+
+    def get_or_create_note_by_title(
+        self,
+        title,
+        parent_noteid=None,  # Preferred over parent_notetitle
+        parent_notetitle=None,
+        icon=None,
+    ) -> Note:
+        if not parent_noteid and parent_notetitle:
+            parent_noteid = self.get_or_create_note_by_title(
+                parent_notetitle, icon=icon
+            ).id
+        note = self.get_note_by_title(title, parent_noteid=parent_noteid)
+        if not note:
             # Note does not exist. Create.
             if title == "Uploads":
                 icon = "📤"
-            note = self.create_note(title=title, parent_id=parent_id, icon=icon)
-
+            note = self.create_note(title=title, parent_id=parent_noteid, icon=icon)
         return note
 
     def upload_file(
         self,
         file: typing.Optional[typing.IO] = None,
         content: typing.Optional[bytes] = None,
-        notename: typing.Optional[str] = None,
+        notetitle: typing.Optional[str] = None,
         filename: typing.Optional[str] = None,
         caption: typing.Optional[str] = None,
-        parent_notename: typing.Optional[str] = None,
-        icon: typing.Optional[str] = None,
-        no_timestamp: bool = False,
+        parent_notetitle: typing.Optional[str] = None,
         force_unlock: bool = False,
+        **kwargs,
     ):
         assert file or content
         assert not (file and content)
-        if notename is None:
-            notename = "Uploads"
+        if notetitle is None:
+            notetitle = "Uploads"
 
         if file:
             if file.name == "<stdin>":
@@ -168,7 +257,9 @@ class NotesAPI(APIClient):
                 return
 
         # Lock during upload to prevent unnecessary uploads and for endpoint setup
-        note = self.get_note_by_title(notename, parent_notename=parent_notename)
+        note = self.get_or_create_note_by_title(
+            notetitle, parent_notetitle=parent_notetitle
+        )
         if self.private_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
@@ -186,12 +277,11 @@ class NotesAPI(APIClient):
                 note_content = f"\n[{caption or filename}]({file_path})"
 
             self.write_note(
-                notename=notename,
-                content=note_content,
-                parent_notename=parent_notename,
-                icon=icon,
-                no_timestamp=no_timestamp,
+                title=notetitle,
+                text=note_content,
+                parent_notetitle=parent_notetitle,
                 force_unlock=True,
+                **kwargs,
             )
 
     def _do_lock(self, note_id: str):

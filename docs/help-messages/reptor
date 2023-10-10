@@ -7,13 +7,13 @@ Examples:
                 echo "Upload this!" | reptor note
                 reptor file data/*
                 cat sslyze.json | reptor sslyze --json --push-findings
-                cat nmap.xml | reptor nmap --xml --upload --multi-notes
+                cat nmap.xml | reptor nmap --xml --upload
 
 optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
-  -n NOTENAME, --notename NOTENAME
+  -n NOTENAME, --notetitle NOTENAME
   --no-timestamp        do not prepend timestamp to note
   --file FILE           Local file to read
 

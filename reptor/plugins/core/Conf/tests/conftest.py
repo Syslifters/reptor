@@ -73,6 +73,13 @@ def notes_api():
 
 
 @pytest.fixture(scope="session")
+def private_notes_api():
+    reptor = Reptor()
+    reptor._config._raw_config["cli"] = {"private_note": True}
+    return NotesAPI(reptor=reptor)
+
+
+@pytest.fixture(scope="session")
 def project_design_api():
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"private_note": False}
@@ -83,6 +90,14 @@ def project_design_api():
 def uploads_id(notes_api):
     notes_api.write_note("Create Note")
     uploads_note = get_note("Uploads", None)
+    assert uploads_note is not None
+    return uploads_note["id"]
+
+
+@pytest.fixture(scope="module")
+def private_uploads_id(private_notes_api):
+    private_notes_api.write_note("Create Note")
+    uploads_note = get_note("Uploads", None, private=True)
     assert uploads_note is not None
     return uploads_note["id"]
 
@@ -126,9 +141,9 @@ def get_notes(private=False):
     return notes
 
 
-def get_note(name, parent, notes=None):
+def get_note(name, parent, notes=None, private=False):
     if notes is None:
-        notes = get_notes()
+        notes = get_notes(private=private)
     if parent:
         pass
     for note in notes:

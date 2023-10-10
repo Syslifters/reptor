@@ -1,4 +1,5 @@
 from reptor.lib.plugins.ToolBase import ToolBase
+from reptor.models.Note import NoteTemplate
 
 
 class Zap(ToolBase):
@@ -18,11 +19,16 @@ class Zap(ToolBase):
         "tags": ["web", "zap"],
         "summary": "Parses ZAP reports (JSON, XML)",
     }
+    risk_mapping = {
+        "3": "🔴",
+        "2": "🟠",
+        "1": "🟡",
+        "0": "🔵",
+    }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = kwargs.get("notename", "ZAP")
-        self.multi_notes = True
+        self.notetitle = kwargs.get("notetitle") or "Zap"
         self.note_icon = "🌩️"
         if self.input_format == "raw":
             self.input_format = "json"
@@ -92,17 +98,41 @@ class Zap(ToolBase):
             parsed_input.append(site)
         self.parsed_input = parsed_input
 
-    def preprocess_for_template(self):
+    def create_notes(self):
+        data = dict()
+        # Group by URL
         data = dict()
         for site in self.parsed_input:
-            title = f"{site['name']} ({len(site['alerts'])})"
-            data[title] = {"data": [site]}
+            data[site["name"]] = [site]
         data = dict(
-            sorted(
-                data.items(), key=lambda x: len(x[1]["data"][0]["alerts"]), reverse=True
-            )
+            sorted(data.items(), key=lambda x: len(x[1][0]["alerts"]), reverse=True)
         )
-        return data
+
+        # Create note structure
+        ## Main note
+        main_note = NoteTemplate()
+        main_note.title = self.notetitle
+        main_note.icon_emoji = self.note_icon
+
+        ## Subnotes per site
+        for url, site in data.items():
+            site_note = NoteTemplate()
+            site_note.title = f"{url} ({len(site[0]['alerts'])})"
+            site_note.checked = False
+            site_note.template = "site"
+            site_note.template_data = site[0]
+            # Subnotes per alert
+            for alert in site[0]["alerts"]:
+                alert_note = NoteTemplate()
+                alert_note.title = (
+                    f"{self.risk_mapping[alert['riskcode']]} {alert['name']}"
+                )
+                alert_note.checked = False
+                alert_note.template = "alert"
+                alert_note.template_data = alert
+                site_note.children.append(alert_note)
+            main_note.children.append(site_note)
+        return main_note
 
 
 loader = Zap

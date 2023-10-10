@@ -21,7 +21,6 @@ class Nikto(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = kwargs.get("notename", "Nikto")
         self.input_format = "xml"
 
     def parse_xml(self):

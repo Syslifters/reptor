@@ -20,7 +20,7 @@ class TestIntegrationSslyze(object):
         p.communicate(input=input_path.read_bytes())
         assert p.returncode == 0
 
-        note = notes_api.get_note_by_title("sslyze", parent_notename="Uploads")
+        note = notes_api.get_note_by_title("sslyze", parent_notetitle="Uploads")
         note_lines = note.text.splitlines()
         lines = [
             ' * <span style="color: green">TLS 1.2</span>',

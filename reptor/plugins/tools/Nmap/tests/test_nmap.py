@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
+from reptor.models.Note import NoteTemplate
 
-from ..models import Service
 from ..Nmap import Nmap
 
 
@@ -17,7 +17,7 @@ class TestNmap(TestCaseToolPlugin):
         Nmap.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.nmap = Nmap(reptor=self.reptor)
+        self.nmap = Nmap(reptor=self.reptor, template=Nmap.template)
 
     def _load_grepable_data(self):
         self.nmap.input_format = "grepable"
@@ -60,8 +60,7 @@ class TestNmap(TestCaseToolPlugin):
         ]
         self._load_grepable_data()
         self.nmap.parse()
-        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
-        assert parsed_input_dict == result_dict
+        assert self.nmap.parsed_input == result_dict
 
     def test_xml_parse_multi_target(self):
         entries = [
@@ -100,88 +99,8 @@ class TestNmap(TestCaseToolPlugin):
         ]
         self._load_xml_data("nmap_multi_target.xml")
         self.nmap.parse()
-        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            assert entry in parsed_input_dict
-
-    def test_multi_notes(self):
-        """
-        result = {
-            "142.250.180.228": {
-                "data": [
-                    {
-                        "hostname": "www.google.com",
-                        "ip": "142.250.180.228",
-                        "port": "80",
-                        "protocol": "tcp",
-                        "service": "http",
-                        "version": "gws",
-                    },
-                    {
-                        "hostname": "www.google.com",
-                        "ip": "142.250.180.228",
-                        "port": "443",
-                        "protocol": "tcp",
-                        "service": "https",
-                        "version": "gws",
-                    },
-                ],
-                "show_hostname": True,
-            },
-            "34.249.200.254": {
-                "data": [
-                    {
-                        "hostname": "www.syslifters.com",
-                        "ip": "34.249.200.254",
-                        "port": "80",
-                        "protocol": "tcp",
-                        "service": "http",
-                        "version": None,
-                    },
-                    {
-                        "hostname": "www.syslifters.com",
-                        "ip": "34.249.200.254",
-                        "port": "443",
-                        "protocol": "tcp",
-                        "service": "https",
-                        "version": None,
-                    },
-                ],
-                "show_hostname": True,
-            },
-        }
-        """
-
-        self._load_xml_data("nmap_multi_target.xml")
-        self.nmap.multi_notes = True
-        self.nmap.parse()
-        data = self.nmap.preprocess_for_template()
-        assert "34.249.200.254" in data
-        assert "142.250.180.228" in data
-        assert isinstance(data["34.249.200.254"], dict)
-        assert isinstance(data["142.250.180.228"], dict)
-        assert "data" in data["34.249.200.254"]
-        assert "data" in data["142.250.180.228"]
-        assert "show_hostname" in data["34.249.200.254"]
-        assert "show_hostname" in data["142.250.180.228"]
-        assert len(data["34.249.200.254"]["data"]) == 2
-        assert len(data["142.250.180.228"]["data"]) == 2
-
-        assert data["142.250.180.228"]["data"][0].ip == "142.250.180.228"
-        assert data["34.249.200.254"]["data"][0].ip == "34.249.200.254"
-
-        self.nmap.format()
-        assert isinstance(self.nmap.formatted_input, dict)
-        assert "142.250.180.228" in self.nmap.formatted_input
-        assert "34.249.200.254" in self.nmap.formatted_input
-        assert (
-            self.nmap.formatted_input["34.249.200.254"]
-            == "| Hostname | IP | Port | Service | Version |\n| ------- | ------- | ------- | ------- | ------- |\n| www.syslifters.com | 34.249.200.254 | 80/tcp | http | n/a |\n| www.syslifters.com | 34.249.200.254 | 443/tcp | https | n/a |"
-        )
-        assert (
-            self.nmap.formatted_input["142.250.180.228"]
-            == "| Hostname | IP | Port | Service | Version |\n| ------- | ------- | ------- | ------- | ------- |\n| www.google.com | 142.250.180.228 | 80/tcp | http | gws |\n| www.google.com | 142.250.180.228 | 443/tcp | https | gws |"
-        )
+            assert entry in self.nmap.parsed_input
 
     def test_xml_parse_single_target(self):
         entries = [
@@ -196,9 +115,8 @@ class TestNmap(TestCaseToolPlugin):
         ]
         self._load_xml_data("nmap_single_target_single_port.xml")
         self.nmap.parse()
-        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            assert entry in parsed_input_dict
+            assert entry in self.nmap.parsed_input
 
     def test_xml_parse_without_hostname(self):
         entries = [
@@ -221,14 +139,12 @@ class TestNmap(TestCaseToolPlugin):
         ]
         self._load_xml_data("nmap_without_hostname.xml")
         self.nmap.parse()
-        parsed_input_dict = [p.__dict__ for p in self.nmap.parsed_input]
         for entry in entries:
-            assert entry in parsed_input_dict
+            assert entry in self.nmap.parsed_input
 
     def test_process_parsed_input(self):
         # test without hostname
-        self.nmap.parsed_input = list()
-        for d in [
+        self.nmap.parsed_input = [
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
@@ -245,17 +161,13 @@ class TestNmap(TestCaseToolPlugin):
                 "service": "ssl/http",
                 "version": "nginx (reverse proxy)",
             },
-        ]:
-            s = Service()
-            s.parse(d)
-            self.nmap.parsed_input.append(s)
+        ]
 
         data = self.nmap.preprocess_for_template()
         assert data == {"data": self.nmap.parsed_input, "show_hostname": False}
 
         # test with hostname
-        self.nmap.parsed_input = list()
-        for d in [
+        self.nmap.parsed_input = [
             {
                 "ip": "127.0.0.1",
                 "hostname": "",
@@ -272,28 +184,46 @@ class TestNmap(TestCaseToolPlugin):
                 "service": "ssl/http",
                 "version": "nginx (reverse proxy)",
             },
-        ]:
-            s = Service()
-            s.parse(d)
-            self.nmap.parsed_input.append(s)
+        ]
 
         data = self.nmap.preprocess_for_template()
         assert data == {"data": self.nmap.parsed_input, "show_hostname": True}
 
     def test_format_nmap(self):
-        result = """| Host | Port | Service | Version |
+        result = """# nmap
+
+| Host | Port | Service | Version |
 | ------- | ------- | ------- | ------- |
 | 127.0.0.1 | 80/tcp | http | nginx (reverse proxy) |
 | 127.0.0.1 | 443/tcp | ssl/http | nginx (reverse proxy) |
-| 127.0.0.1 | 8080/tcp | n/a | n/a |"""
+| 127.0.0.1 | 8080/tcp | n/a | n/a |
+
+## 127.0.0.1
+
+| Host | Port | Service | Version |
+| ------- | ------- | ------- | ------- |
+| 127.0.0.1 | 80/tcp | http | nginx (reverse proxy) |
+| 127.0.0.1 | 443/tcp | ssl/http | nginx (reverse proxy) |
+| 127.0.0.1 | 8080/tcp | n/a | n/a |
+"""
         self._load_grepable_data()
         self.nmap.format()
-        assert self.nmap.formatted_input == result
+        assert isinstance(self.nmap.formatted_input, str)
+        assert self.nmap.formatted_input.strip() == result.strip()
 
-        result = """| Hostname | IP | Port | Service | Version |
+        result = """# nmap
+
+| Hostname | IP | Port | Service | Version |
+| ------- | ------- | ------- | ------- | ------- |
+| www.syslifters.com | 63.35.51.142 | 80/tcp | http | n/a |
+
+## 63.35.51.142
+
+| Hostname | IP | Port | Service | Version |
 | ------- | ------- | ------- | ------- | ------- |
 | www.syslifters.com | 63.35.51.142 | 80/tcp | http | n/a |"""
         self.nmap.parsed_input = None
         self._load_xml_data("nmap_single_target_single_port.xml")
         self.nmap.format()
-        assert self.nmap.formatted_input == result
+        assert isinstance(self.nmap.formatted_input, str)
+        assert self.nmap.formatted_input.strip() == result.strip()

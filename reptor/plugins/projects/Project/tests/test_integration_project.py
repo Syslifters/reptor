@@ -32,7 +32,6 @@ class TestIntegrationProject(object):
                 "--upload",
                 "--design",
                 design.id,
-                "--debug",
             ],
         )
         p.communicate()

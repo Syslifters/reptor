@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 import reptor.settings as settings
 from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
+from reptor.models.Note import NoteTemplate
 
 from .Base import Base
 
@@ -36,15 +37,16 @@ class ToolBase(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.action = kwargs.get("action")
+        self.notetitle = self.notetitle or self.__class__.__name__.lower()
         self.push_findings = kwargs.get("push_findings")
         self.note_icon = "🛠️"
-        self.multi_notes = kwargs.get("multi_notes", False)
         self.raw_input = None
         self.parsed_input = None
         self.formatted_input = None
+        self.note_templates = None
         self.findings = []
-        self.no_timestamp = (
-            self.reptor.get_config().get("cli", dict()).get("no_timestamp")
+        self.timestamp = (
+            not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
         )
         self.force_unlock = (
             self.reptor.get_config().get("cli", dict()).get("force_unlock")
@@ -119,7 +121,6 @@ class ToolBase(Base):
         cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
 
         # Choose default template
-        cls.template = None
         if cls.templates:
             if len(cls.templates) == 1:
                 cls.template = cls.templates[0]
@@ -219,6 +220,8 @@ class ToolBase(Base):
         for group in parser._mutually_exclusive_groups:
             if group.title == "input_format_group":
                 return group
+        else:
+            raise ValueError("input_format_group not found")
 
     @classmethod
     def _get_finding_methods(cls) -> typing.List[typing.Callable]:
@@ -249,11 +252,7 @@ class ToolBase(Base):
             self.print(self.parsed_input)
         elif self.action == "format":
             self.format()
-            if self.multi_notes:
-                for title, content in self.formatted_input.items():
-                    self.print(f"### {title}\n\n{content}")
-            else:
-                self.print(self.formatted_input)
+            self.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
 
@@ -263,7 +262,7 @@ class ToolBase(Base):
 
     def parse_xml(self, as_dict=True):
         if as_dict:
-            self.parsed_input = xmltodict.parse(self.raw_input)
+            self.parsed_input = xmltodict.parse(self.raw_input)  # type: ignore
         else:
             if not self.file_path and self.raw_input:
                 self.xml_root = ElementTree.fromstring(self.raw_input)
@@ -271,7 +270,7 @@ class ToolBase(Base):
                 self.xml_root = ElementTree.parse(self.file_path).getroot()
 
     def parse_json(self):
-        self.parsed_input = json.loads(self.raw_input)
+        self.parsed_input = json.loads(self.raw_input)  # type: ignore
 
     def parse_csv(self):
         raise NotImplementedError("Parse csv data is not implemented for this plugin.")
@@ -306,48 +305,68 @@ class ToolBase(Base):
         Once there is parsed data it is run through the Django Templating Engine.
 
         The template is set via `self.template`.
-
         """
         if not self.parsed_input:
             self.parse()
 
-        data = self.preprocess_for_template()
-        if self.multi_notes:
-            self.formatted_input = dict()
-            for title, data in data.items():
-                self.formatted_input[title] = render_to_string(
-                    f"{self.template}.md", data
-                )
-        else:
+        if data := self.create_notes():
+            if isinstance(data, NoteTemplate):
+                data = [data]
+            self.note_templates = data
+            self.formatted_input = self.format_note_template(data)
+            return
+        elif data := self.preprocess_for_template():
             self.formatted_input = render_to_string(f"{self.template}.md", data)
+            return
 
-    def preprocess_for_template(self) -> typing.Optional[dict]:
+        raise ValueError(
+            "Cannot format data. Did not get data from preprocess_for_template() and create_notes()."
+        )
+
+    def format_note_template(self, note_templates: typing.List[NoteTemplate], level=1):
+        formatted_input = ""
+        for note_template in note_templates:
+            if note_template.template:
+                note_template.text = render_to_string(
+                    f"{note_template.template}.md", note_template.template_data
+                )
+            if note_template.title:
+                formatted_input += f"{'#' * level} {note_template.title}\n\n"
+            if note_template.text:
+                formatted_input += f"{note_template.text}\n\n"
+
+            formatted_input += self.format_note_template(
+                note_template.children, level=level + 1
+            )
+        return formatted_input
+
+    def preprocess_for_template(self) -> dict:
         return {"data": self.parsed_input}
+
+    def create_notes(
+        self,
+    ) -> typing.Union[NoteTemplate, typing.List[NoteTemplate], None]:
+        pass
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
         if not self.formatted_input:
             self.format()
-        notename = self.notename or self.__class__.__name__.lower()
 
-        if self.multi_notes:
-            for title, content in self.formatted_input.items():
-                self.reptor.api.notes.write_note(
-                    content=content,
-                    notename=title,
-                    icon=self.note_icon,
-                    parent_notename=notename,
-                    no_timestamp=self.no_timestamp,
-                    force_unlock=self.force_unlock,
-                )
+        if self.note_templates:
+            self.reptor.api.notes.write_note_templates(
+                self.note_templates,
+                timestamp=self.timestamp,
+                force_unlock=self.force_unlock,
+            )
         else:
-            parent_notename = "Uploads" if notename != "Uploads" else ""
+            parent_notetitle = "Uploads" if self.notetitle != "Uploads" else None
             self.reptor.api.notes.write_note(
-                content=self.formatted_input,
-                notename=notename,
-                parent_notename=parent_notename,
-                icon=self.note_icon,
-                no_timestamp=self.no_timestamp,
+                title=self.notetitle,
+                text=self.formatted_input,
+                parent_notetitle=parent_notetitle,
+                icon_emoji=self.note_icon,
+                timestamp=self.timestamp,
                 force_unlock=self.force_unlock,
             )
         self.log.success("Successfully uploaded to notes.")

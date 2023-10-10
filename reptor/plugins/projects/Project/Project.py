@@ -98,11 +98,18 @@ class Project(Base):
         )
 
     def _export_project(self, format="tar.gz", filename=None, upload=False):
+        stdout = False
         default_filename = self.reptor.api.projects.project.name or "project"
+        if filename == "-":
+            stdout = True
+            filename = None
         if format == "tar.gz":
             archive_content = self.reptor.api.projects.export()
             self.deliver_file(
-                archive_content, filename, default_filename + ".tar.gz", upload
+                content=archive_content,
+                filename=filename or default_filename + ".tar.gz",
+                upload=upload,
+                stdout=stdout,
             )
             return
 
@@ -117,7 +124,10 @@ class Project(Base):
         else:
             raise ValueError(f"Unknown format: {format}")
         self.deliver_file(
-            output.encode(), filename, f"{default_filename}.{format}", upload
+            content=output.encode(),
+            filename=filename or f"{default_filename}.{format}",
+            upload=upload,
+            stdout=stdout,
         )
 
     def _search_project(self):
@@ -147,13 +157,22 @@ class Project(Base):
         self.success(f"Duplicated to '{project_title}' ({project_id})")
 
     def _render_project(self, filename=None, upload=False):
+        stdout = False
         default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
+        if filename == "-":
+            stdout = True
+            filename = None
         with self.reptor.api.projects.duplicate_and_cleanup() if self.design else nullcontext():
             # Update design
             if self.design:
                 self.reptor.api.projects.update_project_design(self.design, force=True)
             pdf_content = self.reptor.api.projects.render()
-        self.deliver_file(pdf_content, filename, default_filename, upload)
+        self.deliver_file(
+            content=pdf_content,
+            filename=filename or default_filename,
+            upload=upload,
+            stdout=stdout,
+        )
 
     def run(self):
         if self.export:

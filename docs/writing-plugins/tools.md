@@ -164,9 +164,7 @@ printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor x
 ```
 
 This gives us bad newlines within the table because the Django template engine leaves the newlines from the `for` loop there.  
-However, in markdown newlines matter (contrarily to HTML).
-
-We can resolve this by using the `noemptylines` tag (provided by reptor, not by Django):
+We can resolve this by using the `noemptylines` tag:
 
 ```md
 <!--{% load md %}--><!--{% noemptylines %}-->
@@ -178,7 +176,7 @@ We can resolve this by using the `noemptylines` tag (provided by reptor, not by 
 <!--{% endnoemptylines %}-->
 ```
 
-You can now copy this template and add an additional template to get a markdown list instead of a table. Let's create `xss-list.md`:
+You can now copy this template and add an additional template to create a list instead of a table. Let's create `xss-list.md`:
 
 ```md
 **XSS targets**
@@ -215,7 +213,7 @@ We can rename the file `default-template.md` to `default-xss-table.md` to have c
 
 ## Uploading to notes
 
-If you haven't done this so far, you can now add the configuration of your SysReptor installation.  
+If you haven't done this yet, you can now add the configuration of your SysReptor installation.  
 Create an API token at `https://yourinstallation.local/users/self/apitokens/` and run `reptor conf` to add all information.
 
 Let's upload our formatted data to the project notes:
@@ -231,65 +229,74 @@ Your formatted output is now uploaded to your project notes:
 
 ![XssTool Note](/cli/assets/xsstool-note.png)
 
-Use `--notename "My Notename"` for a different title and `--private-note` to not add it to a project, but to your personal notes instead.  
+Use `--notetitle "My Notename"` for a different title and `--private-note` to add it to your personal notes.  
 
 You can also update the default note title and replace your note icon in the `__init__` method:
 
 ```python
-self.notename = kwargs.get("notename", "XSS Tool")
+self.notetitle = kwargs.get("notetitle") or "XSS Tool"
 self.note_icon = "🔥"
 ```
 
-### One note per target
+### More complex note structures
 
-What if we would like to have one note per target:
+We can also create more complex note structures, like one note per target:
 
 ![XssTool Multiple Notes](/cli/assets/xsstool-multinote.png)
 
-Let's add the `--multi-notes` switch to the `add_arguments` method:
-
-```python
-parser.add_argument(
-    "--multi-notes",
-    help="Uploads multiple notes (one per target)",
-    action="store_true",
-)
-```
-
-(If your multiple notes should be the only option, omit the `add_argument` option and add `self.multi_notes = True` to your `__init__`.)
-
-We now need to expand the `preprocess_for_template` method.  
-It should still return a dictionary with the expected note titles as a key and a compatible data structure:
+Therefore, we implement the `create_notes` method. In the first step, we group the data by URL, which should result in the following JSON structure:
 
 ```json
 {
-  "https://example.com/alert(1)": {
-    "data": [
-      "https://example.com/alert(1)"
+    "https://example.com/alert(1)": [
+        "https://example.com/alert(1)"
+    ],
+    "https://example.com/q=alert(1)": [
+        "https://example.com/q=alert(1)"
     ]
-  },
-  "https://example.com/q=alert(1)": {
-    "data": [
-      "https://example.com/q=alert(1)"
-    ]
-  }
 }
+
 ```
 
 We can do this by implementing:
 
 ```python
-def preprocess_for_template(self):
-    if not self.multi_notes:
-        return super().preprocess_for_template()
-    else:
-        return {t: {"data": [t]} for t in self.parsed_input}
+def create_notes(self):
+    data = {t: [t] for t in self.parsed_input}
+```
+
+We then use the `NoteTemplate` model for creating our note stucture. Import the model using:
+
+```python
+from reptor.models.Note import NoteTemplate
+```
+
+Our main parent note is a note called `xsstool`. It is created by:
+
+```python
+main_note = NoteTemplate()
+main_note.title = self.notetitle
+main_note.icon_emoji = self.note_icon
+main_note.parent_notetitle = "Uploads"  # Put note below "Uploads"
+```
+
+We then iterate through our URLs, create one note per URL and append it as a child of our parent note. Finally, we return the parent note.
+
+```python
+for url, target_list in data.items():
+    ip_note = NoteTemplate()
+    ip_note.title = url
+    ip_note.checked = False  # Make note an unticked checkbox instead of emoji
+    ip_note.template = self.template  # Format note using the selected Django template
+    ip_note.template_data = {"data": target_list}  # Provide data for template
+    main_note.children.append(ip_note)  # Append as child of parent note
+return main_note
 ```
 
 We can now upload one note per target as seen in the screenshot above:
 
 ```python
-printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --upload --multi-notes                      
+printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --upload
 Successfully uploaded to notes.
 ```
 
@@ -311,7 +318,7 @@ def finding_xss(self):
     return None
 ```
 
-As soon as you have defined a `finding_*` method, you should have another option in your plugin's help message: `-push-findings, --push-findings`.
+As soon as you have defined a `finding_*` method, you should have an option in your plugin's help message: `--push-findings`.
 
 Now we have to define, what the contents of the findings should be. Find a sample finding in the `findings` directory.  
 Rename this file to `xss.toml` to match it our vulnerability name.
@@ -396,3 +403,6 @@ The finding was created successfully. You see from the "T" at the top that the f
 
 If you now re-run the command, reptor will refuse to push the finding again. This is because the report holds a finding that was created from the same finding template.
 
+## Source Code
+
+[Download](/cli/assets/XssTool.zip) the full source code of this plugin.

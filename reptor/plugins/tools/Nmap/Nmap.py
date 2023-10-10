@@ -1,5 +1,5 @@
 from reptor.lib.plugins.ToolBase import ToolBase
-from reptor.plugins.tools.Nmap.models import Service
+from reptor.models.Note import NoteTemplate
 
 
 class Nmap(ToolBase):
@@ -31,7 +31,6 @@ class Nmap(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.notename = kwargs.get("notename", "Nmap Scan")
         self.note_icon = "👁️‍🗨️"
         if self.input_format == "raw":
             self.input_format = "xml"
@@ -56,12 +55,6 @@ class Nmap(ToolBase):
             const="grepable",
         )
 
-        parser.add_argument(
-            "--multi-notes",
-            help="Uploads multiple notes (one per IP) instead of one note with all IPs",
-            action="store_true",
-        )
-
     def parse_grepable(self):
         self.parsed_input = list()
         for line in self.raw_input.splitlines():
@@ -76,17 +69,16 @@ class Nmap(ToolBase):
                     "/"
                 )
                 if status == "open":
-                    s = Service()
-                    s.parse(
+                    self.parsed_input.append(
                         {
                             "ip": ip,
                             "port": port,
+                            "hostname": "",  # No hostname in greppable output
                             "protocol": protocol,
                             "service": service.replace("|", "/"),
                             "version": version.replace("|", "/"),
                         }
                     )
-                    self.parsed_input.append(s)
 
     def parse_xml(self):
         super().parse_xml()
@@ -102,8 +94,7 @@ class Nmap(ToolBase):
                 ports = [ports]
             for port in ports:
                 if port.get("state", {}).get("@state") == "open":
-                    s = Service()
-                    s.parse(
+                    self.parsed_input.append(
                         {
                             "ip": ip,
                             "hostname": (host.get("hostnames") or {})
@@ -115,31 +106,43 @@ class Nmap(ToolBase):
                             "version": port.get("service", {}).get("@product"),
                         }
                     )
-                    self.parsed_input.append(s)
 
     def parse(self):
         super().parse()
         if self.input_format == "grepable":
             self.parse_grepable()
 
-    def preprocess_for_template(self):
-        data = dict()
-        if not self.multi_notes:
-            data["data"] = self.parsed_input
-            data["show_hostname"] = any([s.hostname for s in self.parsed_input])
-        else:
-            # Group data per IP
-            for d in self.parsed_input:
-                # Key of the dict (d.ip) will be title of the note
-                data.setdefault(d.ip, list()).append(d)
-            # Show hostname or not
-            for ip, port_data in data.items():
-                data[ip] = {
-                    "data": port_data,
-                    "show_hostname": any([s.hostname for s in port_data]),
-                }
+    def preprocess_for_template(self) -> dict:
+        show_hostname = any([s.get("hostname") for s in self.parsed_input])
+        return {"data": self.parsed_input, "show_hostname": show_hostname}
 
-        return data
+    def create_notes(self):
+        data = dict()
+        # Group by IP
+        for ports in self.parsed_input:
+            if ports["ip"] not in data:
+                data[ports["ip"]] = list()
+            data[ports["ip"]].append(ports)
+
+        # Create note structure
+        ## Main note with table of all IPs
+        main_note = NoteTemplate()
+        main_note.title = self.notetitle
+        main_note.icon_emoji = self.note_icon
+        main_note.template = self.template
+        main_note.template_data = self.preprocess_for_template()
+        ## Subnotes per IP
+        for ip, ports in data.items():
+            ip_note = NoteTemplate()
+            ip_note.title = ip
+            ip_note.checked = False
+            ip_note.template = self.template
+            ip_note.template_data = {"data": ports}
+            ip_note.template_data["show_hostname"] = any(
+                [p.get("hostname") for p in ports]
+            )
+            main_note.children.append(ip_note)
+        return main_note
 
 
 loader = Nmap

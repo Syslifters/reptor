@@ -28,7 +28,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
-  -n NOTENAME, --notename NOTENAME
+  -n NOTENAME, --notetitle NOTENAME
   -nt, --no-timestamp   do not prepent timestamp to note
   -file FILE, --file FILE
                         Local file to read

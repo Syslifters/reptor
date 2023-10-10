@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
+from reptor.models.Note import NoteTemplate
 
 from ..Zap import Zap
 
@@ -62,23 +63,38 @@ class TestOwaspZap(TestCaseToolPlugin):
         assert self.zap.parsed_input[1]["name"] == "http://localhost"
         assert len(self.zap.parsed_input[1]["alerts"]) == 7
 
-    def test_preprocess_for_template(self):
+    def test_create_notes(self):
         self._load_xml_data("zap-report.xml")
         self.zap.parse()
-        processed_input = self.zap.preprocess_for_template()
-        assert len(processed_input) == 2
-        assert list(processed_input.keys()) == [
-            "http://localhost (7)",
-            "https://localhost (5)",
-        ]
-        assert "data" in processed_input["http://localhost (7)"]
-        assert "data" in processed_input["https://localhost (5)"]
+        note_template = self.zap.create_notes()
+        assert isinstance(note_template, NoteTemplate)
+
+        assert len(note_template.children) == 2
+        assert isinstance(note_template.children[0], NoteTemplate)
+        assert note_template.children[0].title == "http://localhost (7)"
+        assert isinstance(note_template.children[0].template_data, dict)
+        assert "name" in note_template.children[0].template_data
+        assert len(note_template.children[0].template_data["alerts"]) == 7
+
+        assert len(note_template.children[0].children) == 7
+        assert isinstance(note_template.children[0].children[0], NoteTemplate)
+        assert (
+            note_template.children[0].children[0].title
+            == "🔴 Cross Site Scripting (Reflected)"
+        )
+        assert isinstance(note_template.children[0].children[0].template_data, dict)
+        assert "confidencedesc" in note_template.children[0].children[0].template_data
+        assert (
+            note_template.children[0].children[0].template_data["confidencedesc"]
+            == "Medium"
+        )
 
     def test_formatting(self):
         self._load_xml_data("zap-report.xml")
         self.zap.format()
-        assert "https://localhost (5)" in self.zap.formatted_input
-        assert "http://localhost (7)" in self.zap.formatted_input
+        assert isinstance(self.zap.formatted_input, str)
+        assert "# https://localhost (5)" in self.zap.formatted_input
+        assert "# http://localhost (7)" in self.zap.formatted_input
 
         site_details = """| Target | Information |
 | :--- | :--- |
@@ -87,13 +103,12 @@ class TestOwaspZap(TestCaseToolPlugin):
 | Port | 443 |
 | SSL ? |  Yes  |"""
 
-        assert site_details in self.zap.formatted_input["https://localhost (5)"]
+        assert site_details in self.zap.formatted_input
 
         csp_issue = """| Target | Information |
 | :--- | :--- |
 | Risk | Medium (High) |
-| Confidence | High |
 | Number of Affected Instances | 117 |
 | CWE | [693](https://cwe.mitre.org/data/definitions/693.html) |
 """
-        assert csp_issue in self.zap.formatted_input["https://localhost (5)"]
+        assert csp_issue in self.zap.formatted_input
