@@ -23,7 +23,7 @@ class TestIntegrationNmap(object):
         out, err = p.communicate(input=nmap_output_path.read_bytes())
         assert p.returncode == 0
 
-        nmap_note = notes_api.get_note_by_title("nmap", parent_notetitle=None)
+        nmap_note = notes_api.get_note_by_title("Nmap", parent_notetitle=None)
         note_lines = nmap_note.text.splitlines()
         assert (
             "| www.google.com | 142.250.180.228 | 443/tcp | https | gws |" in note_lines
@@ -34,7 +34,7 @@ class TestIntegrationNmap(object):
         )
 
         ip_note = notes_api.get_note_by_title(
-            "142.250.180.228", parent_notetitle="nmap"
+            "142.250.180.228", parent_notetitle="Nmap"
         )
         note_lines = ip_note.text.splitlines()
         assert (
@@ -45,7 +45,7 @@ class TestIntegrationNmap(object):
             not in note_lines
         )
 
-        ip_note = notes_api.get_note_by_title("34.249.200.254", parent_notetitle="nmap")
+        ip_note = notes_api.get_note_by_title("34.249.200.254", parent_notetitle="Nmap")
         note_lines = ip_note.text.splitlines()
         assert (
             "| www.google.com | 142.250.180.228 | 443/tcp | https | gws |"

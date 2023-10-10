@@ -190,7 +190,7 @@ class TestNmap(TestCaseToolPlugin):
         assert data == {"data": self.nmap.parsed_input, "show_hostname": True}
 
     def test_format_nmap(self):
-        result = """# nmap
+        result = """# Nmap
 
 | Host | Port | Service | Version |
 | ------- | ------- | ------- | ------- |
@@ -211,7 +211,7 @@ class TestNmap(TestCaseToolPlugin):
         assert isinstance(self.nmap.formatted_input, str)
         assert self.nmap.formatted_input.strip() == result.strip()
 
-        result = """# nmap
+        result = """# Nmap
 
 | Hostname | IP | Port | Service | Version |
 | ------- | ------- | ------- | ------- | ------- |
