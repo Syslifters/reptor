@@ -137,16 +137,6 @@ class ToolBase(Base):
         if plugin_filepath:
             cls.setup_class(Path(os.path.dirname(plugin_filepath)))
 
-        if cls.templates:
-            parser.add_argument(
-                "-t",
-                "--template",
-                action="store",
-                default=cls.template,
-                choices=cls.templates,
-                help="Template for output formatting",
-            )
-
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"
         action_group.add_argument(
