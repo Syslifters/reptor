@@ -20,14 +20,17 @@ class TestIntegrationSslyze(object):
         p.communicate(input=input_path.read_bytes())
         assert p.returncode == 0
 
-        note = notes_api.get_note_by_title("sslyze", parent_notetitle="Uploads")
+        note = notes_api.get_note_by_title(
+            "🚩 www.example.com:443 (127.0.0.1)", parent_notetitle="Sslyze"
+        )
         note_lines = note.text.splitlines()
         lines = [
+            ' * <span style="color: red">SSLv2</span>',
             ' * <span style="color: green">TLS 1.2</span>',
             ' * SHA1 in certificate chain: <span style="color: green">No</span>',
-            ' * Heartbleed: <span style="color: green">No</span>',
-            ' * No Secure Renegotiation: <span style="color: green">No</span>',
-            ' * <span style="color: red">DHE-RSA-AES256-SHA256</span> (TLS 1.2)',
+            ' * Heartbleed: <span style="color: red">Yes</span>',
+            ' * No Secure Renegotiation: <span style="color: red">Yes</span>',
+            ' * <span style="color: orange">DHE-RSA-AES256-SHA256</span> (TLS 1.2)',
         ]
         assert all([line in note_lines for line in lines])
 
@@ -43,4 +46,6 @@ class TestIntegrationSslyze(object):
         assert p.returncode == 0
 
         projects_api.get_findings()
-        assert "Weak SSL ciphers" in [f.data.title for f in projects_api.get_findings()]
+        assert "Weak TLS setup might impact encryption" in [
+            f.data.title for f in projects_api.get_findings()
+        ]

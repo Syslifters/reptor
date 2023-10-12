@@ -1,6 +1,7 @@
 import typing
 
 from reptor.lib.plugins.ToolBase import ToolBase
+from reptor.models.Note import NoteTemplate
 
 
 class Sslyze(ToolBase):
@@ -23,9 +24,11 @@ class Sslyze(ToolBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.notetitle = kwargs.get("notetitle") or "Sslyze"
         self.note_icon = "🔒"
         self.input_format = "json"
 
+    # Taken from https://ciphersuite.info/
     weak_ciphers = [
         "DHE-DSS-DES-CBC3-SHA",
         "DHE-DSS-AES128-SHA",
@@ -161,12 +164,21 @@ class Sslyze(ToolBase):
         "NULL-SHA",
         "NULL-SHA256",
     ]
+    weak_protocols = ["tlsv1", "tlsv1_1"]
+    insecure_protocols = ["sslv2", "sslv3"]
+
+    def get_protocols(self, target):
+        result_protocols = dict()
+        for protocol, protocol_data in target["commands_results"].items():
+            if len(protocol_data.get("accepted_cipher_list", list())) > 0:
+                result_protocols[protocol] = {}
+        return result_protocols
 
     def get_weak_ciphers(self, target):
         result_protocols = dict()
         for protocol, protocol_data in target["commands_results"].items():
             if len(protocol_data.get("accepted_cipher_list", list())) > 0:
-                result_protocols[protocol] = dict()
+                result_protocols.setdefault(protocol, dict())
                 weak_ciphers = list(
                     filter(
                         None,
@@ -178,8 +190,7 @@ class Sslyze(ToolBase):
                         ],
                     )
                 )
-                if weak_ciphers:
-                    result_protocols[protocol]["weak_ciphers"] = weak_ciphers
+                result_protocols[protocol]["weak_ciphers"] = weak_ciphers
                 insecure_ciphers = list(
                     filter(
                         None,
@@ -191,8 +202,7 @@ class Sslyze(ToolBase):
                         ],
                     )
                 )
-                if insecure_ciphers:
-                    result_protocols[protocol]["insecure_ciphers"] = insecure_ciphers
+                result_protocols[protocol]["insecure_ciphers"] = insecure_ciphers
         return result_protocols
 
     def get_certinfo(self, target):
@@ -269,58 +279,140 @@ class Sslyze(ToolBase):
         result_server_info["ip_address"] = server_info["ip_address"]
         return result_server_info
 
-    def preprocess_for_template(self):
+    def create_notes(self):
+        data = self.preprocess_for_template()
+        # Create note structure
+        ## Main note
+        main_note = NoteTemplate()
+        main_note.title = self.notetitle
+        main_note.icon_emoji = self.note_icon
+
+        ## Subnotes per target
+        for target in data.get("data", list()):
+            target_note = NoteTemplate()
+            target_note.title = (
+                f"{target['hostname']}:{target['port']} ({target['ip_address']})"
+            )
+            if target["flag_for_finding"]:
+                target_note.title = f"🚩 {target_note.title}"
+            target_note.checked = False
+            target_note.template = "summary"
+            target_note.template_data = target
+            main_note.children.append(target_note)
+        return main_note
+
+    def preprocess_for_template(self) -> dict:
         data = list()
         if not isinstance(self.parsed_input, dict):
-            return None
+            return dict()
         for target in self.parsed_input.get("accepted_targets", list()):
             target_data = self.get_server_info(target)
-            target_data["protocols"] = self.get_weak_ciphers(target)
+
+            target_data["protocols"] = self.get_protocols(target)
+            target_data["protocols"].update(self.get_weak_ciphers(target))
+
+            target_data["has_weak_protocols"] = False
+            if any(p in target_data["protocols"] for p in self.weak_protocols):
+                target_data["has_weak_protocols"] = True
+
+            target_data["has_insecure_protocols"] = False
+            if any(p in target_data["protocols"] for p in self.insecure_protocols):
+                target_data["has_insecure_protocols"] = True
+
             target_data["has_weak_ciphers"] = False
             if any(
                 [
-                    v.get("weak_ciphers", list()) + v.get("insecure_ciphers", list())
-                    for k, v in target_data["protocols"].items()
+                    v.get("weak_ciphers", list())
+                    for _, v in target_data["protocols"].items()
                 ]
             ):
                 target_data["has_weak_ciphers"] = True
+            target_data["has_insecure_ciphers"] = False
+            if any(
+                [
+                    v.get("insecure_ciphers", list())
+                    for _, v in target_data["protocols"].items()
+                ]
+            ):
+                target_data["has_insecure_ciphers"] = True
+
             target_data["certinfo"] = self.get_certinfo(target)
+
+            target_data["has_cert_issues"] = False
+            if any(
+                [
+                    target_data["certinfo"].get("certificate_untrusted"),
+                    target_data["certinfo"].get("has_sha1_in_certificate_chain"),
+                    not target_data["certinfo"].get("certificate_matches_hostname"),
+                ]
+            ):
+                target_data["has_cert_issues"] = True
+
             target_data["vulnerabilities"] = self.get_vulnerabilities(target)
             target_data["has_vulnerabilities"] = False
             if any([v for k, v in target_data["vulnerabilities"].items()]):
                 target_data["has_vulnerabilities"] = True
             target_data["misconfigurations"] = self.get_misconfigurations(target)
 
-            data.append(target_data)
-        if self.template in [
-            "protocols",
-            "certinfo",
-            "vulnerabilities",
-            "misconfigurations",
-            "weak_ciphers",
-        ]:
-            if len(data) > 1:
-                self.log.warning(
-                    "sslyze output contains more than one target. Taking the first one."
-                )
-            return {"target": data[0]}
-        return {"data": data}
+            target_data["has_misconfigurations"] = False
+            if any([v for k, v in target_data["misconfigurations"].items()]):
+                target_data["has_misconfigurations"] = True
 
-    def finding_weak_ciphers(self):
+            target_data["flag_for_finding"] = any(
+                [
+                    target_data["has_insecure_protocols"],
+                    target_data["has_insecure_ciphers"],
+                    target_data["has_vulnerabilities"],
+                    target_data["has_cert_issues"],
+                    target_data["has_misconfigurations"],
+                ]
+            )
+            data.append(target_data)
+        return {
+            "data": data,
+        }
+
+    def finding_weak_tls_setup(self):
         finding_context = self.preprocess_for_template()
         if finding_context is None:
             return None
+
+        # Remove targets false "flag_for_finding"
+        finding_context["data"] = [
+            d for d in finding_context["data"] if d["flag_for_finding"]
+        ]
+
+        finding_context["affected_components_short"] = [
+            f'{t["hostname"]}:{t["port"]}' for t in finding_context["data"]
+        ]
+        finding_context["affected_components"] = [
+            f'{t["hostname"]}:{t["port"]} ({t["ip_address"]})'
+            for t in finding_context["data"]
+        ]
+        finding_context["has_vulnerabilities"] = any(
+            [t["has_vulnerabilities"] for t in finding_context["data"]]
+        )
+        finding_context["has_insecure_protocols"] = any(
+            [t["has_insecure_protocols"] for t in finding_context["data"]]
+        )
+        finding_context["has_insecure_ciphers"] = any(
+            [t["has_insecure_ciphers"] for t in finding_context["data"]]
+        )
+        finding_context["has_cert_issues"] = any(
+            [t["has_cert_issues"] for t in finding_context["data"]]
+        )
+        finding_context["has_misconfigurations"] = any(
+            [t["has_misconfigurations"] for t in finding_context["data"]]
+        )
         if any(
             [
-                target.get("has_weak_ciphers")
-                for target in finding_context.get("data", [])
+                finding_context["has_insecure_protocols"],
+                finding_context["has_insecure_ciphers"],
+                finding_context["has_vulnerabilities"],
+                finding_context["has_cert_issues"],
+                finding_context["has_misconfigurations"],
             ]
         ):
-            # Add affected components
-            finding_context["affected_components"] = [
-                f'{t["hostname"]}:{t["port"]} ({t["ip_address"]})'
-                for t in finding_context["data"]
-            ]
             return finding_context
         return None
 

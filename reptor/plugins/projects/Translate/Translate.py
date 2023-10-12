@@ -191,6 +191,8 @@ class Translate(Base):
                 continue
             if field.name in self.skip_fields:
                 continue
+            if not field.value:
+                continue
             field.value = self._translate(field.value)
         return section
 

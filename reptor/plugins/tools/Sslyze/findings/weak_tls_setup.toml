@@ -1,0 +1,30 @@
+[data]
+title = "Weak TLS setup might impact encryption"
+cvss = "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N"
+
+summary = """<!--{% load md %}--><!--{% oneliner %}-->
+We found that <!--{{ affected_components_short|first }}-->
+<!--{% if affected_components_short|length == 2 %}-->
+and <!--{{ affected_components_short|last }}-->
+<!--{% elif affected_components_short|length > 2 %}-->
+and <!--{{ affected_components_short|length|add:"-1"|safe }}--> other services
+<!--{% endif %}-->
+had a weak TLS setup. This might impact the confidentiality and integrity of your data in transit.
+<!--{% endoneliner %}-->"""
+
+
+recommendation = "Update your TLS setup to protect your data in transit."
+references = [
+    "https://ssl-config.mozilla.org/",
+    "https://ciphersuite.info/",
+]
+
+description = """
+<!--{% include "finding_certinfo.md" %}-->
+
+<!--{% include "finding_vulnerabilities.md" %}-->
+
+<!--{% include "finding_protocols.md" %}-->
+
+<!--{% include "finding_misconfigurations.md" %}-->
+"""

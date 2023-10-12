@@ -20,3 +20,15 @@ class NoEmptyLinesNode(template.Node):
             if line.strip():
                 rendered.append(line)
         return "\n".join(rendered)
+    
+@register.tag
+def oneliner(parser, token):
+    nodelist = parser.parse(("endoneliner",))
+    parser.delete_first_token()
+    return OnelinerNode(nodelist)
+
+
+class OnelinerNode(NoEmptyLinesNode):
+    def render(self, context):
+        rendered = super().render(context)
+        return rendered.replace('\n', ' ')

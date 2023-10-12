@@ -7,7 +7,7 @@ import pytest
 class TestIntegrationTranslate(object):
     def test_dry_run(self):
         p = subprocess.Popen(
-            ["reptor", "translate", "--dry-run", "--to", "DE"],
+            ["reptor", "translate", "--dry-run", "--to", "DE", "--debug"],
             stderr=subprocess.PIPE,
         )
         _, output = p.communicate()

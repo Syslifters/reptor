@@ -1,7 +1,4 @@
 <!--{% load l10n %}--><!--{% load md %}-->
-<!--{% for target in data %}-->
-# <!--{{ target.hostname }}-->:<!--{{ target.port }}--> (<!--{{ target.ip_address }}-->)
-
 **Protocols**
 
 <!--{% include "protocols.md" %}-->
@@ -22,4 +19,3 @@
 **Weak Cipher Suites**
 
 <!--{% include "weak_ciphers.md" %}-->
-<!--{% endfor %}-->
