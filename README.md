@@ -14,50 +14,49 @@ reptor allows you to automate pentest reporting with SysReptor.
 ## Usage
 
 ```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--private-note] [-f] [-v] [--debug] [-n NOTENAME] [-nt]
-              [-file FILE]
+              [--private-note] [-f] [-v] [--debug] [-n NOTENAME]
+              [--no-timestamp] [--file FILE]
 
 Examples:
                 reptor conf
                 echo "Upload this!" | reptor note
                 reptor file data/*
                 cat sslyze.json | reptor sslyze --json --push-findings
-                cat nmap.xml | reptor nmap --xml --upload --multi-notes
+                cat nmap.xml | reptor nmap --xml --upload
 
 optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
   -n NOTENAME, --notetitle NOTENAME
-  -nt, --no-timestamp   do not prepent timestamp to note
-  -file FILE, --file FILE
-                        Local file to read
+  --no-timestamp        do not prepend timestamp to note
+  --file FILE           Local file to read
 
 subcommands:
   
-  configuration:
-  conf                  Shows config and sets config
+  Core:
+   plugins               Allows plugin management & development
+   conf                  Shows config and sets config
   
-  uploads:
-  file                  Uploads a file
-  finding               Uploads findings from JSON or TOML
-  note                  Uploads and lists notes
+  Projects & Templates:
+   template              Queries Finding Templates from reptor.api
+   project               Work with projects
+   translate             Translate Projects to other languages via Deepl
   
-  tools:
-  nmap                  format nmap output
-  nikto                 Formats Nikto output (XML)
-  zap                   Parses ZAP reports (JSON, XML)
-  sslyze                format sslyze JSON output
+  Uploads:
+   file                  Uploads a file
+   finding               Uploads findings from JSON or TOML
+   note                  Uploads and lists notes
   
-  importers:
-  ghostwriter           Imports GhostWriter finding templates
+  Tools:
+   nmap                  format nmap output
+   nikto                 Formats Nikto output (XML)
+   zap                   Parses ZAP reports (JSON, XML)
+   sslyze                format sslyze JSON output
   
-  other:
-  importers             Show importers to use to import finding templates
-  plugins               Allows plugin management & development
-  template              Queries Finding Templates from reptor.api
-  project               Work with projects
-  translate             Translate Projects to other languages via Deepl
+  Importers:
+   importers             Show importers to use to import finding templates
+   ghostwriter           Imports GhostWriter finding templates
 
 configuration:
   -s SERVER, --server SERVER
