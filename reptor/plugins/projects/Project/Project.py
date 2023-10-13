@@ -71,7 +71,7 @@ class Project(Base):
             "-o",
             "--output",
             metavar="FILENAME",
-            help="Filename to store output, empty for stdout",
+            help='Filename to store output, "-" for stdout',
             action="store",
             default=None,
         )
