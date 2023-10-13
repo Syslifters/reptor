@@ -7,7 +7,7 @@ import typing
 from pathlib import Path
 from xml.etree import ElementTree
 
-import toml
+import tomli
 import xmltodict
 from django.template import Context, Template
 from django.template.loader import render_to_string
@@ -531,10 +531,10 @@ class ToolBase(Base):
         for path in self.finding_paths:
             finding_template_path = path / name
             if os.path.isfile(finding_template_path):
-                with open(finding_template_path, "r") as f:
+                with open(finding_template_path, "rb") as f:
                     try:
-                        finding_template = toml.load(f)
-                    except (toml.TomlDecodeError, TypeError):
+                        finding_template = tomli.load(f)
+                    except (tomli.TOMLDecodeError, TypeError):
                         self.log.warning(
                             f"Error while loading toml finding template {finding_template_path}."
                         )

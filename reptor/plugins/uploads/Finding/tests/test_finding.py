@@ -1,7 +1,7 @@
 import json
 
 import pytest
-import toml
+import tomli_w
 
 from reptor.lib.reptor import Reptor
 from reptor.models.Finding import Finding as FindingModel
@@ -28,7 +28,7 @@ class TestFinding:
 	}
 }
 """
-    finding_toml = toml.dumps(json.loads(finding_json, strict=False))
+    finding_toml = tomli_w.dumps(json.loads(finding_json, strict=False))
 
     @pytest.fixture(autouse=True)
     def setup(self):

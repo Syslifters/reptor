@@ -3,7 +3,7 @@ import json
 import sys
 import typing
 
-import toml
+import tomli
 
 from reptor.lib.plugins.UploadBase import UploadBase
 from reptor.models.Finding import Finding as FindingModel
@@ -34,18 +34,19 @@ class Finding(UploadBase):
             self.info("Reading from stdin...")
             content = sys.stdin.read()
 
+        loaded_content: typing.Union[None, dict, list] = None
         with contextlib.suppress(json.JSONDecodeError):
-            content = json.loads(content, strict=False)
-        if isinstance(content, str):
-            with contextlib.suppress(toml.TomlDecodeError):
-                content = toml.loads(content)
-        if isinstance(content, str):
+            loaded_content = json.loads(content, strict=False)
+        if not loaded_content:
+            with contextlib.suppress(tomli.TOMLDecodeError):
+                loaded_content = tomli.loads(content)
+        if not loaded_content:
             raise ValueError("Could not decode stdin (excepted JSON or TOML)")
 
-        if isinstance(content, dict):
-            content = [content]
+        if isinstance(loaded_content, dict):
+            loaded_content = [loaded_content]
 
-        for finding in content:
+        for finding in loaded_content:
             yield FindingModel(finding, force_compatible=False)
 
 
