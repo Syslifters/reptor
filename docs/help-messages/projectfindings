@@ -1,0 +1,15 @@
+usage: reptor projectfindings [-h] [--format {csv,json,toml,yaml}]
+                              [--fieldnames FIELDNAMES] [-o FILENAME]
+                              [--upload]
+
+Export your project findings as a summary or checklist
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --format {csv,json,toml,yaml}
+                        Output format
+  --fieldnames FIELDNAMES
+                        Fieldnames to be included, comma-separated
+  -o FILENAME, --output FILENAME
+                        Filename to store output, empty for stdout
+  --upload              Used with --export or --render; uploads file to note
