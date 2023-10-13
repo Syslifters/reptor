@@ -81,6 +81,7 @@ class FindingData(SectionData):
 
 
 class FindingRaw(SectionRaw):
+    order: int = 0
     data: FindingDataRaw
 
 

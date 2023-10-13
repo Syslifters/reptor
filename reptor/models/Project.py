@@ -32,6 +32,8 @@ class Project(ProjectBase):
         if isinstance(data.get("sections"), str):
             raise ValueError("Sections should be list. Use ProjectOverview instead.")
         super().__init__(data)
+        # Order findings by their order attribute
+        self.findings.sort(key=lambda f: f.order, reverse=True)
 
 
 class ProjectOverview(ProjectBase):
