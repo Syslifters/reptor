@@ -2,7 +2,7 @@ import json
 import typing
 from contextlib import nullcontext
 
-import toml
+import tomli_w
 import yaml
 
 from reptor.lib.plugins.Base import Base
@@ -71,7 +71,7 @@ class Project(Base):
             "-o",
             "--output",
             metavar="FILENAME",
-            help="Filename to store output, empty for stdout",
+            help='Filename to store output, "-" for stdout',
             action="store",
             default=None,
         )
@@ -118,7 +118,7 @@ class Project(Base):
         if format == "json":
             output = json.dumps(project, indent=2)
         elif format == "toml":
-            output = toml.dumps(project)
+            output = tomli_w.dumps(project)
         elif format == "yaml":
             output = yaml.dump(project)
         else:
