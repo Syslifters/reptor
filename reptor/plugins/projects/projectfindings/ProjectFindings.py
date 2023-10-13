@@ -12,7 +12,7 @@ from reptor.lib.plugins.Base import Base
 
 class ProjectFindings(Base):
     """
-    Export your project findings as a summary or checklist
+    Export your project findings as a summary or checklist.
     """
 
     meta = {
