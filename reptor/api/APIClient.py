@@ -24,6 +24,10 @@ class APIClient:
             )
             exit(1)
         self.verify = not self.reptor.get_config().get("insecure", False)
+        if not self.verify:
+            import urllib3
+
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
 
         try:
             self._project_id = self.reptor.get_active_project_id()

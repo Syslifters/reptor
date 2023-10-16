@@ -68,10 +68,11 @@ class TestProject:
         self.project.deliver_file.assert_called_once_with(**expected_kwargs)
 
     @pytest.mark.parametrize(
-        "format,expected_kwargs",
+        "format,filename,expected_kwargs",
         [
             (
                 "json",
+                "my-project.json",
                 {
                     "content": b'{\n  "a": "b"\n}',
                     "filename": "my-project.json",
@@ -81,6 +82,7 @@ class TestProject:
             ),
             (
                 "toml",
+                "my-project.toml",
                 {
                     "content": b'a = "b"\n',
                     "filename": "my-project.toml",
@@ -90,17 +92,18 @@ class TestProject:
             ),
             (
                 "yaml",
+                "my-project.toml",
                 {
                     "content": b"a: b\n",
-                    "filename": "my-project.yaml",
+                    "filename": "my-project.toml",
                     "upload": False,
                     "stdout": False,
                 },
             ),
-            ("unknown", {}),
+            ("unknown", "unknown.txt", {}),
         ],
     )
-    def test_export_project(self, format, expected_kwargs):
+    def test_export_project(self, format, filename, expected_kwargs):
         class MockResponse:
             content = b"binary-data"
 
@@ -113,7 +116,9 @@ class TestProject:
         self.project.reptor.api.projects.post = MagicMock(return_value=MockResponse())
 
         with pytest.raises(ValueError) if format == "unknown" else nullcontext():
-            assert self.project._export_project(format=format, filename=None) is None
+            assert (
+                self.project._export_project(format=format, filename=filename) is None
+            )
         if format != "unknown":
             self.project.deliver_file.assert_called_once_with(**expected_kwargs)
         else:

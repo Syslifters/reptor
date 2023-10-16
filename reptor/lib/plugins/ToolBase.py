@@ -16,6 +16,7 @@ import reptor.settings as settings
 from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
 from reptor.models.Note import NoteTemplate
+from reptor.models.ProjectDesign import ProjectDesign
 
 from .Base import Base
 
@@ -367,7 +368,7 @@ class ToolBase(Base):
             self.log.display("No findings generated.")
             return
         project_findings = [
-            Finding(f, project_design=self.reptor.api.project_designs.project_design)
+            Finding(f, self.reptor.api.project_designs.project_design)
             for f in self.reptor.api.projects.get_findings()
         ]
         project_finding_titles = [f.data.title.value for f in project_findings]
@@ -446,7 +447,7 @@ class ToolBase(Base):
                         )
 
                     finding = Finding.from_translation(
-                        translation, force_compatible=False
+                        translation, raise_on_unknown_fields=False
                     )
                     finding.template = finding_template.id
                     break
@@ -473,8 +474,8 @@ class ToolBase(Base):
                 try:
                     finding = Finding(
                         finding_dict,
-                        project_design=project_design,
-                        force_compatible=True,
+                        project_design=ProjectDesign(),
+                        raise_on_unknown_fields=True,
                     )
                 except IncompatibleDesignException:
                     self.log.info(
@@ -483,8 +484,8 @@ class ToolBase(Base):
                     project_design = self.reptor.api.project_designs.project_design
                     finding = Finding(
                         finding_dict,
-                        project_design=project_design,
-                        force_compatible=False,
+                        project_design,
+                        raise_on_unknown_fields=False,
                     )
 
             django_context = Context(finding_context)

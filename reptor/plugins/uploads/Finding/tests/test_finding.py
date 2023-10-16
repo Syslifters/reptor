@@ -4,7 +4,6 @@ import pytest
 import tomli_w
 
 from reptor.lib.reptor import Reptor
-from reptor.models.Finding import Finding as FindingModel
 
 from ..Finding import Finding
 
@@ -39,13 +38,19 @@ class TestFinding:
         with pytest.raises(ValueError):
             list(self.finding._read_findings(content="invalid"))
 
+    def test_read_finding_with_invalid_field(self):
+        invalid_finding = json.loads(self.finding_json, strict=False)
+        invalid_finding["data"]["title"] = 1
+        with pytest.raises(ValueError):
+            list(self.finding._read_findings(content=json.dumps(invalid_finding)))
+
     def test_read_toml_finding(self):
         finding_content = list(self.finding._read_findings(content=self.finding_toml))[
             0
         ]
-        assert isinstance(finding_content, FindingModel)
-        assert finding_content.data.title.value == "Reflected XSS"
-        assert finding_content.data.summary.value.startswith(
+        assert isinstance(finding_content, dict)
+        assert finding_content["data"]["title"] == "Reflected XSS"
+        assert finding_content["data"]["summary"].startswith(
             "We detected a reflected XSS vulnerability."
         )
 
@@ -53,9 +58,9 @@ class TestFinding:
         finding_content = list(self.finding._read_findings(content=self.finding_json))[
             0
         ]
-        assert isinstance(finding_content, FindingModel)
-        assert finding_content.data.title.value == "Reflected XSS"
-        assert finding_content.data.summary.value.startswith(
+        assert isinstance(finding_content, dict)
+        assert finding_content["data"]["title"] == "Reflected XSS"
+        assert finding_content["data"]["summary"].startswith(
             "We detected a reflected XSS vulnerability."
         )
 
@@ -65,8 +70,8 @@ class TestFinding:
         assert len(finding_content) == 3
 
         finding_content = finding_content[0]
-        assert isinstance(finding_content, FindingModel)
-        assert finding_content.data.title.value == "Reflected XSS"
-        assert finding_content.data.summary.value.startswith(
+        assert isinstance(finding_content, dict)
+        assert finding_content["data"]["title"] == "Reflected XSS"
+        assert finding_content["data"]["summary"].startswith(
             "We detected a reflected XSS vulnerability."
         )

@@ -7,6 +7,7 @@ import tomli
 
 from reptor.lib.plugins.UploadBase import UploadBase
 from reptor.models.Finding import Finding as FindingModel
+from reptor.models.ProjectDesign import ProjectDesign
 
 
 class Finding(UploadBase):
@@ -20,7 +21,7 @@ class Finding(UploadBase):
     def run(self):
         findings = list(self._read_findings())
         for finding in findings:
-            self.reptor.api.projects.create_finding(finding.to_dict())
+            self.reptor.api.projects.create_finding(finding)
         findings_count = len(findings)
         self.log.success(
             f"Successfully uploaded {findings_count} finding{'s'[:findings_count^1]}"
@@ -28,7 +29,7 @@ class Finding(UploadBase):
 
     def _read_findings(
         self, content: typing.Optional[str] = None
-    ) -> typing.Iterator[FindingModel]:
+    ) -> typing.Iterator[dict]:
         if content is None:
             # Read finding from stdin
             self.info("Reading from stdin...")
@@ -47,7 +48,10 @@ class Finding(UploadBase):
             loaded_content = [loaded_content]
 
         for finding in loaded_content:
-            yield FindingModel(finding, force_compatible=False)
+            # Create model to assure compatibility of predefined fields
+            assert isinstance(finding, dict)
+            FindingModel(finding, ProjectDesign(), raise_on_unknown_fields=False)
+            yield finding
 
 
 loader = Finding

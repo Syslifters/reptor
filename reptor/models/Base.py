@@ -50,8 +50,6 @@ class BaseModel:
         from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
         from reptor.models.Section import SectionDataRaw
         from reptor.models.User import User
-        from reptor.models.Finding import Finding
-        from reptor.models.Section import Section
 
         combined_class_type_hints = self._get_combined_class_type_hints()
 
@@ -67,8 +65,6 @@ class BaseModel:
 
                 if model_class in [
                     User,
-                    Finding,
-                    Section,
                     FindingTemplate,
                     FindingDataRaw,
                     SectionDataRaw,

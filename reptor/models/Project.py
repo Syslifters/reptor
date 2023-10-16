@@ -2,6 +2,7 @@ import typing
 
 from reptor.models.Base import BaseModel
 from reptor.models.Finding import Finding
+from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section
 from reptor.models.User import User
 
@@ -26,12 +27,18 @@ class Project(ProjectBase):
     findings: typing.List[Finding] = []
     sections: typing.List[Section] = []
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, project_design: ProjectDesign):
         if isinstance(data.get("findings"), str):
             raise ValueError("Findings should be list. Use ProjectOverview instead.")
         if isinstance(data.get("sections"), str):
             raise ValueError("Sections should be list. Use ProjectOverview instead.")
         super().__init__(data)
+        self.findings = list()
+        self.sections = list()
+        for finding in data.get("findings", []):
+            self.findings.append(Finding(finding, project_design))
+        for section in data.get("sections", []):
+            self.sections.append(Section(section, project_design))
         # Order findings by their order attribute
         self.findings.sort(key=lambda f: f.order, reverse=True)
 

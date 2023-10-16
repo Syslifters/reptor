@@ -69,10 +69,16 @@ class ProjectsAPI(APIClient):
     def project(self) -> Project:
         return self._get_project()
 
-    def _get_project(self) -> Project:
+    @cached_property
+    def _project_dict(self) -> dict:
         url = self.object_endpoint
-        response = self.get(url)
-        return Project(response.json())
+        return self.get(url).json()
+
+    def _get_project(self) -> Project:
+        return Project(
+            self._project_dict,
+            self.reptor.api.project_designs.project_design,
+        )
 
     def export(self) -> bytes:
         """Exports a Project in archive format (tar.gz)"""
@@ -126,7 +132,10 @@ class ProjectsAPI(APIClient):
         """
         url = urljoin(self.base_endpoint, f"{self.project_id}/copy/")
         duplicated_project = self.post(url).json()
-        return Project(duplicated_project)
+        return Project(
+            duplicated_project,
+            self.reptor.api.project_designs.project_design,
+        )
 
     @contextmanager
     def duplicate_and_cleanup(self):
@@ -203,7 +212,10 @@ class ProjectsAPI(APIClient):
 
     def update_project(self, data: dict) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")
-        return Project(self.patch(url, json=data).json())
+        return Project(
+            self.patch(url, json=data).json(),
+            self.reptor.api.project_designs.project_design,
+        )
 
     def update_project_design(self, design_id, force=False) -> Project:
         data = {

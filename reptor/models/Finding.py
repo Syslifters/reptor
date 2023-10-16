@@ -76,7 +76,7 @@ class FindingData(SectionData):
         *args,
         **kwargs,
     ):
-        kwargs.setdefault("force_compatible", True)
+        kwargs.setdefault("raise_on_unknown_fields", True)
         super().__init__(*args, **kwargs)
 
 
@@ -91,11 +91,9 @@ class Finding(FindingRaw):
     def __init__(
         self,
         raw: typing.Union[FindingRaw, typing.Dict],
-        project_design: typing.Optional[ProjectDesign] = None,
-        force_compatible: bool = False,
+        project_design: ProjectDesign,
+        raise_on_unknown_fields: bool = False,
     ):
-        if project_design is None:
-            project_design = ProjectDesign()
         if isinstance(raw, dict):
             raw = FindingRaw(raw)
 
@@ -103,7 +101,9 @@ class Finding(FindingRaw):
         for attr in typing.get_type_hints(FindingRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
         self.data = FindingData(
-            raw.data, project_design.finding_fields, force_compatible=force_compatible
+            raw.data,
+            project_design.finding_fields,
+            raise_on_unknown_fields=raise_on_unknown_fields,
         )
 
     @classmethod
