@@ -24,6 +24,7 @@ jobs:
     - uses: EndBug/add-and-commit@v9.1.3
       with:
         add: 'docs/help-messages/'
+        pull: "--autostash"
         author_name: Help Message Bot
         author_email: hello@syslifters.com
         message: 'Update help messages'
