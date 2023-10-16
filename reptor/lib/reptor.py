@@ -110,7 +110,7 @@ class Reptor:
 
     @property
     def api(self) -> APIManager:
-        if not self._api:
+        if not hasattr(self, "_api") or not self._api:
             self._api = APIManager(reptor=self)
         return self._api
 

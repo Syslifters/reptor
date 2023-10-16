@@ -186,7 +186,7 @@ class TestSslyze(TestCaseToolPlugin):
         finding_raw = FindingRaw(
             {"data": {"title": "Weak TLS setup might impact encryption"}}
         )
-        self.reptor.api.projects.project = Project({"project_type": ""})
+        self.reptor.api.projects._project_dict = {"project_type": ""}
         self.reptor.api.project_designs.project_design = ProjectDesign()
         self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.projects.create_finding = MagicMock()

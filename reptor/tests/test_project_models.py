@@ -1,10 +1,13 @@
 import json
+
 import pytest
 
 from reptor.models.Finding import Finding
 from reptor.models.Project import Project, ProjectOverview
+from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section
 from reptor.models.User import User
+from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 
 class TestProjectModelParsing:
@@ -119,7 +122,7 @@ class TestProjectModelParsing:
             "order": 2,
             "data": {
                 "title": "My Title",
-                "target": "My custom field (target)",
+                "target": "My custom field (target)"
             }
         }
     ],
@@ -134,20 +137,48 @@ class TestProjectModelParsing:
             "assignee": null,
             "status": "in-progress",
             "data": {
-                "executive_summary": "My Executive Summary",
+                "executive_summary": "My Executive Summary"
             }
         }
     ]
 }"""
+        project_design = DEFAULT_PROJECT_DESIGN
+        DEFAULT_PROJECT_DESIGN["finding_fields"]["target"] = {
+            "type": "string",
+            "label": "Target",
+            "origin": "custom",
+            "default": "TODO: Target",
+            "required": True,
+            "spellcheck": True,
+        }
+        DEFAULT_PROJECT_DESIGN["report_sections"].append(
+            {
+                "id": "executive_summary",
+                "label": "Executive Summary",
+                "fields": ["executive_summary"],
+            }
+        )
+        DEFAULT_PROJECT_DESIGN["report_fields"]["executive_summary"] = {
+            "type": "markdown",
+            "label": "Executive Summary",
+            "origin": "custom",
+            "default": "TODO: Executive Summary",
+            "required": True,
+        }
         api_test_data = json.loads(project_with_custom_fields)
-        test_project = Project(api_test_data)
-        assert test_project.findings[0].data.target.value == "My custom field (target)"
-        assert test_project.sections[0].data.executive_summary.value == "My Executive Summary"
+
+        project_design = ProjectDesign(project_design)
+        test_project = Project(api_test_data, project_design)
+        assert test_project.findings[0].data.target.value == "My custom field (target)"  # type: ignore
+        assert (
+            test_project.sections[0].data.executive_summary.value  # type: ignore
+            == "My Executive Summary"
+        )
 
     def test_project_overview_parsing(self):
         api_test_data = json.loads(self.example_project_overview)
         with pytest.raises(ValueError):
-            Project(api_test_data)
+            Project(api_test_data, ProjectDesign())
 
         test_project = ProjectOverview(api_test_data)
         assert test_project.id == "4820bd5d-51f1-4dca-a4a4-78ba935b615c"
@@ -164,7 +195,7 @@ class TestProjectModelParsing:
     def test_project_parsing(self):
         api_test_data = json.loads(self.example_project)
 
-        test_project = Project(api_test_data)
+        test_project = Project(api_test_data, ProjectDesign())
         assert test_project.id == "4cf78324-8502-4fb0-936a-724892d3c539"
         assert test_project.members[0].id == "f2c9bad4-c916-4c18-9f76-d5ef94b34453"
         assert test_project.members[1].username == "richard"

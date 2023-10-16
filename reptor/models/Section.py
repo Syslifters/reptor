@@ -216,7 +216,7 @@ class SectionData(BaseModel):
         self,
         data_raw: SectionDataRaw,
         design_fields: typing.List[ProjectDesignField],
-        force_compatible: bool = False,
+        raise_on_unknown_fields: bool = False,
     ):
         for design_field in design_fields:
             try:
@@ -227,11 +227,11 @@ class SectionData(BaseModel):
                 design_field.name,
                 self.field_class(design_field, value),
             )
-        if force_compatible:
-            missing_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
-            if len(missing_fields) > 0:
+        if raise_on_unknown_fields:
+            unknown_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
+            if len(unknown_fields) > 0:
                 raise IncompatibleDesignException(
-                    f"Incompatible data and designs: Fields in data but not in design: {','.join(missing_fields)}"
+                    f"Incompatible data and designs: Fields in data but not in design: {','.join(unknown_fields)}"
                 )
 
     def __iter__(self):
