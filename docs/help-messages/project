@@ -12,7 +12,7 @@ optional arguments:
   --render              Render project
   --duplicate           Duplicate project
   -o FILENAME, --output FILENAME
-                        Filename to store output, "-" for stdout
+                        Filename to store output, empty for stdout
   --design DESIGN ID    Render project with alternative design
   --upload              Used with --export or --render; uploads file to note
   --json                Used with --search; output as json
