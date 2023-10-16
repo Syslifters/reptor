@@ -14,7 +14,7 @@ reptor allows you to automate pentest reporting with SysReptor.
 ## Usage
 
 ```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--private-note] [-f] [-v] [--debug] [-n NOTENAME]
+              [--private-note] [-f] [-v] [--debug] [-n NOTETITLE]
               [--no-timestamp] [--file FILE]
 
 Examples:
@@ -28,7 +28,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
-  -n NOTENAME, --notetitle NOTENAME
+  -n NOTETITLE, --notetitle NOTETITLE
   --no-timestamp        do not prepend timestamp to note
   --file FILE           Local file to read
 
@@ -42,6 +42,7 @@ subcommands:
    template              Queries Finding Templates from reptor.api
    project               Work with projects
    translate             Translate Projects to other languages via Deepl
+   projectfindings       Export your project findings as a summary or checklist
   
   Uploads:
    file                  Uploads a file
@@ -50,7 +51,6 @@ subcommands:
   
   Tools:
    nmap                  format nmap output
-   nikto                 Formats Nikto output (XML)
    zap                   Parses ZAP reports (JSON, XML)
    sslyze                format sslyze JSON output
   
