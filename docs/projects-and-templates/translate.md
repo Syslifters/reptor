@@ -1,3 +1,5 @@
+Translate pentest reports using Deepl (bring your own Deepl API token).
+
 ## Examples
 ```
 reptor translate -to DE --dry-run

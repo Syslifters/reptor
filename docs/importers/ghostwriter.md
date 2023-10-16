@@ -1,5 +1,7 @@
+Migrates finding templates from Ghostwriter to SysReptor.
+
 ## Examples
-Migrate finding templates from Ghostwriter to SysReptor
+
 ```
 reptor ghostwriter --url http://localhost/ghostwriter
 ```

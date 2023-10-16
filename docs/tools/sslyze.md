@@ -10,6 +10,8 @@ cat sslyze.json | reptor sslyze --upload  # Format and upload as note
 cat sslyze.json | reptor sslyze --push-findings  # Create findings from scan results
 ```
 
+![Pushed sslyze finding](/cli/assets/sslyze-finding.png)
+
 ## Usage
 ```
 --8<-- "docs/cli/help-messages/sslyze"
