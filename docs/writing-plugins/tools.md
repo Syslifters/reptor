@@ -12,11 +12,11 @@ A plugin can...
 ## Where plugins are located
 
 reptor comes with a number of plugins.  
-Howevers, you can override any plugin by copying it to the `.sysreptor/plugins` folder in your home directory.
+However, you can override any plugin by copying it to the `.sysreptor/plugins` folder in your home directory.
 
 You can do this by running `reptor plugins -copy <module name>`
 
-If you copy the entire plugin, it fully overrides the plugins from reptor.  
+If you copy the entire plugin, it overrides the builtin plugins from reptor.  
 You can also delete the python files from your home directory and leave the `templates` and `findings` directories. Then, you can customize the templates used for formatting the data, while preserving the official functionality of the plugin.
 
 ## Create a new plugin
@@ -25,7 +25,7 @@ Let's say we want to build a plugin for a fictional XSS-tool.
 We can start off using our plugin boilerplate by running `reptor plugins -new XssTool`.
 
 This will add the file structure to `.sysreptor/plugins/XssTool`.  
-This directory is already dynamically included by reptor. When you run `reptor --help`, you should see `xsstool` under the section `tool output processing`.  
+This directory is already dynamically included by reptor. When you run `reptor --help`, you should see `xsstool` under the section `Tools`.  
 You can also call the help message of your plugin by `reptor xsstool --help`.
 
 
@@ -73,7 +73,7 @@ def parse(self):
 We still need to add a commandline option for plaintext parsing. This can be done in the `add_arguments` method.  
 In the course of this, let's delete the `--foo` and `--bar` commandline options of the boilerplate. We don't need them. (Make sure to leave the `super().add_arguments()` call.)
 
-Input formats are mutually exclusive. We want our plaintext parsing switch also to be mutually exclusive. Therefore, we get the mutually exclusive parsing group and add a `--parse-plaintext` switch:
+Input formats are mutually exclusive. We want our plaintext parsing switch also to be mutually exclusive. Therefore, we get the mutually exclusive parsing group and add a `--plaintext` switch:
 
 ```python
 @classmethod
@@ -109,29 +109,22 @@ Now we want to bring our data into a beautiful and human-readable format. SysRep
 
 reptor uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/){ target=_blank } with a slightly different syntax for formatting.  
 
-BLOCK_TAG_START = "<!--{%"
-BLOCK_TAG_END = "%}-->"
-VARIABLE_TAG_START = "<!--{{"
-VARIABLE_TAG_END = "}}-->"
-COMMENT_TAG_START = "<!--{#"
-COMMENT_TAG_END = "#}-->"
-
 The Django start tags are prepended with the HTML comment start tag and become:
 
-* `{{` -> `<!--{{`
-* `{%` -> `<!--{%`
-* `{#` -> `<!--{#`
+* `{{` becomes `<!--{{`
+* `{%` becomes `<!--{%`
+* `{#` becomes `<!--{#`
 
 An HTML comment end tag is appended to the Django end tags:
 
-* `}}` -> `}}-->`
-* `%}` -> `%}-->`
-* `#}` -> `#}-->`
+* `}}` becomes `}}-->`
+* `%}` becomes `%}-->`
+* `#}` becomes `#}-->`
 
 (Find the reason for this later in this tutorial.)
 
 Let's bring the list of our XSS outputs into the format of a markdown table.  
-We find an empty template at `templates/default-template.md` in which we place the following template:
+We find an empty template at `templates/default-template.md`. We rename it to `xss-table.md` and place the following template inside:
 
 ```md
 | XSS target |
@@ -176,45 +169,10 @@ We can resolve this by using the `noemptylines` tag:
 <!--{% endnoemptylines %}-->
 ```
 
-You can now copy this template and add an additional template to create a list instead of a table. Let's create `xss-list.md`:
-
-```md
-**XSS targets**
-
-<!--{% load md %}--><!--{% noemptylines %}-->
-<!--{% for xss_target in data %}-->
-* <!--{{xss_target}}-->
-<!--{% endfor %}-->
-<!--{% endnoemptylines %}-->
-```
-
-Format your data using this template:
-
-```bash
-printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --format --template xss-list
-**XSS target**
-
-* https://example.com/alert(1)
-* https://example.com/q=alert(1)
-```
-
-If you run `reptor xsstool --help` you see that the `--template` switch now takes two options:
-
-```
--t {default-template,xss-list}
-```
-
-Those template names are taken from the filenames. The default template is the first in the list. Templates containing the word `default` are preferred.  
-We can rename the file `default-template.md` to `default-xss-table.md` to have clearer options:
-
-```
--t {default-xss-table,xss-list}
-```
-
 ## Uploading to notes
 
 If you haven't done this yet, you can now add the configuration of your SysReptor installation.  
-Create an API token at `https://yourinstallation.local/users/self/apitokens/` and run `reptor conf` to add all information.
+Create an API token at `https://yourinstallation.local/users/self/apitokens/` and run `reptor conf` to add all necessary information.
 
 Let's upload our formatted data to the project notes:
 
@@ -229,7 +187,7 @@ Your formatted output is now uploaded to your project notes:
 
 ![XssTool Note](/cli/assets/xsstool-note.png)
 
-Use `--notetitle "My Notename"` for a different title and `--private-note` to add it to your personal notes.  
+Use `--notetitle "My Notename"` for a different title and `--private-note` to add it to your private notes.  
 
 You can also update the default note title and replace your note icon in the `__init__` method:
 
@@ -290,7 +248,7 @@ for url, target_list in data.items():
     ip_note.template = self.template  # Format note using the selected Django template
     ip_note.template_data = {"data": target_list}  # Provide data for template
     main_note.children.append(ip_note)  # Append as child of parent note
-return main_note
+return main_note  # Return parent note
 ```
 
 We can now upload one note per target as seen in the screenshot above:
@@ -302,7 +260,6 @@ Successfully uploaded to notes.
 
 ## Create findings
 
-Now we've reached the interesting part.  
 Creating notes is nice but... We want to automate our report.
 
 The first thing we need to define is a name for your finding and a condition when the finding should be triggered.
@@ -333,7 +290,7 @@ cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N"
 summary = """
 We detected a reflected XSS vulnerability.
 
-<!--{% include "xss-list.md" %}-->
+<!--{% include "xss-table.md" %}-->
 """
 
 recommendation = "HTML encode user-supplied inputs."
@@ -344,7 +301,7 @@ references = [
 ```
 
 You can use the adapted Django template language in the fields in the TOML structure.
-Note that you can now include templates that we defined earlier as `xss-list.md`.  
+Note that you can now include templates that we defined earlier as `xss-table.md`.  
 
 
 We can use our new switch `--push-findings` and create a new finding in our SysReptor report:

@@ -11,7 +11,7 @@ class Template(Base):
 
     meta = {
         "name": "Template",
-        "summary": "Queries Finding Templates from reptor.api",
+        "summary": "Queries Finding Templates from SysReptor",
     }
 
     def __init__(self, **kwargs):

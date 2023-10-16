@@ -18,6 +18,9 @@ cat nmap-output.xml | reptor nmap -oX
 cat nmap-output.xml | reptor nmap -oX --upload
 ```
 
+![Uploaded nmap notes](/cli/assets/nmap-notes.png)
+
+
 ## Usage
 ```
 --8<-- "docs/cli/help-messages/nmap"
