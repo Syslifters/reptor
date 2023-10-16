@@ -75,7 +75,7 @@ subcommands:
    conf                  Shows config and sets config
   
   Projects & Templates:
-   template              Queries Finding Templates from reptor.api
+   template              Queries Finding Templates from SysReptor
    project               Work with projects
    translate             Translate Projects to other languages via Deepl
    projectfindings       Export your project findings as a summary or checklist
