@@ -1,4 +1,5 @@
 import json
+import typing
 
 from reptor.lib.plugins.Base import Base
 from reptor.utils.table import make_table
@@ -35,14 +36,20 @@ class Template(Base):
             default="plain",
         )
 
+    def export_templates(self, template_ids: typing.List[str]):
+        templates = list()
+        for template_id in template_ids:
+            templates.append(self.reptor.api.templates.get_template(template_id).to_dict())
+        print(json.dumps(templates, indent=2))
+
     def run(self):
         if not self.arg_search:
-            templates = self.reptor.api.templates.get_templates()
+            templates = self.reptor.api.templates.get_template_overview()
         else:
             templates = self.reptor.api.templates.search(self.arg_search)
 
         if self.format == "json":
-            print(json.dumps([t.to_dict() for t in templates], indent=2))
+            self.export_templates([t.id for t in templates])
         else:
             table = make_table(["Title", "Usage Count", "Tags", "Translations", "ID"])
             for template in templates:

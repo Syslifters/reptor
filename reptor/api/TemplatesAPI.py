@@ -14,7 +14,7 @@ class TemplatesAPI(APIClient):
         )
         self.object_endpoint = urljoin(f"api/v1/findingtemplates/{self.project_id}")
 
-    def get_templates(self) -> typing.List[FindingTemplate]:
+    def get_template_overview(self) -> typing.List[FindingTemplate]:
         """Gets list of Templates"""
         response = self.get(self.base_endpoint)
         return_data = list()
