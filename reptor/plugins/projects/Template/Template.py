@@ -21,6 +21,7 @@ class Template(Base):
         super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
         self.export: typing.Optional[str] = kwargs.get("export")
+        self.language: typing.Optional[str] = kwargs.get("language")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -28,6 +29,12 @@ class Template(Base):
         templates_parsers = parser.add_argument_group()
         templates_parsers.add_argument(
             "--search", help="Search for term", action="store", default=None
+        )
+        templates_parsers.add_argument(
+            "--language",
+            help='Template language for export format "plain", e.g. "en"',
+            action="store",
+            default=None,
         )
         templates_parsers.add_argument(
             "--export",
@@ -89,7 +96,9 @@ class Template(Base):
         if self.export == "tar.gz":
             pass
         elif self.export:
-            self.export_templates([t.id for t in templates], format=self.export)
+            self.export_templates(
+                [t.id for t in templates], format=self.export, language=self.language
+            )
         else:
             table = make_table(["Title", "Usage Count", "Tags", "Translations", "ID"])
             for template in templates:
