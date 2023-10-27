@@ -1,11 +1,13 @@
+from typing import List, Optional
+
 from rich import box
 from rich.table import Table
 
-from typing import List, Optional
 
-
-def make_table(columns: List[str], caption:  Optional[str] = None) -> Table:
-    """This is a simpel helper function to ensure that all tables look the same
+def make_table(
+    columns: Optional[List[str]] = None, caption: Optional[str] = None
+) -> Table:
+    """This is a simple helper function to ensure that all tables look the same
     Simply provide the columns you want to print out, as well as a specific caption.
 
     You can then use `table.add_row(finding.title, template.id)` to add the data
@@ -25,15 +27,17 @@ def make_table(columns: List[str], caption:  Optional[str] = None) -> Table:
         Table: The raw table, without data, but with all styles set
     """
 
-    table = Table(show_header=True, header_style="bold blue")
+    if columns:
+        table = Table(show_header=True, header_style="bold blue")
+        for column in columns:
+            table.add_column(column)
+    else:
+        table = Table()
     if caption:
         table.caption = caption
     table.row_styles = ["none", "dim"]
     table.border_style = "bright_blue"
     table.box = box.SQUARE
     table.pad_edge = False
-
-    for column in columns:
-        table.add_column(column)
 
     return table
