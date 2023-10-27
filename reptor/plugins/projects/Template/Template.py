@@ -1,4 +1,6 @@
+import io
 import json
+import tarfile
 import typing
 
 import yaml
@@ -22,6 +24,7 @@ class Template(Base):
         self.arg_search = kwargs.get("search")
         self.export: typing.Optional[str] = kwargs.get("export")
         self.language: typing.Optional[str] = kwargs.get("language")
+        self.output: typing.Optional[str] = kwargs.get("output")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -45,20 +48,64 @@ class Template(Base):
             dest="export",
             default=None,
         )
+        parser.add_argument(
+            "-o",
+            "--output",
+            metavar="FILENAME",
+            help="Filename for output",
+            action="store",
+            default=None,
+        )
+
+    def _merge_tars(self, tars: typing.Iterable) -> bytes:
+        result_io = io.BytesIO()
+        with tarfile.open(fileobj=result_io, mode="w:gz") as result_tar:
+            for tar in tars:
+                tar = io.BytesIO(tar)
+                with tarfile.open(fileobj=tar, mode="r:gz") as tar_file:
+                    for member in tar_file.getmembers():
+                        if member.isdir():
+                            result_tar.addfile(member)
+                        else:
+                            result_tar.addfile(member, tar_file.extractfile(member))
+        result_io.seek(0)
+        return result_io.read()
+
+    def export_archive(
+        self,
+        template_ids: typing.List[str],
+        filename: str,
+        stdout: bool = False,
+    ):
+        tar = self._merge_tars(
+            ((self.reptor.api.templates.export(id) for id in template_ids))
+        )
+        self.deliver_file(
+            content=tar,
+            filename=filename,
+            upload=False,
+            stdout=stdout,
+        )
+        return
 
     def export_templates(
         self,
         template_ids: typing.List[str],
         format: typing.Optional[str] = "json",
         language: typing.Optional[str] = None,
+        filename: typing.Optional[str] = None,
+        stdout: bool = True,
     ):
+        if format == "plain" and not stdout:
+            raise ValueError('"plain" can only be used with stdout')
         templates = list()
+        output = ""
         for template_id in template_ids:
             templates.append(self.reptor.api.templates.get_template(template_id))
         if format == "json":
-            print(json.dumps([t.to_dict() for t in templates], indent=2))
+            output = json.dumps([t.to_dict() for t in templates], indent=2)
         elif format == "yaml":
-            print(yaml.dump([t.to_dict() for t in templates]))
+            output = yaml.dump([t.to_dict() for t in templates])
         elif format == "plain":
             for template in templates:
                 for i, translation in enumerate(template.translations):
@@ -86,18 +133,53 @@ class Template(Base):
                             )
                             self.print(value.__str__())
                             self.print("")
+            return
+
+        self.deliver_file(
+            content=output.encode(),
+            filename=filename or "",
+            upload=False,
+            stdout=stdout,
+        )
 
     def run(self):
+        filename = self.output
+
         if not self.arg_search:
             templates = self.reptor.api.templates.get_template_overview()
         else:
             templates = self.reptor.api.templates.search(self.arg_search)
 
+        if not templates:
+            self.display("Did not find any finding templates.")
+            return
+
         if self.export == "tar.gz":
-            pass
+            stdout = False
+            if self.output == "-":
+                stdout = True
+            if len(templates) == 1 and not self.output:
+                filename = (
+                    f"{templates[0].translations[0].data.title or 'template'}.tar.gz"
+                )
+            else:
+                filename = "templates.tar.gz"
+            self.export_archive(
+                [t.id for t in templates], filename=filename, stdout=stdout
+            )
         elif self.export:
+            stdout = True
+            if self.output == "-" or self.output is None:
+                filename = None
+            elif self.output:
+                stdout = False
+                filename = self.output
             self.export_templates(
-                [t.id for t in templates], format=self.export, language=self.language
+                [t.id for t in templates],
+                format=self.export,
+                language=self.language,
+                filename=filename,
+                stdout=stdout,
             )
         else:
             table = make_table(["Title", "Usage Count", "Tags", "Translations", "ID"])

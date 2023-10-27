@@ -1,3 +1,4 @@
+import os
 import sys
 import typing
 
@@ -115,6 +116,9 @@ class Base:
             )
             self.log.success(f'Uploaded "{filename}" to "{notetitle}" note')
         else:
+            # Check if filename exists on disk
+            if os.path.exists(filename):
+                raise FileExistsError(f'"{filename}" exists. Rename or delete it.')
             with open(filename, "wb") as f:
                 f.write(content)
             self.log.success(f"Exported to {filename}")

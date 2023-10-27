@@ -71,7 +71,7 @@ class Project(Base):
             "-o",
             "--output",
             metavar="FILENAME",
-            help='Filename to store output, empty for stdout',
+            help="Filename for output",
             action="store",
             default=None,
         )
@@ -100,10 +100,11 @@ class Project(Base):
     def _export_project(self, format="tar.gz", filename=None, upload=False):
         stdout = False
         default_filename = self.reptor.api.projects.project.name or "project"
-        if filename == "-" or filename is None:
-            stdout = True
-            filename = None
+
         if format == "tar.gz":
+            if filename == "-":
+                stdout = True
+                filename = None
             archive_content = self.reptor.api.projects.export()
             self.deliver_file(
                 content=archive_content,
@@ -113,6 +114,9 @@ class Project(Base):
             )
             return
 
+        if filename == "-" or filename is None:
+            stdout = True
+            filename = None
         project = self.reptor.api.projects.project.to_dict()
         output = ""
         if format == "json":
