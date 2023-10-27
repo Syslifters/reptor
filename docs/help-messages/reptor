@@ -20,14 +20,14 @@ optional arguments:
 subcommands:
   
   Core:
-   plugins               Allows plugin management & development
    conf                  Shows config and sets config
+   plugins               Allows plugin management & development
   
   Projects & Templates:
+   projectfindings       Export your project findings as a summary or checklist
+   translate             Translate Projects to other languages via Deepl
    template              Queries Finding Templates from SysReptor
    project               Work with projects
-   translate             Translate Projects to other languages via Deepl
-   projectfindings       Export your project findings as a summary or checklist
   
   Uploads:
    file                  Uploads a file
@@ -35,13 +35,13 @@ subcommands:
    note                  Uploads and lists notes
   
   Tools:
+   sslyze                format sslyze JSON output
    nmap                  format nmap output
    zap                   Parses ZAP reports (JSON, XML)
-   sslyze                format sslyze JSON output
   
   Importers:
-   importers             Show importers to use to import finding templates
    ghostwriter           Imports GhostWriter finding templates
+   importers             Show importers to use to import finding templates
 
 configuration:
   -s SERVER, --server SERVER
