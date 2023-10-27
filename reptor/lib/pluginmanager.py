@@ -145,9 +145,12 @@ class PluginManager:
             # because it is a dictionary, an overwritten module is automatically overwritten
             self.LOADED_PLUGINS[plugin_meta.name] = module
 
-        empty_groups = [
-            key for key, group in subcommands.SUBCOMMANDS_GROUPS.items() if not group[1]
-        ]
+        empty_groups = list()
+        for group_name, group in subcommands.SUBCOMMANDS_GROUPS.items():
+            if not group[1]:
+                empty_groups.append(group_name)
+                continue
+            group[1].sort(key=lambda p: p.name)
         for empty_group in empty_groups:
             subcommands.SUBCOMMANDS_GROUPS.pop(empty_group)
 
