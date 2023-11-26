@@ -36,6 +36,14 @@ pip3 install .
 
 Install [optional dependencies](#optional-dependencies) by `pip3 install .[all]`.
 
+### From BlackArch
+
+```
+pacman -S reptor
+```
+
+[![BlackArch package](https://repology.org/badge/version-for-repo/blackarch/reptor.svg)](https://repology.org/project/reptor/versions)
+
 ## Configuration
 Get your API token from https://<your-installation>/users/self/apitokens/.
 
