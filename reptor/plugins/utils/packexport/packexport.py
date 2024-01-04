@@ -3,7 +3,7 @@ import io
 import json
 import tarfile
 import uuid
-import toml
+import tomli
 from pathlib import Path
 from reptor.lib.plugins.Base import Base
 
@@ -53,7 +53,7 @@ class PackExport(Base):
                         continue
 
                     if path_input.suffix == '.toml':
-                        data_dict = toml.loads(path_input.read_text())
+                        data_dict = tomli.loads(path_input.read_text())
                     else:
                         data_dict = json.loads(path_input.read_text())
 
