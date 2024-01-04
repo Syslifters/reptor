@@ -13,6 +13,7 @@ PLUGIN_DIRS_PROJECTS: pathlib.Path = PLUGIN_DIRS / "projects"
 PLUGIN_DIRS_UPLOADS: pathlib.Path = PLUGIN_DIRS / "uploads"
 PLUGIN_DIRS_IMPORTERS: pathlib.Path = PLUGIN_DIRS / "importers"
 PLUGIN_DIRS_EXPORTERS: pathlib.Path = PLUGIN_DIRS / "exporters"
+PLUGIN_DIRS_UTILS: pathlib.Path = PLUGIN_DIRS / "utils"
 PLUGIN_DIRS_USER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "plugins"
 
 PLUGIN_IMPORT_DIRS = [
@@ -22,6 +23,7 @@ PLUGIN_IMPORT_DIRS = [
     PLUGIN_DIRS_UPLOADS,
     PLUGIN_DIRS_IMPORTERS,
     PLUGIN_DIRS_EXPORTERS,
+    PLUGIN_DIRS_UTILS,
     PLUGIN_DIRS_USER,  # Should be last to override other plugins
 ]
 

@@ -7,6 +7,7 @@ SUBCOMMANDS_GROUPS = OrderedDict(
         "uploads": ("Uploads", list()),
         "tools": ("Tools", list()),
         "importers": ("Importers", list()),
+        "utils": ("Utils", list()),
         "other": ("Other", list()),
         "plugins": ("User Plugins", list()),
     }
