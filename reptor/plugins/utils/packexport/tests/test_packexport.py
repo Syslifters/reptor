@@ -1,3 +1,4 @@
+import io
 import json
 import tarfile
 import tomli_w
@@ -57,7 +58,7 @@ class TestPackExport:
             PackExport(reptor=self.reptor, directories=[d], output=output).run()
             output.flush()
             output.seek(0)
-            return tarfile.open(fileobj=output, mode='r:gz')
+            return tarfile.open(fileobj=io.BytesIO(output.read()), mode='r:gz')
 
     @pytest.mark.parametrize(['format'], [
         ('toml',),
