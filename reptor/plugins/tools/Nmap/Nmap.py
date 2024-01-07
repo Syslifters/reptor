@@ -89,7 +89,14 @@ class Nmap(ToolBase):
         if not isinstance(hosts, list):
             hosts = [hosts]
         for host in hosts:
-            ip = host.get("address", {}).get("@addr")
+            netif_addrs = host.get("address", [])
+            # predefine value if error occurred
+            ip = "ERROR"
+            for if_addr in netif_addrs:
+                # skip mac address, only ipv4/ipv6 address should be included
+                if if_addr["@addrtype"].startswith("ip"):
+                    # get ip address from scan result
+                    ip = if_addr.get("@addr")
             ports = host.get("ports", {}).get("port", [])
             if not isinstance(ports, list):
                 ports = [ports]
