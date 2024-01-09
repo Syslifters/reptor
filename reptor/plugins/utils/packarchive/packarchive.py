@@ -31,7 +31,7 @@ class PackArchive(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.directories: list[Path] = kwargs.get("directories", [])
+        self.directories: list[Path] = kwargs.get("directories") or []
         self.output = kwargs.get("output")
 
     @classmethod
@@ -39,7 +39,12 @@ class PackArchive(Base):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
 
         parser.add_argument("directories", nargs="+", type=dir_path)
-        parser.add_argument("-o", "--output", type=argparse.FileType("wb"))
+        parser.add_argument(
+            "-o",
+            "--output",
+            type=argparse.FileType("wb"),
+            default="packed_archive.tar.gz",
+        )
 
     def run(self):
         with tarfile.open(fileobj=self.output, mode="w:gz") as tar:

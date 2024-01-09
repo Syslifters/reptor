@@ -86,7 +86,7 @@ class UnpackArchive(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.files: list[Path] = kwargs.get("files", [])
-        self.output = kwargs.get("output") or "unpacked_archive"
+        self.output = kwargs.get("output") or "./unpacked_archive"
         self.format = kwargs.get("format") or "toml"
 
     @classmethod
