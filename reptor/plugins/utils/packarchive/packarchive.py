@@ -35,7 +35,7 @@ class PackArchive(Base):
         self.output = kwargs.get("output")
 
     @classmethod
-    def add_arguments(self, parser, plugin_filepath=None):
+    def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
 
         parser.add_argument("directories", nargs="+", type=dir_path)
@@ -118,6 +118,8 @@ class PackArchive(Base):
                         d_dir = Path(path_dir) / ds
                         if d_dir.is_dir():
                             tar.add(d_dir, arcname=dd)
+
+        self.success(f"Packed contents to {self.output.name}")
 
 
 loader = PackArchive
