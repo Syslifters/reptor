@@ -44,6 +44,7 @@ pacman -S reptor
 
 [![BlackArch package](https://repology.org/badge/version-for-repo/blackarch/reptor.svg)](https://repology.org/project/reptor/versions)
 
+
 ## Configuration
 Get your API token from https://<your-installation>/users/self/apitokens/.
 
@@ -83,10 +84,10 @@ subcommands:
    plugins               Allows plugin management & development
   
   Projects & Templates:
-   projectfindings       Export your project findings as a summary or checklist
-   translate             Translate Projects to other languages via Deepl
-   template              Queries Finding Templates from SysReptor
    project               Work with projects
+   projectfindings       Export your project findings as a summary or checklist
+   template              Queries Finding Templates from SysReptor
+   translate             Translate Projects to other languages via Deepl
   
   Uploads:
    file                  Uploads a file
@@ -94,8 +95,8 @@ subcommands:
    note                  Uploads and lists notes
   
   Tools:
-   sslyze                format sslyze JSON output
    nmap                  format nmap output
+   sslyze                format sslyze JSON output
    zap                   Parses ZAP reports (JSON, XML)
   
   Importers:
