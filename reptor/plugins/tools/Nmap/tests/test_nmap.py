@@ -62,7 +62,7 @@ class TestNmap(TestCaseToolPlugin):
         self.nmap.parse()
         assert self.nmap.parsed_input == result_dict
 
-    def test_xml_parse_multi_target(self):
+    def test_xml_parse_with_mac(self):
         entries = [
             {
                 "ip": "142.250.180.228",
@@ -101,6 +101,70 @@ class TestNmap(TestCaseToolPlugin):
         self.nmap.parse()
         for entry in entries:
             assert entry in self.nmap.parsed_input
+
+    def test_xml_parse_multi_target(self):
+        entries = [
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "22",
+                "protocol": "tcp",
+                "service": "ssh",
+                "version": "OpenSSH",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "25",
+                "protocol": "tcp",
+                "service": "smtp-proxy",
+                "version": "Python SMTP Proxy",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "80",
+                "protocol": "tcp",
+                "service": "http",
+                "version": "Golang net/http server",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "443",
+                "protocol": "tcp",
+                "service": "http",
+                "version": "Golang net/http server",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "2222",
+                "protocol": "tcp",
+                "service": "ssh",
+                "version": "OpenSSH",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "8080",
+                "protocol": "tcp",
+                "service": "http",
+                "version": "Golang net/http server",
+            },
+            {
+                "ip": "192.168.1.69",
+                "hostname": None,
+                "port": "9999",
+                "protocol": "tcp",
+                "service": "abyss",
+                "version": None,
+            },
+        ]
+        self._load_xml_data("nmap_with_mac.xml")
+        self.nmap.parse()
+        for entry in entries:
+           assert entry in self.nmap.parsed_input
 
     def test_xml_parse_single_target(self):
         entries = [
