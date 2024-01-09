@@ -90,6 +90,8 @@ class Nmap(ToolBase):
             hosts = [hosts]
         for host in hosts:
             netif_addrs = host.get("address", [])
+            if not isinstance(netif_addrs, list):
+                netif_addrs = [netif_addrs]
             # predefine value if error occurred
             ip = "ERROR"
             for if_addr in netif_addrs:
