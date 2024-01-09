@@ -102,6 +102,10 @@ subcommands:
   Importers:
    ghostwriter           Imports GhostWriter finding templates
    importers             Show importers to use to import finding templates
+  
+  Utils:
+   packarchive           Pack directories into a .tar.gz file
+   unpackarchive         Unpack .tar.gz exported archives
 
 configuration:
   -s SERVER, --server SERVER
