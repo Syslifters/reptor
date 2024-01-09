@@ -111,7 +111,8 @@ class UnpackExport(Base):
                         data_output = tomlkit.dumps(to_toml(data_dict))
                     path_output = path_json.with_suffix(f".{self.format}")
                     path_output.write_text(data_output)
-                    path_json.unlink()
+                    if path_output != path_json:
+                        path_json.unlink()
 
             copytree(src=tempdir, dst=self.output, dirs_exist_ok=True)
 
