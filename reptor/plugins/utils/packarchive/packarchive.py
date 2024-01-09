@@ -49,10 +49,18 @@ class PackArchive(Base):
     def run(self):
         with tarfile.open(fileobj=self.output, mode="w:gz") as tar:
             for path_dir in self.directories:
-                # Add NOTICE file at top level, only once per tar.gz file
+                # Add NOTICE files at top level
                 notice_path = path_dir / "NOTICE"
-                if notice_path.is_file() and "NOTICE" not in tar.getnames():
-                    tar.add(notice_path, arcname="NOTICE")
+                if notice_path.is_file():
+                    notice_filename = "NOTICE"
+                    if notice_filename in tar.getnames():
+                        i = 0
+                        while True:
+                            i += 1
+                            notice_filename = f"NOTICE ({str(i)})"
+                            if notice_filename not in tar.getnames():
+                                break
+                    tar.add(notice_path, arcname=notice_filename)
 
                 # Add files to archive
                 for path_input in list(path_dir.glob("*.toml")) + list(
