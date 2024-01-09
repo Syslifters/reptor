@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import tarfile
 import tempfile
 from pathlib import Path
@@ -114,7 +115,9 @@ class UnpackExport(Base):
                     if path_output != path_json:
                         path_json.unlink()
 
+            self.output = os.path.abspath(self.output)
             copytree(src=tempdir, dst=self.output, dirs_exist_ok=True)
+            self.success(f"Unpacked files to {self.output}")
 
 
 loader = UnpackExport
