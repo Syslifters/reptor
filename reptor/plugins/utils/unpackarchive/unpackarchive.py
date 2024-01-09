@@ -77,16 +77,16 @@ def to_toml(data: Any):
         raise Exception(f"Unhandled type: {type(data)}")
 
 
-class UnpackExport(Base):
+class UnpackArchive(Base):
     meta = {
-        "name": "UnpackExport",
+        "name": "UnpackArchive",
         "summary": "Unpack .tar.gz exported archives",
     }
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.files: list[Path] = kwargs.get("files", [])
-        self.output = kwargs.get("output") or "."
+        self.output = kwargs.get("output") or "unpacked_archive"
         self.format = kwargs.get("format") or "toml"
 
     @classmethod
@@ -120,4 +120,4 @@ class UnpackExport(Base):
             self.success(f"Unpacked files to {self.output}")
 
 
-loader = UnpackExport
+loader = UnpackArchive
