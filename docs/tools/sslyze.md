@@ -1,7 +1,7 @@
 ## Examples
 
 ```bash title="SSLyze scan"
-sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --http_get --hide_rejected_ciphers --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.json
+sslyze --sslv2 --sslv3 --tlsv1 --tlsv1_1 --tlsv1_2 --tlsv1_3 --certinfo --reneg --compression --heartbleed --openssl_ccs --fallback --robot "$target" --json_out=- | tee sslyze.json
 ```
 
 ```bash title="SSLyze"
