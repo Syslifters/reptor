@@ -28,6 +28,15 @@ class Sslyze(ToolBase):
         self.note_icon = "🔒"
         self.input_format = "json"
 
+    protocol_mapping = {
+        "ssl_2_0_cipher_suites": "sslv2",
+        "ssl_3_0_cipher_suites": "sslv3",
+        "tls_1_0_cipher_suites": "tlsv1",
+        "tls_1_1_cipher_suites": "tlsv1_1",
+        "tls_1_2_cipher_suites": "tlsv1_2",
+        "tls_1_3_cipher_suites": "tlsv1_3",
+    }
+
     # Taken from https://ciphersuite.info/
     weak_ciphers = [
         "DHE-DSS-DES-CBC3-SHA",
@@ -169,24 +178,26 @@ class Sslyze(ToolBase):
 
     def get_protocols(self, target):
         result_protocols = dict()
-        for protocol, protocol_data in target["commands_results"].items():
-            if len(protocol_data.get("accepted_cipher_list", list())) > 0:
+        for protocol, protocol_data in target["scan_result"].items():
+            protocol = self.protocol_mapping.get(protocol)
+            if (protocol_data.get("result") or {}).get("accepted_cipher_suites"):
                 result_protocols[protocol] = {}
         return result_protocols
 
     def get_weak_ciphers(self, target):
         result_protocols = dict()
-        for protocol, protocol_data in target["commands_results"].items():
-            if len(protocol_data.get("accepted_cipher_list", list())) > 0:
+        for protocol, protocol_data in target["scan_result"].items():
+            protocol = self.protocol_mapping.get(protocol)
+            if (protocol_data.get("result") or {}).get("accepted_cipher_suites"):
                 result_protocols.setdefault(protocol, dict())
                 weak_ciphers = list(
                     filter(
                         None,
                         [
-                            c["openssl_name"]
-                            if c["openssl_name"] in self.weak_ciphers
+                            c["cipher_suite"]["openssl_name"]
+                            if c["cipher_suite"]["openssl_name"] in self.weak_ciphers
                             else None
-                            for c in protocol_data["accepted_cipher_list"]
+                            for c in protocol_data["result"]["accepted_cipher_suites"]
                         ],
                     )
                 )
@@ -195,10 +206,11 @@ class Sslyze(ToolBase):
                     filter(
                         None,
                         [
-                            c["openssl_name"]
-                            if c["openssl_name"] in self.insecure_ciphers
+                            c["cipher_suite"]["openssl_name"]
+                            if c["cipher_suite"]["openssl_name"]
+                            in self.insecure_ciphers
                             else None
-                            for c in protocol_data["accepted_cipher_list"]
+                            for c in protocol_data["result"]["accepted_cipher_suites"]
                         ],
                     )
                 )
@@ -207,23 +219,33 @@ class Sslyze(ToolBase):
 
     def get_certinfo(self, target):
         result_certinfo = dict()
-        certinfo = target.get("commands_results", dict()).get("certinfo")
+        certinfo = (
+            target.get("scan_result", dict()).get("certificate_info", {}).get("result")
+        )
         if certinfo is None:
             return result_certinfo
-        result_certinfo["certificate_matches_hostname"] = certinfo.get(
-            "certificate_matches_hostname"
+        deployments = certinfo.get("certificate_deployments", list())
+        result_certinfo["certificate_matches_hostname"] = all(
+            deployment.get("leaf_certificate_subject_matches_hostname", True)
+            for deployment in deployments
         )
-        result_certinfo["has_sha1_in_certificate_chain"] = certinfo.get(
-            "has_sha1_in_certificate_chain"
+        result_certinfo["has_sha1_in_certificate_chain"] = all(
+            deployment.get("verified_chain_has_sha1_signature", True)
+            for deployment in deployments
         )
+        path_validation_results = [
+            deployment.get("path_validation_results", list())
+            for deployment in deployments
+        ]
+        path_validation_results = [x for l in path_validation_results for x in l]
         result_certinfo["certificate_untrusted"] = list(
             filter(
                 None,
                 [
-                    store["trust_store"]["name"]
-                    if not store["is_certificate_trusted"]
+                    validation.get("trust_store", {}).get("name")
+                    if not validation.get("was_validation_successful", True)
                     else None
-                    for store in certinfo.get("path_validation_result_list") or list()
+                    for validation in path_validation_results
                 ],
             )
         )
@@ -231,16 +253,24 @@ class Sslyze(ToolBase):
 
     def get_vulnerabilities(self, target):
         result_vulnerabilities = dict()
-        commands_results = target.get("commands_results")
+        commands_results = target.get("scan_result")
         if commands_results is None:
             return result_vulnerabilities
-        result_vulnerabilities["heartbleed"] = commands_results.get(
-            "heartbleed", dict()
-        ).get("is_vulnerable_to_heartbleed")
-        result_vulnerabilities["openssl_ccs"] = commands_results.get(
-            "openssl_ccs", dict()
-        ).get("is_vulnerable_to_ccs_injection")
-        robot = commands_results.get("robot", dict()).get("robot_result_enum")
+        result_vulnerabilities["heartbleed"] = (
+            commands_results.get("heartbleed", dict())
+            .get("result", dict())
+            .get("is_vulnerable_to_heartbleed", False)
+        )
+        result_vulnerabilities["openssl_ccs"] = (
+            commands_results.get("openssl_ccs_injection", dict())
+            .get("result", dict())
+            .get("is_vulnerable_to_ccs_injection")
+        )
+        robot = (
+            commands_results.get("robot", dict())
+            .get("result", dict())
+            .get("robot_result")
+        )
         result_vulnerabilities["robot"] = (
             robot if "NOT_VULNERABLE" not in robot else False
         )
@@ -248,32 +278,36 @@ class Sslyze(ToolBase):
 
     def get_misconfigurations(self, target):
         result_misconfigs = dict()
-        commands_results = target.get("commands_results")
+        commands_results = target.get("scan_result")
         if commands_results is None:
             return result_misconfigs
         result_misconfigs["compression"] = (
-            commands_results.get("compression", dict()).get("compression_name")
-            is not None
+            commands_results.get("tls_compression", dict())
+            .get("result", dict())
+            .get("supports_compression")
         )
         result_misconfigs["downgrade"] = (
-            commands_results.get("fallback", dict()).get("supports_fallback_scsv", True)
+            commands_results.get("tls_fallback_scsv", dict())
+            .get("result", dict())
+            .get("supports_fallback_scsv", True)
             is not True
         )
-        result_misconfigs["client_renegotiation"] = commands_results.get(
-            "reneg", dict()
-        ).get("accepts_client_renegotiation")
+        result_misconfigs["client_renegotiation"] = (
+            commands_results.get("session_renegotiation", dict())
+            .get("result", dict())
+            .get("is_vulnerable_to_client_renegotiation_dos")
+        )
         result_misconfigs["no_secure_renegotiation"] = (
-            commands_results.get("reneg", dict()).get(
-                "supports_secure_renegotiation", True
-            )
+            commands_results.get("session_renegotiation", dict())
+            .get("result", dict())
+            .get("supports_secure_renegotiation", True)
             is not True
         )
-
         return result_misconfigs
 
     def get_server_info(self, target):
         result_server_info = dict()
-        server_info = target.get("server_info")
+        server_info = target.get("server_location")
         result_server_info["hostname"] = server_info["hostname"]
         result_server_info["port"] = str(server_info["port"])
         result_server_info["ip_address"] = server_info["ip_address"]
@@ -305,7 +339,7 @@ class Sslyze(ToolBase):
         data = list()
         if not isinstance(self.parsed_input, dict):
             return dict()
-        for target in self.parsed_input.get("accepted_targets", list()):
+        for target in self.parsed_input.get("server_scan_results", list()):
             target_data = self.get_server_info(target)
 
             target_data["protocols"] = self.get_protocols(target)
