@@ -10,7 +10,7 @@ from reptor.plugins.core.Conf.tests.conftest import notes_api, projects_api
 @pytest.mark.integration
 class TestIntegrationSslyze(object):
     def test_sslyze_note(self, notes_api):
-        input_path = Path(os.path.dirname(__file__)) / "data/sslyze.json"
+        input_path = Path(os.path.dirname(__file__)) / "data/sslyze_v5.json"
 
         p = subprocess.Popen(
             ["reptor", "sslyze", "--upload"],
@@ -35,7 +35,7 @@ class TestIntegrationSslyze(object):
         assert all([line in note_lines for line in lines])
 
     def test_sslyze_findings(self, projects_api):
-        nmap_output_path = Path(os.path.dirname(__file__)) / "data/sslyze.json"
+        nmap_output_path = Path(os.path.dirname(__file__)) / "data/sslyze_v5.json"
 
         p = subprocess.Popen(
             ["reptor", "sslyze", "--push-findings"],
