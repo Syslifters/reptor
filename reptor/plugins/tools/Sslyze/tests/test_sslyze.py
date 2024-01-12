@@ -24,9 +24,9 @@ class TestSslyze(TestCaseToolPlugin):
         )
         self.sslyze = Sslyze(reptor=self.reptor)
 
-    def _load_json_data(self):
+    def _load_json_data(self, filename):
         self.sslyze.input_format = "json"
-        filepath = os.path.join(os.path.dirname(__file__), "./data/sslyze.json")
+        filepath = os.path.join(os.path.dirname(__file__), f"./data/{filename}.json")
         with open(filepath, "r") as f:
             self.sslyze.raw_input = f.read()
 
@@ -43,7 +43,7 @@ class TestSslyze(TestCaseToolPlugin):
                     },
                     "certinfo": {
                         "certificate_matches_hostname": False,
-                        "certificate_untrusted": ["Android", "iOS"],
+                        "certificate_untrusted": ["Android", "Apple"],
                     },
                     "misconfigurations": {
                         "compression": False,
@@ -119,7 +119,7 @@ class TestSslyze(TestCaseToolPlugin):
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
 
-        self._load_json_data()
+        self._load_json_data("sslyze_v5")
         self.sslyze.parsed_input = None
         self.sslyze.parse()
         data = self.sslyze.preprocess_for_template()
@@ -137,7 +137,7 @@ class TestSslyze(TestCaseToolPlugin):
 
         certinfo_data = """The certificates of example.com:443 and 2 other services are untrusted by common browsers:
 
-* example.com:443 (unmatching hostname; untrusted by Android, iOS)
+* example.com:443 (unmatching hostname; untrusted by Android, Apple)
 * www.example.com:443 (untrusted by Android)
 * ftp.example.com:443 (unmatching hostname)"""
         assert certinfo_data in self.sslyze.findings[0].data.description.value
@@ -174,7 +174,7 @@ class TestSslyze(TestCaseToolPlugin):
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
 
-        self._load_json_data()
+        self._load_json_data("sslyze_v5")
         # Assert "create_finding" is called if no findings exist
         self.sslyze.reptor.api.projects.get_findings = Mock(return_value=[])
         self.reptor.api.projects.create_finding = MagicMock()
@@ -198,7 +198,7 @@ class TestSslyze(TestCaseToolPlugin):
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
 
-        self._load_json_data()
+        self._load_json_data("sslyze_v5")
         self.sslyze.generate_findings()
         assert len(self.sslyze.findings) == 1
         fndg = self.sslyze.findings[0]
@@ -231,7 +231,6 @@ class TestSslyze(TestCaseToolPlugin):
                     "protocols": {
                         "sslv2": {"weak_ciphers": [], "insecure_ciphers": []},
                         "tlsv1_2": {
-                            "insecure_ciphers": [],
                             "weak_ciphers": [
                                 "DHE-RSA-AES256-SHA256",
                                 "AES256-SHA256",
@@ -246,10 +245,11 @@ class TestSslyze(TestCaseToolPlugin):
                                 "AES128-GCM-SHA256",
                                 "ECDHE-RSA-AES128-SHA256",
                             ],
+                            "insecure_ciphers": [],
                         },
                     },
-                    "has_insecure_protocols": True,
                     "has_weak_protocols": False,
+                    "has_insecure_protocols": True,
                     "has_weak_ciphers": True,
                     "has_insecure_ciphers": False,
                     "certinfo": {
@@ -279,7 +279,7 @@ class TestSslyze(TestCaseToolPlugin):
                 }
             ]
         }
-        self._load_json_data()
+        self._load_json_data("sslyze_v5")
         self.sslyze.parsed_input = None
         self.sslyze.parse()
         data = self.sslyze.preprocess_for_template()
@@ -287,7 +287,7 @@ class TestSslyze(TestCaseToolPlugin):
 
     def test_format(self):
         # result = """| Host | Port | Service | Version |"""
-        self._load_json_data()
+        self._load_json_data("sslyze_v5")
 
         # Protocols template
         protocols_result = """# Sslyze
