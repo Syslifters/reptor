@@ -13,7 +13,6 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 
 import reptor.settings as settings
-from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import Finding
 from reptor.models.Note import NoteTemplate
 from reptor.models.ProjectDesign import ProjectDesign
@@ -477,7 +476,7 @@ class ToolBase(Base):
                         project_design=ProjectDesign(),
                         raise_on_unknown_fields=True,
                     )
-                except IncompatibleDesignException:
+                except ValueError:
                     self.log.info(
                         "Finding data not compatible with project design. Fetching project design from project."
                     )

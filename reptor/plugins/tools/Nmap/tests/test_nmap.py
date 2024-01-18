@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
-from reptor.models.Note import NoteTemplate
 
 from ..Nmap import Nmap
 
@@ -164,7 +163,7 @@ class TestNmap(TestCaseToolPlugin):
         self._load_xml_data("nmap_with_mac.xml")
         self.nmap.parse()
         for entry in entries:
-           assert entry in self.nmap.parsed_input
+            assert entry in self.nmap.parsed_input
 
     def test_xml_parse_single_target(self):
         entries = [

@@ -4,7 +4,6 @@ from copy import deepcopy
 from typing import Any
 from uuid import UUID
 
-from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Base import BaseModel, ProjectFieldTypes
 from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 
@@ -218,21 +217,30 @@ class SectionData(BaseModel):
         design_fields: typing.List[ProjectDesignField],
         raise_on_unknown_fields: bool = False,
     ):
+        error = False
         for design_field in design_fields:
             try:
                 value = data_raw.__getattribute__(design_field.name)
             except AttributeError:
                 continue
-            self.__setattr__(
-                design_field.name,
-                self.field_class(design_field, value),
-            )
+            try:
+                self.__setattr__(
+                    design_field.name,
+                    self.field_class(design_field, value),
+                )
+            except ValueError as e:
+                self._log.error(e)
+                error = True
+
         if raise_on_unknown_fields:
             unknown_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
             if len(unknown_fields) > 0:
-                raise IncompatibleDesignException(
+                error = True
+                self._log.error(
                     f"Incompatible data and designs: Fields in data but not in design: {','.join(unknown_fields)}"
                 )
+        if error:
+            raise ValueError("Invalid data format")
 
     def __iter__(self):
         """Recursive iteration through cls attributes
@@ -273,6 +281,7 @@ class SectionRaw(BaseModel):
     project_type: str = ""
     language: str = ""
     lock_info: bool = False
+    fields: typing.List[str] = []
     template: str = ""
     assignee: str = ""
     status: str = "in-progress"
@@ -291,6 +300,7 @@ class Section(SectionRaw):
         self,
         raw: typing.Union[SectionRaw, typing.Dict],
         project_design: typing.Optional[ProjectDesign] = None,
+        raise_on_unknown_fields: bool = False,
     ):
         if project_design is None:
             project_design = ProjectDesign()
@@ -300,4 +310,9 @@ class Section(SectionRaw):
         # Set attributes from SectionRaw
         for attr in typing.get_type_hints(SectionRaw).items():
             self.__setattr__(attr[0], raw.__getattribute__(attr[0]))
-        self.data = SectionData(raw.data, project_design.report_fields)
+
+        self.data = SectionData(
+            raw.data,
+            project_design.report_fields,
+            raise_on_unknown_fields=raise_on_unknown_fields,
+        )

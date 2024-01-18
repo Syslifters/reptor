@@ -47,6 +47,8 @@ class PackArchive(Base):
         )
 
     def run(self):
+        if not self.directories:
+            return
         with tarfile.open(fileobj=self.output, mode="w:gz") as tar:
             for path_dir in self.directories:
                 # Add NOTICE files at top level

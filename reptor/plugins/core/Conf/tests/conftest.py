@@ -29,20 +29,38 @@ def setUp():
     # Set API Token and URL
     conf()
 
-    # Get existing project id
-    p = subprocess.Popen(
-        ["reptor", "project", "--json"],
-        stdout=subprocess.PIPE,
+    # Get design ID
+    reptor = Reptor()
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["insecure"] = True
+        reptor._config._raw_config["cli"] = {"insecure": True}
+    project_designs = ProjectDesignsAPI(reptor=reptor).get_project_designs()
+    for design in project_designs:
+        if "Demo Calzone" in design.name:
+            project_design_id = design.id
+            break
+    else:
+        raise ValueError("Demo Calzone project design not found")
+
+    # Create project
+    projects_api = ProjectsAPI(reptor=reptor)
+    project = projects_api.create_project(
+        "Integration Test Project", project_design_id, tags=["integration-test"]
     )
-    projects, _ = p.communicate()
-    projects = json.loads(projects.decode())
-    assert p.returncode == 0
-    project_id = projects[-1]["id"]
 
     # Also add project_id
-    conf(project_id=project_id)
+    conf(project_id=project.id)
 
     yield
+
+    # Delete Project
+    conf(project_id=project.id)
+    reptor = Reptor()
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["insecure"] = True
+        reptor._config._raw_config["cli"] = {"insecure": True}
+    projects_api = ProjectsAPI(reptor=reptor)
+    projects_api.delete_project()
 
     # Remove integration test config file
     try:
@@ -62,6 +80,8 @@ def setUp():
 @pytest.fixture(scope="session")
 def projects_api():
     reptor = Reptor()
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["insecure"] = True
     return ProjectsAPI(reptor=reptor)
 
 
@@ -69,6 +89,8 @@ def projects_api():
 def notes_api():
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"private_note": False}
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["cli"]["insecure"] = True
     return NotesAPI(reptor=reptor)
 
 
@@ -76,6 +98,8 @@ def notes_api():
 def private_notes_api():
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"private_note": True}
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["cli"]["insecure"] = True
     return NotesAPI(reptor=reptor)
 
 
@@ -83,6 +107,8 @@ def private_notes_api():
 def project_design_api():
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"private_note": False}
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["cli"]["insecure"] = True
     return ProjectDesignsAPI(reptor=reptor)
 
 
@@ -128,6 +154,8 @@ def delete_findings(setUp, projects_api):
 
 def get_notes(private=False):
     cmd = ["reptor", "note", "--list", "--json"]
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        cmd.append("--insecure")
     if private:
         cmd.append("--private-note")
 

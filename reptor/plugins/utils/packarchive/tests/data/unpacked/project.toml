@@ -1,0 +1,576 @@
+format = "projects/v1"
+id = "project"
+created = "2024-01-16T08:09:38.289747Z"
+updated = "2024-01-16T08:09:38.290131Z"
+name = "Demo Report"
+language = "de-DE"
+tags = []
+override_finding_order = false
+images = []
+
+[[members]]
+id = "11111111-43e3-467f-924b-111111111111"
+email = "user@example.com"
+mobile = "1111"
+username = "user"
+name = "User Pentest"
+first_name = "User"
+last_name = "Pentest"
+roles = [
+    "pentester",
+]
+
+[[sections]]
+id = "other"
+created = "2024-01-16T08:09:38.304192Z"
+updated = "2024-01-16T08:09:38.307348Z"
+status = "in-progress"
+
+[[sections]]
+id = "statistics"
+created = "2024-01-16T08:09:38.304122Z"
+updated = "2024-01-16T08:10:39.513923Z"
+status = "in-progress"
+
+[[sections]]
+id = "benchmark"
+created = "2024-01-16T08:09:38.304001Z"
+updated = "2024-01-16T08:11:22.926804Z"
+status = "in-progress"
+
+[report_data]
+title = "Demo Report"
+customer = "Demo Customer"
+x_axis_labels = [
+    "xlabel",
+]
+y_scala_left = 1222.0
+y_scala_right = 1222.0
+
+[report_data.lead_pentester]
+name = "TODO"
+email = "TODO@syslifters.com"
+phone = "TODO"
+
+[report_data.domain_leak_statistics]
+stealer_leaks = 133.0
+unknown_sources_leaks = 322.0
+
+[[report_data.domain_leak_statistics.domain_leaks]]
+total = 123.0
+domain = "example.com"
+
+[[report_data.domain_leak_statistics.domain_leaks]]
+total = 456.0
+domain = "example1.com"
+
+[report_data.platform_leak_statistics]
+stealer_leaks = 1231.0
+unknown_sources_leaks = 121.0
+
+[[report_data.platform_leak_statistics.platform_leaks]]
+total = 213.0
+platform = "hacked.com"
+
+[[report_data.platform_leak_statistics.platform_leaks]]
+total = 12.0
+platform = "evil.com"
+
+[[report_data.datasets]]
+data = [
+    "123",
+    "212",
+    "21",
+    "21",
+]
+type = "bar"
+label = "abc"
+yAxisID = "y"
+borderColor = "rgba(255, 124, 128, 1)"
+backgroundColor = "rgba(255, 124, 128, 1)"
+
+[[report_data.datasets]]
+data = [
+    "21",
+    "21",
+    "21",
+    "21",
+]
+type = "bar"
+label = "cdef"
+yAxisID = "y"
+borderColor = "rgba(255, 124, 128, 1)"
+backgroundColor = "rgba(255, 124, 128, 1)"
+
+[[findings]]
+id = "934e2e6b-e54f-406d-aed1-a7b71e58977e"
+created = "2024-01-16T08:11:27.126194Z"
+updated = "2024-01-16T08:11:31.639933Z"
+status = "in-progress"
+order = 1
+
+[findings.assignee]
+id = "bc5c9c67-43e3-467f-924b-02bd76807d24"
+
+[findings.data]
+title = "Finding Title"
+
+[project_type]
+format = "projecttypes/v1"
+id = "05908100-f93a-4b26-a072-154786108255"
+created = "2024-01-16T08:09:38.249539Z"
+updated = "2024-01-16T08:09:38.257625Z"
+name = "Demo Report 0.1"
+language = "de-DE"
+status = "in-progress"
+tags = [
+    "mytag",
+]
+finding_field_order = [
+    "title",
+]
+report_template = "<p>report template</p>"
+report_styles = "@import '/assets/global/base.css';"
+
+[project_type.report_fields]
+[project_type.report_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+required = true
+spellcheck = true
+
+[project_type.report_fields.customer]
+type = "string"
+label = "Customer"
+origin = "custom"
+default = "TODO: fill field in report"
+required = true
+spellcheck = false
+
+[project_type.report_fields.datasets]
+type = "list"
+label = "Datasets"
+origin = "custom"
+required = true
+
+[project_type.report_fields.datasets.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[project_type.report_fields.datasets.items.properties]
+[project_type.report_fields.datasets.items.properties.data]
+type = "list"
+label = "Data"
+origin = "custom"
+required = true
+
+[project_type.report_fields.datasets.items.properties.data.items]
+type = "string"
+label = ""
+origin = "custom"
+required = true
+spellcheck = false
+
+[project_type.report_fields.datasets.items.properties.type]
+type = "string"
+label = "Type"
+origin = "custom"
+default = "bar"
+required = false
+spellcheck = false
+
+[project_type.report_fields.datasets.items.properties.label]
+type = "string"
+label = "Label"
+origin = "custom"
+required = true
+spellcheck = false
+
+[project_type.report_fields.datasets.items.properties.yAxisID]
+type = "string"
+label = "yAxisID"
+origin = "custom"
+default = "y"
+required = false
+spellcheck = false
+
+[project_type.report_fields.datasets.items.properties.borderColor]
+type = "string"
+label = "Border Color"
+origin = "custom"
+default = "rgba(255, 124, 128, 1)"
+required = true
+spellcheck = false
+
+[project_type.report_fields.datasets.items.properties.backgroundColor]
+type = "string"
+label = "Background Color"
+origin = "custom"
+default = "rgba(255, 124, 128, 1)"
+required = true
+spellcheck = false
+
+[project_type.report_fields.report_date]
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[project_type.report_fields.y_scala_left]
+type = "number"
+label = "Y Scala Left"
+origin = "custom"
+required = false
+
+[project_type.report_fields.x_axis_labels]
+type = "list"
+label = "X-Axis Labels"
+origin = "custom"
+required = true
+
+[project_type.report_fields.x_axis_labels.items]
+type = "string"
+label = ""
+origin = "custom"
+default = ""
+required = true
+spellcheck = false
+
+[project_type.report_fields.y_scala_right]
+type = "number"
+label = "Y Scala Right"
+origin = "custom"
+required = false
+
+[project_type.report_fields.lead_pentester]
+type = "object"
+label = "Lead Pentester"
+origin = "custom"
+
+[project_type.report_fields.lead_pentester.properties]
+[project_type.report_fields.lead_pentester.properties.name]
+type = "string"
+label = "Name"
+origin = "custom"
+default = "TODO"
+required = true
+spellcheck = false
+
+[project_type.report_fields.lead_pentester.properties.email]
+type = "string"
+label = "Email"
+origin = "custom"
+default = "TODO@syslifters.com"
+required = true
+spellcheck = false
+
+[project_type.report_fields.lead_pentester.properties.phone]
+type = "string"
+label = "Phone Number"
+origin = "custom"
+default = "TODO"
+required = true
+spellcheck = false
+
+[project_type.report_fields.domain_leak_statistics]
+type = "object"
+label = "Domain Leak Statistics"
+origin = "custom"
+
+[project_type.report_fields.domain_leak_statistics.properties]
+[project_type.report_fields.domain_leak_statistics.properties.domain_leaks]
+type = "list"
+label = "Domain Leaks"
+origin = "custom"
+required = true
+
+[project_type.report_fields.domain_leak_statistics.properties.domain_leaks.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[project_type.report_fields.domain_leak_statistics.properties.domain_leaks.items.properties]
+[project_type.report_fields.domain_leak_statistics.properties.domain_leaks.items.properties.total]
+type = "number"
+label = "Total"
+origin = "custom"
+required = true
+
+[project_type.report_fields.domain_leak_statistics.properties.domain_leaks.items.properties.domain]
+type = "string"
+label = "Domain"
+origin = "custom"
+required = true
+spellcheck = false
+
+[project_type.report_fields.domain_leak_statistics.properties.stealer_leaks]
+type = "number"
+label = "Stealer Leaks"
+origin = "custom"
+required = true
+
+[project_type.report_fields.domain_leak_statistics.properties.unknown_sources_leaks]
+type = "number"
+label = "Unknown Sources Leaks"
+origin = "custom"
+required = true
+
+[project_type.report_fields.platform_leak_statistics]
+type = "object"
+label = "Platform Leak Statistics"
+origin = "custom"
+
+[project_type.report_fields.platform_leak_statistics.properties]
+[project_type.report_fields.platform_leak_statistics.properties.stealer_leaks]
+type = "number"
+label = "Stealer Leaks"
+origin = "custom"
+required = true
+
+[project_type.report_fields.platform_leak_statistics.properties.platform_leaks]
+type = "list"
+label = "Platform Leaks"
+origin = "custom"
+required = true
+
+[project_type.report_fields.platform_leak_statistics.properties.platform_leaks.items]
+type = "object"
+label = ""
+origin = "custom"
+
+[project_type.report_fields.platform_leak_statistics.properties.platform_leaks.items.properties]
+[project_type.report_fields.platform_leak_statistics.properties.platform_leaks.items.properties.total]
+type = "number"
+label = "Total"
+origin = "custom"
+required = true
+
+[project_type.report_fields.platform_leak_statistics.properties.platform_leaks.items.properties.platform]
+type = "string"
+label = "Platform"
+origin = "custom"
+required = true
+spellcheck = false
+
+[project_type.report_fields.platform_leak_statistics.properties.unknown_sources_leaks]
+type = "number"
+label = "Unkown Sources Leaks"
+origin = "custom"
+required = true
+
+[[project_type.report_sections]]
+id = "other"
+label = "Meta"
+fields = [
+    "title",
+    "customer",
+    "report_date",
+    "lead_pentester",
+]
+
+[[project_type.report_sections]]
+id = "statistics"
+label = "Statistics"
+fields = [
+    "domain_leak_statistics",
+    "platform_leak_statistics",
+]
+
+[[project_type.report_sections]]
+id = "benchmark"
+label = "Benchmark"
+fields = [
+    "datasets",
+    "x_axis_labels",
+    "y_scala_left",
+    "y_scala_right",
+]
+
+[project_type.finding_fields.title]
+type = "string"
+label = "Title"
+origin = "core"
+default = "TODO: New Finding"
+required = true
+spellcheck = true
+
+[[project_type.finding_ordering]]
+field = "title"
+order = "asc"
+
+[project_type.report_preview_data]
+findings = []
+[project_type.report_preview_data.report]
+title = "Auswertung f�r Q1 2024"
+scope = '''\
+\\
+The scope of this pentest included:
+* Active Directory Domain TODO
+* Internal server network 10.20.30.40/24\\
+\
+'''
+customer = "Musterfirma GmbH"
+duration = "TODO person days"
+end_date = "2022-07-08"
+is_retest = false
+start_date = "2022-07-08"
+report_date = "2022-07-08"
+executive_summary = "**TODO: write executive summary**"
+paths = []
+attack_paths_description = '''\
+\\
+asdasd\\
+\
+'''
+retest_date = "2023-04-03"
+new_field1 = "TODO: fill field in report"
+a_customer = "Musterfirma GmbH"
+b_benchmark = "Konkurrenz GmbH"
+c_world = "Welt"
+x_axis_labels = [
+    "Q3/22",
+    "Q4/22",
+    "Q1/23",
+    "Q2/23",
+    "Q3/23",
+    "Q4/23",
+]
+y_scala_left = 500
+y_scala_right = 100
+stealer_leaks = 26
+unknown_sources_leaks = 23
+
+[project_type.report_preview_data.report.lead_pentester]
+name = "Penter Other User"
+email = "other@example.com"
+phone = "+2222"
+
+[[project_type.report_preview_data.report.document_history]]
+description = "Create Report"
+date = "2022-07-08"
+authors = [
+    "TODO",
+    "TODO",
+]
+version = "0.1"
+
+[[project_type.report_preview_data.report.document_history]]
+description = "Finish Report"
+date = "2022-07-08"
+authors = [
+    "TODO",
+    "TODO",
+]
+version = "1.0"
+
+[project_type.report_preview_data.report.dataset]
+label = "Test Label"
+data = [
+    320,
+    240,
+    250,
+    150,
+    70,
+    180,
+]
+backgroundColor = "rgba(255, 124, 128, 1)"
+
+[[project_type.report_preview_data.report.datasets]]
+data = [
+    "320",
+    "240",
+    "250",
+    "150",
+    "70",
+    "180",
+]
+type = "bar"
+label = "Musterfirma GmbH"
+yAxisID = "y"
+borderColor = "rgba(255, 124, 128, 1)"
+backgroundColor = "rgba(255, 124, 128, 1)"
+
+[[project_type.report_preview_data.report.datasets]]
+data = [
+    "160",
+    "140",
+    "300",
+    "100",
+    "400",
+    "200",
+]
+type = "bar"
+label = "Konkurrenzfirma GmbH"
+yAxisID = "y"
+borderColor = "rgba(173, 216, 230, 0.5)"
+backgroundColor = "rgba(173, 216, 230, 0.5)"
+
+[[project_type.report_preview_data.report.datasets]]
+data = [
+    "50",
+    "30",
+    "20",
+    "50",
+    "30",
+    "70",
+]
+type = "line"
+label = "Weltindex"
+yAxisID = "rightyaxis"
+borderColor = "rgba(75, 192, 192, 1)"
+backgroundColor = "rgba(75, 192, 192, 1)"
+
+[project_type.report_preview_data.report.domain_leaks]
+nested_field = "maiores obcaecati"
+
+[[project_type.report_preview_data.report.domain_leaks3]]
+total = 6
+domain = "quis ratione"
+
+[[project_type.report_preview_data.report.domain_leaks3]]
+total = 2
+domain = "explicabo architecto"
+
+[project_type.report_preview_data.report.domain_leaks_statistics]
+stealer_leaks = 26
+unknown_sources_leaks = 23
+
+[[project_type.report_preview_data.report.domain_leaks_statistics.domain_leaks]]
+total = 37
+domain = "muster.at"
+
+[[project_type.report_preview_data.report.domain_leaks_statistics.domain_leaks]]
+total = 12
+domain = "max.at"
+
+[project_type.report_preview_data.report.domain_leak_statistics]
+stealer_leaks = 26
+unknown_sources_leaks = 23
+
+[[project_type.report_preview_data.report.domain_leak_statistics.domain_leaks]]
+total = 37
+domain = "muster.at"
+
+[[project_type.report_preview_data.report.domain_leak_statistics.domain_leaks]]
+total = 12
+domain = "max.at"
+
+[project_type.report_preview_data.report.platform_leak_statistics]
+stealer_leaks = 1
+unknown_sources_leaks = 1
+
+[[project_type.report_preview_data.report.platform_leak_statistics.platform_leaks]]
+platform = "https://muster.at"
+total = 3
+
+[[project_type.report_preview_data.report.platform_leak_statistics.platform_leaks]]
+platform = "https://max.at"
+total = 2
+
+[[project_type.assets]]
+id = "62c8af9c-114d-4f23-ba1a-c84d100e14c5"
+created = "2023-12-20T22:01:22.269860Z"
+updated = "2024-01-16T08:09:38.274870Z"
+name = "tower.svg"

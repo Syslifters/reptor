@@ -38,7 +38,6 @@ class TestCaseToolPlugin:
     def patch_apis(cls):
         cls.reptor._api = APIManager(reptor=cls.reptor)
         cls.reptor._config = Config()
-        # cls.reptor._config.load_config()
         cls.reptor._config._raw_config = {
             "project_id": "db837c68-ff58-4f63-9161-d2310d71999b",
             "server": "https://demo.sysre.pt",

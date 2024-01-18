@@ -2,13 +2,13 @@ import typing
 from contextlib import contextmanager
 from functools import cached_property
 from posixpath import join as urljoin
-from typing import Optional
 
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
 from reptor.models.Finding import FindingRaw
 from reptor.models.Project import Project, ProjectOverview
+from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section, SectionRaw
 
 
@@ -30,6 +30,19 @@ class ProjectsAPI(APIClient):
     def object_endpoint(self) -> str:
         return urljoin(self.base_endpoint, self.project_id)
 
+    def create_project(
+        self,
+        name: str,
+        project_design: str,
+        tags: typing.Optional[typing.List[str]] = None,
+    ) -> Project:
+        data = {
+            "name": name,
+            "project_type": project_design,
+            "tags": tags or list(),
+        }
+        return Project(self.post(self.base_endpoint, json=data).json(), ProjectDesign())
+
     def get_projects(self, readonly: bool = False) -> typing.List[ProjectOverview]:
         """Gets list of projects
 
@@ -48,11 +61,13 @@ class ProjectsAPI(APIClient):
             return_data.append(ProjectOverview(item))
         return return_data
 
-    def search(self, search_term: Optional[str] = "") -> typing.List[ProjectOverview]:
+    def search(
+        self, search_term: typing.Optional[str] = ""
+    ) -> typing.List[ProjectOverview]:
         """Searches projects by search term and retrieves all projects that match
 
         Args:
-            search_term (Optional[str], optional): Search Term to look for. Defaults to None.
+            search_term (typing.Optional[str], optional): Search Term to look for. Defaults to None.
 
         Returns:
             typing.List[Project]: List of project overviews (without sections, findings) that match search

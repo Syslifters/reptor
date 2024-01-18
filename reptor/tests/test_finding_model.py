@@ -3,7 +3,6 @@ from copy import deepcopy
 
 import pytest
 
-from reptor.lib.exceptions import IncompatibleDesignException
 from reptor.models.Finding import (
     Finding,
     FindingData,
@@ -126,9 +125,9 @@ class TestFindingModelParsing:
     def test_incompatible_finding_without_design(self):
         finding_raw = FindingRaw(json.loads(self.incompatible_finding))
         Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=False)
-        with pytest.raises(IncompatibleDesignException):
+        with pytest.raises(ValueError):
             Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=True)
-        with pytest.raises(IncompatibleDesignException):
+        with pytest.raises(ValueError):
             Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=True)
 
     def test_finding_unwanted_casting(self):

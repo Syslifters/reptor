@@ -1,5 +1,6 @@
 import datetime
 import enum
+import logging
 import typing
 from copy import deepcopy
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ class BaseModel:
     id: str = ""
     created: datetime.datetime = datetime.datetime.now()
     updated: datetime.datetime = datetime.datetime.now()
+    _log = logging.getLogger("reptor")
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data:
@@ -41,13 +43,12 @@ class BaseModel:
         """
         # Import here to prevent circular imports
         from reptor.models.Finding import FindingDataRaw
-        from reptor.models.FindingTemplate import (
-            FindingTemplate,
-            FindingTemplateTranslation,
-        )
+        from reptor.models.FindingTemplate import (FindingTemplate,
+                                                   FindingTemplateTranslation)
         from reptor.models.Note import Note
         from reptor.models.Project import Project
-        from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
+        from reptor.models.ProjectDesign import (ProjectDesign,
+                                                 ProjectDesignField)
         from reptor.models.Section import SectionDataRaw
         from reptor.models.User import User
 

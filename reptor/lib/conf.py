@@ -72,16 +72,20 @@ class Config:
         else:
             self._raw_config.update({key: value})
 
-    def load_config(self):
+    def load_config(self, return_only: bool = False) -> dict:
         """Loads config file from user home directory"""
         if not settings.PERSONAL_SYSREPTOR_HOME.exists():
             # exist_ok=True because logger might be faster, when creating log file and parents=True
             settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
+        config = dict()
         try:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
-                self._raw_config = yaml.safe_load(f.read())
+                config = yaml.safe_load(f.read())
+                if not return_only:
+                    self._raw_config = config
         except FileNotFoundError:
             self._no_config_file = True
+        return config
 
     def get_config_from_user(self):
         """Asks the user for the individiual settings and offers to
@@ -123,14 +127,16 @@ class Config:
             self._write_to_file()
         self.instance._raw_config = self._raw_config
 
-    def _write_to_file(self):
+    def _write_to_file(self, config: typing.Optional[dict] = None):
         """Writes config file as yaml file"""
-        if self._raw_config:
+        if not config:
+            config = self._raw_config
+        if config:
             settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
             with open(settings.PERSONAL_CONFIG_FILE, "w") as f:
                 filtered_config = {
                     k: v
-                    for k, v in self._raw_config.items()
+                    for k, v in config.items()
                     if k not in self._ignored_keys_in_config
                 }
                 yaml.dump(filtered_config, f, encoding="utf-8")
