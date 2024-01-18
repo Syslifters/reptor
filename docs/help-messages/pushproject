@@ -1,0 +1,9 @@
+usage: reptor pushproject [-h] [projectdata [projectdata ...]]
+
+Push data to project from JSON or TOML
+
+positional arguments:
+  projectdata
+
+optional arguments:
+  -h, --help   show this help message and exit

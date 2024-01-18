@@ -1,0 +1,13 @@
+usage: reptor createproject [-h] [--name PROJECT NAME] --design DESIGN ID
+                            [--tags TAGS] [--no-update-config]
+
+Create a new pentest project
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --name PROJECT NAME, -n PROJECT NAME
+                        Project name
+  --design DESIGN ID, -d DESIGN ID
+                        Design UUID for the project
+  --tags TAGS, -t TAGS  Comma-separated project tags
+  --no-update-config    Do not update project ID in config file
