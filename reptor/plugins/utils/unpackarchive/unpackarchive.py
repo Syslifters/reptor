@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from shutil import copytree
 from typing import Any
+from io import FileIO
 
 import tomlkit
 import tomlkit.items
@@ -57,22 +58,21 @@ def to_toml(data: Any):
     elif isinstance(data, bool):
         return tomlkit.items.Bool(data, trivia=tomlkit.items.Trivia())
     elif isinstance(data, int):
-        return tomlkit.items.Integer(data, trivia=tomlkit.items.Trivia())
+        return tomlkit.items.Integer(data, trivia=tomlkit.items.Trivia(), raw=str(data))
     elif isinstance(data, float):
-        return tomlkit.items.Float(data, trivia=tomlkit.items.Trivia())
+        return tomlkit.items.Float(data, trivia=tomlkit.items.Trivia(), raw=str(data))
     elif isinstance(data, str):
         if "\n" in data:
-            str_encoded = tomlkit.string(data, multiline=True).as_string()
-            str_formatted = "\\\n" + str_encoded[3:-3] + "\\\n"
-
-            return tomlkit.string(
-                str_formatted, literal=True, multiline=True, escape=False
-            )
+            if data[0] != "\n":
+                data = "\n" + data
+            if data[-1] != "\n":
+                data += "\n"
+            return tomlkit.string(data, multiline=True)
         else:
             return tomlkit.string(data)
     # elif data is None:
-    #     # TOML does not support null values
-    #     return None
+    #    # TOML does not support null values
+    #    return None
     else:
         raise Exception(f"Unhandled type: {type(data)}")
 
@@ -85,7 +85,7 @@ class UnpackArchive(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.files: list[Path] = kwargs.get("files", [])
+        self.files: list[FileIO] = kwargs.get("files", [])
         self.output = kwargs.get("output") or "./unpacked_archive"
         self.format = kwargs.get("format") or "toml"
 

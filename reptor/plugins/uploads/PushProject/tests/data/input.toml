@@ -1,0 +1,7 @@
+[report_data]
+title = "NEW REPORT"
+customer = "CUSTOMER"
+
+[[findings]]
+[findings.data]
+title = "123"
