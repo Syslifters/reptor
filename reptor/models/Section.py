@@ -281,7 +281,7 @@ class SectionRaw(BaseModel):
     project_type: str = ""
     language: str = ""
     lock_info: bool = False
-    fields: list[str] = []
+    fields: typing.List[str] = []
     template: str = ""
     assignee: str = ""
     status: str = "in-progress"
