@@ -6,6 +6,13 @@ cat project.json | reptor pushproject
 cat project.toml | reptor pushproject
 ```
 
+If to push your data to a new report, create a project beforehand.
+
+```bash
+reptor createproject --name "New project" --design "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+cat project.json | reptor pushproject
+```
+
 ## Sample project
 
 Upload project data by using the following structures.  
