@@ -48,6 +48,7 @@ class SectionDataField(ProjectDesignField):
             float,
             Any,
         ],
+        raise_on_unknown_fields: bool = True,
     ):
         # Set attributes from ProjectDesignField
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
@@ -64,10 +65,11 @@ class SectionDataField(ProjectDesignField):
                     )
 
                 except KeyError:
-                    raise KeyError(
-                        f"Object name '{property.name}' not found. Did you mix"
-                        f"mismatched project design with project data?"
-                    )
+                    if raise_on_unknown_fields:
+                        raise KeyError(
+                            f"Object name '{property.name}' not found. Did you use "
+                            f"wrong project design for your data?"
+                        )
             self.value = property_value
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
@@ -226,16 +228,23 @@ class SectionData(BaseModel):
             try:
                 self.__setattr__(
                     design_field.name,
-                    self.field_class(design_field, value),
+                    self.field_class(
+                        design_field,
+                        value,
+                        raise_on_unknown_fields=raise_on_unknown_fields,
+                    ),
                 )
             except ValueError as e:
                 self._log.error(e)
                 error = True
+            except KeyError:
+                pass
 
         if raise_on_unknown_fields:
             unknown_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
             if len(unknown_fields) > 0:
-                error = True
+                if raise_on_unknown_fields:
+                    error = True
                 self._log.error(
                     f"Incompatible data and designs: Fields in data but not in design: {','.join(unknown_fields)}"
                 )
