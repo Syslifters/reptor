@@ -243,11 +243,12 @@ class SectionData(BaseModel):
         if raise_on_unknown_fields:
             unknown_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
             if len(unknown_fields) > 0:
-                error = True
+                if raise_on_unknown_fields:
+                    error = True
                 self._log.error(
                     f"Incompatible data and designs: Fields in data but not in design: {','.join(unknown_fields)}"
                 )
-        if error and raise_on_unknown_fields:
+        if error:
             raise ValueError("Invalid data format")
 
     def __iter__(self):
