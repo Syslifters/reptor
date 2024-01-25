@@ -84,6 +84,7 @@ subcommands:
    plugins               Allows plugin management & development
   
   Projects & Templates:
+   createproject         Create a new pentest project
    project               Work with projects
    projectfindings       Export your project findings as a summary or checklist
    template              Queries Finding Templates from SysReptor
@@ -93,6 +94,7 @@ subcommands:
    file                  Uploads a file
    finding               Uploads findings from JSON or TOML
    note                  Uploads and lists notes
+   pushproject           Push data to project from JSON or TOML
   
   Tools:
    nmap                  format nmap output
