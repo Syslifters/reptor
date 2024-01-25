@@ -1,4 +1,4 @@
-usage: reptor pushproject [-h] [projectdata [projectdata ...]]
+usage: reptor pushproject [-h] [projectdata]
 
 Push data to project from JSON or TOML
 
