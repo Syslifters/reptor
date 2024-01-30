@@ -58,6 +58,9 @@ class Reptor:
     def __init__(self) -> None:
         signal.signal(signal.SIGINT, signal_handler)
 
+        # Set encoding for stdin utf-8
+        sys.stdin.reconfigure(encoding="utf-8")
+
         # Load the config
         self._config = Config()
         self._config.load_config()
