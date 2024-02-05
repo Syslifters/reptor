@@ -19,7 +19,7 @@ class TestIntegrationFinding(object):
                 "cvss": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:N",
                 "title": title,
                 "inexistent-field": "should be ignored",
-                "summary": "We detected a reflected XSS vulnerability.",
+                "summary": "We detected a reflected XSS vülnerability.",
                 "references": [reference],
                 "description": "The impact was heavy.",
                 "recommendation": "HTML encode user-supplied inputs.",
@@ -38,14 +38,19 @@ class TestIntegrationFinding(object):
         assert p.returncode == 0
 
         findings = projects_api.get_findings()
-        assert title in [f.data.title for f in findings]
-        all_references = list()
-        all_affected_components = list()
+        f = None
         for f in findings:
-            all_references.extend(f.data.references)
-            all_affected_components.extend(f.data.affected_components)
-        assert reference in all_references
-        assert affected_component in all_affected_components
+            if f.data.title == title:
+                break
+
+        assert f is not None
+        assert f.data.title == title
+        assert f.data.references == [reference]
+        assert f.data.affected_components == [
+            affected_component,
+            "https://example.com/q=alert(1)",
+        ]
+        assert f.data.summary == "We detected a reflected XSS vülnerability."
 
     def test_push_invalid_finding(self, projects_api):
         title = str(time.time())
