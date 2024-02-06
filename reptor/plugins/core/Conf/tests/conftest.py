@@ -5,11 +5,12 @@ import subprocess
 import time
 
 import pytest
+import requests
 import yaml
 
-from reptor.api.ProjectsAPI import ProjectsAPI
-from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
 from reptor.api.NotesAPI import NotesAPI
+from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
+from reptor.api.ProjectsAPI import ProjectsAPI
 from reptor.lib.reptor import Reptor
 
 
@@ -134,7 +135,10 @@ def delete_notes(setUp, notes_api):
 
     # Delete all notes via notes_api
     for note in get_notes():
-        notes_api.delete_note(note["id"])
+        try:
+            notes_api.delete_note(note["id"])
+        except requests.exceptions.HTTPError:
+            pass
     # Assert notes are gone
     notes = get_notes()
     assert len(notes) == 0
