@@ -38,6 +38,7 @@ class Plugins(Base):
         self.search = kwargs.get("search")
         self.new_plugin_name = kwargs.get("new_plugin_name")
         self.copy_plugin_name = kwargs.get("copy_plugin_name")
+        self.copy_full = kwargs.get("full")
         self.verbose = kwargs.get("verbose")
 
     @classmethod
@@ -69,6 +70,11 @@ class Plugins(Base):
             action="store",
             dest="copy_plugin_name",
             help="Copy plugin to home directory",
+        )
+        parser.add_argument(
+            "--full",
+            action="store_true",
+            help="At copy include plugin source code; default: templates only",
         )
 
     def _list(self, plugins):
@@ -233,11 +239,18 @@ class Plugins(Base):
             raise ValueError(f"Plugin '{self.copy_plugin_name}' does not exist.")
 
         # Copy plugin
-
-        dest = dest / plugin.parent.name
-        self.log.display(f'Trying to copy "{plugin.parent}" to "{dest}"')
-        shutil.copytree(plugin.parent, dest)
-        self.log.success(f"Copied successfully. ({dest})")
+        dest_parent = dest / plugin.parent.name
+        self.log.display(f'Trying to copy "{plugin.parent}" to "{dest_parent}"')
+        if self.copy_full:
+            copy = [(plugin.parent, dest_parent)]
+        else:
+            copy = [
+                (plugin.parent / "templates", dest_parent / "templates"),
+                (plugin.parent / "findings", dest_parent / "findings"),
+            ]
+        for src, dest in copy:
+            shutil.copytree(src, dest)
+        self.log.success(f"Copied successfully. ({dest_parent})")
 
     def run(self):
         if self.new_plugin_name is not None:
