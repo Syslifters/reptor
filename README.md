@@ -97,6 +97,7 @@ subcommands:
    pushproject           Push data to project from JSON or TOML
   
   Tools:
+   nessus                Nessus vulnerability importer
    nmap                  format nmap output
    sslyze                format sslyze JSON output
    zap                   Parses ZAP reports (JSON, XML)
