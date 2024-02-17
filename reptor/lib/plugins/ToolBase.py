@@ -311,9 +311,7 @@ class ToolBase(Base):
             self.formatted_input = render_to_string(f"{self.template}.md", data)
             return
 
-        raise ValueError(
-            "Cannot format data. Did not get data from preprocess_for_template() and create_notes()."
-        )
+        raise ValueError("No data returned. Nothing to do.")
 
     def format_note_template(self, note_templates: typing.List[NoteTemplate], level=1):
         formatted_input = ""

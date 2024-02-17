@@ -14,15 +14,16 @@ A plugin can...
 reptor comes with a number of plugins.  
 However, you can override any plugin by copying it to the `.sysreptor/plugins` folder in your home directory.
 
-You can do this by running `reptor plugins -copy <module name>`
+You can do this by running `reptor plugins --copy <module name> --full`
 
 If you copy the entire plugin, it overrides the builtin plugins from reptor.  
-You can also delete the python files from your home directory and leave the `templates` and `findings` directories. Then, you can customize the templates used for formatting the data, while preserving the official functionality of the plugin.
+If you want to override templates only, use `reptor plugins --copy <module name>`.
+So you can customize the templates used for formatting the data, while preserving the official functionality of the plugin.
 
 ## Create a new plugin
 
 Let's say we want to build a plugin for a fictional XSS-tool.  
-We can start off using our plugin boilerplate by running `reptor plugins -new XssTool`.
+We can start off using our plugin boilerplate by running `reptor plugins --new XssTool`.
 
 This will add the file structure to `.sysreptor/plugins/XssTool`.  
 This directory is already dynamically included by reptor. When you run `reptor --help`, you should see `xsstool` under the section `Tools`.  

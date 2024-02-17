@@ -139,6 +139,8 @@ class Nessus(ToolBase):
                 finding_note.force_new = True
                 host_overview.children.append(finding_note)
             main_note.children.append(host_overview)
+        if not main_note.children:
+            return None
         return main_note
 
     def parse(self):
