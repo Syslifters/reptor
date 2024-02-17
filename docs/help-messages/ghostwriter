@@ -1,11 +1,12 @@
-usage: reptor ghostwriter [-h] [--tags TAGS] [--url [URL]]
+usage: reptor ghostwriter [-h] [--conf] [--tags TAGS] [--url [URL]]
 
 Imports GhostWriter finding templates
 
 optional arguments:
-  -h, --help   show this help message and exit
+  -h, --help        show this help message and exit
+  --conf, --config  Configure plugin settings
 
 Global Importer Settings:
-  --tags TAGS  Comma-separated tags for new templates
+  --tags TAGS       Comma-separated tags for new templates
 
-  --url [URL]  Ghostwriter API
+  --url [URL]       Ghostwriter API

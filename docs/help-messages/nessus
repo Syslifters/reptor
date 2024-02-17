@@ -1,4 +1,5 @@
-usage: reptor nessus [-h] [--parse | --format | --upload | --push-findings]
+usage: reptor nessus [-h] [--conf]
+                     [--parse | --format | --upload | --push-findings]
                      [--severity-filter SEVERITY_FILTER]
                      [--exclude EXCLUDED_PLUGINS] [--include INCLUDED_PLUGINS]
 
@@ -6,12 +7,13 @@ Nessus vulnerability importer
 
 optional arguments:
   -h, --help            show this help message and exit
+  --conf, --config      Configure plugin settings
   --parse
   --format
   --upload
   --push-findings
   --severity-filter SEVERITY_FILTER
-                        Filter findings by severity comma-separated ("high,medium"), as range ("medium-critical") or as the minimum severity ("medium")
+                        Filter findings by severity comma-separated ("high,medium") or as range ("medium-critical")
   --exclude EXCLUDED_PLUGINS
                         Exclude plugin IDs, comma-separated
   --include INCLUDED_PLUGINS

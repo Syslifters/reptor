@@ -1,10 +1,12 @@
-usage: reptor translate [-h] [--from LANGUAGE_CODE] [--to LANGUAGE_CODE]
-                        [--skip-fields FIELDS] [--dry-run]
+usage: reptor translate [-h] [--conf] [--from LANGUAGE_CODE]
+                        [--to LANGUAGE_CODE] [--skip-fields FIELDS]
+                        [--dry-run]
 
 Translate Projects to other languages via Deepl
 
 optional arguments:
   -h, --help            show this help message and exit
+  --conf, --config      Configure plugin settings
   --from LANGUAGE_CODE  Language code of source language
   --to LANGUAGE_CODE    Language code of dest language
   --skip-fields FIELDS  Report and Finding fields, comma-separated
