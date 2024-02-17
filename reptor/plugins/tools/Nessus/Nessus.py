@@ -33,14 +33,16 @@ class Nessus(ToolBase):
         )
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(
-            filter(None, kwargs.get("included_plugins", "").split(","))
+            filter(None, (kwargs.get("included_plugins")) or "".split(","))
         )
         self.excluded_plugins = getattr(self, "excluded_plugins", list())
         self.excluded_plugins += list(
-            filter(None, kwargs.get("excluded_plugins", "").split(","))
+            filter(None, (kwargs.get("excluded_plugins")) or "".split(","))
         )
 
     def _parse_severity_filter(self, filter: str) -> set:
+        if filter is None:
+            return set(self.risk_mapping.keys())
         filter_elements = set()
         if "-" in filter:
             filter_elements = filter.split("-")
@@ -115,7 +117,7 @@ class Nessus(ToolBase):
             host_overview.template_data = host
             for finding in host["findings"]:
                 finding_note = NoteTemplate()
-                finding_note.title = f"{ self.risk_mapping.get(finding.get('risk_factor'), 'None').lower() } {finding['plugin_name']}"
+                finding_note.title = f"{ self.risk_mapping.get(finding.get('risk_factor', 'none').lower(), 'None') } {finding['plugin_name']}"
                 finding_note.checked = False
                 finding_note.template = "nessus-finding"
                 finding_note.template_data = finding
