@@ -48,8 +48,7 @@ class FindingDataRaw(SectionDataRaw):
     severity: str = ""
 
 
-class FindingDataField(SectionDataField):
-    ...
+class FindingDataField(SectionDataField): ...
 
 
 class FindingData(SectionData):
@@ -77,6 +76,7 @@ class FindingData(SectionData):
         **kwargs,
     ):
         kwargs.setdefault("raise_on_unknown_fields", True)
+        kwargs.setdefault("raise_on_incompatible_fields", True)
         super().__init__(*args, **kwargs)
 
 
@@ -93,6 +93,7 @@ class Finding(FindingRaw):
         raw: typing.Union[FindingRaw, typing.Dict],
         project_design: ProjectDesign,
         raise_on_unknown_fields: bool = False,
+        raise_on_incompatible_fields: bool = True,
     ):
         if isinstance(raw, dict):
             raw = FindingRaw(raw)
@@ -104,6 +105,7 @@ class Finding(FindingRaw):
             raw.data,
             project_design.finding_fields,
             raise_on_unknown_fields=raise_on_unknown_fields,
+            raise_on_incompatible_fields=raise_on_incompatible_fields,
         )
 
     @classmethod

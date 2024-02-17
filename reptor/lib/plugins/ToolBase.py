@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import typing
+from functools import cached_property
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -367,7 +368,7 @@ class ToolBase(Base):
             self.log.display("No findings generated.")
             return
         project_findings = [
-            Finding(f, self.reptor.api.project_designs.project_design)
+            Finding(f, self._project_design)
             for f in self.reptor.api.projects.get_findings()
         ]
         project_finding_titles = [f.data.title.value for f in project_findings]
@@ -400,6 +401,68 @@ class ToolBase(Base):
                 self.reptor.api.projects.create_finding(finding.to_dict())
             self.log.success(f'Pushed finding "{finding.data.title.value}"')
 
+    @cached_property
+    def _project_language(self) -> str:
+        return self.reptor.api.projects.project.language
+
+    @cached_property
+    def _project_design(self) -> ProjectDesign:
+        return self.reptor.api.project_designs.project_design
+
+    def _get_finding_from_remote_template(
+        self, template_tag: str
+    ) -> typing.Optional[Finding]:
+        """
+        Returns first remote finding template with matching tag.
+        """
+        for finding_template in self.reptor.api.templates.search(template_tag):
+            if template_tag in finding_template.tags:
+                # Take first matching template and fetch full data (search returns partial data only)
+                self.log.info(f"Found remote finding template for {template_tag}.")
+                finding_template = self.reptor.api.templates.get_template(
+                    finding_template.id
+                )
+
+                try:
+                    translation = [
+                        t
+                        for t in finding_template.translations
+                        if t.language == self._project_language
+                    ][0]
+                except IndexError:
+                    translation = [
+                        t for t in finding_template.translations if t.is_main
+                    ][0]
+                    self.log.display(
+                        f"No translation found for {self._project_language}. Taking main translation {translation.language}."
+                    )
+
+                finding = Finding.from_translation(
+                    translation, raise_on_unknown_fields=False
+                )
+                finding.template = finding_template.id
+                return finding
+
+    def _get_finding_from_local_template(self, name: str) -> typing.Optional[Finding]:
+        # Check if findings toml exists
+        finding_dict = self.get_local_finding_data(name)
+        if not finding_dict:
+            return None
+
+        try:
+            finding = Finding(
+                finding_dict,
+                project_design=self._project_design,
+                raise_on_unknown_fields=False,
+                raise_on_incompatible_fields=False,
+            )
+        except ValueError:
+            self.log.error("Finding data incompatible with project design.")
+            return None
+        for field in finding.data:
+            field.raise_on_unknown_fields = True
+        return finding
+
     def generate_findings(self) -> typing.List[Finding]:
         """Generates findings from the parsed input.
 
@@ -408,106 +471,60 @@ class ToolBase(Base):
         """
         if not self.parsed_input:
             self.parse()
-        project_design = None
         self.findings = list()
         finding_methods = self._get_finding_methods()
+
         for method in finding_methods:
             finding = None
-            finding_context = method(self)
-            if finding_context is None:
+            finding_contexts = method(self)
+            if finding_contexts is None:
                 # Don't create finding if method returns None
                 continue
+            if not isinstance(finding_contexts, list):
+                finding_contexts = [finding_contexts]
 
-            finding_name = method.__name__[len(self.FINDING_PREFIX) :]
+            for finding_context in finding_contexts:
+                finding_names = list()
+                if t := finding_context.get("finding_template"):
+                    finding_names.append(t)
+                t = method.__name__[len(self.FINDING_PREFIX) :]
+                if t not in finding_names:
+                    finding_names.append(t)
 
-            # Check if remote finding exists
-            template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
-            for finding_template in self.reptor.api.templates.search(template_tag):
-                if template_tag in finding_template.tags:
-                    # Take first matching template and fetch full data (search returns partial data only)
-                    self.log.info(f"Found remote finding template for {template_tag}.")
-                    finding_template = self.reptor.api.templates.get_template(
-                        finding_template.id
-                    )
-                    # Get project language
-                    language = self.reptor.api.projects.project.language
-                    try:
-                        translation = [
-                            t
-                            for t in finding_template.translations
-                            if t.language == language
-                        ][0]
-                    except IndexError:
-                        translation = [
-                            t for t in finding_template.translations if t.is_main
-                        ][0]
-                        self.log.display(
-                            f"No translation found for {language}. Taking main translation {translation.language}."
+                for finding_name in finding_names:
+                    # Check if remote finding template exists
+                    template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
+                    finding = self._get_finding_from_remote_template(template_tag)
+
+                    # If not, check if local finding template exists
+                    if not finding:
+                        finding = self._get_finding_from_local_template(finding_name)
+                    if finding:
+                        break
+                if not finding:
+                    continue
+
+                django_context = Context(finding_context)
+                for finding_data in finding.data:
+                    # Iterate over all finding fields
+                    if isinstance(finding_data.value, list):
+                        # Iterate over list to render list items
+                        if finding_data.name == "affected_components":
+                            finding_data.value = finding_context.get(
+                                "affected_components", []
+                            )
+                            continue
+                        finding_data_list = list()
+                        for v in finding_data.value:
+                            if content := Template(v.value).render(django_context):
+                                finding_data_list.append(content)
+                        finding_data.value = finding_data_list
+                    elif finding_data.value:
+                        # If value not empty, render template
+                        finding_data.value = Template(finding_data.value).render(
+                            django_context
                         )
-
-                    finding = Finding.from_translation(
-                        translation, raise_on_unknown_fields=False
-                    )
-                    finding.template = finding_template.id
-                    break
-
-            if not finding:
-                # Check if findings toml exists
-                finding_dict = self.get_local_finding_data(finding_name)
-                if not finding_dict:
-                    self.log.warning(
-                        f"Did not find finding template for {finding_name}. Creating default finding."
-                    )
-                    description = (
-                        f"```{json.dumps(finding_context, indent=2)}```"
-                        if finding_context
-                        else "No description"
-                    )
-                    finding_dict = {
-                        "data": {
-                            "title": finding_name.replace("_", " ").title(),
-                            "description": description,
-                        },
-                    }
-
-                try:
-                    finding = Finding(
-                        finding_dict,
-                        project_design=ProjectDesign(),
-                        raise_on_unknown_fields=True,
-                    )
-                except ValueError:
-                    self.log.info(
-                        "Finding data not compatible with project design. Fetching project design from project."
-                    )
-                    project_design = self.reptor.api.project_designs.project_design
-                    finding = Finding(
-                        finding_dict,
-                        project_design,
-                        raise_on_unknown_fields=False,
-                    )
-
-            django_context = Context(finding_context)
-            for finding_data in finding.data:
-                # Iterate over all finding fields
-                if isinstance(finding_data.value, list):
-                    # Iterate over list to render list items
-                    if finding_data.name == "affected_components":
-                        finding_data.value = finding_context.get(
-                            "affected_components", []
-                        )
-                        continue
-                    finding_data_list = list()
-                    for v in finding_data.value:
-                        if content := Template(v.value).render(django_context):
-                            finding_data_list.append(content)
-                    finding_data.value = finding_data_list
-                elif finding_data.value:
-                    # If value not empty, render template
-                    finding_data.value = Template(finding_data.value).render(
-                        django_context
-                    )
-            self.findings.append(finding)
+                self.findings.append(finding)
         return self.findings
 
     def get_local_finding_data(self, name: str) -> typing.Optional[dict]:

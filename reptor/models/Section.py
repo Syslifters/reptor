@@ -49,7 +49,9 @@ class SectionDataField(ProjectDesignField):
             Any,
         ],
         raise_on_unknown_fields: bool = True,
+        raise_on_incompatible_fields: bool = True,
     ):
+        self.raise_on_incompatible_fields: bool = raise_on_incompatible_fields
         # Set attributes from ProjectDesignField
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
         for attr in project_design_type_hints.items():
@@ -129,7 +131,7 @@ class SectionDataField(ProjectDesignField):
                 ProjectFieldTypes.string.value,
                 ProjectFieldTypes.markdown.value,
             ]:
-                if not isinstance(__value, str):
+                if not isinstance(__value, str) and self.raise_on_incompatible_fields:
                     raise ValueError(
                         f"'{self.name}' expects a string value (got '{__value}')."
                     )
@@ -137,20 +139,23 @@ class SectionDataField(ProjectDesignField):
                 try:
                     datetime.datetime.strptime(__value, "%Y-%m-%d")
                 except (ValueError, TypeError):
-                    raise ValueError(
-                        f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
+                        )
             elif self.type == ProjectFieldTypes.enum.value:
                 valid_enums = [choice["value"] for choice in self.choices] + [""]
                 if __value not in valid_enums:
-                    raise ValueError(
-                        f"'{__value}' is not an valid enum choice for '{self.name}'."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"'{__value}' is not an valid enum choice for '{self.name}'."
+                        )
             elif self.type == ProjectFieldTypes.list.value:
                 if not isinstance(__value, list):
-                    raise ValueError(
-                        f"Value of '{self.name}' must be list (got '{type(__value)}')."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"Value of '{self.name}' must be list (got '{type(__value)}')."
+                        )
                 if not all([isinstance(v, self.__class__) for v in __value]):
                     try:
                         # Iterate through list and create objects of self's class
@@ -158,7 +163,8 @@ class SectionDataField(ProjectDesignField):
                             ProjectFieldTypes.list.value,
                             ProjectFieldTypes.object.value,
                         ]:
-                            raise ValueError()
+                            if self.raise_on_incompatible_fields:
+                                raise ValueError()
 
                         new_value = list()
                         for v in __value:
@@ -168,34 +174,44 @@ class SectionDataField(ProjectDesignField):
                                 new_value.append(self.__class__(self.items, v))
                         __value = new_value
                     except ValueError:
-                        raise ValueError(
-                            f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
-                        )
+                        if self.raise_on_incompatible_fields:
+                            raise ValueError(
+                                f"Value of '{self.name}' must contain list of {self.__class__.__name__}."
+                            )
                 types = set([v.type for v in __value])
                 if len(types) > 1:
-                    raise ValueError(
-                        f"Values of '{self.name}' must not contain {self.__class__.__name__}s"
-                        f"of multiple types (got {','.join(types)})."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"Values of '{self.name}' must not contain {self.__class__.__name__}s"
+                            f"of multiple types (got {','.join(types)})."
+                        )
 
             elif self.type == ProjectFieldTypes.object.value:
                 if not isinstance(__value, dict):
-                    raise ValueError(
-                        f"Value of '{self.name}' must be dict (got '{type(__value)}')."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"Value of '{self.name}' must be dict (got '{type(__value)}')."
+                        )
                 for k, v in __value.items():
-                    if not isinstance(v, self.__class__):
+                    if (
+                        not isinstance(v, self.__class__)
+                        and self.raise_on_incompatible_fields
+                    ):
                         raise ValueError(
                             f"Value of '{self.name}' dict values must contain {self.__class__.__name__} "
                             f"(got '{type(v)}' for key '{k}')."
                         )
             elif self.type == ProjectFieldTypes.boolean.value:
-                if not isinstance(__value, bool):
+                if not isinstance(__value, bool) and self.raise_on_incompatible_fields:
                     raise ValueError(
                         f"'{self.name}' expects a boolean value (got '{__value}')."
                     )
             elif self.type == ProjectFieldTypes.number.value:
-                if not isinstance(__value, int) and not isinstance(__value, float):
+                if (
+                    not isinstance(__value, int)
+                    and not isinstance(__value, float)
+                    and self.raise_on_incompatible_fields
+                ):
                     raise ValueError(
                         f"'{self.name}' expects int or float (got '{__value}')."
                     )
@@ -203,9 +219,10 @@ class SectionDataField(ProjectDesignField):
                 try:
                     UUID(__value, version=4)
                 except (ValueError, AttributeError):
-                    raise ValueError(
-                        f"'{self.name}' expects v4 uuid (got '{__value}')."
-                    )
+                    if self.raise_on_incompatible_fields:
+                        raise ValueError(
+                            f"'{self.name}' expects v4 uuid (got '{__value}')."
+                        )
 
         return super().__setattr__(__name, __value)
 
@@ -218,6 +235,7 @@ class SectionData(BaseModel):
         data_raw: SectionDataRaw,
         design_fields: typing.List[ProjectDesignField],
         raise_on_unknown_fields: bool = False,
+        raise_on_incompatible_fields: bool = True,
     ):
         error = False
         for design_field in design_fields:
@@ -232,6 +250,7 @@ class SectionData(BaseModel):
                         design_field,
                         value,
                         raise_on_unknown_fields=raise_on_unknown_fields,
+                        raise_on_incompatible_fields=raise_on_incompatible_fields,
                     ),
                 )
             except ValueError as e:

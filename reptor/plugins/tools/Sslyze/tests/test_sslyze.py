@@ -4,12 +4,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.template.loader import render_to_string
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Finding import FindingRaw
-from reptor.models.Project import Project
 from reptor.models.ProjectDesign import ProjectDesign
+from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 from ..Sslyze import Sslyze
 
@@ -118,6 +117,7 @@ class TestSslyze(TestCaseToolPlugin):
 
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
+        self.sslyze._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
 
         self._load_json_data("sslyze_v5")
         self.sslyze.parsed_input = None
@@ -173,6 +173,7 @@ class TestSslyze(TestCaseToolPlugin):
     def test_generate_and_push_findings(self):
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
+        self.sslyze._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
 
         self._load_json_data("sslyze_v5")
         # Assert "create_finding" is called if no findings exist
@@ -197,6 +198,7 @@ class TestSslyze(TestCaseToolPlugin):
     def test_generate_findings(self):
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
+        self.sslyze._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
 
         self._load_json_data("sslyze_v5")
         self.sslyze.generate_findings()

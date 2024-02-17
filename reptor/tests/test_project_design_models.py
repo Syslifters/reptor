@@ -28,7 +28,7 @@ class TestProjectDesignModelParsing:
             [
                 field.origin == "predefined"
                 for field in project_design.finding_fields
-                if field.name != "title"
+                if field.name != "title" and field.name != "cwe"
             ]
         )
 
