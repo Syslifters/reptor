@@ -80,6 +80,9 @@ class TestNotesAPI:
         self.notes.get_or_create_note_by_title = MagicMock(
             return_value=Note(self.test_note)
         )
+        self.notes.create_note = MagicMock(
+            return_value=Note(self.test_note)
+        )
         self.notes.put = MagicMock(return_value=self.MockResponse("", 201))
         self.notes._do_unlock = MagicMock(return_value=self.MockResponse("", 200))
 
@@ -92,7 +95,7 @@ class TestNotesAPI:
         self.notes.get_notes = MagicMock()
         with pytest.raises(LockedException):
             self.notes.write_note(text="content", force_unlock=False)
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
         assert self.notes._do_unlock.call_count == 0
@@ -103,7 +106,7 @@ class TestNotesAPI:
             return_value=self.MockResponse(self.locked_note, 200)
         )
         self.notes.write_note(text="content", force_unlock=True)
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
         assert self.notes._do_unlock.call_count == 1
@@ -114,7 +117,7 @@ class TestNotesAPI:
             return_value=self.MockResponse(self.locked_note, 201)
         )
         self.notes.write_note(text="content", force_unlock=False)
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
         assert self.notes._do_unlock.call_count == 1
@@ -125,7 +128,7 @@ class TestNotesAPI:
             return_value=self.MockResponse(self.locked_note, 201)
         )
         self.notes.write_note("content", force_unlock=True)
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 1
         assert self.notes._do_unlock.call_count == 1
@@ -139,7 +142,7 @@ class TestNotesAPI:
         with pytest.raises(LockedException) as e:
             self.notes.write_note(text="content", force_unlock=False)
         assert str(e.value) == "Cannot unlock. Locked by @timmi."
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
         assert self.notes._do_unlock.call_count == 0
@@ -153,7 +156,7 @@ class TestNotesAPI:
         with pytest.raises(LockedException) as e:
             self.notes.write_note(text="content", force_unlock=True)
         assert str(e.value) == "Cannot unlock. Locked by @timmi."
-        assert self.notes.get_or_create_note_by_title.call_count == 1
+        assert self.notes.create_note.call_count == 1
         assert self.notes._do_lock.call_count == 1
         assert self.notes.put.call_count == 0
         assert self.notes._do_unlock.call_count == 0

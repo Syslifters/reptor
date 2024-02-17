@@ -73,11 +73,11 @@ class ProjectDesign(ProjectDesignBase):
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data:
-            if isinstance(data.get("report_fields"), list):
+            if isinstance(data.get("report_fields"), str):
                 raise ValueError(
                     "report_fields should be list. Use ProjectDesignOverview instead."
                 )
-            if isinstance(data.get("finding_fields"), list):
+            if isinstance(data.get("finding_fields"), str):
                 raise ValueError(
                     "finding_fields should be list. Use ProjectDesignOverview instead."
                 )

@@ -1,0 +1,7 @@
+[data]
+title = "<!--{{ pluginName }}-->"
+cvss = "<!--{{ cvss_vector }}-->"
+severity = "<!--{{ risk_factor }}-->"
+summary = "<!--{{ synopsis }}-->"
+recommendation = "<!--{{ solution }}-->"
+description = "<!--{{ description }}-->"

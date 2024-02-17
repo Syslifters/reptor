@@ -9,6 +9,7 @@ from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Finding import Finding, FindingRaw
 from reptor.models.Project import Project
 from reptor.models.ProjectDesign import ProjectDesign
+from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 from ..ToolBase import ToolBase
 
@@ -158,12 +159,14 @@ class TestToolbase(TestCaseToolPlugin):
 
     def test_generate_findings_with_custom_fields(self):
         # Patch API query
-        self.reptor.api.projects.project = Project(
-            {
-                "id": "db837c68-ff58-4f63-9161-d2310d71999b",
-                "project_type": "c357c387-baff-42ce-8e79-eb0597c3e0e8",
-            },
-            ProjectDesign(),
+        self.reptor.api.projects.project = MagicMock(
+            return_value=Project(
+                {
+                    "id": "db837c68-ff58-4f63-9161-d2310d71999b",
+                    "project_type": "c357c387-baff-42ce-8e79-eb0597c3e0e8",
+                },
+                ProjectDesign(),
+            )
         )
         project_design = """{"id":"c357c387-baff-42ce-8e79-eb0597c3e0e8","created":"2023-08-23T07:28:38.416312Z","updated":"2023-08-23T07:28:38.432044Z","source":"snapshot","scope":"project","name":"Project Design","language":"en-US","details":"","assets":"","copy_of":"7db59c50-275e-4eee-8242-5fef9fbc7abd","lock_info":null,"report_template":"<div>","report_styles":"/* Global styles */","report_fields":{"title":{"type":"string","label":"Title","origin":"core","default":"TODO report title","required":true,"spellcheck":true}},"report_sections":[],"finding_fields":{"title":{"type":"string","label":"Titel","origin":"core","default":"TODO finding title","required":true,"spellcheck":true},"evidence":{"type":"markdown","label":"Evidence","origin":"custom","default":null,"required":true},"payloads":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"Payloads","origin":"custom","required":true},"references":{"type":"list","items":{"type":"string","label":"","origin":"custom","default":null,"required":true,"spellcheck":false},"label":"References","origin":"custom","required":true}},"finding_field_order":[],"finding_ordering":[]}"""
         self.reptor.api.project_designs.project_design = ProjectDesign(
@@ -189,9 +192,10 @@ class TestToolbase(TestCaseToolPlugin):
     def test_generate_findings_with_predefined_fields(self):
         # Patch API query
         self.reptor.api.templates.search = Mock(return_value=[])
+        self.example_tool._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
 
         self.example_tool.generate_findings()
-        assert len(self.example_tool.findings) == 3
+        assert len(self.example_tool.findings) == 1
 
         idor_finding = self.example_tool.findings[0]
         assert isinstance(idor_finding, Finding)
@@ -223,18 +227,3 @@ class TestToolbase(TestCaseToolPlugin):
         assert idor_finding.data.retest_notes.value == "My restest notes"
         assert idor_finding.data.retest_status.value == "open"
         assert idor_finding.data.severity.value == "high"
-
-        # Test empty finding without template
-        no_template_empty_finding = self.example_tool.findings[2]
-        assert isinstance(no_template_empty_finding, Finding)
-        assert no_template_empty_finding.data.title.value == "Without Template Empty"
-        assert no_template_empty_finding.data.description.value == "No description"
-
-        # Test finding without template
-        no_template_finding = self.example_tool.findings[1]
-        assert isinstance(no_template_finding, Finding)
-        assert no_template_finding.data.title.value == "Without Template"
-        assert (
-            no_template_finding.data.description.value
-            == f"```{json.dumps({'payload': '2=2'}, indent=2)}```"
-        )

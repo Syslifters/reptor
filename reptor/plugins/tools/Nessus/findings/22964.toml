@@ -1,0 +1,12 @@
+[data]
+title = "Detected network services"
+cvss = "n/a"
+severity = "none"
+summary = "<!--{{ synopsis }}-->"
+recommendation = "Expose services only if necessary."
+description = """<!--{{ description }}-->
+
+<!--{% for o in plugin_output %}-->
+<!--{{ o }}-->  
+<!--{% endfor %}-->
+"""

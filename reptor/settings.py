@@ -252,5 +252,12 @@ DEFAULT_PROJECT_DESIGN = {
             "required": True,
             "spellcheck": False,
         },
+        "cwe": {
+            "type": "cwe",
+            "label": "CWE",
+            "origin": "custom",
+            "default": None,
+            "required": False,
+        },
     },
 }

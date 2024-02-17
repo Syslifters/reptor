@@ -1,5 +1,3 @@
-import typing
-
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.models.Note import NoteTemplate
 

@@ -36,6 +36,7 @@ class NoteTemplate(NoteBase):
     parent: typing.Optional[str] = None  # Parent ID preferred over parent_notetitle
     parent_notetitle: typing.Optional[str] = None
     children: typing.List["NoteTemplate"] = list()
+    force_new: bool = False  # Create a new note even if same title exists
 
     def __init__(self, *args, **kwargs):
         self.children = list()

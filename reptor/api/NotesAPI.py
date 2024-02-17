@@ -86,6 +86,8 @@ class NotesAPI(APIClient):
         self.debug(f"We created note with {note}")
         if icon:
             self.set_icon(note.get("id"), icon)
+        elif title == "Uploads":
+            self.set_icon(note.get("id"), "📤")
         return Note(note)
 
     def delete_note(self, notes_id: str):
@@ -128,16 +130,17 @@ class NotesAPI(APIClient):
                     note_template.parent_notetitle
                 ).id
 
-            note = self.get_note_by_title(
-                note_template.title,
-                parent_noteid=note_template.parent,
-            )
+            note = None
+            if not note_template.force_new:
+                note = self.get_note_by_title(
+                    note_template.title,
+                    parent_noteid=note_template.parent,
+                )
             if note is None:
                 new_note = True
-                note = self.get_or_create_note_by_title(
+                note = self.create_note(
                     title=note_template.title,
-                    parent_noteid=note_template.parent,
-                    parent_notetitle=note_template.parent_notetitle,
+                    parent_id=note_template.parent or None,
                 )
             else:
                 new_note = False
@@ -217,8 +220,6 @@ class NotesAPI(APIClient):
         note = self.get_note_by_title(title, parent_noteid=parent_noteid)
         if not note:
             # Note does not exist. Create.
-            if title == "Uploads":
-                icon = "📤"
             note = self.create_note(title=title, parent_id=parent_noteid, icon=icon)
         return note
 
