@@ -103,7 +103,7 @@ class Config:
             else ""
         )
         self._raw_config["token"] = input(
-            f"API Token{ f' [{default_api_token}]' if default_api_token else ''}: "
+            f"API Token{ f' [redacted]' if default_api_token else ''}: "
         ) or self._raw_config.get("token")
 
         default_project_id = self._raw_config.get("project_id")
