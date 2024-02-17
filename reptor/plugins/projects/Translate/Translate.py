@@ -2,11 +2,12 @@ import re
 from typing import Union
 
 from requests.exceptions import HTTPError
+
+from reptor.lib.plugins.Base import Base
+from reptor.models.Base import ProjectFieldTypes
 from reptor.models.Finding import Finding
 from reptor.models.Section import Section
-
-from reptor.models.Base import ProjectFieldTypes
-from reptor.lib.plugins.Base import Base
+from reptor.models.UserConfig import UserConfig
 
 try:
     import deepl
@@ -118,8 +119,7 @@ class Translate(Base):
 
         try:
             if not self.deepl_api_token:
-                # TODO error msg might propose a conf command for interactive configuration
-                raise AttributeError("No Deepl API token found.")
+                raise AttributeError("No Deepl API token found. Try --conf.")
             if not deepl:
                 raise ModuleNotFoundError(
                     'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
@@ -128,6 +128,16 @@ class Translate(Base):
         except (AttributeError, ModuleNotFoundError) as e:
             if not self.dry_run:
                 raise e
+
+    @property
+    def user_config(self):
+        return [
+            UserConfig(
+                name="deepl_api_token",
+                friendly_name="Deepl API Token",
+                redact_current_value=True,
+            )
+        ]
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

@@ -173,7 +173,7 @@ class TestNessus(TestCaseToolPlugin):
         assert isinstance(p[0]["findings"][3]["see_also"], list)
         assert len(p[0]["findings"][3]["see_also"]) == 1
 
-    @pytest.mark.parametrize("filter", ["high-critical", "high,critical", "high"])
+    @pytest.mark.parametrize("filter", ["high-critical", "high,critical"])
     def test_parse_multi_with_severity_filter(self, filter):
         self._load_xml_data("nessus_multi_host")
         self.nessus.severity_filter = self.nessus._parse_severity_filter(filter)

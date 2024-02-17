@@ -1,6 +1,7 @@
 from django.utils.html import strip_tags
 
 from reptor.lib.importers.BaseImporter import BaseImporter
+from reptor.models.UserConfig import UserConfig
 
 try:
     from gql import Client, gql
@@ -43,6 +44,8 @@ class GhostWriter(BaseImporter):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        if self.conf:
+            return
 
         if gql is None:
             raise ImportError(
@@ -60,6 +63,20 @@ class GhostWriter(BaseImporter):
                 "Ghostwriter API Key is required. Add to your user config."
             )
         self.insecure = kwargs.get("insecure", False)
+
+    @property
+    def user_config(self):
+        return [
+            UserConfig(
+                name="url",
+                friendly_name="Ghostwriter URL",
+            ),
+            UserConfig(
+                name="apikey",
+                friendly_name="Ghostwriter API key (x-hasura-admin-secret or JWT token)",
+                redact_current_value=True,
+            ),
+        ]
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

@@ -52,11 +52,11 @@ class Config:
         else:
             return self._raw_config.get(key, default)
 
-    def get_config_keys(self, plugin: str = "") -> typing.Collection:
+    def items(self, plugin: str = "") -> typing.ItemsView[str, typing.Any]:
         if plugin:
-            return (self._raw_config.get(plugin) or dict()).keys()
+            return (self._raw_config.get(plugin) or dict()).items()
         else:
-            return self._raw_config.keys()
+            return self._raw_config.items()
 
     def set(self, key: str, value: typing.Any, plugin: str = ""):
         """Sets a value in the config

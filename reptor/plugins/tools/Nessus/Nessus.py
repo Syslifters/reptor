@@ -1,8 +1,8 @@
 import typing
-import xmltodict
 
 from reptor.lib.plugins.ToolBase import ToolBase
 from reptor.models.Note import NoteTemplate
+from reptor.models.UserConfig import UserConfig
 
 
 class Nessus(ToolBase):
@@ -14,6 +14,7 @@ class Nessus(ToolBase):
         "tags": [],
         "summary": "Nessus vulnerability importer",
     }
+
     risk_mapping = {
         "none": "🟢",
         "low": "🔵",
@@ -21,6 +22,26 @@ class Nessus(ToolBase):
         "high": "🟠",
         "critical": "🔴",
     }
+
+    @property
+    def user_config(self) -> typing.List[UserConfig]:
+        return [
+            UserConfig(
+                name="severity_filter",
+                friendly_name='Severity filter (e.g., "medium-critical")',
+                callback=self._parse_severity_filter,
+            ),
+            UserConfig(
+                name="excluded_plugins",
+                friendly_name="Exclude plugin IDs (comma-separated)",
+                callback=UserConfig.split,
+            ),
+            UserConfig(
+                name="included_plugins",
+                friendly_name="Include plugin IDs (comma-separated)",
+                callback=UserConfig.split,
+            ),
+        ]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -63,12 +84,6 @@ class Nessus(ToolBase):
                 raise ValueError(
                     "Invalid filter. Use keywords from 'none,low,medium,high,critical'"
                 )
-            if len(filter_elements) == 1:
-                for i in range(
-                    list(self.risk_mapping.keys()).index(filter_elements[0]),
-                    len(self.risk_mapping),
-                ):
-                    filter_elements.append(list(self.risk_mapping.keys())[i])
         if filter_elements:
             return set(filter_elements)
         else:
@@ -79,7 +94,7 @@ class Nessus(ToolBase):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         parser.add_argument(
             "--severity-filter",
-            help='Filter findings by severity comma-separated ("high,medium"), as range ("medium-critical") or as the minimum severity ("medium")',
+            help='Filter findings by severity comma-separated ("high,medium") or as range ("medium-critical")',
             action="store",
             dest="severity_filter",
             default=None,
