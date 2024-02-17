@@ -52,11 +52,11 @@ class Config:
         else:
             return self._raw_config.get(key, default)
 
-    def get_config_keys(self, plugin: str = "") -> typing.Collection:
+    def items(self, plugin: str = "") -> typing.ItemsView[str, typing.Any]:
         if plugin:
-            return (self._raw_config.get(plugin) or dict()).keys()
+            return (self._raw_config.get(plugin) or dict()).items()
         else:
-            return self._raw_config.keys()
+            return self._raw_config.items()
 
     def set(self, key: str, value: typing.Any, plugin: str = ""):
         """Sets a value in the config
@@ -103,7 +103,7 @@ class Config:
             else ""
         )
         self._raw_config["token"] = input(
-            f"API Token{ f' [{default_api_token}]' if default_api_token else ''}: "
+            f"API Token{ f' [redacted]' if default_api_token else ''}: "
         ) or self._raw_config.get("token")
 
         default_project_id = self._raw_config.get("project_id")

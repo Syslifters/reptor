@@ -37,6 +37,7 @@ class ToolBase(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.conf = kwargs.get("conf")
         self.action = kwargs.get("action")
         self.notetitle = self.notetitle or self.__class__.__name__.lower()
         self.push_findings = kwargs.get("push_findings")

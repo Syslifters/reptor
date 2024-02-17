@@ -4,6 +4,7 @@ import typing
 
 from reptor.lib.console import reptor_console
 from reptor.lib.reptor import Reptor
+from reptor.models.UserConfig import UserConfig
 
 
 class Base:
@@ -29,21 +30,64 @@ class Base:
     keys: typing.Dict = {}
 
     def __init__(self, **kwargs):
+        self.reptor = kwargs.get("reptor", None)
+        self.conf = kwargs.get("conf", False)
+        if self.conf:
+            self.configure()
+            sys.exit(0)
         self.notetitle = kwargs.get("notetitle")
         self.file_path = kwargs.get("file", "")
-        self.reptor = kwargs.get("reptor", None)
 
         plugin_name = self.__class__.__name__.lower()
-        for plugin_config_key in self.reptor.get_config().get_config_keys(
-            plugin=plugin_name
-        ):
-            if not hasattr(self, plugin_config_key):
-                self.__setattr__(
-                    plugin_config_key,
-                    self.reptor.get_config().get(plugin_config_key, plugin=plugin_name),
-                )
+        for k, v in self.plugin_config:
+            if not hasattr(self, k):
+                self.__setattr__(k, v)
 
         self._check_required_keys_are_set(plugin_name)
+
+    @property
+    def user_config(self) -> typing.List[UserConfig]:
+        raise NotImplementedError("user_config not implemented for this plugin.")
+
+    def configure(self):
+        plugin_name = self.__class__.__name__.lower()
+        for c in self.user_config:
+            if current := self.reptor.get_config().get(c.name, plugin=plugin_name):
+                if c.redact_current_value:
+                    current = "redacted"
+                elif isinstance(current, list):
+                    current = ", ".join([str(c) for c in current])
+                current = f" [{current}]"
+            else:
+                current = ""
+            value = None
+            while value is None:
+                value = input(f"{c.friendly_name}{current}: ")
+                if not value:
+                    continue
+                if c.callback:
+                    try:
+                        value = c.callback(value)
+                    except ValueError as e:
+                        self.log.error(e)
+                        value = None
+                        continue
+            if not value:
+                continue
+            if isinstance(value, set):
+                value = list(value)
+            self.reptor.get_config().set(c.name, value, plugin=plugin_name)
+        self.reptor.get_config().store_config()
+
+    @property
+    def plugin_config(self) -> typing.ItemsView[str, typing.Any]:
+        """Returns the plugin configuration
+
+        Returns:
+            typing.Dict[str, typing.Any]: Plugin Configuration
+        """
+        plugin_name = self.__class__.__name__.lower()
+        return self.reptor.get_config().items(plugin=plugin_name)
 
     def _check_required_keys_are_set(self, plugin_name: str = ""):
         """This method will check if the keys specified in the attribute keys
@@ -78,7 +122,13 @@ class Base:
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
-        pass
+        if cls.user_config != Base.user_config:
+            parser.add_argument(
+                "--conf",
+                "--config",
+                action="store_true",
+                help="Configure plugin settings",
+            )
 
     @property
     def log(self):
