@@ -13,8 +13,6 @@ class FindingTemplateTranslation(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Init mandatory fields
-        self.is_main = True
 
     def to_dict(self) -> dict:
         result = deepcopy(vars(self))

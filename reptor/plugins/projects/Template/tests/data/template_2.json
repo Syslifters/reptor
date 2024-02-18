@@ -1,0 +1,16 @@
+{
+  "tags": [
+    "web"
+  ],
+  "translations": [
+    {
+      "language": "en-US",
+      "is_main": true,
+      "status": "finished",
+      "data": {
+        "title": "My Title",
+        "description": "My Description"
+      }
+    }
+  ]
+}

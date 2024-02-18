@@ -1,11 +1,15 @@
+import contextlib
 import io
 import json
+import sys
 import tarfile
 import typing
 
+import tomli
 import yaml
 
 from reptor.lib.plugins.Base import Base
+from reptor.models.FindingTemplate import FindingTemplate
 from reptor.utils.table import make_table
 
 
@@ -22,6 +26,7 @@ class Template(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.arg_search = kwargs.get("search")
+        self.list = kwargs.get("list")
         self.export: typing.Optional[str] = kwargs.get("export")
         self.language: typing.Optional[str] = kwargs.get("language")
         self.output: typing.Optional[str] = kwargs.get("output")
@@ -30,6 +35,12 @@ class Template(Base):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         templates_parsers = parser.add_argument_group()
+        templates_parsers.add_argument(
+            "--list",
+            help="List all finding templates",
+            action="store_true",
+            default=False,
+        )
         templates_parsers.add_argument(
             "--search", help="Search for term", action="store", default=None
         )
@@ -142,13 +153,48 @@ class Template(Base):
             stdout=stdout,
         )
 
+    def _read_finding_templates(
+        self, content: typing.Optional[str] = None
+    ) -> typing.Iterator[FindingTemplate]:
+        if content is None:
+            # Read finding from stdin
+            self.info("Reading from stdin...")
+            content = sys.stdin.read()
+
+        loaded_content: typing.Union[None, dict, list] = None
+        with contextlib.suppress(json.JSONDecodeError):
+            loaded_content = json.loads(content, strict=False)
+        if not loaded_content:
+            with contextlib.suppress(tomli.TOMLDecodeError):
+                loaded_content = tomli.loads(content)
+        if not loaded_content:
+            raise ValueError("Could not decode stdin (excepted JSON or TOML)")
+
+        if isinstance(loaded_content, dict):
+            loaded_content = [loaded_content]
+
+        for finding_template in loaded_content:
+            assert isinstance(finding_template, dict)
+            yield FindingTemplate(finding_template)
+
     def run(self):
         filename = self.output
-
-        if not self.arg_search:
+        if self.list:
             templates = self.reptor.api.templates.get_template_overview()
-        else:
+        elif self.arg_search:
             templates = self.reptor.api.templates.search(self.arg_search)
+        else:
+            i = None
+            for i, finding_template in enumerate(self._read_finding_templates()):
+                new = self.reptor.api.templates.upload_template(finding_template)
+                self.log.display(
+                    f'Uploaded finding template "{new.translations[0].data.title}" with new ID {new.id}'
+                )
+            if i is not None:
+                self.log.success(
+                    f"Successfully uploaded {i+1} finding template{'s'[:i^1]}"
+                )
+            return
 
         if not templates:
             self.display("Did not find any finding templates.")

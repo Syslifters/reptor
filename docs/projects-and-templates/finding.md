@@ -3,9 +3,10 @@ Create findings in your pentest report by JSON or TOML.
 ## Example
 ```bash
 cat finding.json | reptor finding
+cat finding.toml | reptor finding
 ```
 
-## Sample finding
+### Sample finding
 
 Upload one finding by using the following structures.  
 Use a list to upload multiple findings.
@@ -41,7 +42,6 @@ references = [ "https://owasp.org/www-community/attacks/xss/",]
 description = "The impact was heavy."
 recommendation = "HTML encode user-supplied inputs."
 affected_components = [ "https://example.com/alert(1)", "https://example.com/q=alert(1)",]
-
 ```
 
 ## Usage

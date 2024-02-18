@@ -11,6 +11,7 @@ import yaml
 from reptor.api.NotesAPI import NotesAPI
 from reptor.api.ProjectDesignsAPI import ProjectDesignsAPI
 from reptor.api.ProjectsAPI import ProjectsAPI
+from reptor.api.TemplatesAPI import TemplatesAPI
 from reptor.lib.reptor import Reptor
 
 
@@ -111,6 +112,15 @@ def project_design_api():
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
     return ProjectDesignsAPI(reptor=reptor)
+
+
+@pytest.fixture(scope="session")
+def templates_api():
+    reptor = Reptor()
+    reptor._config._raw_config["cli"] = {"private_note": False}
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["cli"]["insecure"] = True
+    return TemplatesAPI(reptor=reptor)
 
 
 @pytest.fixture(scope="module")
