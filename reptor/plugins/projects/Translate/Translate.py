@@ -165,14 +165,6 @@ class Translate(Base):
             action="store",
             default="",
         )
-
-        # Currently supported: Deepl
-        # parser.add_argument(
-        #    "--translator",
-        #    help="Translator service to use",
-        #    choices=["deepl"],
-        #    default="deepl",
-        # )
         parser.add_argument(
             "--dry-run",
             help="Do not translate, count characters to be translated and checks Deepl quota",

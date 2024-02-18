@@ -1,0 +1,12 @@
+tags = [
+    "web",
+]
+
+[[translations]]
+is_main = true
+language = "en-US"
+status = "finished"
+
+[translations.data]
+title = "My title"
+description = "My description"

@@ -48,9 +48,7 @@ class TemplatesAPI(APIClient):
                 added_ids.add(finding_template.id)
         return return_data
 
-    def upload_new_template(
-        self, template: FindingTemplate
-    ) -> typing.Optional[FindingTemplate]:
+    def upload_template(self, template: FindingTemplate) -> FindingTemplate:
         """Uploads a new Finding Template to API
 
         Args:
@@ -64,3 +62,8 @@ class TemplatesAPI(APIClient):
             json=template.to_dict(),
         )
         return FindingTemplate(res.json())
+
+    def delete_template(self, template_id: str) -> None:
+        """Deletes a Template by ID"""
+        self.delete(urljoin(self.base_endpoint, template_id))
+        return
