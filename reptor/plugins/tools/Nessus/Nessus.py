@@ -16,7 +16,7 @@ class Nessus(ToolBase):
     }
 
     risk_mapping = {
-        "none": "🟢",
+        "info": "🟢",
         "low": "🔵",
         "medium": "🟡",
         "high": "🟠",
@@ -73,7 +73,7 @@ class Nessus(ToolBase):
                 ]
             except ValueError:
                 raise ValueError(
-                    "Invalid filter range. Use keywords from 'none,low,medium,high,critical'"
+                    "Invalid filter range. Use keywords from 'info,low,medium,high,critical'"
                 )
             filter_elements = list()
             for i in range(min(filter_indexes), max(filter_indexes) + 1):
@@ -82,7 +82,7 @@ class Nessus(ToolBase):
             filter_elements = filter.split(",")
             if not all(f in self.risk_mapping for f in filter_elements):
                 raise ValueError(
-                    "Invalid filter. Use keywords from 'none,low,medium,high,critical'"
+                    "Invalid filter. Use keywords from 'info,low,medium,high,critical'"
                 )
         if filter_elements:
             return set(filter_elements)
@@ -132,7 +132,7 @@ class Nessus(ToolBase):
             host_overview.template_data = host
             for finding in host["findings"]:
                 finding_note = NoteTemplate()
-                finding_note.title = f"{ self.risk_mapping.get(finding.get('risk_factor', 'none').lower(), 'None') } {finding['plugin_name']}"
+                finding_note.title = f"{ self.risk_mapping.get(finding.get('risk_factor', 'info').lower()) } {finding['plugin_name']}"
                 finding_note.checked = False
                 finding_note.template = "nessus-finding"
                 finding_note.template_data = finding
@@ -168,20 +168,21 @@ class Nessus(ToolBase):
                 findings = [findings]
             if self.included_plugins:
                 findings = [
-                    f
-                    for f in findings
-                    if f.get("@pluginID", "none") in self.included_plugins
+                    f for f in findings if f.get("@pluginID") in self.included_plugins
                 ]
             if self.excluded_plugins:
                 findings = [
                     f
                     for f in findings
-                    if f.get("@pluginID", "none") not in self.excluded_plugins
+                    if f.get("@pluginID") not in self.excluded_plugins
                 ]
+            for f in findings:
+                if f.get("risk_factor", "").lower() == "none":
+                    f["risk_factor"] = "Info"
             host_data["findings"] = [
                 f
                 for f in findings
-                if f.get("risk_factor", "none").lower() in self.severity_filter
+                if f.get("risk_factor", "info").lower() in self.severity_filter
             ]
             if not host_data["findings"]:
                 continue
@@ -256,7 +257,9 @@ class Nessus(ToolBase):
 
             finding["risk_factor"] = finding.get("risk_factor", "").lower()
             if finding["risk_factor"] not in self.risk_mapping:
-                finding["risk_factor"] = "none"
+                finding["risk_factor"] = "info"
+            finding["severity_figure"] = finding["severity"]
+            finding["severity"] = finding["risk_factor"]  # Provide for enum
             finding["finding_template"] = finding["pluginID"]
 
         return list(findings.values())

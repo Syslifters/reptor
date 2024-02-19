@@ -183,10 +183,8 @@ class TestToolbase(TestCaseToolPlugin):
             "1=1",
             "2=2",
         ]
-        # Assert that empty elements are not added to list
         assert [p.value for p in findings[0].data.references.value] == [
-            "https://example.com",
-            "https://example.com/additional",
+            "https://example.com"
         ]
 
     def test_generate_findings_with_predefined_fields(self):

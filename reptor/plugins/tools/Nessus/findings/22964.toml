@@ -1,7 +1,7 @@
 [data]
 title = "Detected network services"
 cvss = "n/a"
-severity = "none"
+severity = "info"
 summary = "<!--{{ synopsis }}-->"
 recommendation = "Expose services only if necessary."
 description = """<!--{{ description }}-->

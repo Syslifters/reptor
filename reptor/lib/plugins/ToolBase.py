@@ -90,10 +90,14 @@ class ToolBase(Base):
         return dir_paths
 
     @classmethod
-    def get_filenames_from_paths(cls, dir_paths: list, filetype: str):
+    def get_filenames_from_paths(
+        cls, dir_paths: typing.Union[typing.List[str], str], filetype: str
+    ) -> typing.List[str]:
         """
         takes a list of paths and returns a list of filenames without file extension
         """
+        if isinstance(dir_paths, str):
+            dir_paths = [dir_paths]
         filetype = f"*.{filetype.strip('.')}"
         # Get template names from paths
         files_from_plugin_dir = list()
@@ -453,13 +457,10 @@ class ToolBase(Base):
                 finding_dict,
                 project_design=self._project_design,
                 raise_on_unknown_fields=False,
-                raise_on_incompatible_fields=False,
             )
         except ValueError:
             self.log.error("Finding data incompatible with project design.")
             return None
-        for field in finding.data:
-            field.raise_on_unknown_fields = True
         return finding
 
     def generate_findings(self) -> typing.List[Finding]:
@@ -506,23 +507,28 @@ class ToolBase(Base):
                 django_context = Context(finding_context)
                 for finding_data in finding.data:
                     # Iterate over all finding fields
-                    if isinstance(finding_data.value, list):
-                        # Iterate over list to render list items
-                        if finding_data.name == "affected_components":
-                            finding_data.value = finding_context.get(
-                                "affected_components", []
+                    if finding_data.value:
+                        if finding_data.type in ["markdown", "string", "cvss"]:
+                            # Render template
+                            finding_data.value = Template(finding_data.value).render(
+                                django_context
                             )
-                            continue
-                        finding_data_list = list()
-                        for v in finding_data.value:
-                            if content := Template(v.value).render(django_context):
-                                finding_data_list.append(content)
-                        finding_data.value = finding_data_list
-                    elif finding_data.value:
-                        # If value not empty, render template
-                        finding_data.value = Template(finding_data.value).render(
-                            django_context
-                        )
+                    elif finding_data.type in [
+                        "list",
+                        "enum",
+                        "combobox",
+                        "date",
+                        "number",
+                        "boolean",
+                    ]:
+                        if value := finding_context.get(finding_data.name):
+                            try:
+                                finding_data.value = value
+                            except ValueError:
+                                log.warning(
+                                    f'Invalid value "{finding_data.value}" for field "{finding_data.name}"'
+                                )
+
                 self.findings.append(finding)
         return self.findings
 

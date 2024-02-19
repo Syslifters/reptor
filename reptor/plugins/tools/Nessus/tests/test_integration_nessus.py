@@ -29,7 +29,7 @@ class TestIntegrationNessus(object):
         note_lines = note.text.splitlines()
         lines = [
             "Port 443/tcp was found to be open",
-            "**Severity:** None  ",
+            "**Severity:** Info  ",
         ]
         assert all([line in note_lines for line in lines])
 
