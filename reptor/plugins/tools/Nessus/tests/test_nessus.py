@@ -126,7 +126,7 @@ class TestNessus(TestCaseToolPlugin):
         )
         assert all(
             [
-                f.data.severity.value in ["none", "low", "medium", "high", "critical"]
+                f.data.severity.value in ["info", "low", "medium", "high", "critical"]
                 for f in findings
             ]
         )

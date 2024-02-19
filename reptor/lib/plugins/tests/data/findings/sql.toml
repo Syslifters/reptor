@@ -6,7 +6,5 @@ payloads = [
     "2=2"
 ]
 references = [
-    "https://example.com",
-    "<!--{% if data.custom %}-->https://example.com/custom<!--{% endif %}-->",
-    "<!--{% if not data.custom %}-->https://example.com/additional<!--{% endif %}-->"
+    "https://example.com"
 ]

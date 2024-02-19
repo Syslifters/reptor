@@ -139,14 +139,14 @@ class Nmap(ToolBase):
         main_note = NoteTemplate()
         main_note.title = self.notetitle
         main_note.icon_emoji = self.note_icon
-        main_note.template = self.template
+        main_note.template = "nmap_table"
         main_note.template_data = self.preprocess_for_template()
         ## Subnotes per IP
         for ip, ports in data.items():
             ip_note = NoteTemplate()
             ip_note.title = ip
             ip_note.checked = False
-            ip_note.template = self.template
+            ip_note.template = "nmap_table"
             ip_note.template_data = {"data": ports}
             ip_note.template_data["show_hostname"] = any(
                 [p.get("hostname") for p in ports]

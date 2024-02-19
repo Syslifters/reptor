@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 
 import reptor.settings as settings
 from reptor.models.Finding import Finding
+from reptor.models.FindingTemplate import FindingTemplate
 from reptor.models.Note import NoteTemplate
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -39,7 +40,7 @@ class ToolBase(Base):
         super().__init__(**kwargs)
         self.conf = kwargs.get("conf")
         self.action = kwargs.get("action")
-        self.notetitle = self.notetitle or self.__class__.__name__.lower()
+        self.notetitle = self.notetitle or self.plugin_name
         self.push_findings = kwargs.get("push_findings")
         self.note_icon = "🛠️"
         self.raw_input = None
@@ -55,8 +56,6 @@ class ToolBase(Base):
         )
 
         self.input_format = kwargs.get("format")
-        self.template = kwargs.get("template", self.template)
-
         if self.template_paths:
             settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
@@ -90,7 +89,9 @@ class ToolBase(Base):
         return dir_paths
 
     @classmethod
-    def get_filenames_from_paths(cls, dir_paths: list, filetype: str):
+    def get_filenames_from_paths(
+        cls, dir_paths: typing.List[Path], filetype: str
+    ) -> typing.List[str]:
         """
         takes a list of paths and returns a list of filenames without file extension
         """
@@ -120,18 +121,6 @@ class ToolBase(Base):
             settings.PLUGIN_TEMPLATES_DIR_NAME,
             skip_user_plugins=skip_user_plugins,
         )
-        cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
-
-        # Choose default template
-        if cls.templates:
-            if len(cls.templates) == 1:
-                cls.template = cls.templates[0]
-            elif len(cls.templates) > 1:
-                default_templates = [t for t in cls.templates if "default" in t]
-                try:
-                    cls.template = default_templates[0]
-                except IndexError:
-                    cls.template = cls.templates[0]
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -141,14 +130,7 @@ class ToolBase(Base):
 
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"
-        action_group.add_argument(
-            "--parse",
-            action="store_const",
-            dest="action",
-            const="parse",
-            default="format",
-        )
-        if cls.templates:
+        if cls.create_notes != ToolBase.create_notes:
             action_group.add_argument(
                 "--format",
                 action="store_const",
@@ -169,6 +151,21 @@ class ToolBase(Base):
                 "--push-findings",
                 action="store_true",
             )
+            action_group.add_argument(
+                "--template-vars",
+                "--template-variables",
+                action="store_const",
+                dest="action",
+                const="template-vars",
+                help="Print template variables (needed for finding template customization).",
+            )
+        action_group.add_argument(
+            "--parse",
+            action="store_const",
+            dest="action",
+            const="parse",
+            default="format",
+        )
 
         if any(
             [
@@ -205,6 +202,15 @@ class ToolBase(Base):
                     const="csv",
                     default="raw",
                 )
+        if cls.get_filenames_from_paths(cls.finding_paths, "toml"):
+            # If finding templates exist
+            action_group.add_argument(
+                "--upload-finding-templates",
+                action="store_const",
+                dest="action",
+                const="upload-finding-templates",
+                help="Upload local finding templates to SysReptor",
+            )
 
     @classmethod
     def get_input_format_group(cls, parser):
@@ -241,12 +247,20 @@ class ToolBase(Base):
 
         if self.action == "parse":
             self.parse()
-            self.print(self.parsed_input)
+            if self.parsed_input is not None:
+                self.print(json.dumps(self.parsed_input, indent=2))
+        elif self.action == "template-vars":
+            self.parse()
+            if p := self.preprocess_for_template():
+                self.print(json.dumps(p, indent=2))
         elif self.action == "format":
             self.format()
-            self.print(self.formatted_input)
+            if self.formatted_input is not None:
+                self.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
+        elif self.action == "upload-finding-templates":
+            self.upload_finding_templates()
 
     def load(self):
         """Puts the stdin into raw_input"""
@@ -293,10 +307,7 @@ class ToolBase(Base):
     def format(self):
         """Checks if `self.parsed_input` is set.
         If not it starts the parsing process.
-
         Once there is parsed data it is run through the Django Templating Engine.
-
-        The template is set via `self.template`.
         """
         if not self.parsed_input:
             self.parse()
@@ -307,11 +318,9 @@ class ToolBase(Base):
             self.note_templates = data
             self.formatted_input = self.format_note_template(data)
             return
-        elif data := self.preprocess_for_template():
-            self.formatted_input = render_to_string(f"{self.template}.md", data)
-            return
-
-        raise ValueError("No data returned. Nothing to do.")
+        self.log.warning(
+            f"`create_notes` didn't return data for {self.plugin_name} plugin."
+        )
 
     def format_note_template(self, note_templates: typing.List[NoteTemplate], level=1):
         formatted_input = ""
@@ -336,7 +345,35 @@ class ToolBase(Base):
     def create_notes(
         self,
     ) -> typing.Union[NoteTemplate, typing.List[NoteTemplate], None]:
-        pass
+        raise NotImplementedError("Create notes is not implemented for this plugin.")
+
+    def upload_finding_templates(self):
+        finding_template_names = self.get_filenames_from_paths(
+            self.finding_paths, "toml"
+        )
+        uploaded = 0
+        for name in finding_template_names:
+            if finding := self.get_local_finding_template(name):
+                template_tag = f"{self.plugin_name}:{name}"
+                remote_template = self.reptor.api.templates.get_templates_by_tag(
+                    template_tag
+                )
+                if remote_template:
+                    self.log.display(
+                        f"Finding template with tag {template_tag} already exists. Skipping."
+                    )
+                    continue
+                uploaded += 1
+                finding["is_main"] = True
+                finding = FindingTemplate(
+                    {"translations": [finding], "tags": ["reptor", template_tag]}
+                )
+                self.reptor.api.templates.upload_template(finding)
+                self.log.display(f'Uploaded finding template "{name}".')
+        if uploaded:
+            self.log.success(
+                f"Successfully uploaded {uploaded} finding template{'s'[:uploaded^1]}."
+            )
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
@@ -414,37 +451,39 @@ class ToolBase(Base):
         """
         Returns first remote finding template with matching tag.
         """
-        for finding_template in self.reptor.api.templates.search(template_tag):
-            if template_tag in finding_template.tags:
-                # Take first matching template and fetch full data (search returns partial data only)
-                self.log.info(f"Found remote finding template for {template_tag}.")
-                finding_template = self.reptor.api.templates.get_template(
-                    finding_template.id
+        for finding_template in self.reptor.api.templates.get_templates_by_tag(
+            template_tag
+        ):
+            # Take first matching template and fetch full data (search returns partial data only)
+            self.log.info(f"Found remote finding template for {template_tag}.")
+            finding_template = self.reptor.api.templates.get_template(
+                finding_template.id
+            )
+
+            try:
+                translation = [
+                    t
+                    for t in finding_template.translations
+                    if t.language == self._project_language
+                ][0]
+            except IndexError:
+                translation = [t for t in finding_template.translations if t.is_main][0]
+                self.log.display(
+                    f"No translation found for {self._project_language}. Taking main translation {translation.language}."
                 )
 
-                try:
-                    translation = [
-                        t
-                        for t in finding_template.translations
-                        if t.language == self._project_language
-                    ][0]
-                except IndexError:
-                    translation = [
-                        t for t in finding_template.translations if t.is_main
-                    ][0]
-                    self.log.display(
-                        f"No translation found for {self._project_language}. Taking main translation {translation.language}."
-                    )
+            finding = Finding.from_translation(
+                translation,
+                project_design=self._project_design,
+                raise_on_unknown_fields=False,
+            )
+            finding.template = finding_template.id
 
-                finding = Finding.from_translation(
-                    translation, raise_on_unknown_fields=False
-                )
-                finding.template = finding_template.id
-                return finding
+            return finding
 
     def _get_finding_from_local_template(self, name: str) -> typing.Optional[Finding]:
         # Check if findings toml exists
-        finding_dict = self.get_local_finding_data(name)
+        finding_dict = self.get_local_finding_template(name)
         if not finding_dict:
             return None
 
@@ -453,13 +492,10 @@ class ToolBase(Base):
                 finding_dict,
                 project_design=self._project_design,
                 raise_on_unknown_fields=False,
-                raise_on_incompatible_fields=False,
             )
         except ValueError:
             self.log.error("Finding data incompatible with project design.")
             return None
-        for field in finding.data:
-            field.raise_on_unknown_fields = True
         return finding
 
     def generate_findings(self) -> typing.List[Finding]:
@@ -492,7 +528,7 @@ class ToolBase(Base):
 
                 for finding_name in finding_names:
                     # Check if remote finding template exists
-                    template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
+                    template_tag = f"{self.plugin_name}:{finding_name}"
                     finding = self._get_finding_from_remote_template(template_tag)
 
                     # If not, check if local finding template exists
@@ -506,27 +542,32 @@ class ToolBase(Base):
                 django_context = Context(finding_context)
                 for finding_data in finding.data:
                     # Iterate over all finding fields
-                    if isinstance(finding_data.value, list):
-                        # Iterate over list to render list items
-                        if finding_data.name == "affected_components":
-                            finding_data.value = finding_context.get(
-                                "affected_components", []
+                    if finding_data.value:
+                        if finding_data.type in ["markdown", "string", "cvss"]:
+                            # Render template
+                            finding_data.value = Template(finding_data.value).render(
+                                django_context
                             )
-                            continue
-                        finding_data_list = list()
-                        for v in finding_data.value:
-                            if content := Template(v.value).render(django_context):
-                                finding_data_list.append(content)
-                        finding_data.value = finding_data_list
-                    elif finding_data.value:
-                        # If value not empty, render template
-                        finding_data.value = Template(finding_data.value).render(
-                            django_context
-                        )
+                    elif finding_data.type in [
+                        "list",
+                        "enum",
+                        "combobox",
+                        "date",
+                        "number",
+                        "boolean",
+                    ]:
+                        if value := finding_context.get(finding_data.name):
+                            try:
+                                finding_data.value = value
+                            except ValueError:
+                                log.warning(
+                                    f'Invalid value "{finding_data.value}" for field "{finding_data.name}"'
+                                )
+
                 self.findings.append(finding)
         return self.findings
 
-    def get_local_finding_data(self, name: str) -> typing.Optional[dict]:
+    def get_local_finding_template(self, name: str) -> typing.Optional[dict]:
         """Loads a finding template from the local findings directory.
 
         Args:

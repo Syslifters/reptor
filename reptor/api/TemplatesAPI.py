@@ -12,7 +12,6 @@ class TemplatesAPI(APIClient):
         self.base_endpoint = urljoin(
             self.reptor.get_config().get_server(), f"api/v1/findingtemplates/"
         )
-        self.object_endpoint = urljoin(f"api/v1/findingtemplates/{self.project_id}")
 
     def get_template_overview(self) -> typing.List[FindingTemplate]:
         """Gets list of Templates"""
@@ -47,6 +46,13 @@ class TemplatesAPI(APIClient):
             if deduplicate:
                 added_ids.add(finding_template.id)
         return return_data
+
+    def get_templates_by_tag(self, tag: str) -> typing.List[FindingTemplate]:
+        matched_templates = list()
+        for finding_template in self.search(tag):
+            if tag in finding_template.tags:
+                matched_templates.append(finding_template)
+        return matched_templates
 
     def upload_template(self, template: FindingTemplate) -> FindingTemplate:
         """Uploads a new Finding Template to API

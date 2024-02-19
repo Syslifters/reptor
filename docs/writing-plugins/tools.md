@@ -125,7 +125,7 @@ An HTML comment end tag is appended to the Django end tags:
 (Find the reason for this later in this tutorial.)
 
 Let's bring the list of our XSS outputs into the format of a markdown table.  
-We find an empty template at `templates/default-template.md`. We rename it to `xss-table.md` and place the following template inside:
+We find an empty template at `templates/mytemplate.md`. We rename it to `xss-table.md` and place the following template inside:
 
 ```md
 | XSS target |
@@ -246,7 +246,7 @@ for url, target_list in data.items():
     ip_note = NoteTemplate()
     ip_note.title = url
     ip_note.checked = False  # Make note an unticked checkbox instead of emoji
-    ip_note.template = self.template  # Format note using the selected Django template
+    ip_note.template = "mytemplate"  # Format note using our Django template
     ip_note.template_data = {"data": target_list}  # Provide data for template
     main_note.children.append(ip_note)  # Append as child of parent note
 return main_note  # Return parent note
