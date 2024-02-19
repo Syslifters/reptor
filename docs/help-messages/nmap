@@ -1,12 +1,12 @@
-usage: reptor nmap [-h] [--parse | --format | --upload] [--xml | -oX | -oG]
+usage: reptor nmap [-h] [--format | --upload | --parse] [--xml | -oX | -oG]
 
 format nmap output
 
 optional arguments:
   -h, --help       show this help message and exit
-  --parse
   --format
   --upload
+  --parse
   --xml
   -oX              nmap XML output format, same as --xml (recommended)
   -oG, --grepable  nmap Grepable output format

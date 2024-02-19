@@ -1,10 +1,15 @@
-usage: reptor sslyze [-h] [--parse | --format | --upload | --push-findings]
+usage: reptor sslyze [-h]
+                     [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
 
 format sslyze JSON output
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --parse
+  -h, --help            show this help message and exit
   --format
   --upload
   --push-findings
+  --template-vars, --template-variables
+                        Print template variables (needed for finding template customization).
+  --parse
+  --upload-finding-templates
+                        Upload local finding templates to SysReptor
