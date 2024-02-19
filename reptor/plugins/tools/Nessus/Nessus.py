@@ -54,11 +54,11 @@ class Nessus(ToolBase):
         )
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(
-            filter(None, (kwargs.get("included_plugins")) or "".split(","))
+            filter(None, ((kwargs.get("included_plugins")) or "").split(","))
         )
         self.excluded_plugins = getattr(self, "excluded_plugins", list())
         self.excluded_plugins += list(
-            filter(None, (kwargs.get("excluded_plugins")) or "".split(","))
+            filter(None, ((kwargs.get("excluded_plugins")) or "").split(","))
         )
 
     def _parse_severity_filter(self, filter: str) -> set:

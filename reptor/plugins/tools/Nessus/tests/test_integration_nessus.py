@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import subprocess
@@ -10,6 +11,51 @@ from reptor.plugins.core.Conf.tests.conftest import notes_api, projects_api, rea
 
 @pytest.mark.integration
 class TestIntegrationNessus(object):
+
+    @pytest.mark.parametrize(
+        "input_file,expected_include,expected_exclude",
+        [("nessus_single_host", 1, 5), ("nessus_multi_host", 2, 10)],
+    )
+    def test_nessus_template_vars(self, input_file, expected_include, expected_exclude):
+        input_path = pathlib.Path(os.path.dirname(__file__)) / f"data/{input_file}.xml"
+
+        p = subprocess.Popen(
+            ["reptor", "nessus", "--template-vars", "--include", "11219,25216"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        output, _ = p.communicate(input=input_path.read_bytes())
+        assert p.returncode == 0
+        parsed = json.loads(output)
+        assert len(parsed) == expected_include
+
+        p = subprocess.Popen(
+            ["reptor", "nessus", "--template-vars", "--exclude", "11219,25216"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        output, _ = p.communicate(input=input_path.read_bytes())
+        assert p.returncode == 0
+        parsed = json.loads(output)
+        assert len(parsed) == expected_exclude
+
+    @pytest.mark.parametrize(
+        "input_file,expected_len",
+        [("nessus_single_host", 1), ("nessus_multi_host", 4)],
+    )
+    def test_nessus_parse(self, input_file, expected_len):
+        input_path = pathlib.Path(os.path.dirname(__file__)) / f"data/{input_file}.xml"
+
+        p = subprocess.Popen(
+            ["reptor", "nessus", "--parse"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+        output, _ = p.communicate(input=input_path.read_bytes())
+        assert p.returncode == 0
+        parsed = json.loads(output)
+        assert len(parsed) == expected_len
+
     def test_nessus_note(self, notes_api):
         input_path = (
             pathlib.Path(os.path.dirname(__file__)) / "data/nessus_single_host.xml"

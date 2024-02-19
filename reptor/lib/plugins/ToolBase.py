@@ -55,8 +55,6 @@ class ToolBase(Base):
         )
 
         self.input_format = kwargs.get("format")
-        self.template = kwargs.get("template", self.template)
-
         if self.template_paths:
             settings.TEMPLATES[0]["DIRS"] = self.template_paths
 
@@ -126,17 +124,6 @@ class ToolBase(Base):
         )
         cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
 
-        # Choose default template
-        if cls.templates:
-            if len(cls.templates) == 1:
-                cls.template = cls.templates[0]
-            elif len(cls.templates) > 1:
-                default_templates = [t for t in cls.templates if "default" in t]
-                try:
-                    cls.template = default_templates[0]
-                except IndexError:
-                    cls.template = cls.templates[0]
-
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
@@ -145,14 +132,7 @@ class ToolBase(Base):
 
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"
-        action_group.add_argument(
-            "--parse",
-            action="store_const",
-            dest="action",
-            const="parse",
-            default="format",
-        )
-        if cls.templates:
+        if cls.create_notes != ToolBase.create_notes:
             action_group.add_argument(
                 "--format",
                 action="store_const",
@@ -173,6 +153,21 @@ class ToolBase(Base):
                 "--push-findings",
                 action="store_true",
             )
+            action_group.add_argument(
+                "--template-vars",
+                "--template-variables",
+                action="store_const",
+                dest="action",
+                const="template-vars",
+                help="Print template variables (needed for finding template customization).",
+            )
+        action_group.add_argument(
+            "--parse",
+            action="store_const",
+            dest="action",
+            const="parse",
+            default="format",
+        )
 
         if any(
             [
@@ -245,10 +240,16 @@ class ToolBase(Base):
 
         if self.action == "parse":
             self.parse()
-            self.print(self.parsed_input)
+            if self.parsed_input is not None:
+                self.print(json.dumps(self.parsed_input, indent=2))
+        elif self.action == "template-vars":
+            self.parse()
+            if p := self.preprocess_for_template():
+                self.print(json.dumps(p, indent=2))
         elif self.action == "format":
             self.format()
-            self.print(self.formatted_input)
+            if self.formatted_input is not None:
+                self.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
 
@@ -297,10 +298,7 @@ class ToolBase(Base):
     def format(self):
         """Checks if `self.parsed_input` is set.
         If not it starts the parsing process.
-
         Once there is parsed data it is run through the Django Templating Engine.
-
-        The template is set via `self.template`.
         """
         if not self.parsed_input:
             self.parse()
@@ -311,11 +309,9 @@ class ToolBase(Base):
             self.note_templates = data
             self.formatted_input = self.format_note_template(data)
             return
-        elif data := self.preprocess_for_template():
-            self.formatted_input = render_to_string(f"{self.template}.md", data)
-            return
-
-        raise ValueError("No data returned. Nothing to do.")
+        self.log.warning(
+            f"`create_notes` didn't return data for {self.__class__.__name__.lower()} plugin."
+        )
 
     def format_note_template(self, note_templates: typing.List[NoteTemplate], level=1):
         formatted_input = ""
@@ -340,7 +336,7 @@ class ToolBase(Base):
     def create_notes(
         self,
     ) -> typing.Union[NoteTemplate, typing.List[NoteTemplate], None]:
-        pass
+        raise NotImplementedError("Create notes is not implemented for this plugin.")
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
