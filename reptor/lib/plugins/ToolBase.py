@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 
 import reptor.settings as settings
 from reptor.models.Finding import Finding
+from reptor.models.FindingTemplate import FindingTemplate
 from reptor.models.Note import NoteTemplate
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -39,7 +40,7 @@ class ToolBase(Base):
         super().__init__(**kwargs)
         self.conf = kwargs.get("conf")
         self.action = kwargs.get("action")
-        self.notetitle = self.notetitle or self.__class__.__name__.lower()
+        self.notetitle = self.notetitle or self.plugin_name
         self.push_findings = kwargs.get("push_findings")
         self.note_icon = "🛠️"
         self.raw_input = None
@@ -89,13 +90,11 @@ class ToolBase(Base):
 
     @classmethod
     def get_filenames_from_paths(
-        cls, dir_paths: typing.Union[typing.List[str], str], filetype: str
+        cls, dir_paths: typing.List[Path], filetype: str
     ) -> typing.List[str]:
         """
         takes a list of paths and returns a list of filenames without file extension
         """
-        if isinstance(dir_paths, str):
-            dir_paths = [dir_paths]
         filetype = f"*.{filetype.strip('.')}"
         # Get template names from paths
         files_from_plugin_dir = list()
@@ -122,7 +121,6 @@ class ToolBase(Base):
             settings.PLUGIN_TEMPLATES_DIR_NAME,
             skip_user_plugins=skip_user_plugins,
         )
-        cls.templates = cls.get_filenames_from_paths(cls.template_paths, "md")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -204,6 +202,15 @@ class ToolBase(Base):
                     const="csv",
                     default="raw",
                 )
+        if cls.get_filenames_from_paths(cls.finding_paths, "toml"):
+            # If finding templates exist
+            action_group.add_argument(
+                "--upload-finding-templates",
+                action="store_const",
+                dest="action",
+                const="upload-finding-templates",
+                help="Upload local finding templates to SysReptor",
+            )
 
     @classmethod
     def get_input_format_group(cls, parser):
@@ -252,6 +259,8 @@ class ToolBase(Base):
                 self.print(self.formatted_input)
         elif self.action == "upload":
             self.upload()
+        elif self.action == "upload-finding-templates":
+            self.upload_finding_templates()
 
     def load(self):
         """Puts the stdin into raw_input"""
@@ -310,7 +319,7 @@ class ToolBase(Base):
             self.formatted_input = self.format_note_template(data)
             return
         self.log.warning(
-            f"`create_notes` didn't return data for {self.__class__.__name__.lower()} plugin."
+            f"`create_notes` didn't return data for {self.plugin_name} plugin."
         )
 
     def format_note_template(self, note_templates: typing.List[NoteTemplate], level=1):
@@ -337,6 +346,34 @@ class ToolBase(Base):
         self,
     ) -> typing.Union[NoteTemplate, typing.List[NoteTemplate], None]:
         raise NotImplementedError("Create notes is not implemented for this plugin.")
+
+    def upload_finding_templates(self):
+        finding_template_names = self.get_filenames_from_paths(
+            self.finding_paths, "toml"
+        )
+        uploaded = 0
+        for name in finding_template_names:
+            if finding := self.get_local_finding_template(name):
+                template_tag = f"{self.plugin_name}:{name}"
+                remote_template = self.reptor.api.templates.get_templates_by_tag(
+                    template_tag
+                )
+                if remote_template:
+                    self.log.display(
+                        f"Finding template with tag {template_tag} already exists. Skipping."
+                    )
+                    continue
+                uploaded += 1
+                finding["is_main"] = True
+                finding = FindingTemplate(
+                    {"translations": [finding], "tags": ["reptor", template_tag]}
+                )
+                self.reptor.api.templates.upload_template(finding)
+                self.log.display(f'Uploaded finding template "{name}".')
+        if uploaded:
+            self.log.success(
+                f"Successfully uploaded {uploaded} finding template{'s'[:uploaded^1]}."
+            )
 
     def upload(self):
         """Uploads the `self.formatted_input` to sysreptor via the NotesAPI."""
@@ -414,37 +451,39 @@ class ToolBase(Base):
         """
         Returns first remote finding template with matching tag.
         """
-        for finding_template in self.reptor.api.templates.search(template_tag):
-            if template_tag in finding_template.tags:
-                # Take first matching template and fetch full data (search returns partial data only)
-                self.log.info(f"Found remote finding template for {template_tag}.")
-                finding_template = self.reptor.api.templates.get_template(
-                    finding_template.id
+        for finding_template in self.reptor.api.templates.get_templates_by_tag(
+            template_tag
+        ):
+            # Take first matching template and fetch full data (search returns partial data only)
+            self.log.info(f"Found remote finding template for {template_tag}.")
+            finding_template = self.reptor.api.templates.get_template(
+                finding_template.id
+            )
+
+            try:
+                translation = [
+                    t
+                    for t in finding_template.translations
+                    if t.language == self._project_language
+                ][0]
+            except IndexError:
+                translation = [t for t in finding_template.translations if t.is_main][0]
+                self.log.display(
+                    f"No translation found for {self._project_language}. Taking main translation {translation.language}."
                 )
 
-                try:
-                    translation = [
-                        t
-                        for t in finding_template.translations
-                        if t.language == self._project_language
-                    ][0]
-                except IndexError:
-                    translation = [
-                        t for t in finding_template.translations if t.is_main
-                    ][0]
-                    self.log.display(
-                        f"No translation found for {self._project_language}. Taking main translation {translation.language}."
-                    )
+            finding = Finding.from_translation(
+                translation,
+                project_design=self._project_design,
+                raise_on_unknown_fields=False,
+            )
+            finding.template = finding_template.id
 
-                finding = Finding.from_translation(
-                    translation, raise_on_unknown_fields=False
-                )
-                finding.template = finding_template.id
-                return finding
+            return finding
 
     def _get_finding_from_local_template(self, name: str) -> typing.Optional[Finding]:
         # Check if findings toml exists
-        finding_dict = self.get_local_finding_data(name)
+        finding_dict = self.get_local_finding_template(name)
         if not finding_dict:
             return None
 
@@ -489,7 +528,7 @@ class ToolBase(Base):
 
                 for finding_name in finding_names:
                     # Check if remote finding template exists
-                    template_tag = f"{self.__class__.__name__.lower()}:{finding_name}"
+                    template_tag = f"{self.plugin_name}:{finding_name}"
                     finding = self._get_finding_from_remote_template(template_tag)
 
                     # If not, check if local finding template exists
@@ -528,7 +567,7 @@ class ToolBase(Base):
                 self.findings.append(finding)
         return self.findings
 
-    def get_local_finding_data(self, name: str) -> typing.Optional[dict]:
+    def get_local_finding_template(self, name: str) -> typing.Optional[dict]:
         """Loads a finding template from the local findings directory.
 
         Args:

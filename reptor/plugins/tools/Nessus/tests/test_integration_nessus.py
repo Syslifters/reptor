@@ -6,11 +6,35 @@ import subprocess
 import pytest
 import yaml
 
-from reptor.plugins.core.Conf.tests.conftest import notes_api, projects_api, read_until
+from reptor.plugins.core.Conf.tests.conftest import (
+    notes_api,
+    projects_api,
+    read_until,
+    templates_api,
+)
 
 
 @pytest.mark.integration
 class TestIntegrationNessus(object):
+
+    def test_upload_finding_templates(self, templates_api):
+        # Delete existing finding templates
+        for tag in ["nessus:global", "nessus:22964"]:
+            templates = templates_api.get_templates_by_tag(tag)
+            for template in templates:
+                templates_api.delete_template(template.id)
+
+        # Upload finding templates
+        p = subprocess.Popen(
+            ["reptor", "nessus", "--upload-finding-templates"],
+            stderr=subprocess.PIPE,
+        )
+        _, output = p.communicate()
+        assert p.returncode == 0
+        output_lines = output.decode().splitlines()
+        assert output_lines[-1].startswith("Successfully uploaded ")
+        assert "Uploaded finding template \"global\"." in output_lines
+        assert "Uploaded finding template \"22964\"." in output_lines
 
     @pytest.mark.parametrize(
         "input_file,expected_include,expected_exclude",

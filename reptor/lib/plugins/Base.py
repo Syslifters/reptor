@@ -30,6 +30,7 @@ class Base:
     keys: typing.Dict = {}
 
     def __init__(self, **kwargs):
+        self.plugin_name = self.__class__.__name__.lower()
         self.reptor = kwargs.get("reptor", None)
         self.conf = kwargs.get("conf", False)
         if self.conf:
@@ -38,21 +39,19 @@ class Base:
         self.notetitle = kwargs.get("notetitle")
         self.file_path = kwargs.get("file", "")
 
-        plugin_name = self.__class__.__name__.lower()
         for k, v in self.plugin_config:
             if not hasattr(self, k):
                 self.__setattr__(k, v)
 
-        self._check_required_keys_are_set(plugin_name)
+        self._check_required_keys_are_set(self.plugin_name)
 
     @property
     def user_config(self) -> typing.List[UserConfig]:
         raise NotImplementedError("user_config not implemented for this plugin.")
 
     def configure(self):
-        plugin_name = self.__class__.__name__.lower()
         for c in self.user_config:
-            if current := self.reptor.get_config().get(c.name, plugin=plugin_name):
+            if current := self.reptor.get_config().get(c.name, plugin=self.plugin_name):
                 if c.redact_current_value:
                     current = "redacted"
                 elif isinstance(current, list):
@@ -76,7 +75,7 @@ class Base:
                 continue
             if isinstance(value, set):
                 value = list(value)
-            self.reptor.get_config().set(c.name, value, plugin=plugin_name)
+            self.reptor.get_config().set(c.name, value, plugin=self.plugin_name)
         self.reptor.get_config().store_config()
 
     @property
@@ -86,8 +85,7 @@ class Base:
         Returns:
             typing.Dict[str, typing.Any]: Plugin Configuration
         """
-        plugin_name = self.__class__.__name__.lower()
-        return self.reptor.get_config().items(plugin=plugin_name)
+        return self.reptor.get_config().items(plugin=self.plugin_name)
 
     def _check_required_keys_are_set(self, plugin_name: str = ""):
         """This method will check if the keys specified in the attribute keys

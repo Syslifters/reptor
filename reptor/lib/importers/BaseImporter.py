@@ -22,7 +22,7 @@ class BaseImporter(Base):
         self.reptor = kwargs.get("reptor", None)
         self.finding_language = kwargs.get("language", "en-US")
         self.tags = list(filter(None, (kwargs.get("tags") or "").split(",")))
-        self.tags.append(f"{self.__class__.__name__.lower()}:imported")
+        self.tags.append(f"{self.plugin_name}:imported")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):

@@ -1,6 +1,6 @@
 import json
 import os
-from pathlib import Path
+import pathlib
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -9,7 +9,7 @@ from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Finding import Finding, FindingRaw
 from reptor.models.Project import Project
 from reptor.models.ProjectDesign import ProjectDesign
-from reptor.settings import DEFAULT_PROJECT_DESIGN
+import reptor.settings as settings
 
 from ..ToolBase import ToolBase
 
@@ -37,24 +37,43 @@ class ExampleTool(ToolBase):
 
 class TestToolbase(TestCaseToolPlugin):
     templates_path = os.path.normpath(
-        Path(os.path.dirname(__file__)) / "../tests/data/templates"
+        pathlib.Path(os.path.dirname(__file__)) / "../tests/data/templates"
     )
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         ExampleTool.setup_class(
-            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
+            pathlib.Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.example_tool = ExampleTool(reptor=self.reptor)
         self.example_tool.input_format = "json"
         self.example_tool.raw_input = "{}"
 
         SQLTool.setup_class(
-            Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
+            pathlib.Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
         self.sql_tool = SQLTool(reptor=self.reptor)
         self.sql_tool.input_format = "json"
         self.sql_tool.raw_input = "{}"
+
+    def test_get_plugin_dir_paths(self):
+        # Mock user plugins
+        settings.PLUGIN_DIRS_USER = pathlib.Path("C:\\99\\Users\\user\\.sysreptor")
+        os.path.isdir = MagicMock(return_value=True)
+        paths = self.sql_tool.get_plugin_dir_paths(
+            pathlib.Path("C:\\11\\installation\\reptor\\plugins\\sql_tool"),
+            "findings",
+            skip_user_plugins=False,
+        )
+        # The order of the result must be preserved!!
+        #####
+        assert str(paths[0]) == "C:\\99\\Users\\user\\.sysreptor\\sql_tool\\findings"
+        assert (
+            str(paths[1]) == "C:\\11\\installation\\reptor\\plugins\\sql_tool\\findings"
+        )
+
+        #####
+        # The order of the result must be preserved!!
 
     def test_generate_and_push_findings(self):
         # Patch API query
@@ -125,7 +144,7 @@ class TestToolbase(TestCaseToolPlugin):
         assert ToolBase._get_finding_methods() == []
 
     def test_load_local_finding_template(self):
-        finding = self.example_tool.get_local_finding_data("idor")
+        finding = self.example_tool.get_local_finding_template("idor")
         assert finding["data"]["title"] == "IDOR"
         assert (
             finding["data"]["description"]
@@ -150,11 +169,13 @@ class TestToolbase(TestCaseToolPlugin):
         assert finding["data"]["severity"] == "high"
 
         # Assert loading with file ext works
-        finding_1 = self.example_tool.get_local_finding_data("idor.toml")
+        finding_1 = self.example_tool.get_local_finding_template("idor.toml")
         assert finding == finding_1
 
         # Invalid finding
-        invalid_finding = self.example_tool.get_local_finding_data("invalid_finding")
+        invalid_finding = self.example_tool.get_local_finding_template(
+            "invalid_finding"
+        )
         assert invalid_finding is None
 
     def test_generate_findings_with_custom_fields(self):
@@ -190,7 +211,9 @@ class TestToolbase(TestCaseToolPlugin):
     def test_generate_findings_with_predefined_fields(self):
         # Patch API query
         self.reptor.api.templates.search = Mock(return_value=[])
-        self.example_tool._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
+        self.example_tool._project_design = ProjectDesign(
+            settings.DEFAULT_PROJECT_DESIGN
+        )
 
         self.example_tool.generate_findings()
         assert len(self.example_tool.findings) == 1
