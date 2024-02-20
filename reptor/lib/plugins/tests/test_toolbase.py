@@ -67,9 +67,11 @@ class TestToolbase(TestCaseToolPlugin):
         )
         # The order of the result must be preserved!!
         #####
-        assert str(paths[0]) == "C:\\99\\Users\\user\\.sysreptor\\sql_tool\\findings"
-        assert (
-            str(paths[1]) == "C:\\11\\installation\\reptor\\plugins\\sql_tool\\findings"
+        assert os.path.normpath(str(paths[0])) == os.path.normpath(
+            "C:\\99\\Users\\user\\.sysreptor\\sql_tool\\findings"
+        )
+        assert os.path.normpath(str(paths[1])) == os.path.normpath(
+            "C:\\11\\installation\\reptor\\plugins\\sql_tool\\findings"
         )
 
         #####
