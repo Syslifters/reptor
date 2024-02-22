@@ -116,6 +116,8 @@ class Nmap(ToolBase):
                             "version": port.get("service", {}).get("@product"),
                         }
                     )
+            # Sort by IP
+            self.parsed_input = sorted(self.parsed_input, key=lambda x: x["ip"])
 
     def parse(self):
         super().parse()

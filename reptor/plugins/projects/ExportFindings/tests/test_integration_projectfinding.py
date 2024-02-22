@@ -10,7 +10,7 @@ from reptor.plugins.core.Conf.tests.conftest import projects_api, get_note
 class TestIntegrationProjectFinding(object):
     def test_render_project(self, projects_api):
         p = subprocess.Popen(
-            ["reptor", "projectfindings", "--format", "json"],
+            ["reptor", "exportfindings", "--format", "json"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -19,7 +19,7 @@ class TestIntegrationProjectFinding(object):
         json.loads(out)
 
         p = subprocess.Popen(
-            ["reptor", "projectfindings", "--format", "json", "--upload"],
+            ["reptor", "exportfindings", "--format", "json", "--upload"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
