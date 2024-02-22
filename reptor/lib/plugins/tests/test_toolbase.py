@@ -294,8 +294,8 @@ class TestToolbase(TestCaseToolPlugin):
                 "AV:N/AC:M/Au:M/C:P/I:C/A:N/E:F/RL:ND/RC:C/CDP:ND/TD:H/CR:H/IR:M/AR:ND",
                 "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
             ),
-            ("CVSS3", "CVSS3"),
-            ("CVSS4", "CVSS4"),
+            ("CVSS:3", "CVSS:3"),
+            ("CVSS:4", "CVSS:4"),
         ],
     )
     def test_cvss2_to_3(self, cvss2, expected):

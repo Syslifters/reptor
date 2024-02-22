@@ -64,7 +64,7 @@ class OpenVAS(ToolBase):
         self.severity_filter = getattr(
             self, "severity_filter", None
         ) or self._parse_severity_filter(kwargs.get("severity_filter", "low-critical"))
-        self.min_qod = getattr(self, "min_qod") or kwargs.get("min_qod", 0)
+        self.min_qod = getattr(self, "min_qod", None) or kwargs.get("min_qod", 0)
 
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(

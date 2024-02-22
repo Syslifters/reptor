@@ -51,7 +51,7 @@ class Nessus(ToolBase):
         self.timestamp = False
         self.severity_filter = getattr(
             self, "severity_filter", None
-        ) or self._parse_severity_filter(kwargs.get("severity_filter", "low-critical"))
+        ) or self._parse_severity_filter(kwargs.get("severity_filter", "info-critical"))
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(
             filter(None, ((kwargs.get("included_plugins")) or "").split(","))
