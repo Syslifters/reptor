@@ -85,16 +85,14 @@ subcommands:
   
   Projects & Templates:
    createproject         Create a new pentest project
-   project               Work with projects
-   projectfindings       Export your project findings as a summary or checklist
-   template              Queries Finding Templates from SysReptor
-   translate             Translate Projects to other languages via Deepl
-  
-  Uploads:
+   exportfindings        Export your project findings as a summary or checklist
    file                  Uploads a file
    finding               Uploads findings from JSON or TOML
    note                  Uploads and lists notes
+   project               Work with projects
    pushproject           Push data to project from JSON or TOML
+   template              Queries Finding Templates from SysReptor
+   translate             Translate Projects to other languages via Deepl
   
   Tools:
    nessus                Nessus vulnerability importer
