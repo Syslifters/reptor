@@ -10,13 +10,13 @@ import yaml
 from reptor.lib.plugins.Base import Base
 
 
-class ProjectFindings(Base):
+class ExportFindings(Base):
     """
     Export your project findings as a summary or checklist.
     """
 
     meta = {
-        "name": "ProjectFindings",
+        "name": "ExportFindings",
         "summary": "Export your project findings as a summary or checklist",
     }
 
@@ -129,4 +129,4 @@ class ProjectFindings(Base):
         self._findings_summary(self.format, filename=self.output, upload=self.upload)
 
 
-loader = ProjectFindings
+loader = ExportFindings
