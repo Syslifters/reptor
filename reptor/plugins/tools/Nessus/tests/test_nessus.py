@@ -47,60 +47,6 @@ class TestNessus(TestCaseToolPlugin):
         assert len(p[0]["findings"]) == 5
         assert len(p[1]["findings"]) == 1
 
-    @pytest.mark.parametrize(
-        "cvss2, expected",
-        [
-            ("CVSS2#AV:P", "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"),
-            (
-                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/XX:X",
-                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:J",
-                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "CVSS2#AV:N/AC:M/Au:X/C:P/I:C/A:J",
-                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "AV:N/AC:L/Au:N/C:N/I:N/A:N",
-                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",
-            ),
-            (
-                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N",
-                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "AV:N/AC:M/Au:S/C:P/I:C/A:N",
-                "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "AV:N/AC:L/Au:N/C:C/I:C/A:C",
-                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-            ),
-            (
-                "CVSS2#AV:N/AC:L/Au:N/C:P/I:N/A:N",
-                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
-            ),
-            (
-                "AV:N/AC:M/Au:M/C:P/I:C/A:N/E:F/RL:TF/RC:C",
-                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "AV:N/AC:H/Au:M/C:P/I:C/A:N/E:F/RL:TF/RC:C/CDP:MH/TD:L/CR:H/IR:M/AR:L",
-                "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-            (
-                "AV:N/AC:M/Au:M/C:P/I:C/A:N/E:F/RL:ND/RC:C/CDP:ND/TD:H/CR:H/IR:M/AR:ND",
-                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
-            ),
-        ],
-    )
-    def test_cvss2_to_3(self, cvss2, expected):
-        cvss3 = self.nessus._cvss2_to_3(cvss2)
-        assert cvss3 == expected
-
     def test_generate_findings(self):
         self._load_xml_data("nessus_multi_host")
         self.nessus.load = MagicMock(return_value=self.nessus.raw_input.encode())

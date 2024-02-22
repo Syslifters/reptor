@@ -245,3 +245,59 @@ class TestToolbase(TestCaseToolPlugin):
         assert idor_finding.data.retest_notes.value == "My restest notes"
         assert idor_finding.data.retest_status.value == "open"
         assert idor_finding.data.severity.value == "high"
+
+    @pytest.mark.parametrize(
+        "cvss2, expected",
+        [
+            ("CVSS2#AV:P", "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"),
+            (
+                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/XX:X",
+                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:J",
+                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "CVSS2#AV:N/AC:M/Au:X/C:P/I:C/A:J",
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "AV:N/AC:L/Au:N/C:N/I:N/A:N",
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",
+            ),
+            (
+                "CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N",
+                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "AV:N/AC:M/Au:S/C:P/I:C/A:N",
+                "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "AV:N/AC:L/Au:N/C:C/I:C/A:C",
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            ),
+            (
+                "CVSS2#AV:N/AC:L/Au:N/C:P/I:N/A:N",
+                "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+            ),
+            (
+                "AV:N/AC:M/Au:M/C:P/I:C/A:N/E:F/RL:TF/RC:C",
+                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "AV:N/AC:H/Au:M/C:P/I:C/A:N/E:F/RL:TF/RC:C/CDP:MH/TD:L/CR:H/IR:M/AR:L",
+                "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            (
+                "AV:N/AC:M/Au:M/C:P/I:C/A:N/E:F/RL:ND/RC:C/CDP:ND/TD:H/CR:H/IR:M/AR:ND",
+                "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:H/A:N",
+            ),
+            ("CVSS3", "CVSS3"),
+            ("CVSS4", "CVSS4"),
+        ],
+    )
+    def test_cvss2_to_3(self, cvss2, expected):
+        cvss3 = self.example_tool.cvss2_to_3(cvss2)
+        assert cvss3 == expected

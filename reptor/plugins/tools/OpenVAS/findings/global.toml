@@ -1,0 +1,8 @@
+[data]
+title = "<!--{{ name }}-->"
+cvss = "<!--{{ cvss_vector }}-->"
+summary = "<!--{{ summary }}-->"
+description = """
+<!-- This is a finding from OID <!--{{ oid }}--> -->
+<!--{{ impact }}-->"""
+recommendation = "<!--{{ solution }}-->"

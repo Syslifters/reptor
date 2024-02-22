@@ -16,13 +16,13 @@
 
 **Description**
 
-<!--{% autoescape off %}--><!--{{desc}}--><!--{% endautoescape %}-->
+<!--{{desc}}-->
 
 **Solution**
 
-<!--{% autoescape off %}--><!--{{solution}}--><!--{% endautoescape %}-->
+<!--{{solution}}-->
 
 <!--{% if reference %}-->**References**
 
-<!--{% autoescape off %}--><!--{{reference}}--><!--{% endautoescape %}-->
+<!--{{reference}}-->
 <!--{% endif %}-->
