@@ -39,6 +39,7 @@ subcommands:
   Tools:
    nessus                Nessus vulnerability importer
    nmap                  format nmap output
+   openvas               OpenVAS vulnerability importer
    sslyze                format sslyze JSON output
    zap                   Parses ZAP reports (JSON, XML)
   
