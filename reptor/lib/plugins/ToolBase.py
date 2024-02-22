@@ -520,8 +520,10 @@ class ToolBase(Base):
 
             for finding_context in finding_contexts:
                 finding_names = list()
-                if t := finding_context.get("finding_template"):
-                    finding_names.append(t)
+                if t := finding_context.get("finding_templates"):
+                    if not isinstance(t, list):
+                        t = [t]
+                    finding_names.extend(t)
                 t = method.__name__[len(self.FINDING_PREFIX) :]
                 if t not in finding_names:
                     finding_names.append(t)
@@ -539,7 +541,7 @@ class ToolBase(Base):
                 if not finding:
                     continue
 
-                django_context = Context(finding_context)
+                django_context = Context(finding_context, autoescape=False)
                 for finding_data in finding.data:
                     # Iterate over all finding fields
                     if finding_data.value:
@@ -601,3 +603,36 @@ class ToolBase(Base):
                 self.debug(f"No finding template found at {finding_template_path}.")
                 continue
         return None
+
+    @staticmethod
+    def cvss2_to_3(cvss2: str) -> str:
+        if cvss2.startswith("CVSS:3") or cvss2.startswith("CVSS:4"):
+            return cvss2
+
+        cvss2 = cvss2.replace("CVSS2#", "")
+        cvss2_metrics = {
+            k: v for k, v in (item.split(":") for item in cvss2.split("/"))
+        }
+        cvss3 = dict()
+        # base
+        cvss3["AV"] = cvss2_metrics.get("AV", "N")
+        cvss3["AV"] = cvss3["AV"] if cvss3["AV"] in ["L", "A", "P", "N"] else "N"
+        cvss3["AC"] = cvss2_metrics.get("AC", "L")
+        cvss3["AC"] = cvss3["AC"] if cvss3["AC"] in ["H", "L"] else "L"
+        auth_mapping = {
+            "M": "H",
+            "S": "L",
+            "N": "N",
+        }
+        cvss3["PR"] = auth_mapping.get(cvss2_metrics.get("Au", "N"), "N")
+        cvss3["UI"] = "N"
+        cvss3["S"] = "U"
+        impact_mapping = {
+            "C": "H",
+            "P": "L",
+            "N": "N",
+        }
+        cvss3["C"] = impact_mapping.get(cvss2_metrics.get("C", "N"), "N")
+        cvss3["I"] = impact_mapping.get(cvss2_metrics.get("I", "N"), "N")
+        cvss3["A"] = impact_mapping.get(cvss2_metrics.get("A", "N"), "N")
+        return f"CVSS:3.1/{'/'.join([f'{k}:{v}' for k, v in cvss3.items()])}"

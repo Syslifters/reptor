@@ -49,9 +49,9 @@ class Nessus(ToolBase):
         self.note_icon = "🛡️"
         self.input_format = "xml"
         self.timestamp = False
-        self.severity_filter = self._parse_severity_filter(
-            kwargs.get("severity_filter", "")
-        )
+        self.severity_filter = getattr(
+            self, "severity_filter", None
+        ) or self._parse_severity_filter(kwargs.get("severity_filter", "low-critical"))
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(
             filter(None, ((kwargs.get("included_plugins")) or "").split(","))
@@ -252,46 +252,16 @@ class Nessus(ToolBase):
                 )
             finding["affected_components"] = sorted(set(affected_components))
             if cvss := finding.get("cvss_vector"):
-                if not cvss.startswith("CVSS:3") and not cvss.startswith("CVSS:4"):
-                    finding["cvss_vector"] = self._cvss2_to_3(cvss)
+                finding["cvss_vector"] = self.cvss2_to_3(cvss)
 
             finding["risk_factor"] = finding.get("risk_factor", "").lower()
             if finding["risk_factor"] not in self.risk_mapping:
                 finding["risk_factor"] = "info"
             finding["severity_figure"] = finding["severity"]
             finding["severity"] = finding["risk_factor"]  # Provide for enum
-            finding["finding_template"] = finding["pluginID"]
+            finding["finding_templates"] = finding["pluginID"]
 
         return list(findings.values())
-
-    def _cvss2_to_3(self, cvss2: str) -> str:
-        cvss2 = cvss2.replace("CVSS2#", "")
-        cvss2_metrics = {
-            k: v for k, v in (item.split(":") for item in cvss2.split("/"))
-        }
-        cvss3 = dict()
-        # base
-        cvss3["AV"] = cvss2_metrics.get("AV", "N")
-        cvss3["AV"] = cvss3["AV"] if cvss3["AV"] in ["L", "A", "P", "N"] else "N"
-        cvss3["AC"] = cvss2_metrics.get("AC", "L")
-        cvss3["AC"] = cvss3["AC"] if cvss3["AC"] in ["H", "L"] else "L"
-        auth_mapping = {
-            "M": "H",
-            "S": "L",
-            "N": "N",
-        }
-        cvss3["PR"] = auth_mapping.get(cvss2_metrics.get("Au", "N"), "N")
-        cvss3["UI"] = "N"
-        cvss3["S"] = "U"
-        impact_mapping = {
-            "C": "H",
-            "P": "L",
-            "N": "N",
-        }
-        cvss3["C"] = impact_mapping.get(cvss2_metrics.get("C", "N"), "N")
-        cvss3["I"] = impact_mapping.get(cvss2_metrics.get("I", "N"), "N")
-        cvss3["A"] = impact_mapping.get(cvss2_metrics.get("A", "N"), "N")
-        return f"CVSS:3.1/{'/'.join([f'{k}:{v}' for k, v in cvss3.items()])}"
 
     def finding_global(self):
         return self.preprocess_for_template()
