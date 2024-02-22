@@ -104,11 +104,12 @@ class Translate(Base):
         self.to_lang = kwargs["to"]
         self.dry_run = kwargs.get("dry_run")
         self.chars_count_to_translate = 0
-        try:
-            self.skip_fields = kwargs.get("skip_fields", "").split(",") or getattr(
-                self, "skip_fields"
-            )
-        except AttributeError:
+        self.skip_fields = kwargs.get("skip_fields", None) or getattr(
+            self, "skip_fields", None
+        )
+        if self.skip_fields:
+            self.skip_fields = self.skip_fields.split(",")
+        else:
             self.skip_fields = list()
         try:
             self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
