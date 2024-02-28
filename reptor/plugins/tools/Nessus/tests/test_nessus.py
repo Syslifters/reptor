@@ -92,6 +92,12 @@ class TestNessus(TestCaseToolPlugin):
         assert all(isinstance(f.get("affected_components"), list) for f in p)
         assert p[0]["affected_components"] == ["10.15.10.11:443 (cifs)"]
 
+        syn_finding = [f for f in p if f["pluginID"] == "11219"][0]
+        affected_ips = set(
+            [f.split(":")[0] for f in syn_finding["affected_components"]]
+        )
+        assert len(affected_ips) == 2
+
     def test_aggregate_findings(self):
         self._load_xml_data("nessus_multi_host")
         self.nessus.parse()

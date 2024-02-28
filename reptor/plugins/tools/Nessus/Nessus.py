@@ -244,8 +244,8 @@ class Nessus(ToolBase):
 
     def preprocess_for_template(self) -> list:
         findings = self.aggregate_findings()
+        affected_components = list()
         for finding in findings.values():
-            affected_components = list()
             for i in range(0, len(finding["port"])):
                 affected_components.append(
                     f"{finding['target']}{':' + finding['port'][i] if finding['port'][i] != '0' else ''}{' (' + finding['svc_name'][i] + ')' if finding['svc_name'][i] != 'general' else ''}"
