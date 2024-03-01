@@ -78,44 +78,40 @@ class DefectDojo(BaseImporter):
             return []
         return text.splitlines()
 
-    def _get_defectdojo_findings(self):
+    def _get_defectdojo_findings(self, url=None):
         # Include the Authorization Token that it may be used
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Token {self.apikey}",
         }
         return requests.get(
-            f"{self.defectdojo_url}/api/v2/findings/?active=true&false_p=false&is_mitigated=false",
+            url
+            or f"{self.defectdojo_url}/api/v2/findings/?active=true&false_p=false&is_mitigated=false",
             headers=headers,
             timeout=60,
-            insecure=self.insecure,
+            verify=not self.reptor.get_config().get("insecure", False),
         ).json()
 
     def next_findings_batch(self):
         self.debug("Running batch findings")
 
         next = None
-        while next is not None:
-            response = self._get_defectdojo_findings()
-            next = response.get(
-                "next", ""
-            )  # If next not present, empty to break out of loop
-            findings = response.json().get("results", [])
+        while True:
+            response = self._get_defectdojo_findings(next)
+            findings = response.get("results", [])
             for finding_data in findings:
                 finding_data["references"] = self.strip_references(
                     finding_data.get("references")
                 )
                 finding_data["severity"] = (finding_data.get("severity") or "").lower()
                 yield {
-                    "translations": [
-                        {
-                            "language": "en-US",
-                            "is_main": True,
-                            "status": "in-progress",
-                            "data": finding_data,
-                        }
-                    ]
+                    "language": "en-US",
+                    "is_main": True,
+                    "status": "in-progress",
+                    "data": finding_data,
                 }
+            if not (next := response.get("next")):
+                break
 
 
 loader = DefectDojo
