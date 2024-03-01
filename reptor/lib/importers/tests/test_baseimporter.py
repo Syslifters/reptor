@@ -30,7 +30,7 @@ class TestBaseImporter:
     def test_create_and_upload(self):
         class Api:
             class Templates:
-                def upload_new_template(self, template, **kwargs):
+                def upload_template(self, template, **kwargs):
                     assert template == finding
                     return FindingTemplate(finding_example)
 
