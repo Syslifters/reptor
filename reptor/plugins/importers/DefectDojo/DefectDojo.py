@@ -19,12 +19,12 @@ class DefectDojo(BaseImporter):
         "summary": "Imports DefectDojo finding templates",
     }
 
-    # TO DO
+    # TODO
     mapping = {
         "title": "title",
         "cvssv3_score": "cvss",
         "description": "summary",
-        "severity": "impact",
+        "severity": "severity",
         "mitigation": "recommendation",
         "references": "references",
     }
@@ -105,6 +105,7 @@ class DefectDojo(BaseImporter):
                 finding_data["references"] = self.strip_references(
                     finding_data.get("references")
                 )
+                finding_data["severity"] = (finding_data.get("severity") or "").lower()
                 yield {
                     "translations": [
                         {
