@@ -1,3 +1,5 @@
+import ssl
+
 from django.utils.html import strip_tags
 
 from reptor.lib.importers.BaseImporter import BaseImporter
@@ -62,7 +64,6 @@ class GhostWriter(BaseImporter):
             raise ValueError(
                 "Ghostwriter API Key is required. Add to your user config."
             )
-        self.insecure = kwargs.get("insecure", False)
 
     @property
     def user_config(self):
@@ -145,8 +146,12 @@ class GhostWriter(BaseImporter):
             # Probably hasura admin secret
             headers["x-hasura-admin-secret"] = self.apikey
 
+        ctx = ssl.create_default_context()
+        if self.reptor.get_config().get("insecure", False):
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
         transport = AIOHTTPTransport(
-            url=f"{self.ghostwriter_url}/v1/graphql", headers=headers
+            url=f"{self.ghostwriter_url}/v1/graphql", headers=headers, ssl=ctx
         )
 
         client = Client(transport=transport, fetch_schema_from_transport=False)

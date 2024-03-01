@@ -1,4 +1,5 @@
-from reptor.api.APIClient import APIClient
+import requests
+
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.models.UserConfig import UserConfig
 
@@ -44,7 +45,6 @@ class DefectDojo(BaseImporter):
                 raise ValueError("DefectDojo URL is required.")
         if not hasattr(self, "apikey"):
             raise ValueError("DefectDojo API Key is required. Add to your user config.")
-        self.insecure = kwargs.get("insecure", False)
 
     @property
     def user_config(self):
@@ -84,11 +84,11 @@ class DefectDojo(BaseImporter):
             "Content-Type": "application/json",
             "Authorization": f"Token {self.apikey}",
         }
-        api = APIClient(reptor=self.reptor, require_project_id=False)
-        return api.get(
+        return requests.get(
             f"{self.defectdojo_url}/api/v2/findings/?active=true&false_p=false&is_mitigated=false",
             headers=headers,
             timeout=60,
+            insecure=self.insecure,
         ).json()
 
     def next_findings_batch(self):
