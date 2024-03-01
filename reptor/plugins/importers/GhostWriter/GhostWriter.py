@@ -166,14 +166,10 @@ class GhostWriter(BaseImporter):
         findings = self._get_ghostwriter_findings()
         for finding_data in findings:
             yield {
-                "translations": [
-                    {
-                        "language": "en-US",
-                        "is_main": True,
-                        "status": "in-progress",
-                        "data": finding_data,
-                    }
-                ]
+                "language": "en-US",
+                "is_main": True,
+                "status": "in-progress",
+                "data": finding_data,
             }
 
 
