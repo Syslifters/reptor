@@ -1,9 +1,7 @@
-from django.utils.html import strip_tags
-
+from reptor.api.APIClient import APIClient
 from reptor.lib.importers.BaseImporter import BaseImporter
 from reptor.models.UserConfig import UserConfig
 
-import requests
 
 class DefectDojo(BaseImporter):
     """
@@ -21,7 +19,7 @@ class DefectDojo(BaseImporter):
         "summary": "Imports DefectDojo finding templates",
     }
 
-    #TO DO
+    # TO DO
     mapping = {
         "title": "title",
         "cvssv3_score": "cvss",
@@ -45,9 +43,7 @@ class DefectDojo(BaseImporter):
             except AttributeError:
                 raise ValueError("DefectDojo URL is required.")
         if not hasattr(self, "apikey"):
-            raise ValueError(
-                "DefectDojo API Key is required. Add to your user config."
-            )
+            raise ValueError("DefectDojo API Key is required. Add to your user config.")
         self.insecure = kwargs.get("insecure", False)
 
     @property
@@ -83,36 +79,42 @@ class DefectDojo(BaseImporter):
         return text.splitlines()
 
     def _get_defectdojo_findings(self):
-
         # Include the Authorization Token that it may be used
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Token {self.apikey}",
         }
-
-        try:
-            response = requests.get(f"{self.defectdojo_url}/api/v2/findings/?active=true&false_p=false&is_mitigated=false", headers=headers, timeout=60)
-            result = response.json().get("results", [])
-        except requests.exceptions.HTTPError as err:
-            raise SystemExit(err)
-        except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
-        finally:
-            for r in result:
-                r["references"] = self.strip_references(r["references"])
-        return result
+        api = APIClient(reptor=self.reptor, require_project_id=False)
+        return api.get(
+            f"{self.defectdojo_url}/api/v2/findings/?active=true&false_p=false&is_mitigated=false",
+            headers=headers,
+            timeout=60,
+        ).json()
 
     def next_findings_batch(self):
         self.debug("Running batch findings")
 
-        findings = self._get_defectdojo_findings()
-        for finding_data in findings:
-            yield {
-                "language": "en-US",
-                "is_main": True,
-                "status": "in-progress",
-                "data": finding_data,
-            }
+        next = None
+        while next is not None:
+            response = self._get_defectdojo_findings()
+            next = response.get(
+                "next", ""
+            )  # If next not present, empty to break out of loop
+            findings = response.json().get("results", [])
+            for finding_data in findings:
+                finding_data["references"] = self.strip_references(
+                    finding_data.get("references")
+                )
+                yield {
+                    "translations": [
+                        {
+                            "language": "en-US",
+                            "is_main": True,
+                            "status": "in-progress",
+                            "data": finding_data,
+                        }
+                    ]
+                }
 
 
 loader = DefectDojo

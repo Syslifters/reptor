@@ -44,10 +44,7 @@ classifiers = [
 [project.optional-dependencies]
 translate = ['deepl >= 1.15.0']
 ghostwriter = ['gql[aiohttp] >= 3.4.1',]
-dev = [
-  'pytest >= 7.4.0',
-  'requests-mock >= 1.11.0',
-]
+dev = ['pytest >= 7.4.0',]
 all = ['reptor[translate,ghostwriter,dev]']
 
 [project.scripts]

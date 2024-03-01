@@ -54,7 +54,9 @@ class TemplatesAPI(APIClient):
                 matched_templates.append(finding_template)
         return matched_templates
 
-    def upload_template(self, template: FindingTemplate) -> FindingTemplate:
+    def upload_template(
+        self, template: FindingTemplate
+    ) -> typing.Optional[FindingTemplate]:
         """Uploads a new Finding Template to API
 
         Args:
@@ -63,21 +65,17 @@ class TemplatesAPI(APIClient):
         Returns:
             FindingTemplate: Updated Model with ID etc.
         """
-        create_template = True
-        response_templates = self.get(self.base_endpoint)
-        #print(response_templates.json()["results"])
-        for t in response_templates.json()["results"]:
-            if t["translations"][0]["data"]["title"] == template.translations[0].data.title:
-                create_template = False
-                break
-        if create_template:
-            res = self.post(
-                self.base_endpoint,
-                json=template.to_dict(),
-            )
-            return FindingTemplate(res.json())
-        else:
+        existing_templates = self.search(template.translations[0].data.title)
+        if any([t.translations[0].data.title == template.translations[0].data.title for t in existing_templates]):
+            self.display(f"Template with title {template.translations[0].data.title} exists. Skipping.")
             return None
+        
+        res = self.post(
+            self.base_endpoint,
+            json=template.to_dict(),
+        )
+        return FindingTemplate(res.json())
+
 
     def delete_template(self, template_id: str) -> None:
         """Deletes a Template by ID"""
