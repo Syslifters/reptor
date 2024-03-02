@@ -78,7 +78,10 @@ class BaseImporter(Base):
                 elif isinstance(converted_data, dict):
                     mapped_data.update(converted_data)
                 else:
-                    mapped_data[value] += converted_data
+                    if mapped_data[value]:
+                        mapped_data[value] += converted_data if converted_data != None else 0
+                    else:
+                        mapped_data[value] = converted_data
 
             translation["data"] = mapped_data
             translations.append(translation)
@@ -87,14 +90,11 @@ class BaseImporter(Base):
         return new_finding
 
     def _upload_finding_template(self, new_finding: FindingTemplate):
-        updated_template = self.reptor.api.templates.upload_new_template(new_finding)
+        updated_template = self.reptor.api.templates.upload_template(new_finding)
         if updated_template:
             self.success(f'Successfully uploaded "{updated_template.id}"')
         else:
-            self.error("Cancel? [Y/n]")
-            abort_answer = input()[:1].lower()
-            if abort_answer != "n":
-                raise AssertionError("Cancelling")
+            self.warning(f"Could not upload template {new_finding.translations[0].data.title}: The template already exists or it could not be created.")
 
     def run(self):
         try:

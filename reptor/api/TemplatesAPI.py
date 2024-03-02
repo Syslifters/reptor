@@ -63,11 +63,21 @@ class TemplatesAPI(APIClient):
         Returns:
             FindingTemplate: Updated Model with ID etc.
         """
-        res = self.post(
-            self.base_endpoint,
-            json=template.to_dict(),
-        )
-        return FindingTemplate(res.json())
+        create_template = True
+        response_templates = self.get(self.base_endpoint)
+        #print(response_templates.json()["results"])
+        for t in response_templates.json()["results"]:
+            if t["translations"][0]["data"]["title"] == template.translations[0].data.title:
+                create_template = False
+                break
+        if create_template:
+            res = self.post(
+                self.base_endpoint,
+                json=template.to_dict(),
+            )
+            return FindingTemplate(res.json())
+        else:
+            return None
 
     def delete_template(self, template_id: str) -> None:
         """Deletes a Template by ID"""
