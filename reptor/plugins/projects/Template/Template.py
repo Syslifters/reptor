@@ -158,7 +158,7 @@ class Template(Base):
     ) -> typing.Iterator[FindingTemplate]:
         if content is None:
             # Read finding from stdin
-            self.info("Reading from stdin...")
+            self.display("Reading from stdin...")
             content = sys.stdin.read()
 
         loaded_content: typing.Union[None, dict, list] = None
