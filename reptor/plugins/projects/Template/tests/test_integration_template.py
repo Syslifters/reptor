@@ -35,7 +35,7 @@ class TestIntegrationTemplate(object):
         _, output = p.communicate(input=input_path.read_bytes())
         assert p.returncode == 0
         output_lines = output.decode().splitlines()
-        new_ids = [o.split()[-1] for o in output_lines[0:-1]]
+        new_ids = [o.split()[-1] for o in output_lines[0:-1] if "Uploaded" in o]
         for new_id in new_ids:
             templates_api.delete_template(new_id)
         assert "Successfully uploaded" in output_lines[-1]
