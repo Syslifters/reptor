@@ -38,7 +38,7 @@ You can use the following filter to export all findings.
 apply_overrides=0 min_qod=0 first=1 sort-reverse=severity rows=1000
 ```
 
-If you want to export more than 1.000 rows, set (`ignore_pagination="1"`)[https://forum.greenbone.net/t/export-all-scan-results-from-a-single-report-or-multiple-when-then-are-more-than-1000-results/12383/8]{ target=_blank }. 
+If you want to export (more than 1.000) rows, set [`ignore_pagination="1"`](https://forum.greenbone.net/t/export-all-scan-results-from-a-single-report-or-multiple-when-then-are-more-than-1000-results/12383/8){ target=_blank }. 
 One way to do this is to run the following commands as an **unprivileged user**.
 
 ```bash title="Export findings as XML"
