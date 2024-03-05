@@ -10,14 +10,22 @@ import yaml
 from reptor.plugins.core.Conf.tests.conftest import templates_api
 
 
-@pytest.mark.integration
-@pytest.mark.parametrize(
-    "input_file",
-    ["template_1.json", "template_2.json", "template_1.toml", "template_2.toml"],
-)
 class TestIntegrationTemplate(object):
-
+    @pytest.mark.integration
+    @pytest.mark.parametrize(
+        "input_file",
+        ["template_1.json", "template_2.json", "template_1.toml", "template_2.toml"],
+    )
     def test_upload_finding_template(self, input_file, templates_api):
+        # Delete the templates if already exist
+        for title in [
+            "SQL Injection (SQLi)",
+            "Session management weaknesses",
+            "My Title",
+        ]:
+            for id in set([t.id for t in templates_api.search(title)]):
+                templates_api.delete_template(id)
+
         input_path = pathlib.Path(os.path.dirname(__file__)) / f"data/{input_file}"
         p = subprocess.Popen(
             ["reptor", "template", "--upload"],
@@ -32,7 +40,7 @@ class TestIntegrationTemplate(object):
             templates_api.delete_template(new_id)
         assert "Successfully uploaded" in output_lines[-1]
 
-    def atest_template_export_archive(self):
+    def test_template_export_archive(self):
         p = subprocess.Popen(
             ["reptor", "template", "--search", "XE", "--export", "json"],
             stdout=subprocess.PIPE,
@@ -61,7 +69,16 @@ class TestIntegrationTemplate(object):
             assert all(f"{id}.json" in list(tar.getnames()) for id in ids)
             assert len(tar.getmembers()) == len(ids)
 
-    def atest_template_export(self):
+    def test_template_export(self):
+        input_path = pathlib.Path(os.path.dirname(__file__)) / f"data/template_1.json"
+        p = subprocess.Popen(
+            ["reptor", "template", "--upload"],
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+        )
+        _, output = p.communicate(input=input_path.read_bytes())
+        assert p.returncode == 0
+
         p = subprocess.Popen(
             ["reptor", "template", "--list", "--export", "json"],
             stdout=subprocess.PIPE,

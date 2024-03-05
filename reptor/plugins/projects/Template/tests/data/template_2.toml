@@ -8,5 +8,5 @@ language = "en-US"
 status = "finished"
 
 [translations.data]
-title = "My title"
+title = "My Title"
 description = "My description"
