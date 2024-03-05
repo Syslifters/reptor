@@ -66,7 +66,7 @@ class Note(UploadBase):
         Notes are added as child of 'Uploads' note
         If no notetitle defined, content gets appended to 'Uploads' note
         """
-        self.info("Reading from stdin...")
+        self.display("Reading from stdin...")
         content = sys.stdin.read()
 
         self.reptor.api.notes.write_note(

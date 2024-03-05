@@ -110,7 +110,7 @@ class NotesAPI(APIClient):
 
             try:
                 r.raise_for_status()
-                self.info(f'Note written to "{note.title}".')
+                self.display(f'Note written to "{note.title}".')
             except HTTPError as e:
                 raise HTTPError(
                     f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
