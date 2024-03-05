@@ -264,6 +264,7 @@ class ToolBase(Base):
 
     def load(self):
         """Puts the stdin into raw_input"""
+        self.display("Reading from stdin...")
         self.raw_input = sys.stdin.read()
 
     def parse_xml(self, as_dict=True):

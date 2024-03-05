@@ -15,7 +15,7 @@ class Finding(UploadBase):
 
     meta = {
         "name": "Finding",
-        "summary": "Deletes or uploads findings",
+        "summary": "Uploads findings from JSON or TOML",
     }
 
     def run(self):
