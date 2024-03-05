@@ -167,6 +167,10 @@ class OpenVAS(ToolBase):
 
     def parse(self):
         super().parse()
+        if not self.parsed_input:
+            return
+        if "get_reports_response" in self.parsed_input:
+            self.parsed_input = self.parsed_input["get_reports_response"]
         results = self.parsed_input.get("report", dict())
         if results.get("report_format", dict()).get("name") == "Anonymous XML":
             self.log.warning("Anonymous XML. You might want to export as XML instead.")
