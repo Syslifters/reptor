@@ -102,6 +102,7 @@ subcommands:
    zap                   Parses ZAP reports (JSON, XML)
   
   Importers:
+   defectdojo            Imports DefectDojo finding templates
    ghostwriter           Imports GhostWriter finding templates
    importers             Show importers to use to import finding templates
   
