@@ -1,0 +1,12 @@
+usage: reptor defectdojo [-h] [--conf] [--tags TAGS] [--url [URL]]
+
+Imports DefectDojo finding templates
+
+optional arguments:
+  -h, --help        show this help message and exit
+  --conf, --config  Configure plugin settings
+
+Global Importer Settings:
+  --tags TAGS       Comma-separated tags for new templates
+
+  --url [URL]       DefectDojo API
