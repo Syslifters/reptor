@@ -72,34 +72,47 @@ class ExportFindings(Base):
             finding_summary = dict()
             for field in self.fieldnames:
                 try:
-                    finding_summary[field] = getattr(finding.data, field).value
+                    finding_field = getattr(finding.data, field)
                 except AttributeError:
                     finding_summary[field] = ""
+                    continue
+                finding_summary[field] = finding_field.value
 
                 # Retest status if empty
                 if field == "retest_status" and not finding_summary[field]:
                     finding_summary[field] = "Open"
-
-                # Calculate CVSS
-                if field == "cvss":
-                    try:
-                        finding_summary[field] = cvss.CVSS3(
-                            finding_summary[field]
-                        ).severities()[-1]
-                    except (cvss.exceptions.CVSS3MalformedError, IndexError):
-                        try:
-                            finding_summary[field] = cvss.CVSS2(
-                                finding_summary[field]
-                            ).severities()[-1]
-                        except (cvss.exceptions.CVSS2MalformedError, IndexError):
-                            pass
-                    # If calcaluation fails, the CVSS vector is kept as value
 
                 # Join lists
                 if isinstance(finding_summary[field], list):
                     finding_summary[field] = ", ".join(
                         f.value for f in finding_summary[field]
                     )
+
+                # Calculate CVSS
+                if finding_field.type == "cvss":
+                    finding_summary[f"{field}__score"] = ""
+                    finding_summary[f"{field}__severity"] = ""
+                    finding_summary[f"{field}__vector"] = ""
+                    vector = finding_summary.pop(field)
+                    try:
+                        cvss_metrics = cvss.CVSS3(vector)
+
+                    except (cvss.exceptions.CVSS3MalformedError, IndexError):
+                        try:
+                            cvss_metrics = cvss.CVSS2(vector)
+                            finding_summary[f"{field}__severity"] = (
+                                cvss_metrics.severities()[-1]
+                            )
+                        except (cvss.exceptions.CVSS2MalformedError, IndexError):
+                            cvss_metrics = None
+                    if cvss_metrics:
+                        finding_summary[f"{field}__score"] = (
+                            cvss_metrics.environmental_score
+                        )
+                        finding_summary[f"{field}__vector"] = vector
+                        finding_summary[f"{field}__severity"] = (
+                            cvss_metrics.severities()[-1]
+                        )
             findings.append(finding_summary)
 
         output = ""
@@ -111,7 +124,10 @@ class ExportFindings(Base):
             output = yaml.dump(findings)
         elif format == "csv":
             with io.StringIO() as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=self.fieldnames)
+                headers = self.fieldnames
+                if findings:
+                    headers = list(findings[0].keys())
+                writer = csv.DictWriter(csvfile, fieldnames=headers)
                 writer.writeheader()
                 for row in findings:
                     writer.writerow(row)

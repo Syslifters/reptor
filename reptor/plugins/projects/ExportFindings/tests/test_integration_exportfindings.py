@@ -7,7 +7,7 @@ from reptor.plugins.core.Conf.tests.conftest import projects_api, get_note
 
 
 @pytest.mark.integration
-class TestIntegrationProjectFinding(object):
+class TestIntegrationExportFinding(object):
     def test_render_project(self, projects_api):
         p = subprocess.Popen(
             ["reptor", "exportfindings", "--format", "json"],
