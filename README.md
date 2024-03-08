@@ -85,6 +85,7 @@ subcommands:
   
   Projects & Templates:
    createproject         Create a new pentest project
+   deletefindings        Deletes findings by title
    exportfindings        Export your project findings as a summary or checklist
    file                  Uploads a file
    finding               Uploads findings from JSON or TOML
