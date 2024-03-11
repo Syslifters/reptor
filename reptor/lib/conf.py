@@ -1,3 +1,4 @@
+import os
 import typing
 from posixpath import join as urljoin
 from uuid import UUID
@@ -5,7 +6,6 @@ from uuid import UUID
 import yaml
 
 from .. import settings as settings
-from .logger import reptor_logger
 
 
 class Config:
@@ -85,6 +85,15 @@ class Config:
                     self._raw_config = config
         except FileNotFoundError:
             self._no_config_file = True
+        self._raw_config["server"] = os.environ.get(
+            "REPTOR_SERVER", self._raw_config.get("server")
+        )
+        self._raw_config["token"] = os.environ.get(
+            "REPTOR_TOKEN", self._raw_config.get("token")
+        )
+        self._raw_config["project_id"] = os.environ.get(
+            "PROJECT_ID", self._raw_config.get("project_id")
+        )
         return config
 
     def get_config_from_user(self):

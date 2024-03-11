@@ -1,3 +1,5 @@
+import copy
+import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,6 +7,39 @@ import pytest
 from reptor.lib.reptor import Reptor
 
 from ..ProjectsAPI import ProjectsAPI
+
+
+class TestConf(object):
+    def test_config_from_environment(self):
+        reptor_file = Reptor()
+        reptor_file_config = copy.copy(reptor_file._config._raw_config)
+        os.environ["REPTOR_SERVER"] = "https://demo1234.sysre.pt"
+        os.environ["REPTOR_TOKEN"] = "sysreptor_abcdef"
+        os.environ["PROJECT_ID"] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        reptor_environ = Reptor()
+
+        assert (
+            reptor_file_config["server"] != reptor_environ._config._raw_config["server"]
+        )
+        assert (
+            reptor_environ._config._raw_config["server"] == "https://demo1234.sysre.pt"
+        )
+        assert (
+            reptor_file_config["token"] != reptor_environ._config._raw_config["token"]
+        )
+        assert reptor_environ._config._raw_config["token"] == "sysreptor_abcdef"
+        assert (
+            reptor_file_config["project_id"]
+            != reptor_environ._config._raw_config["project_id"]
+        )
+        assert (
+            reptor_environ._config._raw_config["project_id"]
+            == "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        )
+
+        del os.environ["REPTOR_SERVER"]
+        del os.environ["REPTOR_TOKEN"]
+        del os.environ["PROJECT_ID"]
 
 
 class TestProjectsAPI:
@@ -43,9 +78,9 @@ class TestProjectsAPI:
     def setUp(self):
         self.reptor = Reptor()
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config[
-            "project_id"
-        ] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        self.reptor._config._raw_config["project_id"] = (
+            "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        )
         self.project = ProjectsAPI(reptor=self.reptor)
 
     def test_render(self):
@@ -77,9 +112,9 @@ class TestProjectsAPI:
     def test_project_api_init(self):
         # Test valid init
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config[
-            "project_id"
-        ] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        self.reptor._config._raw_config["project_id"] = (
+            "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        )
         try:
             ProjectsAPI(reptor=self.reptor).object_endpoint
         except ValueError:

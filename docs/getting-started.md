@@ -56,6 +56,14 @@ Project ID:
 Store to config to C:\Users\aron\.sysreptor\config.yaml? [y/n]:
 ```
 
+You can add your configuration as environment variables. Environment variables override the config file.
+
+```
+export REPTOR_SERVER="https://demo.sysre.pt"
+export REPTOR_TOKEN="sysreptor_ZDM5NmQ5<snip>"
+export PROJECT_ID="3fae023a-2632-4c88-a0ea-97ab5eb64c94"
+```
+
 ### Usage
 ```
 --8<-- "docs/cli/help-messages/reptor"
