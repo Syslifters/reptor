@@ -1,9 +1,6 @@
-import sys
-from contextlib import nullcontext
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import MagicMock
 
 import pytest
-from requests.exceptions import HTTPError
 
 from reptor.api.manager import APIManager
 from reptor.lib.reptor import Reptor
@@ -18,9 +15,9 @@ class TestCreateProject:
     def setUp(self):
         self.reptor = Reptor()
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        self.reptor._config._raw_config[
-            "project_id"
-        ] = "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        self.reptor._config._raw_config["project_id"] = (
+            "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        )
         self.reptor._api = APIManager(reptor=self.reptor)
 
     def get_mocked_object(self):
