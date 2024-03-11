@@ -60,7 +60,10 @@ class Reptor:
         signal.signal(signal.SIGINT, signal_handler)
 
         # Set encoding for stdin utf-8
-        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+        try:
+            sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+        except ValueError:
+            pass
 
         # Load the config
         self._config = Config()
