@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
 env:
-  plugins: 'openvas nessus nmap zap createproject pushproject unpackarchive packarchive sslyze file note project template translate ghostwriter finding deletefindings exportfindings defectdojo'
+  plugins: 'openvas nessus nmap zap createproject pushproject unpackarchive packarchive sslyze file note project template translate ghostwriter finding deletefindings deleteprojects exportfindings defectdojo'
 jobs:
   help-messages:
     runs-on: ubuntu-latest

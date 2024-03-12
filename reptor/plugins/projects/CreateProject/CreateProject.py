@@ -72,6 +72,7 @@ class CreateProject(Base):
         if config_from_file:
             self.reptor._config._write_to_file(config=config_from_file)
         self.display("Updated project ID in config file.")
+        return project
 
 
 loader = CreateProject

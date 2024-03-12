@@ -135,8 +135,11 @@ class ProjectsAPI(APIClient):
             return grouped
         return data
 
-    def delete_project(self) -> None:
-        url = self.object_endpoint
+    def delete_project(self, project_id: typing.Optional[str] = None) -> None:
+        if project_id:
+            url = urljoin(self.base_endpoint, project_id)
+        else:
+            url = self.object_endpoint
         self.delete(url)
 
     def duplicate_project(self) -> Project:
