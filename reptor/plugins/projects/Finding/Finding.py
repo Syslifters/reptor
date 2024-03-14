@@ -42,7 +42,7 @@ class Finding(UploadBase):
             with contextlib.suppress(tomli.TOMLDecodeError):
                 loaded_content = tomli.loads(content)
         if not loaded_content:
-            raise ValueError("Could not decode stdin (excepted JSON or TOML)")
+            raise ValueError("Could not decode stdin (expected JSON or TOML)")
 
         if isinstance(loaded_content, dict):
             loaded_content = [loaded_content]
