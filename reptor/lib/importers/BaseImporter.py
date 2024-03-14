@@ -19,7 +19,6 @@ class BaseImporter(Base):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.reptor = kwargs.get("reptor", None)
         self.finding_language = kwargs.get("language", "en-US")
         self.tags = list(filter(None, (kwargs.get("tags") or "").split(",")))
         self.tags.append(f"{self.plugin_name}:imported")

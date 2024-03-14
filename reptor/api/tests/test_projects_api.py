@@ -15,7 +15,7 @@ class TestConf(object):
         reptor_file_config = copy.copy(reptor_file._config._raw_config)
         os.environ["REPTOR_SERVER"] = "https://demo1234.sysre.pt"
         os.environ["REPTOR_TOKEN"] = "sysreptor_abcdef"
-        os.environ["PROJECT_ID"] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        os.environ["REPTOR_PROJECT_ID"] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
         reptor_environ = Reptor()
 
         assert (
@@ -39,7 +39,7 @@ class TestConf(object):
 
         del os.environ["REPTOR_SERVER"]
         del os.environ["REPTOR_TOKEN"]
-        del os.environ["PROJECT_ID"]
+        del os.environ["REPTOR_PROJECT_ID"]
 
 
 class TestProjectsAPI:

@@ -8,3 +8,4 @@ build
 dist
 venv
 .pytest_cache
+example_lib.py

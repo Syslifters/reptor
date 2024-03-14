@@ -16,7 +16,7 @@ class TestMyModule(TestCaseToolPlugin):
         MYMODULENAME.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.mymodule = MYMODULENAME(reptor=self.reptor)
+        self.mymodule = MYMODULENAME()
 
     def _load_xml_data(self, xml_file):
         self.mymodule.input_format = "xml"

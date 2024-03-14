@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from reptor.api.manager import APIManager
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 from reptor.models.Project import Project
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -13,7 +13,7 @@ from ..CreateProject import CreateProject
 class TestCreateProject:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.reptor = Reptor()
+        self.reptor = reptor
         self.reptor._config._raw_config["server"] = "https://demo.sysre.pt"
         self.reptor._config._raw_config["project_id"] = (
             "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
@@ -21,7 +21,7 @@ class TestCreateProject:
         self.reptor._api = APIManager(reptor=self.reptor)
 
     def get_mocked_object(self):
-        create_project = CreateProject(reptor=self.reptor)
+        create_project = CreateProject()
         create_project.design = "8a6ebd7b-1111-4f38-bfdd-3e8e9a24f64e"
         create_project.reptor.api.projects.create_project = MagicMock()
         create_project.reptor.api.projects.create_project.return_value = Project(
@@ -38,8 +38,9 @@ class TestCreateProject:
 
     def test_create_project(self):
         cp = self.get_mocked_object()
+        create_project_mock = cp.reptor.api.projects.create_project
         cp.run()
-        cp.reptor.api.projects.create_project.assert_called_once_with(
+        create_project_mock.assert_called_once_with(
             name="New Project created with Reptor",
             project_design="8a6ebd7b-1111-4f38-bfdd-3e8e9a24f64e",
             tags=["reptor"],

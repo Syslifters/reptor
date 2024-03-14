@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 
 
 def run():
-    reptor = Reptor()
     reptor.run()
 
 

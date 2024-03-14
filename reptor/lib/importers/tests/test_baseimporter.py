@@ -1,6 +1,6 @@
 import pytest
 
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 from reptor.models.FindingTemplate import FindingTemplate
 
 from .. import BaseImporter
@@ -9,23 +9,23 @@ from .. import BaseImporter
 class TestBaseImporter:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.reptor = Reptor()
+        self.reptor = reptor
 
     def test_run(self):
         def next_findings_batch(*args, **kwargs):
             return []
 
         with pytest.raises(AttributeError):
-            BaseImporter.BaseImporter(reptor=self.reptor).run()
+            BaseImporter.BaseImporter().run()
 
         BaseImporter.BaseImporter.mapping = {"title": "title"}
-        base_importer = BaseImporter.BaseImporter(reptor=self.reptor)
+        base_importer = BaseImporter.BaseImporter()
         base_importer.next_findings_batch = next_findings_batch
         base_importer.run()
 
     def test_next_findings_batch(self):
         with pytest.raises(NotImplementedError):
-            BaseImporter.BaseImporter(reptor=self.reptor).next_findings_batch()
+            BaseImporter.BaseImporter().next_findings_batch()
 
     def test_create_and_upload(self):
         class Api:
@@ -55,7 +55,7 @@ class TestBaseImporter:
             },
         }
 
-        base_importer = BaseImporter.BaseImporter(reptor=self.reptor)
+        base_importer = BaseImporter.BaseImporter()
         base_importer.convert_old_tools_references = convert_old_tools_references
         base_importer.reptor._api = Api()
         base_importer.mapping = {

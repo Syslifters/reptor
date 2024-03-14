@@ -16,7 +16,7 @@ class TestNmap(TestCaseToolPlugin):
         Nmap.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.nmap = Nmap(reptor=self.reptor, template="nmap_table")
+        self.nmap = Nmap(template="nmap_table")
 
     def _load_grepable_data(self):
         self.nmap.input_format = "grepable"

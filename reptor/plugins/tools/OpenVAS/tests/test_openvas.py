@@ -1,13 +1,10 @@
 import os
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Note import NoteTemplate
-from reptor.models.ProjectDesign import ProjectDesign
-from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 from ..OpenVAS import OpenVAS
 
@@ -20,7 +17,7 @@ class TestOpenVAS(TestCaseToolPlugin):
         OpenVAS.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.openvas = OpenVAS(reptor=self.reptor)
+        self.openvas = OpenVAS()
 
     def _load_xml_data(self, filename):
         self.openvas.input_format = "xml"

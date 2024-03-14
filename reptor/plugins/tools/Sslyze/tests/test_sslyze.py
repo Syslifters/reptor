@@ -15,13 +15,97 @@ from ..Sslyze import Sslyze
 
 class TestSslyze(TestCaseToolPlugin):
     templates_path = os.path.normpath(Path(os.path.dirname(__file__)) / "../templates")
+    context = {
+        "data": [
+            {
+                "hostname": "example.com",
+                "port": "443",
+                "ip_address": "127.0.0.1",
+                "vulnerabilities": {"heartbleed": True},
+                "protocols": {
+                    "sslv2": {"a": "b"},
+                },
+                "certinfo": {
+                    "certificate_matches_hostname": False,
+                    "certificate_untrusted": ["Android", "Apple"],
+                },
+                "misconfigurations": {
+                    "compression": False,
+                    "downgrade": True,
+                    "no_secure_renegotiation": True,
+                    "accepts_client_renegotiation": False,
+                },
+                "has_vulnerabilities": True,
+                "flag_for_finding": True,
+                "has_insecure_protocols": True,
+                "has_weak_ciphers": True,
+                "has_weak_protocols": True,
+                "has_insecure_ciphers": True,
+                "has_cert_issues": True,
+                "has_misconfigurations": True,
+            },
+            {
+                "hostname": "www.example.com",
+                "port": "443",
+                "ip_address": "127.0.0.1",
+                "vulnerabilities": {"robot": True},
+                "protocols": {
+                    "sslv3": {"a": "b"},
+                    "tlsv1_1": {"weak_ciphers": []},
+                },
+                "certinfo": {
+                    "certificate_matches_hostname": True,
+                    "certificate_untrusted": ["Android"],
+                },
+                "misconfigurations": {
+                    "compression": True,
+                    "downgrade": True,
+                    "no_secure_renegotiation": True,
+                    "accepts_client_renegotiation": True,
+                },
+                "has_vulnerabilities": True,
+                "flag_for_finding": True,
+                "has_insecure_protocols": True,
+                "has_weak_ciphers": True,
+                "has_weak_protocols": True,
+                "has_insecure_ciphers": False,
+                "has_cert_issues": True,
+                "has_misconfigurations": True,
+            },
+            {
+                "hostname": "ftp.example.com",
+                "port": "443",
+                "ip_address": "127.0.0.1",
+                "vulnerabilities": {"openssl_ccs": True},
+                "protocols": {"tlsv1_2": {"weak_ciphers": []}},
+                "misconfigurations": {
+                    "compression": False,
+                    "downgrade": False,
+                    "no_secure_renegotiation": False,
+                    "accepts_client_renegotiation": False,
+                },
+                "certinfo": {
+                    "certificate_matches_hostname": False,
+                    "certificate_untrusted": [],
+                },
+                "has_vulnerabilities": True,
+                "flag_for_finding": True,
+                "has_insecure_protocols": True,
+                "has_insecure_ciphers": True,
+                "has_weak_ciphers": True,
+                "has_weak_protocols": True,
+                "has_cert_issues": True,
+                "has_misconfigurations": False,
+            },
+        ],
+    }
 
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
         Sslyze.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.sslyze = Sslyze(reptor=self.reptor)
+        self.sslyze = Sslyze()
 
     def _load_json_data(self, filename):
         self.sslyze.input_format = "json"
@@ -30,91 +114,6 @@ class TestSslyze(TestCaseToolPlugin):
             self.sslyze.raw_input = f.read()
 
     def test_finding_content(self):
-        context = {
-            "data": [
-                {
-                    "hostname": "example.com",
-                    "port": "443",
-                    "ip_address": "127.0.0.1",
-                    "vulnerabilities": {"heartbleed": True},
-                    "protocols": {
-                        "sslv2": {"a": "b"},
-                    },
-                    "certinfo": {
-                        "certificate_matches_hostname": False,
-                        "certificate_untrusted": ["Android", "Apple"],
-                    },
-                    "misconfigurations": {
-                        "compression": False,
-                        "downgrade": True,
-                        "no_secure_renegotiation": True,
-                        "accepts_client_renegotiation": False,
-                    },
-                    "has_vulnerabilities": True,
-                    "flag_for_finding": True,
-                    "has_insecure_protocols": True,
-                    "has_weak_ciphers": True,
-                    "has_weak_protocols": True,
-                    "has_insecure_ciphers": True,
-                    "has_cert_issues": True,
-                    "has_misconfigurations": True,
-                },
-                {
-                    "hostname": "www.example.com",
-                    "port": "443",
-                    "ip_address": "127.0.0.1",
-                    "vulnerabilities": {"robot": True},
-                    "protocols": {
-                        "sslv3": {"a": "b"},
-                        "tlsv1_1": {"weak_ciphers": []},
-                    },
-                    "certinfo": {
-                        "certificate_matches_hostname": True,
-                        "certificate_untrusted": ["Android"],
-                    },
-                    "misconfigurations": {
-                        "compression": True,
-                        "downgrade": True,
-                        "no_secure_renegotiation": True,
-                        "accepts_client_renegotiation": True,
-                    },
-                    "has_vulnerabilities": True,
-                    "flag_for_finding": True,
-                    "has_insecure_protocols": True,
-                    "has_weak_ciphers": True,
-                    "has_weak_protocols": True,
-                    "has_insecure_ciphers": False,
-                    "has_cert_issues": True,
-                    "has_misconfigurations": True,
-                },
-                {
-                    "hostname": "ftp.example.com",
-                    "port": "443",
-                    "ip_address": "127.0.0.1",
-                    "vulnerabilities": {"openssl_ccs": True},
-                    "protocols": {"tlsv1_2": {"weak_ciphers": []}},
-                    "misconfigurations": {
-                        "compression": False,
-                        "downgrade": False,
-                        "no_secure_renegotiation": False,
-                        "accepts_client_renegotiation": False,
-                    },
-                    "certinfo": {
-                        "certificate_matches_hostname": False,
-                        "certificate_untrusted": [],
-                    },
-                    "has_vulnerabilities": True,
-                    "flag_for_finding": True,
-                    "has_insecure_protocols": True,
-                    "has_insecure_ciphers": True,
-                    "has_weak_ciphers": True,
-                    "has_weak_protocols": True,
-                    "has_cert_issues": True,
-                    "has_misconfigurations": False,
-                },
-            ],
-        }
-
         # Patch API
         self.reptor.api.templates.search = Mock(return_value=[])
         self.sslyze._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
@@ -124,7 +123,7 @@ class TestSslyze(TestCaseToolPlugin):
         self.sslyze.parse()
         data = self.sslyze.preprocess_for_template()
         assert isinstance(data, dict)
-        data.update(context)
+        data.update(self.context)
 
         # Patch preprocess_for_template
         self.sslyze.preprocess_for_template = Mock(return_value=data)
@@ -197,7 +196,10 @@ class TestSslyze(TestCaseToolPlugin):
 
     def test_generate_findings(self):
         # Patch API
-        self.reptor.api.templates.search = Mock(return_value=[])
+        self.reptor.api.projects.create_finding = MagicMock()
+        self.reptor.api.projects.get_findings = Mock(return_value=[])
+        self.sslyze.preprocess_for_template = Mock(return_value=self.context)
+        self.sslyze._get_finding_from_remote_template = Mock(return_value=None)
         self.sslyze._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
 
         self._load_json_data("sslyze_v5")
@@ -208,10 +210,7 @@ class TestSslyze(TestCaseToolPlugin):
         assert (
             "had insecure ciphers or protocols enabled" in fndg.data.description.value
         )
-        assert (
-            fndg.data.affected_components.value[0].value
-            == "www.example.com:443 (127.0.0.1)"
-        )
+        assert "www.example.com:443 (127.0.0.1)" in [a.value for a in fndg.data.affected_components.value]
         assert [r.value for r in fndg.data.references.value] == [
             "https://ssl-config.mozilla.org/",
             "https://ciphersuite.info/",

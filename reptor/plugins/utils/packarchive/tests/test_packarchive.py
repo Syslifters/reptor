@@ -1,15 +1,14 @@
+import contextlib
 import io
 import json
 import tarfile
-import tomli_w
-import contextlib
 import tempfile
-import pytest
 import uuid
-from tarfile import TarFile
 from pathlib import Path
 
-from reptor.lib.reptor import Reptor
+import pytest
+import tomli_w
+
 from reptor.plugins.utils.packarchive.packarchive import PackArchive
 
 
@@ -49,15 +48,11 @@ def create_png_file() -> bytes:
 
 
 class TestPackExport:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        self.reptor = Reptor()
-
     def pack(self, files, format):
         with mock_files(
             files=files, format=format
         ) as d, tempfile.TemporaryFile() as output:
-            PackArchive(reptor=self.reptor, directories=[d], output=output).run()
+            PackArchive(directories=[d], output=output).run()
             output.flush()
             output.seek(0)
             return tarfile.open(fileobj=io.BytesIO(output.read()), mode="r:gz")

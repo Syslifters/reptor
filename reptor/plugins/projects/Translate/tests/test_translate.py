@@ -4,7 +4,7 @@ from copy import deepcopy
 import pytest
 
 from reptor.api.manager import APIManager
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 from reptor.models.Finding import Finding, FindingRaw
 from reptor.models.ProjectDesign import ProjectDesign
 
@@ -73,12 +73,11 @@ class TestTranslate:
 
                 return Result(f"Translated: {text}")
 
-        reptor = Reptor()
-        reptor._config._raw_config[
-            "project_id"
-        ] = "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        reptor._config._raw_config["project_id"] = (
+            "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        )
         reptor._api = APIManager(reptor=reptor)
-        self.translate = Translate(reptor=reptor, to="EN", dry_run=True)
+        self.translate = Translate(to="EN", dry_run=True)
         self.translate.deepl_translator = Translator()
 
         finding_raw = FindingRaw(json.loads(self.example_finding))

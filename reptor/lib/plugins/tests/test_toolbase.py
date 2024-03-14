@@ -45,14 +45,14 @@ class TestToolbase(TestCaseToolPlugin):
         ExampleTool.setup_class(
             pathlib.Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.example_tool = ExampleTool(reptor=self.reptor)
+        self.example_tool = ExampleTool()
         self.example_tool.input_format = "json"
         self.example_tool.raw_input = "{}"
 
         SQLTool.setup_class(
             pathlib.Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.sql_tool = SQLTool(reptor=self.reptor)
+        self.sql_tool = SQLTool()
         self.sql_tool.input_format = "json"
         self.sql_tool.raw_input = "{}"
 

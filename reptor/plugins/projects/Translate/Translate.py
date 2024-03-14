@@ -246,7 +246,7 @@ class Translate(Base):
                         translated_section.id, {"data": translated_section_data}
                     )
                 elif translated_section.__class__ == Section:
-                    self.reptor.api.projects.update_section(
+                    self.reptor.api.projects._update_section(
                         translated_section.id, {"data": translated_section_data}
                     )
 

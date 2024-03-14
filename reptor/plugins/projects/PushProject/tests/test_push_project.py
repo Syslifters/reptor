@@ -1,11 +1,13 @@
 import io
 import json
+import sys
+from io import StringIO
 from unittest.mock import MagicMock
 
 import pytest
 import tomli_w
 
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 from reptor.models.ProjectDesign import ProjectDesignField
 from reptor.models.Section import Section
 
@@ -30,12 +32,10 @@ class TestPushProject:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.reptor = Reptor()
+        self.reptor = reptor
 
     def get_mocked_push_project(self, projectdata):
-        pp = PushProject(
-            reptor=self.reptor, projectdata=io.BytesIO(projectdata.encode())
-        )
+        pp = PushProject(projectdata=io.BytesIO(projectdata.encode()))
 
         pp.reptor.api.projects.project = MagicMock()
         pp.reptor.api.projects.project.name = "my-project"
@@ -56,29 +56,31 @@ class TestPushProject:
             ProjectDesignField({"name": "title", "type": "string"}),
             ProjectDesignField({"name": "custom_finding_field", "type": "string"}),
         ]
-        self.reptor.api.projects.update_section = MagicMock()
+        self.reptor.api.projects._update_section = MagicMock()
         self.reptor.api.projects.create_finding = MagicMock()
         return pp
 
     def test_read_valid_input(self):
-        pp = PushProject(reptor=self.reptor)
+        stdin = sys.stdin
         for dumps in [json.dumps, tomli_w.dumps]:
-            project_data = pp._read_input(content=dumps(self.valid_data))
-            assert isinstance(project_data, dict)
-            assert project_data["report_data"]["title"] == "NEW REPORT"
-            assert project_data["report_data"]["custom_report_field"] == "FIELD VALUE"
-            assert project_data["findings"][0]["data"]["title"] == "123"
+            sys.stdin = StringIO(dumps(self.valid_data))
+            pp = PushProject()
+            assert isinstance(pp.projectdata, dict)
+            assert pp.projectdata["report_data"]["title"] == "NEW REPORT"
+            assert pp.projectdata["report_data"]["custom_report_field"] == "FIELD VALUE"
+            assert pp.projectdata["findings"][0]["data"]["title"] == "123"
             assert (
-                project_data["findings"][0]["data"]["custom_finding_field"]
+                pp.projectdata["findings"][0]["data"]["custom_finding_field"]
                 == "FINDING FIELD VALUE"
             )
+        sys.stdin = stdin
 
     def test_upload_valid_data(self):
         for dumps in [json.dumps, tomli_w.dumps]:
             pp = self.get_mocked_push_project(dumps(self.valid_data))
             pp.run()
 
-            assert self.reptor.api.projects.update_section.call_count == 2
+            assert self.reptor.api.projects._update_section.call_count == 2
             assert self.reptor.api.projects.create_finding.call_count == 1
 
     @pytest.mark.parametrize(
@@ -91,6 +93,6 @@ class TestPushProject:
         ],
     )
     def test_errors(self, data):
-        pp = self.get_mocked_push_project(tomli_w.dumps(data))
         with pytest.raises(ValueError):
+            pp = self.get_mocked_push_project(tomli_w.dumps(data))
             pp.run()

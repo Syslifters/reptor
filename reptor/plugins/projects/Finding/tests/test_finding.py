@@ -3,7 +3,7 @@ import json
 import pytest
 import tomli_w
 
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 
 from ..Finding import Finding
 
@@ -31,8 +31,8 @@ class TestFinding:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.reptor = Reptor()
-        self.finding = Finding(reptor=self.reptor)
+        self.reptor = reptor
+        self.finding = Finding()
 
     def test_read_invalid_finding(self):
         with pytest.raises(ValueError):

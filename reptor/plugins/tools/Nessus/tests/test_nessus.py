@@ -19,7 +19,7 @@ class TestNessus(TestCaseToolPlugin):
         Nessus.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.nessus = Nessus(reptor=self.reptor)
+        self.nessus = Nessus()
 
     def _load_xml_data(self, filename):
         self.nessus.input_format = "xml"

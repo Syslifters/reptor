@@ -6,7 +6,7 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.models.Finding import FindingRaw
+from reptor.models.Finding import Finding, FindingRaw
 from reptor.models.Project import Project, ProjectOverview
 from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section, SectionRaw
@@ -224,9 +224,37 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
         return FindingRaw(self.post(url, json={"template": template_id}).json())
 
-    def update_section(self, section_id: str, data: dict) -> SectionRaw:
+    def _update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
         return SectionRaw(self.patch(url, json=data).json())
+
+    def update_report_fields(self, data: dict) -> typing.List[SectionRaw]:
+        # Get project data to map report fields to sections
+        project = self.reptor.api.projects.project
+        project_design = self.reptor.api.project_designs.project_design
+        # Map fields to sections
+        sections_data = dict()
+        for section in project.sections:
+            sections_data[section.id] = {"data": {}}
+            for report_field_name, report_field_data in data.items():
+                if report_field_name in section.fields:
+                    sections_data[section.id]["data"][
+                        report_field_name
+                    ] = report_field_data
+
+        # Check for valid report field data format
+        for _, section_data in sections_data.items():
+            Section(
+                section_data,
+                project_design,
+                raise_on_unknown_fields=False,
+            )  # Raises ValueError if invalid
+
+        # Upload
+        sections = list()
+        for section_id, section_data in sections_data.items():
+            sections.append(self._update_section(section_id, section_data))
+        return sections
 
     def update_project(self, data: dict) -> Project:
         url = urljoin(self.base_endpoint, f"{self.project_id}/")

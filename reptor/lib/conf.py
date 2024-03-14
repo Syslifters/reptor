@@ -72,28 +72,36 @@ class Config:
         else:
             self._raw_config.update({key: value})
 
-    def load_config(self, return_only: bool = False) -> dict:
+    def load_config(
+        self,
+        server: typing.Optional[str] = None,
+        token: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
+        return_only: bool = False,
+    ) -> dict:
         """Loads config file from user home directory"""
-        if not settings.PERSONAL_SYSREPTOR_HOME.exists():
-            # exist_ok=True because logger might be faster, when creating log file and parents=True
-            settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)
         config = dict()
         try:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 config = yaml.safe_load(f.read())
-                if not return_only:
-                    self._raw_config = config
         except FileNotFoundError:
             self._no_config_file = True
-        self._raw_config["server"] = os.environ.get(
-            "REPTOR_SERVER", self._raw_config.get("server")
+        config["server"] = os.environ.get(
+            "REPTOR_SERVER", config.get("server")
         )
-        self._raw_config["token"] = os.environ.get(
-            "REPTOR_TOKEN", self._raw_config.get("token")
+        config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
+        config["project_id"] = os.environ.get(
+            "REPTOR_PROJECT_ID", config.get("project_id")
         )
-        self._raw_config["project_id"] = os.environ.get(
-            "PROJECT_ID", self._raw_config.get("project_id")
-        )
+        if server:
+            config["server"] = server
+        if token:
+            config["token"] = token
+        if project_id:
+            config["project_id"] = project_id
+
+        if not return_only:
+            self._raw_config = config
         return config
 
     def get_config_from_user(self):

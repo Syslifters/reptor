@@ -7,7 +7,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from reptor.lib.conf import Config
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 
 from .. import DefectDojo
 
@@ -29,7 +29,7 @@ class TestDefectDojo:
 
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.reptor = Reptor()
+        self.reptor = reptor
         self.reptor._config = Config()
         self.reptor._config._raw_config = {}
 
@@ -37,11 +37,11 @@ class TestDefectDojo:
         self.reptor.get_config()
         with pytest.raises(ValueError):
             # Should raise because of missing URL
-            DefectDojo.DefectDojo(reptor=self.reptor)
+            DefectDojo.DefectDojo()
 
         with pytest.raises(ValueError):
             # Should raise because of missing API key
-            DefectDojo.DefectDojo(reptor=self.reptor, url="test")
+            DefectDojo.DefectDojo(url="test")
 
     def test_run(self):
         finding_data = json.loads(
@@ -56,7 +56,7 @@ class TestDefectDojo:
         DefectDojo.DefectDojo.apikey = dd_apikey
 
         requests.get = MagicMock(return_value=self.MockResponse(finding_data, 200))
-        defectdojo = DefectDojo.DefectDojo(reptor=self.reptor, url=url)
+        defectdojo = DefectDojo.DefectDojo(url=url)
         defectdojo._upload_finding_template = MagicMock()
 
         defectdojo.run()
@@ -81,6 +81,6 @@ class TestDefectDojo:
         DefectDojo.DefectDojo.apikey = dd_apikey
 
         requests.get = MagicMock(return_value=self.MockResponse(finding_data, 200))
-        defectdojo = DefectDojo.DefectDojo(reptor=self.reptor, url=url)
+        defectdojo = DefectDojo.DefectDojo(url=url)
 
         assert finding_data == defectdojo._get_defectdojo_findings()

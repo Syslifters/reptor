@@ -17,7 +17,7 @@ class TestOwaspZap(TestCaseToolPlugin):
         Zap.setup_class(
             Path(os.path.dirname(self.templates_path)), skip_user_plugins=True
         )
-        self.zap = Zap(reptor=self.reptor)
+        self.zap = Zap()
 
     def _load_xml_data(self, xml_file):
         self.zap.input_format = "xml"

@@ -4,6 +4,7 @@ import logging
 import signal
 import sys
 import traceback
+import typing
 
 import django
 from django.conf import settings as django_settings
@@ -51,12 +52,17 @@ class Reptor:
     console: Console = reptor_console
     _api: APIManager
 
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
+    def __new__(cls, **kwargs):
+        if not hasattr(cls, "instance") or kwargs:
             cls.instance = super(Reptor, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        server: typing.Optional[str] = None,
+        token: typing.Optional[str] = None,
+        project_id: typing.Optional[str] = None,
+    ) -> None:
         signal.signal(signal.SIGINT, signal_handler)
 
         # Set encoding for stdin utf-8
@@ -67,7 +73,7 @@ class Reptor:
 
         # Load the config
         self._config = Config()
-        self._config.load_config()
+        self._config.load_config(server=server, token=token, project_id=project_id)
 
         # Setup Django tags
         setup_django_tags()
@@ -310,3 +316,6 @@ class Reptor:
             # This is called when the user uses python -m reptor or any other way
             # but provides no arguments at all
             print(self._parser.format_help())
+
+
+reptor = Reptor()

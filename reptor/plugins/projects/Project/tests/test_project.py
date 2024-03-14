@@ -1,11 +1,12 @@
 import sys
+from contextlib import nullcontext
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 from requests.exceptions import HTTPError
-from contextlib import nullcontext
+
 from reptor.api.manager import APIManager
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 
 from ..Project import Project
 
@@ -13,13 +14,12 @@ from ..Project import Project
 class TestProject:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        reptor = Reptor()
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        reptor._config._raw_config[
-            "project_id"
-        ] = "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        reptor._config._raw_config["project_id"] = (
+            "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
+        )
         reptor._api = APIManager(reptor=reptor)
-        self.project = Project(reptor=reptor)
+        self.project = Project()
 
     @pytest.mark.parametrize(
         "filename,upload,expected_kwargs",

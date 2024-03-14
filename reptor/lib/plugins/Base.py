@@ -3,7 +3,7 @@ import sys
 import typing
 
 from reptor.lib.console import reptor_console
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import Reptor, reptor
 from reptor.models.UserConfig import UserConfig
 
 
@@ -31,7 +31,7 @@ class Base:
 
     def __init__(self, **kwargs):
         self.plugin_name = self.__class__.__name__.lower()
-        self.reptor = kwargs.get("reptor", None)
+        self.reptor = reptor
         self.conf = kwargs.get("conf", False)
         if self.conf:
             self.configure()

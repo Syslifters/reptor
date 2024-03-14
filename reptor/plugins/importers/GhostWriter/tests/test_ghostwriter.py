@@ -3,7 +3,7 @@ import json
 import pytest
 
 from reptor.lib.conf import Config
-from reptor.lib.reptor import Reptor
+from reptor.lib.reptor import reptor
 
 from .. import GhostWriter
 
@@ -11,7 +11,7 @@ from .. import GhostWriter
 class TestGhostwriter:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.reptor = Reptor()
+        self.reptor = reptor
         self.reptor._config = Config()
         self.reptor._config._raw_config = {}
 
@@ -19,14 +19,14 @@ class TestGhostwriter:
         self.reptor.get_config()
         with pytest.raises(ValueError):
             # Should raise because of missing URL
-            GhostWriter.GhostWriter(reptor=self.reptor)
+            GhostWriter.GhostWriter()
 
         with pytest.raises(ValueError):
             # Should raise because of missing API key
-            GhostWriter.GhostWriter(reptor=self.reptor, url="test")
+            GhostWriter.GhostWriter(url="test")
 
         GhostWriter.GhostWriter.apikey = "test"
-        GhostWriter.GhostWriter(reptor=self.reptor, url="test")
+        GhostWriter.GhostWriter(url="test")
 
     def test_get_findings(self):
         finding_data = json.loads(
@@ -51,9 +51,7 @@ class TestGhostwriter:
         GhostWriter.AIOHTTPTransport = AIOHTTPTransport
         GhostWriter.Client = Client
         GhostWriter.GhostWriter.apikey = "123456789"
-        ghostwriter = GhostWriter.GhostWriter(
-            reptor=self.reptor, url="http://localhost:8080"
-        )
+        ghostwriter = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert finding_data["finding"] == ghostwriter._get_ghostwriter_findings()
 
         # Test Authorization Bearer
@@ -69,9 +67,7 @@ class TestGhostwriter:
         GhostWriter.AIOHTTPTransport = AIOHTTPTransport
         GhostWriter.Client = Client
         GhostWriter.GhostWriter.apikey = jwt_token
-        ghostwriter = GhostWriter.GhostWriter(
-            reptor=self.reptor, url="http://localhost:8080"
-        )
+        ghostwriter = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert finding_data["finding"] == ghostwriter._get_ghostwriter_findings()
 
     @pytest.mark.parametrize(
@@ -83,7 +79,7 @@ class TestGhostwriter:
     )
     def test_convert_references(self, text, converted):
         GhostWriter.GhostWriter.apikey = "123456789"
-        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        g = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert g.convert_references(text) == converted
 
     @pytest.mark.parametrize(
@@ -95,7 +91,7 @@ class TestGhostwriter:
     )
     def test_convert_hostDetectionTechniques(self, text, converted):
         GhostWriter.GhostWriter.apikey = "123456789"
-        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        g = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert g.convert_hostDetectionTechniques(text) == converted
 
     @pytest.mark.parametrize(
@@ -107,7 +103,7 @@ class TestGhostwriter:
     )
     def test_convert_networkDetectionTechniques(self, text, converted):
         GhostWriter.GhostWriter.apikey = "123456789"
-        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        g = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert g.convert_networkDetectionTechniques(text) == converted
 
     @pytest.mark.parametrize(
@@ -119,5 +115,5 @@ class TestGhostwriter:
     )
     def test_convert_findingGuidance(self, text, converted):
         GhostWriter.GhostWriter.apikey = "123456789"
-        g = GhostWriter.GhostWriter(reptor=self.reptor, url="http://localhost:8080")
+        g = GhostWriter.GhostWriter(url="http://localhost:8080")
         assert g.convert_findingGuidance(text) == converted
