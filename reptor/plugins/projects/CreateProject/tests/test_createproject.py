@@ -45,12 +45,15 @@ class TestCreateProject:
             project_design="8a6ebd7b-1111-4f38-bfdd-3e8e9a24f64e",
             tags=["reptor"],
         )
-        cp.reptor._config._write_to_file.assert_called_once_with(
-            config={
-                "server": "https://demo.sysre.pt",
-                "project_id": "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e",
-            }
-        )
+        if cp.reptor._config._no_config_file:
+            cp.reptor._config._write_to_file.assert_not_called()
+        else:
+            cp.reptor._config._write_to_file.assert_called_once_with(
+                config={
+                    "server": "https://demo.sysre.pt",
+                    "project_id": "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e",
+                }
+            )
 
     def test_create_project_no_update_config(self):
         cp = self.get_mocked_object()
