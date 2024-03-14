@@ -1,0 +1,13 @@
+usage: reptor deleteprojects [-h] [--title-contains SEARCHTERM]
+                             [--exclude-title-contains SEARCHTERM]
+                             [--no-dry-run]
+
+Deletes projects by title
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --title-contains SEARCHTERM
+                        Match string in title
+  --exclude-title-contains SEARCHTERM
+                        Matched strings in title are not deleted
+  --no-dry-run          Do delete projects, default is dry-run
