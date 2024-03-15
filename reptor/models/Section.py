@@ -61,22 +61,32 @@ class SectionDataField(ProjectDesignField):
                 # property is of type ProjectDesignField
                 try:
                     property_value[property.name] = self.__class__(
-                        property, value[property.name]
+                        property,
+                        value[property.name],
+                        raise_on_unknown_fields=raise_on_unknown_fields,
                     )
-
                 except KeyError:
-                    if raise_on_unknown_fields:
-                        raise KeyError(
-                            f"Object name '{property.name}' not found. Did you use "
-                            f"wrong project design for your data?"
+                    if property.required:
+                        raise ValueError(
+                            f'"{property.name}" is a required field for "{self.name}".'
                         )
+                if raise_on_unknown_fields and (
+                    unknown_fields := [
+                        v
+                        for v in value.keys()
+                        if v not in [p.name for p in self.properties]
+                    ]
+                ):
+                    raise ValueError(
+                        f"Unknown fields in {self.name}: {','.join(unknown_fields)}"
+                    )
             self.value = property_value
         elif self.type == ProjectFieldTypes.list.value:
             self.value = list()
             if not isinstance(value, list):
                 raise ValueError(f"Value of '{self.name}' must be list.")
             for v in value:  # type: ignore
-                self.value.append(self.__class__(self.items, v))  # type: ignore
+                self.value.append(self.__class__(self.items, v, raise_on_unknown_fields=raise_on_unknown_fields))  # type: ignore
         else:
             self.value = value
 
