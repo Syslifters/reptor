@@ -44,6 +44,7 @@ class TestIntegrationNote(object):
         assert note is not None
         assert note_content.decode() in note["text"]
 
+    @pytest.mark.skip(reason="Locking is being deprecated.")
     def test_locked_notes(self, private_notes_api, private_uploads_id):
         # Lock "Uploads" note via notes_api
         private_notes_api._do_lock(private_uploads_id)

@@ -287,14 +287,31 @@ class NotesAPI(APIClient):
 
     def _do_lock(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "lock/")
-        return self.post(url)
+        try:
+            return self.post(url)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                # Collaborative editing doesn't support locking
+                pass
+            else:
+                raise e
+        return
 
     def _do_unlock(self, note_id: str):
         url = urljoin(self.base_endpoint, note_id, "unlock/")
-        return self.post(url)
+        try:
+            self.post(url)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                # Collaborative editing doesn't support locking
+                pass
+            else:
+                raise e
+        return
 
     @contextlib.contextmanager
     def _lock_note(self, note_id: str, force_unlock: bool = False):
+        r = None
         try:
             r = self._do_lock(note_id)
         except HTTPError as e:
@@ -309,9 +326,12 @@ class NotesAPI(APIClient):
                     raise LockedException(f"Cannot unlock. Locked by @{locked_by}.")
                 else:
                     raise LockedException("Cannot unlock. Locked by other user.")
+            elif e.response.status_code == 404:
+                # Collaborative editing doesn't support locking
+                pass
             else:
                 raise e
-        if not force_unlock and r.status_code == 200:
+        if not force_unlock and r and r.status_code == 200:
             raise LockedException(
                 "This note is locked. (Unlock or force: --force-unlock)"
             )
