@@ -1,9 +1,8 @@
+import typing
 from typing import Any
+
 from reptor.models.Base import BaseModel, ProjectFieldTypes
 from reptor.settings import DEFAULT_PROJECT_DESIGN
-
-
-import typing
 
 
 class ProjectDesignField(BaseModel):

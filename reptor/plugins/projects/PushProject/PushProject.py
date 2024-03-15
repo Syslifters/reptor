@@ -38,19 +38,36 @@ class PushProject(UploadBase):
         parser.add_argument("projectdata", nargs="?", type=argparse.FileType("rb"))
 
     def run(self):
-        self.reptor.api.projects.update_report_fields(
-            self.projectdata.get("report_data", {})
+        len_sections = len(
+            self.reptor.api.projects.update_report_fields(
+                self.projectdata.get("report_data", {})
+            )
         )
+        if len_sections:
+            self.log.success(
+                f"Updated {len_sections} report section{'s'[:len_sections^1]}."
+            )
+        else:
+            self.log.display("No report sections updated.")
+
         # Check for valid finding field data format
         project_design = self.reptor.api.project_designs.project_design
-        findings = self.projectdata.get("findings", [])
-        for finding in findings:  # Check data format
-            FindingModel(finding, project_design, raise_on_unknown_fields=False)
+        findings = list()
+        for finding in self.projectdata.get("findings", []):  # Check data format
+            findings.append(
+                (
+                    finding,
+                    FindingModel(
+                        finding, project_design, raise_on_unknown_fields=False
+                    ),
+                )
+            )
         # Upload
-        for finding in findings:
+        for finding, model in findings:
             self.reptor.api.projects.create_finding(finding)
-
-        self.log.success(f"Updated report successfully.")
+            self.log.success(f'Created finding "{model.data.title}".')
+        if not findings:
+            self.log.display("No findings created.")
 
     def _read_input(self, content: typing.Optional[str] = None) -> dict:
         if content is None:

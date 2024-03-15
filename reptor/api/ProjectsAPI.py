@@ -253,7 +253,8 @@ class ProjectsAPI(APIClient):
         # Upload
         sections = list()
         for section_id, section_data in sections_data.items():
-            sections.append(self._update_section(section_id, section_data))
+            if section_data["data"]:
+                sections.append(self._update_section(section_id, section_data))
         return sections
 
     def update_project(self, data: dict) -> Project:
