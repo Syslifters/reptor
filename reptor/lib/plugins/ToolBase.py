@@ -42,6 +42,7 @@ class ToolBase(Base):
         self.action = kwargs.get("action")
         self.notetitle = self.notetitle or self.plugin_name
         self.push_findings = kwargs.get("push_findings")
+        self.merge = kwargs.get("merge")
         self.note_icon = "🛠️"
         self.raw_input = None
         self.parsed_input = None
@@ -165,6 +166,11 @@ class ToolBase(Base):
             dest="action",
             const="parse",
             default="format",
+        )
+        parser.add_argument(
+            "--merge",
+            action="store_true",
+            help="Merge finding if it already exists in the project.",
         )
 
         if any(
@@ -419,9 +425,37 @@ class ToolBase(Base):
                     )
                     continue
             elif finding.data.title.value in project_finding_titles:
-                self.log.display(
-                    f'Finding "{finding.data.title.value}" already exists. Skipping.'
-                )
+                if self.merge:
+                    project_finding = project_findings[
+                        project_finding_titles.index(finding.data.title.value)
+                    ]
+                    # Merge with existing affected components list
+                    merged_affected_components = (
+                        project_finding.data.affected_components.value
+                        + finding.data.affected_components.value
+                    )
+
+                    # Create a dictionary to filter out duplicates
+                    unique_affected_components = {}
+                    for c in merged_affected_components:
+                        unique_affected_components[c.value] = c
+
+                    # Get unique affected components and sort them
+                    merged_list = list(unique_affected_components.values())
+                    merged_list.sort(key=lambda x: x.value)
+
+                    # Merge and update finding
+                    project_finding.data.affected_components.value = merged_list
+                    self.reptor.api.projects.update_finding(
+                        project_finding.id, project_finding.to_dict()
+                    )
+                    self.log.display(
+                        f'Finding "{finding.data.title.value}" already exists. Merging.'
+                    )
+                else:
+                    self.log.display(
+                        f'Finding "{finding.data.title.value}" already exists. Skipping.'
+                    )
                 continue
 
             self.log.info(f'Pushing finding "{finding.data.title.value}"')
