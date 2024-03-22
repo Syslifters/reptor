@@ -278,6 +278,14 @@ class OpenVAS(ToolBase):
                 m.setdefault("oid", finding["nvt"]["oid"])
             if "risk_factor" in finding.keys():
                 m.setdefault("risk_factor", finding["risk_factor"].lower())
+            if "refs" in finding.get("nvt", dict()).keys():
+                m.setdefault("refs", list())
+                refs = finding["nvt"]["refs"].get("ref", dict)
+                if isinstance(refs, dict):
+                    refs = [refs]
+                for ref in refs:
+                    m["refs"].append(ref.get("@id", ""))
+                m["refs"] = sorted(set(m["refs"]))
             m.setdefault("affected_components", list()).append(
                 f"{finding['target']}{':' + finding['port'] if not finding['port'].startswith('general') else ''}"
             )
