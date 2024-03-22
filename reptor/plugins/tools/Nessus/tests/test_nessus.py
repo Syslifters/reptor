@@ -77,6 +77,15 @@ class TestNessus(TestCaseToolPlugin):
             ]
         )
 
+        # Check correct affected componets
+        assert [c.value for c in findings[0].data.affected_components.value] == ["10.15.10.11:443 (cifs)"]
+        assert [c.value for c in findings[1].data.affected_components.value] == [
+            "10.15.10.11:443 (cifs)"
+        ]
+        assert [c.value for c in findings[2].data.affected_components.value] == [
+            "10.15.10.11:53 (dns)"
+        ]
+
         # Check plugin specific template (Service detection, plugin 22964)
         f = findings[8]
         assert f.data.title.value == "Detected network services"
@@ -96,7 +105,7 @@ class TestNessus(TestCaseToolPlugin):
         affected_ips = set(
             [f.split(":")[0] for f in syn_finding["affected_components"]]
         )
-        assert len(affected_ips) == 2
+        assert len(affected_ips) == 1
 
     def test_aggregate_findings(self):
         self._load_xml_data("nessus_multi_host")
