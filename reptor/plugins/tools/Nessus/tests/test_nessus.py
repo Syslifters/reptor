@@ -27,6 +27,14 @@ class TestNessus(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.nessus.raw_input = f.read()
 
+    def test_parse_multi_input(self):
+        self._load_xml_data("nessus_multi_host")
+        self.nessus.parse()
+        assert len(self.nessus.parsed_input) == 4
+        self.nessus.raw_input = [self.nessus.raw_input, self.nessus.raw_input]
+        self.nessus.parse()
+        assert len(self.nessus.parsed_input) == 8
+
     def test_parse_multi_with_include(self):
         self._load_xml_data("nessus_multi_host")
         self.nessus.included_plugins = ["11219", "25216"]

@@ -145,11 +145,30 @@ class Nessus(ToolBase):
 
     def parse(self):
         super().parse()
-        p = self.parsed_input.get("NessusClientData_v2", dict())
-        p = p.get("Report", dict())
-        p = p.get("ReportHost", list())
-        if not isinstance(p, list):
-            p = [p]
+        p = list()
+        if isinstance(self.parsed_input, list):
+            p = self.parsed_input[0].get("NessusClientData_v2", dict())
+            p = p.get("Report", dict()).get("ReportHost", list())
+            if not isinstance(p, list):
+                p = [p]
+            for i in range(1, len(self.parsed_input)):
+                report_host = (
+                    self.parsed_input[i]
+                    .get("NessusClientData_v2", dict())
+                    .get("Report", dict())
+                    .get("ReportHost", list())
+                )
+                if not isinstance(report_host, list):
+                    report_host = [report_host]
+                p += report_host
+        elif self.parsed_input:
+            p = (
+                self.parsed_input.get("NessusClientData_v2", dict())
+                .get("Report", dict())
+                .get("ReportHost", list())
+            )
+            if not isinstance(p, list):
+                p = [p]            
 
         hosts = list()
         for host in p:
