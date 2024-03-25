@@ -22,6 +22,7 @@ class Nessus(ToolBase):
         "high": "🟠",
         "critical": "🔴",
     }
+    supports_multi_input = True
 
     @property
     def user_config(self) -> typing.List[UserConfig]:
@@ -168,7 +169,7 @@ class Nessus(ToolBase):
                 .get("ReportHost", list())
             )
             if not isinstance(p, list):
-                p = [p]            
+                p = [p]
 
         hosts = list()
         for host in p:
