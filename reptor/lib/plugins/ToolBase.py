@@ -130,16 +130,15 @@ class ToolBase(Base):
         if plugin_filepath:
             cls.setup_class(Path(os.path.dirname(plugin_filepath)))
 
-        if cls.supports_multi_input:
-            parser.add_argument(
-                "-i",
-                "--input",
-                action="store",
-                dest="input",
-                default=None,
-                nargs="*",
-                help="Input file(s), if not stdin",
-            )
+        parser.add_argument(
+            "-i",
+            "--input",
+            action="store",
+            dest="input",
+            default=None,
+            nargs="*" if cls.supports_multi_input else "?",
+            help=f"Input file, if not stdin {'(multiple files allowed)' if cls.supports_multi_input else ''}",
+        )
 
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"

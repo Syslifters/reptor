@@ -210,17 +210,23 @@ class TestSslyze(TestCaseToolPlugin):
         assert (
             "had insecure ciphers or protocols enabled" in fndg.data.description.value
         )
-        assert "www.example.com:443 (127.0.0.1)" in [a.value for a in fndg.data.affected_components.value]
+        assert "www.example.com:443 (127.0.0.1)" in [
+            a.value for a in fndg.data.affected_components.value
+        ]
         assert [r.value for r in fndg.data.references.value] == [
             "https://ssl-config.mozilla.org/",
             "https://ciphersuite.info/",
         ]
 
     def test_parse(self):
-        result_dict = {"a": "b"}
+        result_dict = {"server_scan_results": ["b"]}
         self.sslyze.raw_input = json.dumps(result_dict)
         self.sslyze.parse()
         assert self.sslyze.parsed_input == result_dict
+
+        self.sslyze.raw_input = [json.dumps(result_dict), json.dumps(result_dict)]
+        self.sslyze.parse()
+        assert len(self.sslyze.parsed_input.get("server_scan_results")) == 2
 
     def test_preprocess_for_template(self):
         result = {

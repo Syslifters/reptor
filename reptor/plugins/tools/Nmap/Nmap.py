@@ -28,6 +28,7 @@ class Nmap(ToolBase):
         "name": "Nmap",
         "summary": "format nmap output",
     }
+    supports_multi_input = True
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -58,6 +59,8 @@ class Nmap(ToolBase):
 
     def parse_grepable(self):
         self.parsed_input = list()
+        if isinstance(self.raw_input, list):
+            self.raw_input = "\n".join(self.raw_input)
         for line in self.raw_input.splitlines():
             if line.startswith("#") or "Ports:" not in line:
                 continue
@@ -84,8 +87,14 @@ class Nmap(ToolBase):
     def parse_xml(self):
         super().parse_xml()
         nmap_data = self.parsed_input
+        if isinstance(nmap_data, list):
+            hosts = nmap_data[0].get("nmaprun", {}).get("host", [])
+            for i in range(1, len(nmap_data)):
+                hosts += nmap_data[i].get("nmaprun", {}).get("host", [])
+        else:
+            hosts = nmap_data.get("nmaprun", {}).get("host", [])
+
         self.parsed_input = list()
-        hosts = nmap_data.get("nmaprun", {}).get("host", [])
         if not isinstance(hosts, list):
             hosts = [hosts]
         for host in hosts:
