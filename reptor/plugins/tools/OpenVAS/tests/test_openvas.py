@@ -25,6 +25,12 @@ class TestOpenVAS(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.openvas.raw_input = f.read()
 
+    def test_parse_multi_input(self):
+        self._load_xml_data("openvas")
+        self.openvas.raw_input = [self.openvas.raw_input, self.openvas.raw_input]
+        self.openvas.parse()
+        assert len(self.openvas.parsed_input) == 72
+
     def test_parse_with_qod_filter(self):
         self._load_xml_data("openvas")
         self.openvas.min_qod = 50

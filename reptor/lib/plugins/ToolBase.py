@@ -35,6 +35,7 @@ class ToolBase(Base):
     """
 
     FINDING_PREFIX = "finding_"
+    supports_multi_input = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -42,7 +43,7 @@ class ToolBase(Base):
         self.action = kwargs.get("action")
         self.notetitle = self.notetitle or self.plugin_name
         self.push_findings = kwargs.get("push_findings")
-        self.merge = kwargs.get("merge")
+        self.input = kwargs.get("input")
         self.note_icon = "🛠️"
         self.raw_input = None
         self.parsed_input = None
@@ -129,6 +130,17 @@ class ToolBase(Base):
         if plugin_filepath:
             cls.setup_class(Path(os.path.dirname(plugin_filepath)))
 
+        if cls.supports_multi_input:
+            parser.add_argument(
+                "-i",
+                "--input",
+                action="store",
+                dest="input",
+                default=None,
+                nargs="*",
+                help="Input file(s), if not stdin",
+            )
+
         action_group = parser.add_mutually_exclusive_group()
         action_group.title = "action_group"
         if cls.create_notes != ToolBase.create_notes:
@@ -167,12 +179,6 @@ class ToolBase(Base):
             const="parse",
             default="format",
         )
-        parser.add_argument(
-            "--merge",
-            action="store_true",
-            help="Merge finding if it already exists in the project.",
-        )
-
         if any(
             [
                 cls.parse_xml != ToolBase.parse_xml,
@@ -269,21 +275,42 @@ class ToolBase(Base):
             self.upload_finding_templates()
 
     def load(self):
-        """Puts the stdin into raw_input"""
-        self.display("Reading from stdin...")
-        self.raw_input = sys.stdin.read()
+        """Puts the input into raw_input"""
+        if self.input:
+            self.raw_input = list()
+            for filepath in self.input:
+                with open(filepath, "r") as f:
+                    self.raw_input.append(f.read())
+            if len(self.raw_input) == 1:
+                self.raw_input = self.raw_input[0]
+                self.input = None
+        else:
+            self.display("Reading from stdin...")
+            self.raw_input = sys.stdin.read()
 
     def parse_xml(self, as_dict=True):
         if as_dict:
-            self.parsed_input = xmltodict.parse(self.raw_input)  # type: ignore
-        else:
-            if not self.file_path and self.raw_input:
-                self.xml_root = ElementTree.fromstring(self.raw_input)
+            if isinstance(self.raw_input, list):
+                self.parsed_input = list()
+                for raw_input in self.raw_input:
+                    self.parsed_input.append(xmltodict.parse(raw_input))
             else:
-                self.xml_root = ElementTree.parse(self.file_path).getroot()
+                self.parsed_input = xmltodict.parse(self.raw_input)  # type: ignore
+        else:
+            if isinstance(self.raw_input, list):
+                self.xml_root = list()
+                for raw_input in self.raw_input:
+                    self.xml_root.append(ElementTree.fromstring(raw_input))
+            else:
+                self.xml_root = ElementTree.fromstring(self.raw_input)
 
     def parse_json(self):
-        self.parsed_input = json.loads(self.raw_input)  # type: ignore
+        if isinstance(self.raw_input, list):
+            self.parsed_input = list()
+            for raw_input in self.raw_input:
+                self.parsed_input.append(json.loads(raw_input))
+        else:
+            self.parsed_input = json.loads(self.raw_input)  # type: ignore
 
     def parse_csv(self):
         raise NotImplementedError("Parse csv data is not implemented for this plugin.")
@@ -301,7 +328,7 @@ class ToolBase(Base):
         If you decide not to support one of these, it won't be possible to provide
         the corresponding argument.
         """
-        if not self.raw_input and not self.file_path:
+        if not self.raw_input:
             self.load()
 
         if self.input_format == "xml":
@@ -425,37 +452,9 @@ class ToolBase(Base):
                     )
                     continue
             elif finding.data.title.value in project_finding_titles:
-                if self.merge:
-                    project_finding = project_findings[
-                        project_finding_titles.index(finding.data.title.value)
-                    ]
-                    # Merge with existing affected components list
-                    merged_affected_components = (
-                        project_finding.data.affected_components.value
-                        + finding.data.affected_components.value
-                    )
-
-                    # Create a dictionary to filter out duplicates
-                    unique_affected_components = {}
-                    for c in merged_affected_components:
-                        unique_affected_components[c.value] = c
-
-                    # Get unique affected components and sort them
-                    merged_list = list(unique_affected_components.values())
-                    merged_list.sort(key=lambda x: x.value)
-
-                    # Merge and update finding
-                    project_finding.data.affected_components.value = merged_list
-                    self.reptor.api.projects.update_finding(
-                        project_finding.id, project_finding.to_dict()
-                    )
-                    self.log.display(
-                        f'Finding "{finding.data.title.value}" already exists. Merging.'
-                    )
-                else:
-                    self.log.display(
-                        f'Finding "{finding.data.title.value}" already exists. Skipping.'
-                    )
+                self.log.display(
+                    f'Finding "{finding.data.title.value}" already exists. Skipping.'
+                )
                 continue
 
             self.log.info(f'Pushing finding "{finding.data.title.value}"')
