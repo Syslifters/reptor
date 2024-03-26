@@ -89,8 +89,13 @@ class Nmap(ToolBase):
         nmap_data = self.parsed_input
         if isinstance(nmap_data, list):
             hosts = nmap_data[0].get("nmaprun", {}).get("host", [])
+            if not isinstance(hosts, list):
+                hosts = [hosts]
             for i in range(1, len(nmap_data)):
-                hosts += nmap_data[i].get("nmaprun", {}).get("host", [])
+                other_hosts = nmap_data[i].get("nmaprun", {}).get("host", [])
+                if not isinstance(other_hosts, list):
+                    other_hosts = [other_hosts]
+                hosts += other_hosts
         else:
             hosts = nmap_data.get("nmaprun", {}).get("host", [])
 
