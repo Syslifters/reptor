@@ -37,7 +37,6 @@ class Base:
             self.configure()
             sys.exit(0)
         self.notetitle = kwargs.get("notetitle")
-        self.file_path = kwargs.get("file", "")
 
         for k, v in self.plugin_config:
             if not hasattr(self, k):

@@ -11,6 +11,8 @@ class Sslyze(ToolBase):
     cat sslyze.json | reptor sslyze --upload
     """
 
+    supports_multi_input = True
+
     meta = {
         "author": "Syslifters",
         "name": "Sslyze",
@@ -192,9 +194,12 @@ class Sslyze(ToolBase):
                     filter(
                         None,
                         [
-                            c["cipher_suite"]["openssl_name"]
-                            if c["cipher_suite"]["openssl_name"] in self.weak_ciphers
-                            else None
+                            (
+                                c["cipher_suite"]["openssl_name"]
+                                if c["cipher_suite"]["openssl_name"]
+                                in self.weak_ciphers
+                                else None
+                            )
                             for c in protocol_data["result"]["accepted_cipher_suites"]
                         ],
                     )
@@ -204,10 +209,12 @@ class Sslyze(ToolBase):
                     filter(
                         None,
                         [
-                            c["cipher_suite"]["openssl_name"]
-                            if c["cipher_suite"]["openssl_name"]
-                            in self.insecure_ciphers
-                            else None
+                            (
+                                c["cipher_suite"]["openssl_name"]
+                                if c["cipher_suite"]["openssl_name"]
+                                in self.insecure_ciphers
+                                else None
+                            )
                             for c in protocol_data["result"]["accepted_cipher_suites"]
                         ],
                     )
@@ -240,9 +247,11 @@ class Sslyze(ToolBase):
             filter(
                 None,
                 [
-                    validation.get("trust_store", {}).get("name")
-                    if not validation.get("was_validation_successful", True)
-                    else None
+                    (
+                        validation.get("trust_store", {}).get("name")
+                        if not validation.get("was_validation_successful", True)
+                        else None
+                    )
                     for validation in path_validation_results
                 ],
             )
@@ -332,6 +341,17 @@ class Sslyze(ToolBase):
             target_note.template_data = target
             main_note.children.append(target_note)
         return main_note
+
+    def parse(self):
+        super().parse()
+        if isinstance(self.parsed_input, list) and len(self.parsed_input) > 0:
+            scan_results = self.parsed_input[0].get("server_scan_results", list())
+            for i in range(1, len(self.parsed_input)):
+                scan_results.extend(
+                    self.parsed_input[i].get("server_scan_results", list())
+                )
+            self.parsed_input[0]["server_scan_results"] = scan_results
+            self.parsed_input = self.parsed_input[0]
 
     def preprocess_for_template(self) -> dict:
         data = list()

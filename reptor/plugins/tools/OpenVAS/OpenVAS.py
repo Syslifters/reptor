@@ -29,6 +29,7 @@ class OpenVAS(ToolBase):
         "high": "🟠",
         "critical": "🔴",
     }
+    supports_multi_input = True
 
     @property
     def user_config(self) -> typing.List[UserConfig]:
@@ -165,18 +166,27 @@ class OpenVAS(ToolBase):
             return None
         return main_note
 
+    def _get_findings(self, input) -> list:
+        if "get_reports_response" in input:
+            input = input["get_reports_response"]
+        results = input.get("report", dict())
+        if results.get("report_format", dict()).get("name") == "Anonymous XML":
+            self.log.warning("Anonymous XML. You might want to export as XML instead.")
+        return (
+            results.get("report", dict()).get("results", dict()).get("result", list())
+        )
+
     def parse(self):
         super().parse()
         if not self.parsed_input:
             return
-        if "get_reports_response" in self.parsed_input:
-            self.parsed_input = self.parsed_input["get_reports_response"]
-        results = self.parsed_input.get("report", dict())
-        if results.get("report_format", dict()).get("name") == "Anonymous XML":
-            self.log.warning("Anonymous XML. You might want to export as XML instead.")
-        findings = (
-            results.get("report", dict()).get("results", dict()).get("result", list())
-        )
+        if isinstance(self.parsed_input, list):
+            # Multiple input files. Merge findings
+            findings = self._get_findings(self.parsed_input[0])
+            for i in range(1, len(self.parsed_input)):
+                findings += self._get_findings(self.parsed_input[i])
+        else:
+            findings = self._get_findings(self.parsed_input)
 
         # Filter severity and plugins
         filtered = list()
@@ -278,6 +288,14 @@ class OpenVAS(ToolBase):
                 m.setdefault("oid", finding["nvt"]["oid"])
             if "risk_factor" in finding.keys():
                 m.setdefault("risk_factor", finding["risk_factor"].lower())
+            if "refs" in finding.get("nvt", dict()).keys():
+                m.setdefault("refs", list())
+                refs = finding["nvt"]["refs"].get("ref", dict)
+                if isinstance(refs, dict):
+                    refs = [refs]
+                for ref in refs:
+                    m["refs"].append(ref.get("@id", ""))
+                m["refs"] = sorted(set(m["refs"]))
             m.setdefault("affected_components", list()).append(
                 f"{finding['target']}{':' + finding['port'] if not finding['port'].startswith('general') else ''}"
             )

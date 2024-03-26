@@ -61,6 +61,10 @@ class TestNmap(TestCaseToolPlugin):
         self.nmap.parse()
         assert self.nmap.parsed_input == result_dict
 
+        self.nmap.raw_input = [self.nmap.raw_input, self.nmap.raw_input]
+        self.nmap.parse()
+        assert len(self.nmap.parsed_input) == 6
+
     def test_xml_parse_with_mac(self):
         entries = [
             {
@@ -100,6 +104,10 @@ class TestNmap(TestCaseToolPlugin):
         self.nmap.parse()
         for entry in entries:
             assert entry in self.nmap.parsed_input
+
+        self.nmap.raw_input = [self.nmap.raw_input, self.nmap.raw_input]
+        self.nmap.parse()
+        assert len(self.nmap.parsed_input) == 8
 
     def test_xml_parse_multi_target(self):
         entries = [
