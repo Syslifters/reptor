@@ -1,9 +1,12 @@
-usage: reptor zap [-h] [--format | --upload | --parse] [--xml | --json]
+usage: reptor zap [-h] [-i [INPUT]] [--format | --upload | --parse]
+                  [--xml | --json]
 
 Parses ZAP reports (JSON, XML)
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -i [INPUT], --input [INPUT]
+                        Input file, if not stdin 
   --format
   --upload
   --parse

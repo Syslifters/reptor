@@ -1,4 +1,4 @@
-usage: reptor openvas [-h] [--conf]
+usage: reptor openvas [-h] [--conf] [-i [INPUT [INPUT ...]]]
                       [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
                       [--severity-filter SEVERITY_FILTER] [--min-qod MIN_QOD]
                       [--exclude EXCLUDED_PLUGINS]
@@ -9,6 +9,8 @@ OpenVAS vulnerability importer
 optional arguments:
   -h, --help            show this help message and exit
   --conf, --config      Configure plugin settings
+  -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+                        Input file, if not stdin (multiple files allowed)
   --format
   --upload
   --push-findings
