@@ -18,6 +18,7 @@ cat openvas.xml | reptor openvas --min-qod 50 --push-findings
 cat openvas.xml | reptor openvas --filter-severity medium-critical --push-findings
 cat openvas.xml | reptor openvas --include-plugins 1.3.6.1.4.1.25623.1.0.103674 --push-findings
 cat openvas.xml | reptor openvas --exclude-plugins 1.3.6.1.4.1.25623.1.0.103674 --push-findings
+reptor openvas -i openvas_1.xml openvas_2.xml --push-findings  # Use multiple input files
 ```
 
 You can add those filter settings to your config by running:

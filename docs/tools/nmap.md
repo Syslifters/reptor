@@ -14,8 +14,9 @@ cat nmap-output.xml | reptor nmap -oX
 | www.syslifters.com | 34.249.200.254 | 443/tcp | https | n/a |
 ```
 
-```bash title="Upload table to notes"
-cat nmap-output.xml | reptor nmap -oX --upload
+```bash
+cat nmap-output.xml | reptor nmap -oX --upload  # Upload table to notes
+reptor nmap -oX -i nmap_1.xml nmap_2.xml --upload  # Use multiple input files
 ```
 
 ![Uploaded nmap notes](/cli/assets/nmap-notes.png)

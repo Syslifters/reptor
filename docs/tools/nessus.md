@@ -16,6 +16,7 @@ Filter your Nessus results:
 cat nessus.xml | reptor nessus --filter-severity medium-critical --push-findings
 cat nessus.xml | reptor nessus --include-plugins 11219,25216 --push-findings  # Include only plugin IDs 11219, 25216
 cat nessus.xml | reptor nessus --exclude-plugins 11219,25216 --push-findings  # Exclude plugin IDs 11219, 25216
+reptor nessus -i nessus_1.xml nessus_2.xml --push-findings  # Use multiple input files
 ```
 
 You can add those filter settings to your config by running:
