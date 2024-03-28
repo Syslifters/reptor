@@ -412,8 +412,7 @@ class ToolBase(Base):
 
         if self.note_templates:
             self.reptor.api.notes.write_note_templates(
-                self.note_templates,
-                timestamp=self.timestamp
+                self.note_templates, timestamp=self.timestamp
             )
         else:
             parent_notetitle = "Uploads" if self.notetitle != "Uploads" else None
@@ -422,7 +421,7 @@ class ToolBase(Base):
                 text=self.formatted_input,
                 parent_notetitle=parent_notetitle,
                 icon_emoji=self.note_icon,
-                timestamp=self.timestamp
+                timestamp=self.timestamp,
             )
         self.log.success("Successfully uploaded to notes.")
 
@@ -436,16 +435,9 @@ class ToolBase(Base):
             for f in self.reptor.api.projects.get_findings()
         ]
         project_finding_titles = [f.data.title.value for f in project_findings]
-        project_findings_from_templates = [f.template for f in project_findings]
         for finding in self.findings:
             self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
-            if finding.template:
-                if finding.template in project_findings_from_templates:
-                    self.log.display(
-                        f'Finding "{finding.data.title.value}" already created from template. Skipping.'
-                    )
-                    continue
-            elif finding.data.title.value in project_finding_titles:
+            if finding.data.title.value in project_finding_titles:
                 self.log.display(
                     f'Finding "{finding.data.title.value}" already exists. Skipping.'
                 )
