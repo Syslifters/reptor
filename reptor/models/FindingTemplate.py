@@ -25,7 +25,6 @@ class FindingTemplate(BaseModel):
     Attributes:
         details:
         images:
-        lock_info:
         usage_count:
         source:
         tags:
@@ -34,7 +33,6 @@ class FindingTemplate(BaseModel):
 
     details: str = ""
     images: str = ""
-    lock_info: bool = False
     usage_count: int = 0
     source: FindingTemplateSources = FindingTemplateSources.CREATED
     tags: typing.List[str] = []

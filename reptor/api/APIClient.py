@@ -13,7 +13,6 @@ class APIClient:
     base_endpoint: str
     endpoint: str
     item_id: str
-    force_unlock: bool
     _project_id: str
 
     def __init__(self, require_project_id=True, **kwargs) -> None:

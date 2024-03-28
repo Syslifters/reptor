@@ -55,8 +55,8 @@ class TestProjectModelParsing:
             ],
             "imported_members": [],
             "details": "http://localhost:8000/api/v1/pentestprojects/4cf78324-8502-4fb0-936a-724892d3c539",
-            "findings": [{"id": "a9e6fd6b-773f-46a8-8a5c-58fdeefbdfc0", "created": "2023-08-25T11:57:03.886931Z", "updated": "2023-08-25T11:57:03.889063Z", "project": "4820bd5d-51f1-4dca-a4a4-78ba935b615c", "project_type": "50dfad6e-805d-4215-b098-a73e03b1ec3b", "language": "en-US", "lock_info": null, "template": null, "assignee": null, "status": "in-progress", "order": 1, "data": {"cvss": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N", "title": "Reflected Cross-Site Scripting (XSS)", "impact": "", "summary": "We detected a reflected XSS vulnerability.\\n\\n**XSS targets**\\n\\n* https://example.com/alert(1)\\n* https://example.com/q=alert(1)\\n", "severity": null, "references": ["https://owasp.org/www-community/attacks/xss/"], "description": "", "precondition": "", "retest_notes": "", "retest_status": null, "wstg_category": null, "recommendation": "HTML encode user-supplied inputs.", "owasp_top10_2021": null, "affected_components": ["https://example.com/alert(1)", "https://example.com/q=alert(1)"], "short_recommendation": ""}}],
-            "sections": [{"id": "other", "label": "Executive Summary", "fields": ["title"], "project": "4820bd5d-51f1-4dca-a4a4-78ba935b615c", "project_type": "50dfad6e-805d-4215-b098-a73e03b1ec3b", "language": "en-US", "lock_info": null, "assignee": null, "status": "in-progress", "data": {"title": "Test"}}],
+            "findings": [{"id": "a9e6fd6b-773f-46a8-8a5c-58fdeefbdfc0", "created": "2023-08-25T11:57:03.886931Z", "updated": "2023-08-25T11:57:03.889063Z", "project": "4820bd5d-51f1-4dca-a4a4-78ba935b615c", "project_type": "50dfad6e-805d-4215-b098-a73e03b1ec3b", "language": "en-US", "template": null, "assignee": null, "status": "in-progress", "order": 1, "data": {"cvss": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N", "title": "Reflected Cross-Site Scripting (XSS)", "impact": "", "summary": "We detected a reflected XSS vulnerability.\\n\\n**XSS targets**\\n\\n* https://example.com/alert(1)\\n* https://example.com/q=alert(1)\\n", "severity": null, "references": ["https://owasp.org/www-community/attacks/xss/"], "description": "", "precondition": "", "retest_notes": "", "retest_status": null, "wstg_category": null, "recommendation": "HTML encode user-supplied inputs.", "owasp_top10_2021": null, "affected_components": ["https://example.com/alert(1)", "https://example.com/q=alert(1)"], "short_recommendation": ""}}],
+            "sections": [{"id": "other", "label": "Executive Summary", "fields": ["title"], "project": "4820bd5d-51f1-4dca-a4a4-78ba935b615c", "project_type": "50dfad6e-805d-4215-b098-a73e03b1ec3b", "language": "en-US", "assignee": null, "status": "in-progress", "data": {"title": "Test"}}],
             "notes": "http://localhost:8000/api/v1/pentestprojects/4cf78324-8502-4fb0-936a-724892d3c539/notes",
             "images": "http://localhost:8000/api/v1/pentestprojects/4cf78324-8502-4fb0-936a-724892d3c539/images"
         }"""
@@ -115,7 +115,6 @@ class TestProjectModelParsing:
             "project": "c69d5b9f-3964-490b-9831-540d87aa97b2",
             "project_type": "6e9cf824-7b01-4551-8c24-55f2e342b87a",
             "language": "en-US",
-            "lock_info": {},
             "template": null,
             "assignee": null,
             "status": "in-progress",
@@ -133,7 +132,6 @@ class TestProjectModelParsing:
             "project": "c69d5b9f-3964-490b-9831-540d87aa97b2",
             "project_type": "6e9cf824-7b01-4551-8c24-55f2e342b87a",
             "language": "en-US",
-            "lock_info": null,
             "assignee": null,
             "status": "in-progress",
             "data": {

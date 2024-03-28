@@ -56,9 +56,6 @@ class Note(UploadBase):
         else:
             self.notetitle = "Uploads"
             icon = "📤"
-        force_unlock = bool(
-            self.reptor.get_config().get_cli_overwrite().get("force_unlock")
-        )
         timestamp = not self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
 
         """
@@ -74,7 +71,6 @@ class Note(UploadBase):
             title=self.notetitle,
             parent_notetitle=parent_notetitle,
             icon=icon,
-            force_unlock=force_unlock,
             timestamp=timestamp,
         )
         self.log.success("Successfully uploaded to notes.")

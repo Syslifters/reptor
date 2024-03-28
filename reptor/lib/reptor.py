@@ -203,12 +203,6 @@ class Reptor:
         config_parser.add_argument(
             "--private-note", help="add notes to private notes", action="store_true"
         )
-        config_parser.add_argument(
-            "-f",
-            "--force-unlock",
-            help="force unlock notes",
-            action="store_true",
-        )
 
     def _configure_global_arguments(self):
         """Enables the parameters

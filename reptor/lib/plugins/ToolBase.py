@@ -53,9 +53,6 @@ class ToolBase(Base):
         self.timestamp = (
             not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
         )
-        self.force_unlock = (
-            self.reptor.get_config().get("cli", dict()).get("force_unlock")
-        )
 
         self.input_format = kwargs.get("format")
         if self.template_paths:
@@ -416,8 +413,7 @@ class ToolBase(Base):
         if self.note_templates:
             self.reptor.api.notes.write_note_templates(
                 self.note_templates,
-                timestamp=self.timestamp,
-                force_unlock=self.force_unlock,
+                timestamp=self.timestamp
             )
         else:
             parent_notetitle = "Uploads" if self.notetitle != "Uploads" else None
@@ -426,8 +422,7 @@ class ToolBase(Base):
                 text=self.formatted_input,
                 parent_notetitle=parent_notetitle,
                 icon_emoji=self.note_icon,
-                timestamp=self.timestamp,
-                force_unlock=self.force_unlock,
+                timestamp=self.timestamp
             )
         self.log.success("Successfully uploaded to notes.")
 

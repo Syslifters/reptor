@@ -4,7 +4,6 @@ from reptor.models.Base import BaseModel
 
 
 class NoteBase(BaseModel):
-    lock_info: bool = False
     title: str = ""
     text: str = ""
     checked: typing.Optional[bool] = None

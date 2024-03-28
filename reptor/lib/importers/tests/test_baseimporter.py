@@ -44,7 +44,6 @@ class TestBaseImporter:
             "created": "2022-10-19T10:30:48.055519Z",
             "updated": "2023-05-17T07:15:51.700130Z",
             "details": "http://localhost:8000/api/v1/findingtemplates/e6961177-0582-4dd2-b057-c48490294ddd",
-            "lock_info": None,
             "usage_count": 1,
             "source": "imported",
             "tags": ["web"],

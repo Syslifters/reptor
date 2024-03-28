@@ -25,7 +25,6 @@ class TestFindingModelParsing:
         "project": "a4b4b630-fc78-452d-b348-d362b69c2449",
         "project_type": "2970149f-e11d-420a-8a5d-25b5fda14e33",
         "language": "en-US",
-        "lock_info": null,
         "template": null,
         "assignee": {
             "id": "788dcb76-9928-46fc-87ba-7043708f1bc0",
@@ -74,7 +73,6 @@ class TestFindingModelParsing:
         "project": "4820bd5d-51f1-4dca-a4a4-78ba115b615c",
         "project_type": "c9b00138-8079-40d8-8030-1aecf3b66e11",
         "language": "en-US",
-        "lock_info": {},
         "template": null,
         "assignee": {},
         "status": "in-progress",
@@ -106,7 +104,6 @@ class TestFindingModelParsing:
         "project": "4820bd5d-51f1-4dca-a4a4-78ba115b615c",
         "project_type": "c9b00138-8079-40d8-8030-1aecf3b66e11",
         "language": "en-US",
-        "lock_info": {},
         "template": null,
         "assignee": {},
         "status": "in-progress",

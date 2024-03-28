@@ -1,4 +1,3 @@
-import contextlib
 import typing
 from datetime import datetime
 from os.path import basename
@@ -7,7 +6,6 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.lib.exceptions import LockedException
 from reptor.models.Note import Note
 from reptor.utils.file_operations import guess_filetype
 
@@ -101,20 +99,18 @@ class NotesAPI(APIClient):
     def _upload_note(
         self,
         note: Note,
-        force_unlock: bool = False,
     ):
-        with self._lock_note(note.id, force_unlock=force_unlock):
-            self.debug(f"Note has length: {len(note.text)}")
-            url = urljoin(self.base_endpoint, note.id, "")
-            r = self.put(url, json=note.to_dict())
+        self.debug(f"Note has length: {len(note.text)}")
+        url = urljoin(self.base_endpoint, note.id, "")
+        r = self.put(url, json=note.to_dict())
 
-            try:
-                r.raise_for_status()
-                self.display(f'Note written to "{note.title}".')
-            except HTTPError as e:
-                raise HTTPError(
-                    f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
-                ) from e
+        try:
+            r.raise_for_status()
+            self.display(f'Note written to "{note.title}".')
+        except HTTPError as e:
+            raise HTTPError(
+                f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
+            ) from e
 
     def write_note_templates(
         self,
@@ -177,12 +173,11 @@ class NotesAPI(APIClient):
     def write_note(
         self,
         timestamp: bool = False,
-        force_unlock: bool = False,
         **kwargs,
     ):
         note_template = NoteTemplate.from_kwargs(**kwargs)
         self.write_note_templates(
-            note_template, timestamp=timestamp, force_unlock=force_unlock
+            note_template, timestamp=timestamp
         )
 
     def get_note_by_title(
@@ -231,7 +226,6 @@ class NotesAPI(APIClient):
         filename: typing.Optional[str] = None,
         caption: typing.Optional[str] = None,
         parent_notetitle: typing.Optional[str] = None,
-        force_unlock: bool = False,
         **kwargs,
     ):
         assert file or content
@@ -257,85 +251,27 @@ class NotesAPI(APIClient):
                 self.warning(f"{file.name} is empty. Will not upload.")
                 return
 
-        # Lock during upload to prevent unnecessary uploads and for endpoint setup
-        note = self.get_or_create_note_by_title(
+        self.get_or_create_note_by_title(
             notetitle, parent_notetitle=parent_notetitle
         )
         if self.private_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
             url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
-        with self._lock_note(note.id, force_unlock=force_unlock):
-            response_json = self.post(
-                url, files={"file": (filename, content)}, json_content=False
-            ).json()
-            is_image = True if response_json.get("resource_type") == "image" else False
-            if is_image:
-                file_path = f"/images/name/{response_json['name']}"
-                note_content = f"\n![{caption or filename}]({file_path})"
-            else:
-                file_path = f"/files/name/{response_json['name']}"
-                note_content = f"\n[{caption or filename}]({file_path})"
+        response_json = self.post(
+            url, files={"file": (filename, content)}, json_content=False
+        ).json()
+        is_image = True if response_json.get("resource_type") == "image" else False
+        if is_image:
+            file_path = f"/images/name/{response_json['name']}"
+            note_content = f"\n![{caption or filename}]({file_path})"
+        else:
+            file_path = f"/files/name/{response_json['name']}"
+            note_content = f"\n[{caption or filename}]({file_path})"
 
-            self.write_note(
-                title=notetitle,
-                text=note_content,
-                parent_notetitle=parent_notetitle,
-                force_unlock=True,
-                **kwargs,
-            )
-
-    def _do_lock(self, note_id: str):
-        url = urljoin(self.base_endpoint, note_id, "lock/")
-        try:
-            return self.post(url)
-        except HTTPError as e:
-            if e.response.status_code == 404:
-                # Collaborative editing doesn't support locking
-                pass
-            else:
-                raise e
-        return
-
-    def _do_unlock(self, note_id: str):
-        url = urljoin(self.base_endpoint, note_id, "unlock/")
-        try:
-            self.post(url)
-        except HTTPError as e:
-            if e.response.status_code == 404:
-                # Collaborative editing doesn't support locking
-                pass
-            else:
-                raise e
-        return
-
-    @contextlib.contextmanager
-    def _lock_note(self, note_id: str, force_unlock: bool = False):
-        r = None
-        try:
-            r = self._do_lock(note_id)
-        except HTTPError as e:
-            if e.response.status_code == 403:
-                locked_by = (
-                    e.response.json()
-                    .get("lock_info", {})
-                    .get("user", {})
-                    .get("username")
-                )
-                if locked_by:
-                    raise LockedException(f"Cannot unlock. Locked by @{locked_by}.")
-                else:
-                    raise LockedException("Cannot unlock. Locked by other user.")
-            elif e.response.status_code == 404:
-                # Collaborative editing doesn't support locking
-                pass
-            else:
-                raise e
-        if not force_unlock and r and r.status_code == 200:
-            raise LockedException(
-                "This note is locked. (Unlock or force: --force-unlock)"
-            )
-
-        yield
-
-        self._do_unlock(note_id)
+        self.write_note(
+            title=notetitle,
+            text=note_content,
+            parent_notetitle=parent_notetitle,
+            **kwargs,
+        )

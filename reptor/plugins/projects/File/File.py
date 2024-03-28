@@ -45,7 +45,6 @@ class File(UploadBase):
         else:
             notetitle = "Uploads"
             icon = "📤"
-        force_unlock = self.reptor.get_config().get("cli").get("force_unlock")
         timestamp = not self.reptor.get_config().get("cli").get("no_timestamp")
 
         for file in files:
@@ -56,7 +55,6 @@ class File(UploadBase):
                 caption=filename,
                 parent_notetitle=parent_notetitle,
                 timestamp=timestamp,
-                force_unlock=force_unlock,
                 icon=icon,
             )
 

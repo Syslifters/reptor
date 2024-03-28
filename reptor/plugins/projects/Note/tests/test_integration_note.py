@@ -43,36 +43,3 @@ class TestIntegrationNote(object):
         note = get_note(note_content.decode(), private_uploads_id, private=True)
         assert note is not None
         assert note_content.decode() in note["text"]
-
-    @pytest.mark.skip(reason="Locking is being deprecated.")
-    def test_locked_notes(self, private_notes_api, private_uploads_id):
-        # Lock "Uploads" note via notes_api
-        private_notes_api._do_lock(private_uploads_id)
-
-        # Upload content to "Uploads" (should fail, because locked)
-        note_content = str(time.time()).encode()
-        p = subprocess.Popen(
-            ["reptor", "note", "--private"],
-            stdin=subprocess.PIPE,
-        )
-        p.communicate(note_content)
-        assert p.returncode == 2
-
-        # Make sure content was not added to "Uploads"
-        note = get_note("Uploads", None, private=True)
-        assert note is not None
-        assert note_content.decode() not in note["text"]
-
-        # Upload content to "Uploads" (should succeed, because forced)
-        note_content = str(time.time()).encode()
-        p = subprocess.Popen(
-            ["reptor", "note", "--private", "--force"],
-            stdin=subprocess.PIPE,
-        )
-        p.communicate(note_content)
-        assert p.returncode == 0
-
-        # Make sure content was not added to "Uploads"
-        note = get_note("Uploads", None, private=True)
-        assert note is not None
-        assert note_content.decode() in note["text"]

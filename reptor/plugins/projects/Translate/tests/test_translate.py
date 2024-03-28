@@ -20,7 +20,6 @@ class TestTranslate:
         "project": "a4b4b630-fc78-452d-b348-d362b69c2449",
         "project_type": "2970149f-e11d-420a-8a5d-25b5fda14e33",
         "language": "en-US",
-        "lock_info": null,
         "template": null,
         "assignee": {
             "id": "788dcb76-9928-46fc-87ba-7043708f1bc0",
