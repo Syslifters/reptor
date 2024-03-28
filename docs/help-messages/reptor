@@ -1,6 +1,6 @@
 usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--private-note] [-f] [-v] [--debug] [-n NOTETITLE]
-              [--no-timestamp] [--file FILE]
+              [--private-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
+              [--file FILE]
 
 Examples:
                 reptor conf
@@ -60,4 +60,3 @@ configuration:
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
   --private-note        add notes to private notes
-  -f, --force-unlock    force unlock notes
