@@ -86,9 +86,7 @@ class Config:
                 config = yaml.safe_load(f.read())
         except FileNotFoundError:
             self._no_config_file = True
-        config["server"] = os.environ.get(
-            "REPTOR_SERVER", config.get("server")
-        )
+        config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
         config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
         config["project_id"] = os.environ.get(
             "REPTOR_PROJECT_ID", config.get("project_id")
@@ -122,6 +120,13 @@ class Config:
         self._raw_config["token"] = input(
             f"API Token{ f' [redacted]' if default_api_token else ''}: "
         ) or self._raw_config.get("token")
+        if self._raw_config["token"]:
+            self._raw_config["token"] = (
+                self._raw_config["token"]
+                .replace("Authorization: ", "")
+                .replace("Bearer ", "")
+                .strip()
+            )
 
         default_project_id = self._raw_config.get("project_id")
         self._raw_config["project_id"] = (
