@@ -237,6 +237,13 @@ class Nessus(ToolBase):
         for plugin_findings in findings.values():
             aggregated_finding = dict()
             for plugin_finding in plugin_findings:
+                target = plugin_finding.get("target") or plugin_finding.get("host_ip") or "n/a"
+                port = plugin_finding.get("port") or "0"
+                svc_name = plugin_finding.get("svc_name") or "general"
+                plugin_finding["affected_components"] = (
+                    f"{target}{':' + port if port != '0' else ''}{' (' + svc_name + ')' if svc_name != 'general' else ''}"
+                )
+
                 for key, value in plugin_finding.items():
                     if key in [
                         "risk_factor",
@@ -255,7 +262,15 @@ class Nessus(ToolBase):
                         if not value:
                             value = list()
                         value = list(set(aggregated_finding.get(key, list()) + value))
-                    elif key in ["plugin_output", "port", "protocol", "svc_name"]:
+                    elif key in [
+                        "plugin_output",
+                        "port",
+                        "protocol",
+                        "svc_name",
+                        "target",
+                        "host_ip",
+                        "affected_components",
+                    ]:
                         value = aggregated_finding.get(key, list()) + [value]
                     aggregated_finding[key] = value
 
@@ -265,12 +280,7 @@ class Nessus(ToolBase):
     def preprocess_for_template(self) -> list:
         findings = self.aggregate_findings()
         for finding in findings.values():
-            affected_components = list()
-            for i in range(0, len(finding["port"])):
-                affected_components.append(
-                    f"{finding['target']}{':' + finding['port'][i] if finding['port'][i] != '0' else ''}{' (' + finding['svc_name'][i] + ')' if finding['svc_name'][i] != 'general' else ''}"
-                )
-            finding["affected_components"] = sorted(set(affected_components))
+            finding["affected_components"] = sorted(set(finding["affected_components"]))
             if cvss := finding.get("cvss_vector"):
                 finding["cvss_vector"] = self.cvss2_to_3(cvss)
 

@@ -27,6 +27,16 @@ class TestNessus(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.nessus.raw_input = f.read()
 
+    def test_aggregate_findings_with_severity_filter(self):
+        self._load_xml_data("nessus_multi_host")
+        self.nessus.severity_filter = {"medium"}
+        self.nessus.parse()
+        findings = self.nessus.aggregate_findings()
+        assert len(findings) == 1
+        assert len(findings['12218']["affected_components"]) == 2
+        assert "192.168.1.112:5353 (mdns)" in findings["12218"]["affected_components"]
+        assert "192.168.1.111:5353 (mdns)" in findings["12218"]["affected_components"]
+
     def test_parse_multi_input(self):
         self._load_xml_data("nessus_multi_host")
         self.nessus.parse()
@@ -86,7 +96,9 @@ class TestNessus(TestCaseToolPlugin):
         )
 
         # Check correct affected componets
-        assert [c.value for c in findings[0].data.affected_components.value] == ["10.15.10.11:443 (cifs)"]
+        assert [c.value for c in findings[0].data.affected_components.value] == [
+            "10.15.10.11:443 (cifs)"
+        ]
         assert [c.value for c in findings[1].data.affected_components.value] == [
             "10.15.10.11:443 (cifs)"
         ]
@@ -113,7 +125,7 @@ class TestNessus(TestCaseToolPlugin):
         affected_ips = set(
             [f.split(":")[0] for f in syn_finding["affected_components"]]
         )
-        assert len(affected_ips) == 1
+        assert len(affected_ips) == 2
 
     def test_aggregate_findings(self):
         self._load_xml_data("nessus_multi_host")
