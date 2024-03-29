@@ -45,30 +45,11 @@ pacman -S reptor
 [![BlackArch package](https://repology.org/badge/version-for-repo/blackarch/reptor.svg)](https://repology.org/project/reptor/versions)
 
 
-## Configuration
-Get your API token from https://<your-installation>/users/self/apitokens/.
-
-```
-reptor conf
-Server [https://demo.sysre.pt]: 
-API Token [Create at https://demo.sysre.pt/users/self/apitokens/]:
-Project ID:
-Store to config to C:\Users\aron\.sysreptor\config.yaml? [y/n]:
-```
-
-You can add your configuration as environment variables. Environment variables override the config file.
-
-```
-export REPTOR_SERVER="https://demo.sysre.pt"
-export REPTOR_TOKEN="sysreptor_ZDM5NmQ5<snip>"
-export PROJECT_ID="3fae023a-2632-4c88-a0ea-97ab5eb64c94"
-```
-
 ### Usage
 
 ```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--private-note] [-f] [-v] [--debug] [-n NOTETITLE]
-              [--no-timestamp] [--file FILE]
+              [--private-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
+              [--file FILE]
 
 Examples:
                 reptor conf
@@ -128,6 +109,5 @@ configuration:
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
   --private-note        add notes to private notes
-  -f, --force-unlock    force unlock notes
 
 ```
