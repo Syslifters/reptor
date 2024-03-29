@@ -3,6 +3,7 @@
 * Strip bogus API token prefix if http header is provided
 * Fix Nessus affected_components aggregation error
 * Don't skip findings created from templates
+* Don't through error if plugin source directory doesn't exists when copy
 
 # 0.14
 * Allow multiple inputs via -i switch

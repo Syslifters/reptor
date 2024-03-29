@@ -249,7 +249,8 @@ class Plugins(Base):
                 (plugin.parent / "findings", dest_parent / "findings"),
             ]
         for src, dest in copy:
-            shutil.copytree(src, dest)
+            if src.exists():
+                shutil.copytree(src, dest)
         self.log.success(f"Copied successfully. ({dest_parent})")
 
     def run(self):
