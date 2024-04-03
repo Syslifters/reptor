@@ -1,3 +1,6 @@
+# 0.17
+* Respect finding order in Project (and exportfindings)
+
 # 0.16
 * Remove locking
 * Strip bogus API token prefix if http header is provided

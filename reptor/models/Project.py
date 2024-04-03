@@ -40,7 +40,8 @@ class Project(ProjectBase):
         for section in data.get("sections", []):
             self.sections.append(Section(section, project_design))
         # Order findings by their order attribute
-        self.findings.sort(key=lambda f: f.order, reverse=True)
+        if self.override_finding_order:
+            self.findings.sort(key=lambda f: f.order)
 
 
 class ProjectOverview(ProjectBase):
