@@ -1,4 +1,4 @@
-# 0.18 (upcoming)
+# 0.18
 * Several adaptions to allow reptor be used as library
 
 # 0.17
