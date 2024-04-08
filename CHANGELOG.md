@@ -1,3 +1,6 @@
+# 0.18 (upcoming)
+* Several adaptions to allow reptor be used as library
+
 # 0.17
 * Respect finding order in Project (and exportfindings)
 

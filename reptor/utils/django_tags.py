@@ -1,6 +1,8 @@
 import re
+from contextlib import contextmanager
+from unittest import mock
 
-from django.template import base as django_base
+import django
 from django.template.base import Token, TokenType
 
 # HMTL comment tags
@@ -12,8 +14,8 @@ VARIABLE_TAG_END = "}}-->"
 COMMENT_TAG_START = "<!--{#"
 COMMENT_TAG_END = "#}-->"
 
-
-def setup_django_tags():
+@contextmanager
+def custom_django_tags():
     def create_token(self, token_string, position, lineno, in_tag):
         """
         Convert the given token string into a new Token object and return it.
@@ -26,10 +28,10 @@ def setup_django_tags():
             # len(BLOCK_TAG_START) would permit BLOCK_TAG_START to be
             # different, but it's not likely that the TAG_START values will
             # change anytime soon.
-            token_start = token_string[0 : len(django_base.BLOCK_TAG_START)]
-            if token_start == django_base.BLOCK_TAG_START:
+            token_start = token_string[0 : len(django.template.base.BLOCK_TAG_START)]
+            if token_start == django.template.base.BLOCK_TAG_START:
                 content = token_string[
-                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_END)
+                    len(django.template.base.BLOCK_TAG_START) : -len(django.template.base.BLOCK_TAG_END)
                 ].strip()
                 if self.verbatim:
                     # Then a verbatim block is being processed.
@@ -43,21 +45,23 @@ def setup_django_tags():
                 return Token(TokenType.BLOCK, content, position, lineno)
             if not self.verbatim:
                 content = token_string[
-                    len(django_base.BLOCK_TAG_START) : -len(django_base.BLOCK_TAG_END)
+                    len(django.template.base.BLOCK_TAG_START) : -len(django.template.base.BLOCK_TAG_END)
                 ].strip()
-                if token_start == django_base.VARIABLE_TAG_START:
+                if token_start == django.template.base.VARIABLE_TAG_START:
                     return Token(TokenType.VAR, content, position, lineno)
                 # BLOCK_TAG_START was handled above.
-                assert token_start == django_base.COMMENT_TAG_START
+                assert token_start == django.template.base.COMMENT_TAG_START
                 return Token(TokenType.COMMENT, content, position, lineno)
         return Token(TokenType.TEXT, token_string, position, lineno)
 
+    with mock.patch('django.template.base.tag_re', HTML_REGEX), \
+        mock.patch('django.template.base.Lexer.create_token', create_token), \
+        mock.patch('django.template.base.BLOCK_TAG_START', BLOCK_TAG_START), \
+        mock.patch('django.template.base.BLOCK_TAG_END', BLOCK_TAG_END), \
+        mock.patch('django.template.base.VARIABLE_TAG_START', VARIABLE_TAG_START), \
+        mock.patch('django.template.base.VARIABLE_TAG_END', VARIABLE_TAG_END), \
+        mock.patch('django.template.base.COMMENT_TAG_START', COMMENT_TAG_START), \
+        mock.patch('django.template.base.COMMENT_TAG_END', COMMENT_TAG_END):
+        yield
     # Monkey patch
-    django_base.tag_re = HTML_REGEX
-    django_base.Lexer.create_token = create_token
-    django_base.BLOCK_TAG_START = BLOCK_TAG_START
-    django_base.BLOCK_TAG_END = BLOCK_TAG_END
-    django_base.VARIABLE_TAG_START = VARIABLE_TAG_START
-    django_base.VARIABLE_TAG_END = VARIABLE_TAG_END
-    django_base.COMMENT_TAG_START = COMMENT_TAG_START
-    django_base.COMMENT_TAG_END = COMMENT_TAG_END
+    
