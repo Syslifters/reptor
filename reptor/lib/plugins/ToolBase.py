@@ -18,6 +18,7 @@ from reptor.models.Finding import Finding
 from reptor.models.FindingTemplate import FindingTemplate
 from reptor.models.Note import NoteTemplate
 from reptor.models.ProjectDesign import ProjectDesign
+from reptor.utils.django_tags import custom_django_tags
 
 from .Base import Base
 
@@ -356,9 +357,10 @@ class ToolBase(Base):
         formatted_input = ""
         for note_template in note_templates:
             if note_template.template:
-                note_template.text = render_to_string(
-                    f"{note_template.template}.md", note_template.template_data
-                )
+                with custom_django_tags():
+                    note_template.text = render_to_string(
+                        f"{note_template.template}.md", note_template.template_data
+                    )
             if note_template.title:
                 formatted_input += f"{'#' * level} {note_template.title}\n\n"
             if note_template.text:
@@ -567,9 +569,10 @@ class ToolBase(Base):
                     if finding_data.value:
                         if finding_data.type in ["markdown", "string", "cvss"]:
                             # Render template
-                            finding_data.value = Template(finding_data.value).render(
-                                django_context
-                            )
+                            with custom_django_tags():
+                                finding_data.value = Template(finding_data.value).render(
+                                    django_context
+                                )
                     elif finding_data.type in [
                         "list",
                         "enum",
