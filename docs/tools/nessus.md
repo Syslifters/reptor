@@ -25,6 +25,8 @@ You can add those filter settings to your config by running:
 reptor nessus --conf
 ```
 
+## Advanced usage
+Check out our [video for advanced usage](https://www.youtube.com/watch?v=gVgsV_nx7D0){ target=_blank }.
 
 ## Usage
 ```
