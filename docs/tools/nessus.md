@@ -13,7 +13,7 @@ cat nessus.xml | reptor nessus --push-findings  # Create findings from scan resu
 Filter your Nessus results:
 
 ```bash title="Nessus Filter"
-cat nessus.xml | reptor nessus --filter-severity medium-critical --push-findings
+cat nessus.xml | reptor nessus --severity-filter medium-critical --push-findings
 cat nessus.xml | reptor nessus --include-plugins 11219,25216 --push-findings  # Include only plugin IDs 11219, 25216
 cat nessus.xml | reptor nessus --exclude-plugins 11219,25216 --push-findings  # Exclude plugin IDs 11219, 25216
 reptor nessus -i nessus_1.xml nessus_2.xml --push-findings  # Use multiple input files
