@@ -1,3 +1,4 @@
+import argparse
 import re
 from typing import Union
 
@@ -167,8 +168,22 @@ class Translate(Base):
             default="",
         )
         parser.add_argument(
+            "--skipfields",
+            metavar="FIELDS",
+            help=argparse.SUPPRESS,
+            action="store",
+            default="",
+        )
+        parser.add_argument(
             "--dry-run",
+            dest="dry_run",
             help="Do not translate, count characters to be translated and checks Deepl quota",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--dryrun",
+            dest="dry_run",
+            help=argparse.SUPPRESS,
             action="store_true",
         )
 

@@ -1,3 +1,5 @@
+import argparse
+
 from reptor.lib.plugins.UploadBase import UploadBase
 
 
@@ -24,6 +26,13 @@ class DeleteProjects(UploadBase):
             help="Match string in title",
         )
         parser.add_argument(
+            "--titlecontains",
+            metavar="SEARCHTERM",
+            action="store",
+            dest="title_contains",
+            help=argparse.SUPPRESS,
+        )
+        parser.add_argument(
             "--exclude-title-contains",
             metavar="SEARCHTERM",
             action="store",
@@ -31,8 +40,26 @@ class DeleteProjects(UploadBase):
             help="Matched strings in title are not deleted",
         )
         parser.add_argument(
+            "--excludetitlecontains",
+            "--exclude-titlecontains",
+            "--excludetitle-contains",
+            metavar="SEARCHTERM",
+            action="store",
+            dest="exclude_title_contains",
+            help=argparse.SUPPRESS,
+        )
+        parser.add_argument(
             "--no-dry-run",
+            dest="no_dry_run",
             help="Do delete projects, default is dry-run",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--nodryrun",
+            "--nodry-run",
+            "--nodry-run",
+            dest="no_dry_run",
+            help=argparse.SUPPRESS,
             action="store_true",
         )
 

@@ -1,3 +1,4 @@
+import argparse
 import glob
 import json
 import logging
@@ -11,7 +12,7 @@ from xml.etree import ElementTree
 import tomli
 import xmltodict
 from django.template import Context, Template
-from django.template.loader import render_to_string
+from django.template.loader import get_template
 
 import reptor.settings as settings
 from reptor.models.Finding import Finding
@@ -159,15 +160,30 @@ class ToolBase(Base):
         if cls._get_finding_methods():
             action_group.add_argument(
                 "--push-findings",
+                dest="push_findings",
                 action="store_true",
             )
             action_group.add_argument(
+                "--pushfindings",
+                dest="push_findings",
+                action="store_true",
+                help=argparse.SUPPRESS,
+            )
+            action_group.add_argument(
                 "--template-vars",
-                "--template-variables",
                 action="store_const",
                 dest="action",
                 const="template-vars",
                 help="Print template variables (needed for finding template customization).",
+            )
+            action_group.add_argument(
+                "--templatevars",
+                "--templatevariables",
+                "--template-variables",
+                action="store_const",
+                dest="action",
+                const="template-vars",
+                help=argparse.SUPPRESS,
             )
         action_group.add_argument(
             "--parse",
@@ -219,6 +235,15 @@ class ToolBase(Base):
                 dest="action",
                 const="upload-finding-templates",
                 help="Upload local finding templates to SysReptor",
+            )
+            action_group.add_argument(
+                "--uploadfindingtemplates",
+                "--upload-findingtemplates",
+                "--uploadfinding-templates",
+                action="store_const",
+                dest="action",
+                const="upload-finding-templates",
+                help=argparse.SUPPRESS,
             )
 
     @classmethod
@@ -275,7 +300,7 @@ class ToolBase(Base):
         """Puts the input into raw_input"""
         if self.input:
             self.raw_input = list()
-            for filepath in self.input:
+            for filepath in self.input:                
                 with open(filepath, "r") as f:
                     self.raw_input.append(f.read())
             if len(self.raw_input) == 1:
@@ -358,9 +383,10 @@ class ToolBase(Base):
         for note_template in note_templates:
             if note_template.template:
                 with custom_django_tags():
-                    note_template.text = render_to_string(
-                        f"{note_template.template}.md", note_template.template_data
-                    )
+                    template = get_template(f"{note_template.template}.md")
+                    note_template.text = Template(open(template.origin.name).read()).render(
+                        Context(note_template.template_data, autoescape=False)
+                    ) or ""
             if note_template.title:
                 formatted_input += f"{'#' * level} {note_template.title}\n\n"
             if note_template.text:

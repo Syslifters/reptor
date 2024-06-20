@@ -1,0 +1,6 @@
+[data]
+title = "<!--{{ name }}-->"
+cvss = "n/a"
+summary = "<!--{{ issueDetail }}-->"
+description = "<!--{{ issueBackground }}-->"
+recommendation = "<!--{{ remediationBackground }}-->"

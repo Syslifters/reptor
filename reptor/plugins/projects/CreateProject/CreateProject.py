@@ -1,3 +1,5 @@
+import argparse
+
 from reptor.lib.plugins.Base import Base
 
 
@@ -25,24 +27,24 @@ class CreateProject(Base):
     def add_arguments(cls, parser, plugin_filepath=None):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         parser.add_argument(
-            "--name",
             "-n",
+            "--name",
             metavar="PROJECT NAME",
             help="Project name",
             action="store",
             default=None,
         )
         parser.add_argument(
-            "--design",
             "-d",
+            "--design",
             metavar="DESIGN ID",
             help="Design UUID for the project",
             action="store",
             required=True,
         )
         parser.add_argument(
-            "--tags",
             "-t",
+            "--tags",
             metavar="TAGS",
             help="Comma-separated project tags",
             action="store",
@@ -52,6 +54,14 @@ class CreateProject(Base):
             "--no-update-config",
             action="store_true",
             help="Do not update project ID in config file",
+            dest="no_update_config",
+        )
+        parser.add_argument(
+            "--noupdateconfig",
+            "--noupdate-config",
+            "--no-updateconfig",
+            action="store_true",
+            help=argparse.SUPPRESS,
             dest="no_update_config",
         )
 

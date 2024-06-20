@@ -29,7 +29,7 @@ class Nessus(ToolBase):
         return [
             UserConfig(
                 name="severity_filter",
-                friendly_name='Severity filter (e.g., "medium-critical")',
+                friendly_name='Severity filter (e.g., "medium-critical", "info,low,medium,high,critical")',
                 callback=self._parse_severity_filter,
             ),
             UserConfig(
@@ -95,7 +95,7 @@ class Nessus(ToolBase):
         super().add_arguments(parser, plugin_filepath=plugin_filepath)
         parser.add_argument(
             "--severity-filter",
-            help='Filter findings by severity comma-separated ("high,medium") or as range ("medium-critical")',
+            help='Filter findings by severity comma-separated ("info,low,medium,high,critical") or as range ("medium-critical")',
             action="store",
             dest="severity_filter",
             default=None,
