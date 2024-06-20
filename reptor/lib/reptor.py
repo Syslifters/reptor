@@ -201,7 +201,13 @@ class Reptor:
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
-            "--private-note", help="add notes to private notes", action="store_true"
+            "--private-note", dest="private_note", help="add notes to private notes", action="store_true"
+        )
+        config_parser.add_argument(
+            "--privatenote",
+            dest="private_note",
+            help=argparse.SUPPRESS,
+            action="store_true",
         )
 
     def _configure_global_arguments(self):
@@ -223,7 +229,14 @@ class Reptor:
         self._parser.add_argument("-n", "--notetitle")
         self._parser.add_argument(
             "--no-timestamp",
+            dest="no_timestamp",
             help="do not prepend timestamp to note",
+            action="store_true",
+        )
+        self._parser.add_argument(
+            "--notimestamp",
+            dest="no_timestamp",
+            help=argparse.SUPPRESS,
             action="store_true",
         )
 

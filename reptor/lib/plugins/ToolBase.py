@@ -1,3 +1,4 @@
+import argparse
 import glob
 import json
 import logging
@@ -159,15 +160,30 @@ class ToolBase(Base):
         if cls._get_finding_methods():
             action_group.add_argument(
                 "--push-findings",
+                dest="push_findings",
                 action="store_true",
             )
             action_group.add_argument(
+                "--pushfindings",
+                dest="push_findings",
+                action="store_true",
+                help=argparse.SUPPRESS,
+            )
+            action_group.add_argument(
                 "--template-vars",
-                "--template-variables",
                 action="store_const",
                 dest="action",
                 const="template-vars",
                 help="Print template variables (needed for finding template customization).",
+            )
+            action_group.add_argument(
+                "--templatevars",
+                "--templatevariables",
+                "--template-variables",
+                action="store_const",
+                dest="action",
+                const="template-vars",
+                help=argparse.SUPPRESS,
             )
         action_group.add_argument(
             "--parse",
@@ -219,6 +235,15 @@ class ToolBase(Base):
                 dest="action",
                 const="upload-finding-templates",
                 help="Upload local finding templates to SysReptor",
+            )
+            action_group.add_argument(
+                "--uploadfindingtemplates",
+                "--upload-findingtemplates",
+                "--uploadfinding-templates",
+                action="store_const",
+                dest="action",
+                const="upload-finding-templates",
+                help=argparse.SUPPRESS,
             )
 
     @classmethod

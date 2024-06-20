@@ -1,3 +1,4 @@
+import argparse
 import typing
 
 from reptor.lib.plugins.ToolBase import ToolBase
@@ -115,8 +116,23 @@ class OpenVAS(ToolBase):
             default=None,
         )
         parser.add_argument(
+            "--severityfilter",
+            help=argparse.SUPPRESS,
+            action="store",
+            dest="severity_filter",
+            default=None,
+        )
+        parser.add_argument(
             "--min-qod",
             help="Minimum OpenVAS Quality of Detection (QoD) to include (0-100)",
+            action="store",
+            type=int,
+            dest="min_qod",
+            default=0,
+        )
+        parser.add_argument(
+            "--minqod",
+            help=argparse.SUPPRESS,
             action="store",
             type=int,
             dest="min_qod",
