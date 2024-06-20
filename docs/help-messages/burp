@@ -1,10 +1,9 @@
-usage: reptor openvas [-h] [--conf] [-i [INPUT [INPUT ...]]]
-                      [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
-                      [--severity-filter SEVERITY_FILTER] [--min-qod MIN_QOD]
-                      [--exclude EXCLUDED_PLUGINS]
-                      [--include INCLUDED_PLUGINS]
+usage: reptor burp [-h] [--conf] [-i [INPUT [INPUT ...]]]
+                   [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
+                   [--severity-filter SEVERITY_FILTER]
+                   [--exclude EXCLUDED_PLUGINS] [--include INCLUDED_PLUGINS]
 
-OpenVAS vulnerability importer
+Burp vulnerability importer
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -19,8 +18,7 @@ optional arguments:
   --upload-finding-templates
                         Upload local finding templates to SysReptor
   --severity-filter SEVERITY_FILTER
-                        Filter findings by severity comma-separated ("high,medium") or as range ("medium-critical")
-  --min-qod MIN_QOD     Minimum OpenVAS Quality of Detection (QoD) to include (0-100)
+                        Filter findings by severity comma-separated ("info,low,medium,high") or as range ("medium-high")
   --exclude EXCLUDED_PLUGINS
                         Exclude plugin IDs, comma-separated
   --include INCLUDED_PLUGINS

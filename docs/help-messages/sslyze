@@ -10,8 +10,7 @@ optional arguments:
   --format
   --upload
   --push-findings
-  --template-vars, --template-variables
-                        Print template variables (needed for finding template customization).
+  --template-vars       Print template variables (needed for finding template customization).
   --parse
   --upload-finding-templates
                         Upload local finding templates to SysReptor
