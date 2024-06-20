@@ -153,7 +153,7 @@ class NotesAPI(APIClient):
                         note_text += "\n"
                 else:
                     note_text += ": "
-            note_text += note_template.text
+            note_text += note_template.text or ""
 
             if new_note:
                 upload_note = Note.from_note_template(note_template)

@@ -1,3 +1,6 @@
+# Upcoming
+* Introduce Burp plugin
+
 # 0.18
 * Several adaptions to allow reptor be used as library
 
