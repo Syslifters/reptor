@@ -86,6 +86,7 @@ subcommands:
    translate             Translate Projects to other languages via Deepl
   
   Tools:
+   burp                  Burp vulnerability importer
    nessus                Nessus vulnerability importer
    nmap                  format nmap output
    openvas               OpenVAS vulnerability importer
