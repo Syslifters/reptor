@@ -1,6 +1,9 @@
-# Upcoming
+# 0.20
 * Introduce Burp plugin
 * Add aliases for options
+
+# 0.19
+* Update docs and CI
 
 # 0.18
 * Several adaptions to allow reptor be used as library
