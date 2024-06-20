@@ -6,9 +6,15 @@ cat nessus.xml | reptor nessus --upload  # Upload findings as notes
 cat nessus.xml | reptor nessus --push-findings  # Create findings from scan results
 ```
 
-![Pushed Nessus findings](/cli/assets/nessus_uploaded_findings.png)
+<figure markdown="span">
+  ![Pushed Nessus findings](/cli/assets/nessus_uploaded_findings.png)
+  <figcaption>Pushed Nessus findings</figcaption>
+</figure>
 
-![Nessus findings as notes](/cli/assets/nessus_uploaded_notes.png)
+<figure markdown="span">
+  ![Nessus findings as notes](/cli/assets/nessus_uploaded_notes.png)
+  <figcaption>Nessus findings as notes</figcaption>
+</figure>
 
 Filter your Nessus results:
 
