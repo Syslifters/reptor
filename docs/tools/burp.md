@@ -44,6 +44,7 @@ Burp scans/reports don't offer a CVSS score. If you use CVSS scores for severity
 </figure>
 
 There are the following solutions:
+
 1. Add CVSS ratings manually after the upload
 2. [Add CVSS ratings to your finding templates](../customize-pushed-findings/)
 3. Change the risk rating in your SysReptor design from CVSS to severity
