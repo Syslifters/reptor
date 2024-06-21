@@ -34,6 +34,20 @@ reptor burp --conf
 ## Retrieve the XML file
 Export the scanning results from [Burp Professional](https://portswigger.net/burp/documentation/desktop/getting-started/generate-reports){ target=_blank } or [Burp Enterprise](https://portswigger.net/burp/documentation/enterprise/user-guide/work-with-scan-results/generate-reports).  
 
+## Known limitations
+### All uploaded findings are rated as "Info"
+Burp scans/reports don't offer a CVSS score. If you use CVSS scores for severity ratings in your SysReptor reports, all findings are rated as "Info" because the CVSS vector is not available.
+
+<figure markdown="span">
+  ![Burp findings rated as "Info"](/cli/assets/burp_findings_info.png)
+  <figcaption>Burp findings rated as "Info"</figcaption>
+</figure>
+
+There are the following solutions:
+1. Add CVSS ratings manually after the upload
+2. [Add CVSS ratings to your finding templates](../customize-pushed-findings/)
+3. Change the risk rating in your SysReptor design from CVSS to severity
+
 ## Usage
 ```
 --8<-- "docs/cli/help-messages/burp"
