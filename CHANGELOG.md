@@ -1,5 +1,7 @@
-# Upcoming
+# 0.21
 * Create findings from finding templates
+* Fix errors in exportfindings plugin
+* Error message if no SysReptor server specified
 
 # 0.20
 * Introduce Burp plugin
