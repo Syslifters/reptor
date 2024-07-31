@@ -1,3 +1,6 @@
+# Upcoming
+* Create findings from finding templates
+
 # 0.20
 * Introduce Burp plugin
 * Add aliases for options

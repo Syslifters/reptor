@@ -3,6 +3,7 @@ from uuid import UUID
 from requests.exceptions import HTTPError
 
 from reptor.lib.plugins.UploadBase import UploadBase
+from reptor.models.FindingTemplate import FindingTemplate
 
 
 class FindingFromTemplate(UploadBase):
@@ -35,54 +36,62 @@ class FindingFromTemplate(UploadBase):
         )
 
 
+    def _get_template_by_id(self, template_id) -> FindingTemplate:
+        try:
+            UUID(template_id)
+        except ValueError:
+            raise ValueError(f'template_id "{template_id}" is not a UUID')
+        try:
+            template = self.reptor.api.templates.get_template(template_id)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                raise KeyError(f"Template with ID {template_id} doesn't exist")
+            else:
+                raise HTTPError(f"Failed to get template: {e}") from e
+        return template
+
+    def _get_templates_by_tags(self, tags) -> list[FindingTemplate]:
+        pass
+        templates = [
+            t
+            for tag in tags
+            for t in self.reptor.api.templates.get_templates_by_tag(tag)
+        ]
+        upload_templates = list()
+        upload_template_ids = set()
+        for template in templates:
+            if template.id in upload_template_ids:
+                continue
+            if all(tag in template.tags for tag in tags):
+                upload_templates.append(template)
+                upload_template_ids.add(template.id)
+        if not upload_templates:
+            raise KeyError(f"No templates found with tags: {', '.join(tags)}")
+        return upload_templates
+
+
+    def _get_template_translation(self, finding_template: FindingTemplate) -> tuple[int, str]:
+        for i, t in enumerate(finding_template.translations):
+            if t.language == self.reptor.api.projects.project.language:
+                break
+        else:
+            for i, t in enumerate(finding_template.translations):
+                if t.is_main:
+                    return i, t.language
+        return i, t.language
+
+
     def run(self):
         if self.template_id:
-            try:
-                UUID(self.template_id)
-            except ValueError:
-                self.log.error(f'template_id "{self.template_id}" is not a UUID')
-                return
-            try:
-                template = self.reptor.api.templates.get_template(self.template_id)
-            except HTTPError as e:
-                if e.response.status_code == 404:
-                    self.log.error(f"Template with ID {self.template_id} doesn't exist")
-                    return
-                else:
-                    self.log.error(f"Failed to get template: {e}")
-                    return
-            upload_templates = [template]
+            upload_templates = [self._get_template_by_id(self.template_id)]
         elif self.tags:
-            templates = [
-                t
-                for tag in self.tags
-                for t in self.reptor.api.templates.get_templates_by_tag(tag)
-            ]
-            upload_templates = list()
-            upload_template_ids = set()
-            for template in templates:
-                if template.id in upload_template_ids:
-                    continue
-                if all(tag in template.tags for tag in self.tags):
-                    upload_templates.append(template)
-                    upload_template_ids.add(template.id)
-            if not upload_templates:
-                self.log.error(f"No templates found with tags: {', '.join(self.tags)}")
-                return
+            upload_templates = self._get_templates_by_tags(self.tags)
         else:
-            self.log.error("No template_id or tags provided (use --template-id or --tags)")
-            return
+            raise ValueError("No template_id or tags provided (use --template-id or --tags)")
 
         for template in upload_templates:
-            if any(
-                t.language == self.reptor.api.projects.project.language
-                for t in template.translations
-            ):
-                language = self.reptor.api.projects.project.language
-                template_title = [t.data.title for t in template.translations if t.language == language][0]
-            else:
-                language = None
-                template_title = template.translations[0].data.title
+            translation_index, language = self._get_template_translation(template)
+            template_title = template.translations[translation_index].data.title
             
             if template.id in [f.template for f in self.reptor.api.projects.project.findings]:
                 self.display(
@@ -99,10 +108,7 @@ class FindingFromTemplate(UploadBase):
                         f"{template_msg}"
                     )
                 else:
-                    self.log.error(
-                        f'Failed to create finding from template "{template_title}": {e}'
-                    )
-                    continue
+                    raise Exception(f'Failed to create finding from template "{template_title}": {e}')
 
             self.success(
                 f'Successfully created finding "{template_title}"'
