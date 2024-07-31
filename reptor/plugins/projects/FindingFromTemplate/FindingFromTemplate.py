@@ -51,7 +51,6 @@ class FindingFromTemplate(UploadBase):
         return template
 
     def _get_templates_by_tags(self, tags) -> list[FindingTemplate]:
-        pass
         templates = [
             t
             for tag in tags

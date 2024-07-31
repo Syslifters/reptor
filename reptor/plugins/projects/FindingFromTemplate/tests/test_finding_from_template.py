@@ -38,6 +38,7 @@ class TestFinding:
         ],
     )
     def test_get_template_by_id(self, template_id, raises):
+        self.reptor.api._templates = MagicMock()
         with patch.object(
             self.finding_from_template.reptor.api.templates,
             "get_template",
@@ -69,16 +70,15 @@ class TestFinding:
         ],
     )
     def test_get_templates_by_tag(self, tags, found):
-        with patch.object(
-            self.finding_from_template.reptor.api.templates,
-            "search",
-            return_value=[FindingTemplate(self.finding_template)],
-        ):
-            if not found:
-                with pytest.raises(KeyError):
-                    self.finding_from_template._get_templates_by_tags(tags)
-            else:
-                assert self.finding_from_template._get_templates_by_tags(tags)
+        self.reptor.api._templates = MagicMock()
+        self.finding_from_template.reptor.api.templates.get_templates_by_tag = (
+            MagicMock(return_value=[FindingTemplate(self.finding_template)])
+        )
+        if not found:
+            with pytest.raises(KeyError):
+                self.finding_from_template._get_templates_by_tags(tags)
+        else:
+            assert self.finding_from_template._get_templates_by_tags(tags)
 
     @pytest.mark.parametrize(
         ["project_language", "expected_language", "expected_index"],
@@ -92,16 +92,8 @@ class TestFinding:
     def test_get_template_translation(
         self, project_language, expected_language, expected_index
     ):
-        self.reptor.api.projects._get_project = MagicMock(
-            return_value=Project(
-                {
-                    "id": "db837c68-ff58-4f63-9161-d2310d71999b",
-                    "project_type": "c357c387-baff-42ce-8e79-eb0597c3e0e8",
-                    "language": project_language,
-                },
-                ProjectDesign(),
-            )
-        )
+        self.reptor.api._projects = MagicMock()
+        self.reptor.api.projects.project.language = project_language
         assert self.reptor.api.projects.project.language == project_language
         template = FindingTemplate(self.finding_template)
         assert self.finding_from_template._get_template_translation(template) == (
