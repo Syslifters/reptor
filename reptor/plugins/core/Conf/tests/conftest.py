@@ -15,7 +15,6 @@ from reptor.api.TemplatesAPI import TemplatesAPI
 from reptor.lib.reptor import Reptor
 
 
-@pytest.mark.integration
 @pytest.fixture(scope="session", autouse=True)
 def setUp():
     # Rename config file
