@@ -79,6 +79,7 @@ subcommands:
    exportfindings        Export your project findings as a summary or checklist
    file                  Uploads a file
    finding               Uploads findings from JSON or TOML
+   findingfromtemplate   Creates findings from remote finding templates
    note                  Uploads and lists notes
    project               Work with projects
    pushproject           Push data to project from JSON or TOML
