@@ -27,6 +27,58 @@ class TestBurp(TestCaseToolPlugin):
         with open(filepath, "r") as f:
             self.burp.raw_input = f.read()
 
+    def test_generate_findings_missing_var(self):
+        self._load_xml_data("burp")
+        self.burp.load = MagicMock(return_value=self.burp.raw_input.encode())  # type: ignore
+        self.burp._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
+        self.reptor.api.templates.search = MagicMock(return_value=[])
+        self.burp.preprocess_for_template = MagicMock(
+            return_value=[
+                {
+                    "affected_components": [
+                        "https://ginandjuice.shop/a'a%5c'b%22c%3e%3f%3e%25%7d%7d%25%25%3ec%3c[[%3f$%7b%7b%25%7d%7dcake%5c/post "
+                        "(34.249.203.140)",
+                    ],
+                    "confidence": "Certain",
+                    "finding_templates": "5243392",
+                    "host": [
+                        {"#text": "https://ginandjuice.shop", "@ip": "34.249.203.140"},
+                    ],
+                    "issueBackground": "Issue Background",
+                    "issueDetailItems": {"issueDetailItem": "Other: AWSALB"},
+                    "location": ["/catalog"],
+                    "name": "TLS cookie without secure flag set",
+                    "path": ["/catalog"],
+                    "references": [],
+                    "remediationBackground": "Remediation Background",
+                    "serialNumber": [
+                        "5305597333036717056",
+                        "7187414666400253952",
+                        "2235271953881709568",
+                        "7889728362258169856",
+                    ],
+                    "severity": "info",
+                    "severity_score": 0,
+                    "type": "5243392",
+                    "vulnerabilityClassifications": "<ul>\n"
+                    "<li><a "
+                    'href="https://cwe.mitre.org/data/definitions/614.html">CWE-614: '
+                    "Sensitive Cookie in HTTPS Session Without "
+                    "'Secure' Attribute</a></li>\n"
+                    "</ul>",
+                }
+            ]
+        )
+        type = "5243392"
+        self.burp.included_plugins = {type}
+        findings = self.burp.generate_findings()
+        preprocessed = self.burp.preprocess_for_template()
+
+        assert len(preprocessed) == len(findings)
+
+        for finding in findings:
+            assert finding.data.severity.value in self.burp.risk_mapping
+
     def test_parse_included_plugins(self):
         self._load_xml_data("burp")
         type = "5243392"

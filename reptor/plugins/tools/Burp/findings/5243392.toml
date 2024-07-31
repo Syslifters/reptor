@@ -1,6 +1,6 @@
 [data]
 title = "<!--{{ name }}-->"
 cvss = "n/a"
-summary = "<!--{{ issueDetail }}-->"
-description = "<!--{{ issueBackground }}-->"
+summary = "<!--{{ issueBackground }}-->"
+description = "<!--{{ issueDetail }}-->"
 recommendation = "<!--{{ remediationBackground }}-->"
