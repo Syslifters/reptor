@@ -1,3 +1,4 @@
+import typing
 from uuid import UUID
 
 from requests.exceptions import HTTPError
@@ -50,7 +51,7 @@ class FindingFromTemplate(UploadBase):
                 raise HTTPError(f"Failed to get template: {e}") from e
         return template
 
-    def _get_templates_by_tags(self, tags) -> list[FindingTemplate]:
+    def _get_templates_by_tags(self, tags) -> typing.List[FindingTemplate]:
         templates = [
             t
             for tag in tags
