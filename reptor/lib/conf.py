@@ -178,12 +178,12 @@ class Config:
             str: _description_
         """
         server_url = self.get("server", "")
-        if server_url[-1:] == "/":
-            server_url = server_url[:-1]
         if not server_url:
             raise ValueError(
                 "No SysReptor server. Try 'reptor conf' or use '--server'."
             )
+        if server_url[-1:] == "/":
+            server_url = server_url[:-1]
         return server_url
 
     def get_token(self) -> str:
