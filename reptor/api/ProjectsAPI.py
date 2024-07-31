@@ -220,9 +220,12 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
         return FindingRaw(self.post(url, json=data).json())
 
-    def create_finding_from_template(self, template_id: str) -> FindingRaw:
+    def create_finding_from_template(self, template_id: str, language: typing.Optional[str] = None) -> FindingRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
-        return FindingRaw(self.post(url, json={"template": template_id}).json())
+        data = {"template": template_id}
+        if language:
+            data["template_language"] = language
+        return FindingRaw(self.post(url, json=data).json())
 
     def _update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
