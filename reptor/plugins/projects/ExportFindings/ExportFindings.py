@@ -106,7 +106,7 @@ class ExportFindings(Base):
                         except (cvss.exceptions.CVSS2MalformedError, IndexError):
                             cvss_metrics = None
                     if cvss_metrics:
-                        finding_summary[f"{field}__score"] = (
+                        finding_summary[f"{field}__score"] = str(
                             cvss_metrics.environmental_score
                         )
                         finding_summary[f"{field}__vector"] = vector
@@ -119,7 +119,8 @@ class ExportFindings(Base):
         if format == "json":
             output = json.dumps(findings, indent=2)
         elif format == "toml":
-            output = tomli_w.dumps(findings)  # type: ignore
+            # TOML does not support top-level lists. Wrap in a dictionary.
+            output = tomli_w.dumps({'findings': findings})
         elif format == "yaml":
             output = yaml.dump(findings)
         elif format == "csv":
