@@ -70,7 +70,7 @@ class FindingFromTemplate(UploadBase):
         return upload_templates
 
 
-    def _get_template_translation(self, finding_template: FindingTemplate) -> tuple[int, str]:
+    def _get_template_translation(self, finding_template: FindingTemplate) -> typing.Tuple[int, str]:
         for i, t in enumerate(finding_template.translations):
             if t.language == self.reptor.api.projects.project.language:
                 break
