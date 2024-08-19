@@ -62,18 +62,20 @@ class TestPushProject:
 
     def test_read_valid_input(self):
         stdin = sys.stdin
-        for dumps in [json.dumps, tomli_w.dumps]:
-            sys.stdin = StringIO(dumps(self.valid_data))
-            pp = PushProject()
-            assert isinstance(pp.projectdata, dict)
-            assert pp.projectdata["report_data"]["title"] == "NEW REPORT"
-            assert pp.projectdata["report_data"]["custom_report_field"] == "FIELD VALUE"
-            assert pp.projectdata["findings"][0]["data"]["title"] == "123"
-            assert (
-                pp.projectdata["findings"][0]["data"]["custom_finding_field"]
-                == "FINDING FIELD VALUE"
-            )
-        sys.stdin = stdin
+        try:
+            for dumps in [json.dumps, tomli_w.dumps]:
+                sys.stdin = StringIO(dumps(self.valid_data))
+                pp = PushProject()
+                assert isinstance(pp.projectdata, dict)
+                assert pp.projectdata["report_data"]["title"] == "NEW REPORT"
+                assert pp.projectdata["report_data"]["custom_report_field"] == "FIELD VALUE"
+                assert pp.projectdata["findings"][0]["data"]["title"] == "123"
+                assert (
+                    pp.projectdata["findings"][0]["data"]["custom_finding_field"]
+                    == "FINDING FIELD VALUE"
+                )
+        finally:
+            sys.stdin = stdin
 
     def test_upload_valid_data(self):
         for dumps in [json.dumps, tomli_w.dumps]:

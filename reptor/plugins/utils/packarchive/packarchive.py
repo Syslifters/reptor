@@ -91,30 +91,24 @@ class PackArchive(Base):
                     file_dirs = {}
                     if data_dict.get("format").startswith("projects/"):
                         project_type_id = data_dict.get("project_type", {}).get("id")
-                        file_dirs.update(
-                            {
-                                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
-                                f"{data_dict['id']}-files": f"{data_dict['id']}-files",
-                                f"{project_type_id}-assets": f"{project_type_id}-assets",
-                                f"{path_input.stem}-images": f"{data_dict['id']}-images",
-                                f"{path_input.stem}-files": f"{data_dict['id']}-files",
-                                f"{path_input.stem}-assets": f"{project_type_id}-assets",
-                            }
-                        )
+                        file_dirs |= {
+                            f"{data_dict['id']}-images": f"{data_dict['id']}-images",
+                            f"{data_dict['id']}-files": f"{data_dict['id']}-files",
+                            f"{project_type_id}-assets": f"{project_type_id}-assets",
+                            f"{path_input.stem}-images": f"{data_dict['id']}-images",
+                            f"{path_input.stem}-files": f"{data_dict['id']}-files",
+                            f"{path_input.stem}-assets": f"{project_type_id}-assets",
+                        }
                     elif data_dict.get("format").startswith("projecttypes/"):
-                        file_dirs.update(
-                            {
-                                f"{data_dict['id']}-assets": f"{data_dict['id']}-assets",
-                                f"{path_input.stem}-assets": f"{data_dict['id']}-assets",
-                            }
-                        )
+                        file_dirs |= {
+                            f"{data_dict['id']}-assets": f"{data_dict['id']}-assets",
+                            f"{path_input.stem}-assets": f"{data_dict['id']}-assets",
+                        }
                     elif data_dict.get("format").startswith("templates/"):
-                        file_dirs.update(
-                            {
-                                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
-                                f"{path_input.stem}-images": f"{data_dict['id']}-images",
-                            }
-                        )
+                        file_dirs |= {
+                            f"{data_dict['id']}-images": f"{data_dict['id']}-images",
+                            f"{path_input.stem}-images": f"{data_dict['id']}-images",
+                        }
 
                     for ds, dd in file_dirs.items():
                         d_dir = Path(path_dir) / ds
