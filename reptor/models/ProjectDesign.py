@@ -1,3 +1,4 @@
+import itertools
 import typing
 from typing import Any
 
@@ -23,7 +24,7 @@ class ProjectDesignField(BaseModel):
         suggestions:
     """
 
-    name: str = ""
+    id: str = ""
     type: ProjectFieldTypes
     label: str = ""
     origin: str = ""
@@ -37,16 +38,19 @@ class ProjectDesignField(BaseModel):
     items: dict = {}
     suggestions: typing.List[str] = []
 
+    @property
+    def name(self):
+        return self.id
+
     def _fill_from_api(self, data: typing.Dict):
         if data["type"] == ProjectFieldTypes.list.value:
             if isinstance(data["items"], dict):
                 data["items"] = ProjectDesignField(data["items"])
         elif data["type"] == ProjectFieldTypes.object.value:
-            properties = list()
-            for name, field in data["properties"].items():
-                field["name"] = name
-                properties.append(ProjectDesignField(field))
-            data["properties"] = properties
+            if isinstance(data["properties"], dict):
+                data["properties"] = [ProjectDesignField(f | {'id': fid}) for fid, f in data["properties"].items()]
+            elif isinstance(data['properties'], list):
+                data["properties"] = [ProjectDesignField(f) for f in data["properties"]]
 
         attrs = typing.get_type_hints(self).keys()
         for key, value in data.items():
@@ -81,6 +85,23 @@ class ProjectDesign(ProjectDesignBase):
                     "finding_fields should be list. Use ProjectDesignOverview instead."
                 )
         super().__init__(data)
+
+    def _fill_from_api(self, data: typing.Dict):
+        report_fields = []
+        if isinstance(data.get('report_fields'), dict):
+            report_fields = [ProjectDesignField(f | {'id': fid}) for fid, f in data['report_fields'].items()]
+        else:
+            for field in itertools.chain(*map(lambda s: s['fields'], data.get('report_sections', []))):
+                if isinstance(field, dict):
+                    report_fields.append(ProjectDesignField(field))
+        
+        finding_fields = []
+        if isinstance(data.get('finding_fields'), dict):
+            finding_fields = [ProjectDesignField(f | {'id': fid}) for fid, f in data['finding_fields'].items()]
+        elif isinstance(data.get('finding_fields'), list):
+            finding_fields = [ProjectDesignField(f) for f in data['finding_fields']]
+
+        super()._fill_from_api(data | {'report_fields': report_fields, 'finding_fields': finding_fields})
 
 
 class ProjectDesignOverview(ProjectDesignBase):

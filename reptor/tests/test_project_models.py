@@ -141,28 +141,29 @@ class TestProjectModelParsing:
     ]
 }"""
         project_design = DEFAULT_PROJECT_DESIGN
-        DEFAULT_PROJECT_DESIGN["finding_fields"]["target"] = {
+        DEFAULT_PROJECT_DESIGN["finding_fields"].append({
+            "id": "target",
             "type": "string",
             "label": "Target",
             "origin": "custom",
             "default": "TODO: Target",
             "required": True,
             "spellcheck": True,
-        }
+        })
         DEFAULT_PROJECT_DESIGN["report_sections"].append(
             {
                 "id": "executive_summary",
                 "label": "Executive Summary",
-                "fields": ["executive_summary"],
+                "fields": [{
+                    "id": "executive_summary",
+                    "type": "markdown",
+                    "label": "Executive Summary",
+                    "origin": "custom",
+                    "default": "TODO: Executive Summary",
+                    "required": True,
+                }],
             }
         )
-        DEFAULT_PROJECT_DESIGN["report_fields"]["executive_summary"] = {
-            "type": "markdown",
-            "label": "Executive Summary",
-            "origin": "custom",
-            "default": "TODO: Executive Summary",
-            "required": True,
-        }
         api_test_data = json.loads(project_with_custom_fields)
 
         project_design = ProjectDesign(project_design)

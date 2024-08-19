@@ -62,26 +62,30 @@ LOGGING = []
 FORCE_SCRIPT_NAME = ""
 
 DEFAULT_PROJECT_DESIGN = {
-    "report_fields": {
-        "title": {
-            "type": "string",
-            "label": "Title",
-            "origin": "core",
-            "default": "TODO: Report Title",
-            "required": True,
-            "spellcheck": True,
-        }
-    },
-    "report_sections": [{"id": "other", "label": "Other", "fields": ["title"]}],
-    "finding_fields": {
-        "cvss": {
+    "report_sections": [
+        {"id": "other", "label": "Other", "fields": [
+            {
+                "id": "title",
+                "type": "string",
+                "label": "Title",
+                "origin": "core",
+                "default": "TODO: Report Title",
+                "required": True,
+                "spellcheck": True,
+            }
+        ]},
+    ],
+    "finding_fields": [
+        {
+            "id": "cvss",
             "type": "cvss",
             "label": "CVSS",
             "origin": "predefined",
             "default": "n/a",
             "required": True,
         },
-        "title": {
+        {
+            "id": "title",
             "type": "string",
             "label": "Title",
             "origin": "core",
@@ -89,21 +93,24 @@ DEFAULT_PROJECT_DESIGN = {
             "required": True,
             "spellcheck": True,
         },
-        "impact": {
+        {
+            "id": "impact",
             "type": "markdown",
             "label": "Impact",
             "origin": "predefined",
             "default": "TODO: impact of finding",
             "required": True,
         },
-        "summary": {
+        {
+            "id": "summary",
             "type": "markdown",
             "label": "Summary",
             "origin": "predefined",
             "default": "TODO: High-level summary",
             "required": True,
         },
-        "severity": {
+        {
+            "id": "severity",
             "type": "enum",
             "label": "Severity",
             "origin": "predefined",
@@ -117,7 +124,8 @@ DEFAULT_PROJECT_DESIGN = {
             "default": None,
             "required": True,
         },
-        "references": {
+        {
+            "id": "references",
             "type": "list",
             "items": {
                 "type": "string",
@@ -131,14 +139,16 @@ DEFAULT_PROJECT_DESIGN = {
             "origin": "predefined",
             "required": False,
         },
-        "description": {
+        {
+            "id": "description",
             "type": "markdown",
             "label": "Technical Description",
             "origin": "predefined",
             "default": "TODO: detailed technical description what this findings is about and how it can be exploited",
             "required": True,
         },
-        "precondition": {
+        {
+            "id": "precondition",
             "type": "string",
             "label": "Precondition",
             "origin": "predefined",
@@ -146,14 +156,16 @@ DEFAULT_PROJECT_DESIGN = {
             "required": True,
             "spellcheck": True,
         },
-        "retest_notes": {
+        {
+            "id": "retest_notes",
             "type": "markdown",
             "label": "Re-test Notes",
             "origin": "predefined",
             "default": None,
             "required": False,
         },
-        "retest_status": {
+        {
+            "id": "retest_status",
             "type": "enum",
             "label": "Re-test Status",
             "origin": "predefined",
@@ -168,7 +180,8 @@ DEFAULT_PROJECT_DESIGN = {
             "default": None,
             "required": False,
         },
-        "wstg_category": {
+        {
+            "id": "wstg_category",
             "type": "enum",
             "label": "OWASP Web Security Testing Guide Category",
             "origin": "predefined",
@@ -192,14 +205,16 @@ DEFAULT_PROJECT_DESIGN = {
             "default": None,
             "required": True,
         },
-        "recommendation": {
+        {
+            "id": "recommendation",
             "type": "markdown",
             "label": "Recommendation",
             "origin": "predefined",
             "default": "TODO: how to fix the vulnerability",
             "required": True,
         },
-        "owasp_top10_2021": {
+        {
+            "id": "owasp_top10_2021",
             "type": "enum",
             "label": "OWASP Top 10 - 2021",
             "origin": "predefined",
@@ -233,9 +248,11 @@ DEFAULT_PROJECT_DESIGN = {
             "default": None,
             "required": True,
         },
-        "affected_components": {
+        {
+            "id": "affected_components",
             "type": "list",
             "items": {
+                "id": "",
                 "type": "string",
                 "label": "Component",
                 "origin": "predefined",
@@ -247,7 +264,8 @@ DEFAULT_PROJECT_DESIGN = {
             "origin": "predefined",
             "required": True,
         },
-        "short_recommendation": {
+        {
+            "id": "short_recommendation",
             "type": "string",
             "label": "Short Recommendation",
             "origin": "predefined",
@@ -255,12 +273,13 @@ DEFAULT_PROJECT_DESIGN = {
             "required": True,
             "spellcheck": False,
         },
-        "cwe": {
+        {
+            "id": "cwe",
             "type": "cwe",
             "label": "CWE",
             "origin": "custom",
             "default": None,
             "required": False,
         },
-    },
+    ],
 }
