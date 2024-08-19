@@ -81,11 +81,11 @@ class BaseModel:
                         self.__setattr__(attr[0], item_list)
                     else:
                         self.__setattr__(attr[0], model_class(data[attr[0]]))
-                elif model_class == ProjectDesignField:
-                    self.__setattr__(attr[0], list())
-                    for k, v in data[attr[0]].items():
-                        v["name"] = k
-                        self.__getattribute__(attr[0]).append(model_class(v))
+                # elif model_class == ProjectDesignField:
+                #     self.__setattr__(attr[0], list())
+                #     for k, v in data[attr[0]].items():
+                #         v["name"] = k
+                #         self.__getattribute__(attr[0]).append(model_class(v))
                 else:
                     # Fill each attribute
                     self.__setattr__(attr[0], data[attr[0]])

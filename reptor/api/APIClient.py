@@ -45,25 +45,22 @@ class APIClient:
         return self._project_id
 
     def _get_headers(self, json_content=True) -> typing.Dict:
-        headers = dict()
-        if json_content:
-            headers["Content-Type"] = "application/json"
-        headers["User-Agent"] = settings.USER_AGENT
-        headers["Authorization"] = f"Bearer {self.reptor.get_config().get_token()}"
-        headers_debug = headers.copy()
-        headers_debug["Authorization"] = "[redacted]"
+        headers = {
+            'User-Agent': settings.USER_AGENT,
+            'Authorization': f"Bearer {self.reptor.get_config().get_token()}",
+            **({'Content-Type': 'application/json'} if json_content else {})
+        }
+        headers_debug = headers | {
+            'Authorization': '[redacted]'
+        }
         self.debug(f"HTTP Headers: {headers_debug}")
         return headers
 
     def _prepare_kwargs(self, kwargs, json_content=True):
-        headers = self._get_headers(json_content=json_content)
-        if kwargs.get("headers"):
-            kwargs["headers"].update(headers)
-        else:
-            kwargs["headers"] = headers
-        if not kwargs.get("verify"):
-            kwargs["verify"] = self.verify
-        return kwargs
+        return kwargs | {
+            'headers': kwargs.get('headers', {}) | self._get_headers(json_content=json_content),
+            'verify': kwargs.get('verify', self.verify)
+        }
 
     @property
     def log(self):

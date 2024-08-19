@@ -12,7 +12,7 @@ reptor allows you to automate pentest reporting with SysReptor.
 
 ## Prerequisites
 
-* Python 3.8-3.11
+* Python 3.9-3.12
 * pip3
 
 ## Installation
