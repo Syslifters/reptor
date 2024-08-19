@@ -1,11 +1,11 @@
-usage: reptor sslyze [-h] [-i [INPUT [INPUT ...]]]
+usage: reptor sslyze [-h] [-i [INPUT ...]]
                      [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
 
 format sslyze JSON output
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+  -i [INPUT ...], --input [INPUT ...]
                         Input file, if not stdin (multiple files allowed)
   --format
   --upload

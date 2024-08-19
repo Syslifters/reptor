@@ -1,11 +1,11 @@
-usage: reptor nmap [-h] [-i [INPUT [INPUT ...]]]
-                   [--format | --upload | --parse] [--xml | -oX | -oG]
+usage: reptor nmap [-h] [-i [INPUT ...]] [--format | --upload | --parse]
+                   [--xml | -oX | -oG]
 
 format nmap output
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+  -i [INPUT ...], --input [INPUT ...]
                         Input file, if not stdin (multiple files allowed)
   --format
   --upload

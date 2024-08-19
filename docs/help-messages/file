@@ -1,4 +1,4 @@
-usage: reptor file [-h] [-fn FILENAME] [file [file ...]]
+usage: reptor file [-h] [-fn FILENAME] [file ...]
 
 Uploads a file
 
