@@ -43,6 +43,10 @@ class ProjectDesignField(BaseModel):
         return self.id
 
     def _fill_from_api(self, data: typing.Dict):
+        data = data.copy()
+        if 'id' not in data and 'name' in data:
+            data['id'] = data['name']
+
         if data["type"] == ProjectFieldTypes.list.value:
             if isinstance(data["items"], dict):
                 data["items"] = ProjectDesignField(data["items"])
