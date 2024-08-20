@@ -59,7 +59,8 @@ class APIClient:
     def _prepare_kwargs(self, kwargs, json_content=True):
         return kwargs | {
             'headers': kwargs.get('headers', {}) | self._get_headers(json_content=json_content),
-            'verify': kwargs.get('verify', self.verify)
+            'verify': kwargs.get('verify', self.verify),
+            'allow_redirects': False,
         }
 
     @property
@@ -164,6 +165,10 @@ class APIClient:
         self.debug(f"{method} URL: {url}")
         kwargs = self._prepare_kwargs(kwargs, json_content=json_content)
         response = methods[method](url, **kwargs)
+        if response.headers.get('location'):
+            raise requests.exceptions.HTTPError(
+                f"Received redirect to {response.headers.get('location')}. Maybe run \"reptor conf\" to update your server URL?"
+            )
         self.debug(f"Received response: {response.content[:1000]}")
         response.raise_for_status()
         return response
