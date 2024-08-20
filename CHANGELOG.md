@@ -1,3 +1,7 @@
+# 0.22
+* Update reptor for updated SysReptor field definition
+* Raise error if wrong server URL was specified
+
 # 0.21
 * Create findings from finding templates
 * Fix errors in exportfindings plugin
