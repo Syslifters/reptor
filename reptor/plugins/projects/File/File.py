@@ -45,7 +45,7 @@ class File(UploadBase):
         else:
             notetitle = "Uploads"
             icon = "📤"
-        timestamp = not self.reptor.get_config().get("cli").get("no_timestamp")
+        timestamp = not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
 
         for file in files:
             self.reptor.api.notes.upload_file(

@@ -40,7 +40,7 @@ class TestNotesAPI:
     @pytest.fixture(autouse=True)
     def setUp(self):
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        reptor._config._raw_config["cli"] = {"private_note": True}
+        reptor._config._raw_config["private_note"] = True
         self.notes = NotesAPI(reptor=reptor)
 
     def _mock_methods(self):
@@ -53,7 +53,7 @@ class TestNotesAPI:
     def test_notes_api_init(self):
         # Test valid personal note
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        reptor._config._raw_config["cli"] = {"private_note": True}
+        reptor._config._raw_config["private_note"] = True
         try:
             n = NotesAPI(reptor=reptor)
             assert n.private_note
@@ -62,7 +62,7 @@ class TestNotesAPI:
 
         # Test valid project note
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        reptor._config._raw_config["cli"] = {"private_note": False}
+        reptor._config._raw_config["private_note"] = False
         reptor._config._raw_config["project_id"] = (
             "2b5de38d-2932-4112-b0f7-42c4889dd64d"
         )
@@ -74,13 +74,13 @@ class TestNotesAPI:
 
         # Test missing project id and missing private_note
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
-        reptor._config._raw_config["cli"] = {"private_note": False}
+        reptor._config._raw_config["private_note"] = False
         reptor._config._raw_config["project_id"] = ""
         with pytest.raises(ValueError):
             NotesAPI(reptor=reptor)
 
         # Test missing server
         reptor._config._raw_config["server"] = ""
-        reptor._config._raw_config["cli"] = {"private_note": True}
+        reptor._config._raw_config["private_note"] = True
         with pytest.raises(ValueError):
             NotesAPI(reptor=reptor)

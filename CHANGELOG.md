@@ -1,3 +1,6 @@
+# 0.23
+* Fix error for rendering with alternative design
+
 # 0.22
 * Update reptor for updated SysReptor field definition
 * Raise error if wrong server URL was specified

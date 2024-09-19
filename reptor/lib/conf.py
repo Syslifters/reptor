@@ -88,15 +88,17 @@ class Config:
             self._no_config_file = True
         config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
         config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
-        config["project_id"] = os.environ.get(
-            "REPTOR_PROJECT_ID", config.get("project_id")
-        )
+        config["project_id"] = os.environ.get("REPTOR_PROJECT_ID", config.get("project_id"))
         if server:
             config["server"] = server
         if token:
             config["token"] = token
         if project_id:
             config["project_id"] = project_id
+
+        for k, v in self.get_cli_overwrite().items():
+            if v:
+                config[k] = v
 
         if not return_only:
             self._raw_config = config
