@@ -166,7 +166,7 @@ class ProjectsAPI(APIClient):
 
         self.delete_project()
         self.switch_project(original_project_id)
-        self.log.info(f"Cleaned up duplicated project")
+        self.log.info("Cleaned up duplicated project")
 
     def switch_project(self, new_project_id) -> None:
         self.reptor._config._raw_config["project_id"] = new_project_id

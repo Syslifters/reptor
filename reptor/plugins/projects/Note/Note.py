@@ -56,7 +56,7 @@ class Note(UploadBase):
         else:
             self.notetitle = "Uploads"
             icon = "📤"
-        timestamp = not self.reptor.get_config().get_cli_overwrite().get("no_timestamp")
+        timestamp = not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
 
         """
         Notes accept stdin only

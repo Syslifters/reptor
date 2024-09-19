@@ -35,7 +35,7 @@ class NotesAPI(APIClient):
 
     @property
     def private_note(self):
-        return self.reptor.get_config().get_cli_overwrite().get("private_note")
+        return self.reptor.get_config().get("private_note")
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of notes"""

@@ -115,11 +115,7 @@ class Reptor:
         Returns:
             str: Project ID
         """
-        if self.get_config().get_cli_overwrite().get("project_id", ""):
-            return self.get_config().get_cli_overwrite().get("project_id", "")
-        if self.get_config().get_project_id():
-            return self.get_config().get_project_id()
-        return ""
+        return self.get_config().get_project_id() or ""
 
     @property
     def api(self) -> APIManager:
