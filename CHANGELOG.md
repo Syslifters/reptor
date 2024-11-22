@@ -1,3 +1,6 @@
+# 0.24
+* Introduce support for CVSS4
+
 # 0.23
 * Fix error for rendering with alternative design
 

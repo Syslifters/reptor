@@ -93,26 +93,35 @@ class ExportFindings(Base):
                     finding_summary[f"{field}__score"] = ""
                     finding_summary[f"{field}__severity"] = ""
                     finding_summary[f"{field}__vector"] = ""
-                    vector = finding_summary.pop(field)
-                    try:
-                        cvss_metrics = cvss.CVSS3(vector)
-
-                    except (cvss.exceptions.CVSS3MalformedError, IndexError):
+                    vector = finding_summary.pop(field) or ""
+                    if vector.startswith("CVSS:4.0"):
+                        try:
+                            cvss_metrics = cvss.CVSS4(vector)
+                        except (cvss.exceptions.CVSS4MalformedError, IndexError):
+                            cvss_metrics = None
+                    elif vector.startswith("CVSS:3"):
+                        try:
+                            cvss_metrics = cvss.CVSS3(vector)
+                        except (cvss.exceptions.CVSS3MalformedError, IndexError):
+                            cvss_metrics = None
+                    else: # Assume CVSS2
                         try:
                             cvss_metrics = cvss.CVSS2(vector)
-                            finding_summary[f"{field}__severity"] = (
-                                cvss_metrics.severities()[-1]
-                            )
                         except (cvss.exceptions.CVSS2MalformedError, IndexError):
                             cvss_metrics = None
                     if cvss_metrics:
-                        finding_summary[f"{field}__score"] = str(
-                            cvss_metrics.environmental_score
-                        )
+                        if hasattr(cvss_metrics, "environmental_score") and cvss_metrics.environmental_score:
+                            finding_summary[f"{field}__score"] = str(
+                                cvss_metrics.environmental_score
+                            )
+                        elif hasattr(cvss_metrics, "temporal_score") and cvss_metrics.temporal_score:
+                            finding_summary[f"{field}__score"] = str(cvss_metrics.temporal_score)
+                        else:
+                            finding_summary[f"{field}__score"] = str(cvss_metrics.base_score)
                         finding_summary[f"{field}__vector"] = vector
-                        finding_summary[f"{field}__severity"] = (
-                            cvss_metrics.severities()[-1]
-                        )
+                        finding_summary[f"{field}__severity"] = [
+                            s for s in cvss_metrics.severities() if s != "None"
+                        ][-1]
             findings.append(finding_summary)
 
         output = ""
