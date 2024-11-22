@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reptor"
-version = "0.23"
+version = "0.24"
 authors = [
   { name="Richard Schwabe" },
   { name="Aron Molnar", email="aron@syslifters.com" }
@@ -17,7 +17,7 @@ readme = "README.md"
 license = {file = 'LICENSE'}
 dependencies = [
   'certifi >= 2023.5.7',
-  'cvss >= 2.0',
+  'cvss >= 3.0',
   'Django >= 4.2',
   'PyYAML >= 3.10',
   'requests >= 2.28.2',
