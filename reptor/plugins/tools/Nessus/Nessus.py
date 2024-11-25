@@ -32,6 +32,10 @@ class Nessus(ToolBase):
                 friendly_name='Severity filter (e.g., "medium-critical", "info,low,medium,high,critical")',
                 callback=self._parse_severity_filter,
             ),
+            UserConfig( 
+                name="snoozed_filter",
+                friendly_name='Exclude snoozed vulnerabilities'
+            ),
             UserConfig(
                 name="excluded_plugins",
                 friendly_name="Exclude plugin IDs (comma-separated)",
@@ -53,6 +57,7 @@ class Nessus(ToolBase):
         self.severity_filter = getattr(
             self, "severity_filter", None
         ) or self._parse_severity_filter(kwargs.get("severity_filter", "info-critical"))
+        self.snoozed_filter = kwargs.get("snoozed_filter", False)
         self.included_plugins = getattr(self, "included_plugins", list())
         self.included_plugins += list(
             filter(None, ((kwargs.get("included_plugins")) or "").split(","))
@@ -99,6 +104,13 @@ class Nessus(ToolBase):
             action="store",
             dest="severity_filter",
             default=None,
+        )
+        parser.add_argument( 
+            "--snoozed-filter",
+            help='Exclude snoozed vulnerabilities',
+            action="store_true",
+            dest="snoozed_filter",
+            default=False,
         )
         parser.add_argument(
             "--exclude",
@@ -186,6 +198,10 @@ class Nessus(ToolBase):
             findings = host.get("ReportItem", list())
             if not isinstance(findings, list):
                 findings = [findings]
+            if self.snoozed_filter: 
+                findings = [
+                    f for f in findings if f.get("snoozed") is None
+                ]
             if self.included_plugins:
                 findings = [
                     f for f in findings if f.get("@pluginID") in self.included_plugins
