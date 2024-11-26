@@ -1,6 +1,6 @@
 usage: reptor nessus [-h] [--conf] [-i [INPUT ...]]
                      [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
-                     [--severity-filter SEVERITY_FILTER]
+                     [--severity-filter SEVERITY_FILTER] [--snoozed-filter]
                      [--exclude EXCLUDED_PLUGINS] [--include INCLUDED_PLUGINS]
 
 Nessus vulnerability importer
@@ -19,6 +19,7 @@ optional arguments:
                         Upload local finding templates to SysReptor
   --severity-filter SEVERITY_FILTER
                         Filter findings by severity comma-separated ("info,low,medium,high,critical") or as range ("medium-critical")
+  --snoozed-filter      Exclude snoozed vulnerabilities
   --exclude EXCLUDED_PLUGINS
                         Exclude plugin IDs, comma-separated
   --include INCLUDED_PLUGINS
