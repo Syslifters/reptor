@@ -1,3 +1,7 @@
+# 0.25
+* Improvements in reptor packarchive
+* add Nessus "snoozed" filter (credits to emizzz)
+
 # 0.24
 * Introduce support for CVSS4
 
