@@ -74,6 +74,7 @@ class TestPackExport:
                     "format": "projects/v1",
                     "project_type": {
                         "id": design_id,
+                        "format": "projecttypes/v1",
                     },
                 },
                 "project1-images/img1.png": create_png_file(),
@@ -109,7 +110,7 @@ class TestPackExport:
                     "format": "projects/v1",
                     "project_type": {
                         "id": design_id,
-                        "format": "projecttype/v1",
+                        "format": "projecttypes/v1",
                     },
                 },
                 f"{project_id}-images/img1.png": create_png_file(),

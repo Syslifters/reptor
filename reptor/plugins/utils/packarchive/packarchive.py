@@ -53,6 +53,8 @@ class PackArchive(Base):
             data_dict = tomli.loads(path_input.read_text())
         else:
             data_dict = json.loads(path_input.read_text())
+        if not isinstance(data_dict, dict) or not isinstance(data_dict.get('format'), str):
+            return None
         return data_dict
 
     def add_to_archive(self, tar: tarfile.TarFile, path_input: Path, data_dict: dict, is_subresource=False):
@@ -61,7 +63,8 @@ class PackArchive(Base):
 
         # Include file directories
         file_dirs = {}
-        if data_dict.get("format").startswith("projects/"):
+        format = data_dict.get('format', '')
+        if format.startswith("projects/"):
             file_dirs |= {
                 f"{data_dict['id']}-images": f"{data_dict['id']}-images",
                 f"{data_dict['id']}-files": f"{data_dict['id']}-files",
@@ -81,15 +84,22 @@ class PackArchive(Base):
                     raise ValueError(f'Invlaid reference to project type file: {projecttype_path_input}')
                 data_dict['project_type'] = project_type
             self.add_to_archive(tar=tar, path_input=projecttype_path_input, data_dict=project_type, is_subresource=True)
-        elif data_dict.get("format").startswith("projecttypes/"):
+        elif format.startswith("projecttypes/"):
             file_dirs |= {
                 f"{data_dict['id']}-assets": f"{data_dict['id']}-assets",
                 f"{path_input.stem}-assets": f"{data_dict['id']}-assets",
             }
-        elif data_dict.get("format").startswith("templates/"):
+        elif format.startswith("templates/"):
             file_dirs |= {
                 f"{data_dict['id']}-images": f"{data_dict['id']}-images",
                 f"{path_input.stem}-images": f"{data_dict['id']}-images",
+            }
+        elif format.startswith("notes/"):
+            file_dirs |= {
+                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
+                f"{data_dict['id']}-files": f"{data_dict['id']}-files",
+                f"{path_input.stem}-images": f"{data_dict['id']}-images",
+                f"{path_input.stem}-files": f"{data_dict['id']}-files",
             }
 
         # Add files to archive
