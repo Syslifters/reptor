@@ -105,18 +105,22 @@ class PackArchive(Base):
         # Add files to archive
         # Translate human-friendly names to archive names based on IDs
         for ds, dd in file_dirs.items():
+            # Always add file list to data_dict
+            data_key = dd.split("-")[-1]
+            data_dict.setdefault(data_key, [])
+
+            # Add directory contents to archive
             d_dir = Path(path_input).parent / ds
             if d_dir.is_dir():
                 tar.add(d_dir, arcname=dd)
                 for path_file in d_dir.glob("*"):
-                    # Add file entry about data_dict
-                    data_key = dd.split("-")[-1]
+                    # Add file entry to data_dict
                     data_file = next(filter(lambda f: f.get('name') == path_file.name, data_dict.get(data_key, [])), None)
                     if not data_file:
                         data_file = {
                             'name': path_file.name,
                         }
-                        data_dict.setdefault(data_key, []).append(data_file)
+                        data_dict[data_key].append(data_file)
                     if not data_file.get('id'):
                         data_file['id'] = str(uuid.uuid4())
                      
