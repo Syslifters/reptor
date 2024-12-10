@@ -8,7 +8,7 @@ env:
   plugins: 'findingfromtemplate burp openvas nessus nmap zap createproject pushproject unpackarchive packarchive sslyze file note project template translate ghostwriter finding deletefindings deleteprojects exportfindings defectdojo'
 jobs:
   help-messages:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
@@ -30,7 +30,7 @@ jobs:
         message: 'Update help messages'
 
   update-readme:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
