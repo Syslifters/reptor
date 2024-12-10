@@ -135,6 +135,10 @@ class TestIntegrationNessus(object):
         p.stdin.flush()  # type: ignore
 
         read_until(p.stdout)
+        p.stdin.write(b"y\n")  # type: ignore
+        p.stdin.flush()  # type: ignore
+
+        read_until(p.stdout)
         p.stdin.write(b"1234,9876\n")  # type: ignore
         p.stdin.flush()  # type: ignore
 
