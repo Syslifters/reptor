@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   prod-integration:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SYSREPTOR_SERVER: ${{ secrets.SYSREPTOR_SERVER_PROD }}
       SYSREPTOR_API_TOKEN: ${{ secrets.SYSREPTOR_API_TOKEN_PROD }}
@@ -20,7 +20,7 @@ jobs:
     - run: make integrationtest
 
   test-integration:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       SYSREPTOR_SERVER: ${{ secrets.SYSREPTOR_SERVER_TEST }}
       SYSREPTOR_API_TOKEN: ${{ secrets.SYSREPTOR_API_TOKEN_TEST }}
