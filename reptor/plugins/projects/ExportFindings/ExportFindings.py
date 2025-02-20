@@ -90,8 +90,8 @@ class ExportFindings(Base):
 
                 # Calculate CVSS
                 if finding_field.type == "cvss":
-                    finding_summary[f"{field}__score"] = ""
-                    finding_summary[f"{field}__severity"] = ""
+                    finding_summary[f"{field}__score"] = "0.0"
+                    finding_summary[f"{field}__severity"] = "None"
                     finding_summary[f"{field}__vector"] = ""
                     vector = finding_summary.pop(field) or ""
                     if vector.startswith("CVSS:4.0"):
@@ -119,9 +119,7 @@ class ExportFindings(Base):
                         else:
                             finding_summary[f"{field}__score"] = str(cvss_metrics.base_score)
                         finding_summary[f"{field}__vector"] = vector
-                        finding_summary[f"{field}__severity"] = [
-                            s for s in cvss_metrics.severities() if s != "None"
-                        ][-1]
+                        finding_summary[f"{field}__severity"] = next(reversed([s for s in cvss_metrics.severities() if s != "None"]), 'None')
             findings.append(finding_summary)
 
         output = ""
