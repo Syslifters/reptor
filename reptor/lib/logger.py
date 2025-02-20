@@ -35,11 +35,9 @@ class ReptorAdapter(logging.LoggerAdapter):
                 )
             ],
         )
-        super().__init__(
-            logger=logging.getLogger("reptor"),
-            extra=extra,
-            merge_extra=merge_extra,
-        )
+        self.logger = logging.getLogger("reptor")
+        self.extra = extra
+        self.merge_extra = merge_extra
         self.output_file = None
 
     def _print(self, msg, color="white", *args, **kwargs):
