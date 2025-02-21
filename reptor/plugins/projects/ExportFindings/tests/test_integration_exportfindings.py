@@ -62,6 +62,7 @@ class TestIntegrationExportFinding(object):
             (6.0, "Medium", "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:L/E:U/RC:U"),
             (2.4, "Low", "CVSS:3.0/AV:P/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"),
             (5.8, "Medium", "AV:L/AC:M/Au:M/C:N/I:C/A:C"),
+            (0.0, "None", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N"),
         ],
     )
     def test_cvss_version_exports(self, score, severity, vector):

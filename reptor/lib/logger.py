@@ -23,7 +23,7 @@ from reptor.lib.console import reptor_console
 
 
 class ReptorAdapter(logging.LoggerAdapter):
-    def __init__(self, extra=None):
+    def __init__(self, extra=None, merge_extra=False):
         logging.basicConfig(
             format="%(message)s",
             datefmt="[%X]",
@@ -37,6 +37,7 @@ class ReptorAdapter(logging.LoggerAdapter):
         )
         self.logger = logging.getLogger("reptor")
         self.extra = extra
+        self.merge_extra = merge_extra
         self.output_file = None
 
     def _print(self, msg, color="white", *args, **kwargs):
