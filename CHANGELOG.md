@@ -1,3 +1,6 @@
+# 0.26
+* Fix errors for cvss "None"
+
 # 0.25
 * Improvements in reptor packarchive
 * add Nessus "snoozed" filter (credits to emizzz)
