@@ -1,3 +1,6 @@
+# 0.27
+* Fix error when exporting finding field "id"
+
 # 0.26
 * Fix errors for cvss "None"
 

@@ -71,6 +71,9 @@ class ExportFindings(Base):
         for finding in self.reptor.api.projects.project.findings:
             finding_summary = dict()
             for field in self.fieldnames:
+                if field == "id":
+                    finding_summary[field] = finding.id
+                    continue
                 try:
                     finding_field = getattr(finding.data, field)
                 except AttributeError:

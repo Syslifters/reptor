@@ -12,7 +12,7 @@ from reptor.plugins.core.Conf.tests.conftest import get_note, projects_api
 class TestIntegrationExportFinding(object):
     def test_export_findings(self, projects_api):
         p = subprocess.Popen(
-            ["reptor", "exportfindings", "--format", "json"],
+            ["reptor", "exportfindings", "--format", "json", "--fieldnames" "'id,title'"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )

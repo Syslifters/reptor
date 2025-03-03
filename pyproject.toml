@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reptor"
-version = "0.26"
+version = "0.27"
 authors = [
   { name="Richard Schwabe" },
   { name="Aron Molnar", email="aron@syslifters.com" }
