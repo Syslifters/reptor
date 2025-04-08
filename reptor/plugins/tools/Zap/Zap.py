@@ -61,11 +61,11 @@ class Zap(ToolBase):
             "evidence": data.find("evidence").text,
             "otherinfo": data.find("otherinfo").text,
         }
-        if data.find("requestheader"):
+        if data.find("requestheader") is not None:
             result["requestheader"] = (data.find("requestheader").text,)
-        if data.find("requestbody"):
+        if data.find("requestbody") is not None:
             result["requestbody"] = (data.find("requestbody").text,)
-        if data.find("responseheader"):
+        if data.find("responseheader") is not None:
             result["responseheader"] = (data.find("responseheader").text,)
         return result
 

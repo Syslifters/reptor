@@ -22,11 +22,11 @@ class Instance(ModelBase):
         self.attack = data.find("attack").text
         self.evidence = data.find("evidence").text
         self.otherinfo = data.find("otherinfo").text
-        if data.find("requestheader"):
+        if data.find("requestheader") is not None:
             self.requestheader = data.find("requestheader").text
-        if data.find("requestbody"):
+        if data.find("requestbody") is not None:
             self.requestbody = data.find("requestbody").text
-        if data.find("responseheader"):
+        if data.find("responseheader") is not None:
             self.responseheader = data.find("responseheader").text
 
 
