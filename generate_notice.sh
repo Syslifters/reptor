@@ -16,7 +16,7 @@ allow_only="$allow_only;Mozilla Public License 2.0 (MPL 2.0)"
 allow_only="$allow_only;Historical Permission Notice and Disclaimer (HPND)"
 allow_only="$allow_only;Python Software Foundation License"
 
-ignore="reptor"
+ignore="reptor termcolor"
 
 pip3 install pip-licenses
 pip-licenses --allow-only "$allow_only" >/dev/null
@@ -49,4 +49,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 '''
 
+termcolor_license='''Copyright (c) 2008-2011 Volvox Development Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+'''
+
 echo "$cme_license" >> NOTICE
+echo "$termcolor_license" >> NOTICE
