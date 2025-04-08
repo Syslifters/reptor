@@ -31,21 +31,10 @@ class TemplatesAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{template_id}/export/")
         return self.post(url).content
 
-    def search(
-        self, search_term, deduplicate: bool = True
-    ) -> typing.List[FindingTemplate]:
+    def search(self, search_term) -> typing.List[FindingTemplate]:
         """Searches through the templates"""
-
         response = self.get(urljoin(self.base_endpoint, f"?search={search_term}"))
-        return_data = list()
-        added_ids = set()
-        for item in response.json()["results"]:
-            finding_template = FindingTemplate(item)
-            if finding_template.id not in added_ids:
-                return_data.append(FindingTemplate(item))
-            if deduplicate:
-                added_ids.add(finding_template.id)
-        return return_data
+        return [FindingTemplate(item) for item in response.json()["results"]]
 
     def get_templates_by_tag(self, tag: str) -> typing.List[FindingTemplate]:
         matched_templates = list()
