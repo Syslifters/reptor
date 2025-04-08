@@ -38,7 +38,10 @@ class NotesAPI(APIClient):
         return self.reptor.get_config().get("private_note")
 
     def get_notes(self) -> typing.List[Note]:
-        """Gets list of notes"""
+        """
+        Gets list of notes
+        (Notes are not paginated)
+        """
         self.debug("Getting Notes List")
         response = self.get(self.base_endpoint)
         notes = list()

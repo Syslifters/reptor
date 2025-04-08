@@ -43,42 +43,21 @@ class ProjectsAPI(APIClient):
         }
         return Project(self.post(self.base_endpoint, json=data).json(), ProjectDesign())
 
-    def get_projects(self, readonly: bool = False) -> typing.List[ProjectOverview]:
-        """Gets list of projects
-
-        Args:
-            readonly (bool, optional): Only archived projects. Defaults to False.
-
-        Returns:
-            json: List of all Projects
-        """
-        url = self.base_endpoint
-        if readonly:
-            url = f"{url}?readonly=true"
-        response = self.get(url)
-        return_data = list()
-        for item in response.json()["results"]:
-            return_data.append(ProjectOverview(item))
-        return return_data
-
-    def search(
-        self, search_term: typing.Optional[str] = ""
-    ) -> typing.List[ProjectOverview]:
+    def search(self, search_term: typing.Optional[str] = "", finished: typing.Optional[bool] = None) -> typing.List[ProjectOverview]:
         """Searches projects by search term and retrieves all projects that match
 
         Args:
             search_term (typing.Optional[str], optional): Search Term to look for. Defaults to None.
+            finished (bool, optional): Filter for (un)finished projects. Defaults to None.
 
         Returns:
-            typing.List[Project]: List of project overviews (without sections, findings) that match search
+            typing.List[ProjectOverview]: List of project overviews (without sections, findings) that match search
         """
-
-        response = self.get(f"{self.base_endpoint}?search={search_term}")
-
-        return_data = list()
-        for item in response.json()["results"]:
-            return_data.append(ProjectOverview(item))
-        return return_data
+        params={"search": search_term}
+        if finished is not None:
+            params["readonly"] = finished
+        projects_raw = self.get_paginated(self.base_endpoint, params=params)
+        return [ProjectOverview(project_raw) for project_raw in projects_raw]
 
     @cached_property
     def project(self) -> Project:

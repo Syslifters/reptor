@@ -187,3 +187,12 @@ class APIClient:
 
     def delete(self, *args, **kwargs) -> requests.models.Response:
         return self._do_request(*args, method="DELETE", **kwargs)
+    
+    def get_paginated(self, url: str, *args, **kwargs) -> typing.List:
+        """Get paginated results from the API"""
+        results = []
+        while url:
+            response = self.get(url, *args, **kwargs)
+            results.extend(response.json()["results"])
+            url = response.json().get("next")
+        return results

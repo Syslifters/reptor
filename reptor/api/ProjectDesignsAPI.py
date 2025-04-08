@@ -17,18 +17,15 @@ class ProjectDesignsAPI(APIClient):
         self.project_design_id = kwargs.get("project_design_id", "")
         self.object_endpoint = urljoin(self.base_endpoint, self.project_design_id)
 
-    def get_project_designs(
-        self, scope: typing.Optional[str] = "global"
+    def search(
+        self, search_term: typing.Optional[str] = "", scope: typing.Optional[str] = "global"
     ) -> typing.List[ProjectDesignOverview]:
         url = self.base_endpoint
-        params = {}
+        params = {"search": search_term}
         if scope:
             params["scope"] = scope
-        response = self.get(url, params=params)
-        return_data = list()
-        for item in response.json()["results"]:
-            return_data.append(ProjectDesignOverview(item))
-        return return_data
+        designs_raw = self.get_paginated(url, params=params)
+        return [ProjectDesignOverview(item) for item in designs_raw]
 
     @cached_property
     def project_design(self) -> ProjectDesign:

@@ -179,10 +179,9 @@ class Template(Base):
 
     def run(self):
         filename = self.output
+        
         if self.list:
-            templates = self.reptor.api.templates.get_template_overview()
-        elif self.arg_search:
-            templates = self.reptor.api.templates.search(self.arg_search)
+            templates = self.reptor.api.templates.search(self.arg_search or "")
         else:
             i = None
             for i, finding_template in enumerate(self._read_finding_templates()):

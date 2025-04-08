@@ -16,14 +16,14 @@ from reptor.plugins.core.Conf.tests.conftest import (
 @pytest.mark.integration
 class TestIntegrationProject(object):
     def test_render_project(self, projects_api, project_design_api):
-        available_project_designs = project_design_api.get_project_designs()
+        available_project_designs = project_design_api.search()
         for design in available_project_designs:
             if projects_api.project.project_type != design.id:
                 break
         else:
             raise ValueError("No other project design found")
 
-        projects_len = len(projects_api.get_projects())
+        projects_len = len(projects_api.search())
         p = subprocess.Popen(
             [
                 "reptor",
@@ -42,7 +42,7 @@ class TestIntegrationProject(object):
         assert f"[{projects_api.project.name}.pdf]" in note_last_line
 
         # --design duplicates project; check if cleaned up
-        assert projects_len == len(projects_api.get_projects())
+        assert projects_len == len(projects_api.search())
 
     def test_export_tar_gz(self):
         fname = "myproject.tar.gz"

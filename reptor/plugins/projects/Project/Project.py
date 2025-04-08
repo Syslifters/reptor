@@ -135,10 +135,7 @@ class Project(Base):
         )
 
     def _search_project(self):
-        if self.search is not None:
-            projects = self.reptor.api.projects.search(self.search)
-        else:
-            projects = self.reptor.api.projects.get_projects()
+        projects = self.reptor.api.projects.search(self.search or "")
 
         if self.format == "json":
             self.print(
