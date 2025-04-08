@@ -19,7 +19,7 @@ allow_only="$allow_only;Python Software Foundation License"
 ignore="reptor termcolor"
 
 pip3 install pip-licenses
-pip-licenses --allow-only "$allow_only" >/dev/null
+pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
 pip-licenses -l --no-license-path -f plain-vertical --no-version --ignore-packages $ignore > NOTICE
 
 cme_license='''crackmapexec
