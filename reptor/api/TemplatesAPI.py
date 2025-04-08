@@ -10,16 +10,8 @@ class TemplatesAPI(APIClient):
         super().__init__(**kwargs)
 
         self.base_endpoint = urljoin(
-            self.reptor.get_config().get_server(), f"api/v1/findingtemplates/"
+            self.reptor.get_config().get_server(), "api/v1/findingtemplates/"
         )
-
-    def get_template_overview(self) -> typing.List[FindingTemplate]:
-        """Gets list of Templates"""
-        response = self.get(self.base_endpoint)
-        return_data = list()
-        for item in response.json()["results"]:
-            return_data.append(FindingTemplate(item))
-        return return_data
 
     def get_template(self, template_id: str) -> FindingTemplate:
         """Gets a single Template by ID"""
@@ -31,21 +23,10 @@ class TemplatesAPI(APIClient):
         url = urljoin(self.base_endpoint, f"{template_id}/export/")
         return self.post(url).content
 
-    def search(
-        self, search_term, deduplicate: bool = True
-    ) -> typing.List[FindingTemplate]:
+    def search(self, search_term: str = "") -> typing.List[FindingTemplate]:
         """Searches through the templates"""
-
-        response = self.get(urljoin(self.base_endpoint, f"?search={search_term}"))
-        return_data = list()
-        added_ids = set()
-        for item in response.json()["results"]:
-            finding_template = FindingTemplate(item)
-            if finding_template.id not in added_ids:
-                return_data.append(FindingTemplate(item))
-            if deduplicate:
-                added_ids.add(finding_template.id)
-        return return_data
+        templates_raw = self.get_paginated(self.base_endpoint, params={"search": search_term})
+        return [FindingTemplate(template_raw) for template_raw in templates_raw]
 
     def get_templates_by_tag(self, tag: str) -> typing.List[FindingTemplate]:
         matched_templates = list()

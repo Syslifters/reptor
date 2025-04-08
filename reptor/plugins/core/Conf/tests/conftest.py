@@ -35,7 +35,7 @@ def setUp():
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
         reptor._config._raw_config["cli"] = {"insecure": True}
-    project_designs = ProjectDesignsAPI(reptor=reptor).get_project_designs()
+    project_designs = ProjectDesignsAPI(reptor=reptor).search()
     for design in project_designs:
         if "Demo Calzone" in design.name:
             project_design_id = design.id

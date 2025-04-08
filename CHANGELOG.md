@@ -1,3 +1,9 @@
+# 0.28
+* Use pagination for projects, templates and designs
+* Deprecate "get_template_overview" in TemplatesAPI
+* Deprecate "get_projects" in ProjectsAPI
+* Minor code cleanup
+
 # 0.27
 * Fix error when exporting finding field "id"
 
