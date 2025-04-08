@@ -6,7 +6,7 @@ from posixpath import join as urljoin
 from requests import HTTPError
 
 from reptor.api.APIClient import APIClient
-from reptor.models.Finding import Finding, FindingRaw
+from reptor.models.Finding import FindingRaw
 from reptor.models.Project import Project, ProjectOverview
 from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section, SectionRaw
@@ -262,6 +262,6 @@ class ProjectsAPI(APIClient):
         url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
         settings = self.get(url).json()
         languages = [
-            l["code"] for l in settings.get("languages", list()) if l["enabled"] == True
+            language["code"] for language in settings.get("languages", list()) if language["enabled"] is True
         ]
         return languages

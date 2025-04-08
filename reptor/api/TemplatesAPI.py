@@ -10,7 +10,7 @@ class TemplatesAPI(APIClient):
         super().__init__(**kwargs)
 
         self.base_endpoint = urljoin(
-            self.reptor.get_config().get_server(), f"api/v1/findingtemplates/"
+            self.reptor.get_config().get_server(), "api/v1/findingtemplates/"
         )
 
     def get_template(self, template_id: str) -> FindingTemplate:

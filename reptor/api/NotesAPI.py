@@ -25,7 +25,7 @@ class NotesAPI(APIClient):
         if self.private_note:
             self.base_endpoint = urljoin(
                 self.reptor.get_config().get_server(),
-                f"api/v1/pentestusers/self/notes/",
+                "api/v1/pentestusers/self/notes/",
             )
         elif self.project_id:
             self.base_endpoint = urljoin(
