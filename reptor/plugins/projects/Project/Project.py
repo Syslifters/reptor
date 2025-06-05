@@ -29,6 +29,7 @@ class Project(Base):
         self.design = None if self.design == "-" else self.design
         self.upload: bool = kwargs.get("upload", False)
         self.duplicate: bool = kwargs.get("duplicate", False)
+        self.finish: typing.Optional[bool] = kwargs.get("finish", None)
         self.output: typing.Optional[str] = kwargs.get("output")
         self.format: str = kwargs.get("format", "plain")
 
@@ -64,6 +65,19 @@ class Project(Base):
             help="Duplicate project",
             action="store_true",
             dest="duplicate",
+        )
+        finish_group = project_parser.add_mutually_exclusive_group()
+        finish_group.add_argument(
+            "--finish",
+            help="Set project as finished",
+            action="store_true",
+            dest="finish",
+        )
+        finish_group.add_argument(
+            "--reactivate",
+            help="Reactivate a finished project",
+            action="store_false",
+            dest="finish",
         )
 
         # Additional options
@@ -157,6 +171,20 @@ class Project(Base):
         project_id = duplicated_project.id
         self.success(f"Duplicated to '{project_title}' ({project_id})")
 
+    def _finish_project(self, finish: typing.Optional[bool] = None):
+        if finish is None:
+            return
+        if self.finish:
+            if self.reptor.api.projects.finish_project():
+                self.success("Project finished")
+            else:
+                self.error("Couldn't finish project")
+        else:
+            if not self.reptor.api.projects.finish_project(unfinish=True):
+                self.success("Project reactivated")
+            else:
+                self.error("Couldn't reactivate project")
+
     def _render_project(self, filename=None, upload=False):
         stdout = False
         default_filename = (self.reptor.api.projects.project.name or "report") + ".pdf"
@@ -182,6 +210,8 @@ class Project(Base):
             self._render_project(filename=self.output, upload=self.upload)
         elif self.duplicate:
             self._duplicate_project()
+        elif self.finish is not None:
+            self._finish_project(finish=self.finish)
         else:
             self._search_project()
 
