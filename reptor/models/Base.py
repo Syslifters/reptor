@@ -13,8 +13,8 @@ class BaseModel:
     """
 
     id: str = ""
-    created: datetime.datetime = datetime.datetime.now()
-    updated: datetime.datetime = datetime.datetime.now()
+    created: typing.Optional[datetime.datetime] = None
+    updated: typing.Optional[datetime.datetime] = None
     _log = logging.getLogger("reptor")
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
