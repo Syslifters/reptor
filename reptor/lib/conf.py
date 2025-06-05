@@ -84,6 +84,9 @@ class Config:
         try:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 config = yaml.safe_load(f.read())
+            if not config:
+                config = {}
+                self._no_config_file = True
         except FileNotFoundError:
             self._no_config_file = True
         config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
@@ -108,7 +111,7 @@ class Config:
         """Asks the user for the individiual settings and offers to
         write them into a config file
         """
-        default_server = self._raw_config.get("server")
+        default_server = self._raw_config.get("server") or ""
         self._raw_config["server"] = (
             input(f"Server [{default_server}]: ") or default_server
         )
@@ -120,7 +123,7 @@ class Config:
             else ""
         )
         self._raw_config["token"] = input(
-            f"API Token{ f' [redacted]' if default_api_token else ''}: "
+            f"API Token{ ' [redacted]' if default_api_token else ''}: "
         ) or self._raw_config.get("token")
         if self._raw_config["token"]:
             self._raw_config["token"] = (
@@ -133,7 +136,7 @@ class Config:
         default_project_id = self._raw_config.get("project_id")
         self._raw_config["project_id"] = (
             input(
-                f"Project ID{ f' [{default_project_id}]' if default_project_id else ''}: "
+                f"Project ID (optional){ f' [{default_project_id}]' if default_project_id else ''}: "
             )
             or default_project_id
         )
