@@ -232,7 +232,7 @@ class TestFindingModelParsing:
         )
         finding = Finding(finding_raw, project_design, raise_on_unknown_fields=True)
         assert finding.id == "d3658ee5-2d43-40f6-9b97-1b98480afe78"
-        assert finding.data.boolean_field.value == True
+        assert finding.data.boolean_field.value is True
         assert finding.data.boolean_field.type == "boolean"
         assert finding.data.boolean_field.name == "boolean_field"
 
@@ -245,7 +245,7 @@ class TestFindingModelParsing:
         finding_data = FindingData(finding_raw.data, project_design.finding_fields)
         assert finding_data.boolean_field.name == "boolean_field"
         assert finding_data.boolean_field.type == "boolean"
-        assert finding_data.boolean_field.value == True
+        assert finding_data.boolean_field.value is True
 
         assert finding_data.combobox_field.name == "combobox_field"
         assert finding_data.combobox_field.type == "combobox"
@@ -306,7 +306,7 @@ class TestFindingModelParsing:
             finding_data.enum_field.value = "invalid_value"
 
         finding_data.boolean_field.value = False
-        assert finding_data.boolean_field.value == False
+        assert finding_data.boolean_field.value is False
         with pytest.raises(ValueError):
             finding_data.boolean_field.value = "invalid_value"
 
@@ -386,6 +386,6 @@ class TestFindingModelParsing:
             finding.data.object_field["list_in_object"][0]
             == "My String in List in Object"
         )
-        assert finding.data.boolean_field == True
+        assert finding.data.boolean_field is True
         assert finding.data.combobox_field == "Combobox Value 2"
         assert finding.data.markdown_field == "My Markdown"

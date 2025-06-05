@@ -47,8 +47,7 @@ class BaseModel:
                                                    FindingTemplateTranslation)
         from reptor.models.Note import Note
         from reptor.models.Project import Project
-        from reptor.models.ProjectDesign import (ProjectDesign,
-                                                 ProjectDesignField)
+        from reptor.models.ProjectDesign import ProjectDesign
         from reptor.models.Section import SectionDataRaw
         from reptor.models.User import User
 

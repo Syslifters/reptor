@@ -49,5 +49,5 @@ class TestUserModelParsing:
         assert test_user.name == "Richard Schwabe"
         assert test_user.first_name == "Richard"
         assert test_user.last_name == "Schwabe"
-        assert test_user.is_superuser == True
+        assert test_user.is_superuser is True
         assert test_user.scope

@@ -94,7 +94,7 @@ class GhostWriter(BaseImporter):
 
     def convert_references(self, value):
         value = strip_tags(value)
-        return [l for l in value.splitlines() if l.strip()]
+        return [line for line in value.splitlines() if line.strip()]
 
     def convert_hostDetectionTechniques(self, value):
         if strip_tags(value):

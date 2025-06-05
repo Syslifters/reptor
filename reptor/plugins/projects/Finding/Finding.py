@@ -11,8 +11,6 @@ from reptor.models.ProjectDesign import ProjectDesign
 
 
 class Finding(UploadBase):
-    """ """
-
     meta = {
         "name": "Finding",
         "summary": "Uploads findings from JSON or TOML",

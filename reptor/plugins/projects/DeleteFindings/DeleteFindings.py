@@ -1,14 +1,7 @@
 import argparse
-import contextlib
-import json
-import sys
-import typing
-
-import tomli
 
 from reptor.lib.plugins.UploadBase import UploadBase
-from reptor.models.Finding import Finding as FindingModel
-from reptor.models.ProjectDesign import ProjectDesign
+
 
 
 class DeleteFindings(UploadBase):

@@ -46,7 +46,7 @@ class TestDefectDojo:
     def test_run(self):
         finding_data = json.loads(
             open(
-                os.path.join(os.path.dirname(__file__), f"./data/finding_data.json")
+                os.path.join(os.path.dirname(__file__), "./data/finding_data.json")
             ).read()
         )
         url = "http://localhost:8080"
@@ -71,7 +71,7 @@ class TestDefectDojo:
     def test_get_findings(self):
         finding_data = json.loads(
             open(
-                os.path.join(os.path.dirname(__file__), f"./data/finding_data.json")
+                os.path.join(os.path.dirname(__file__), "./data/finding_data.json")
             ).read()
         )
         url = "http://localhost:8080"

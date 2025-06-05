@@ -279,10 +279,6 @@ class TestSslyze(TestCaseToolPlugin):
                     },
                     "has_misconfigurations": True,
                     "flag_for_finding": True,
-                    "has_insecure_protocols": True,
-                    "has_insecure_ciphers": False,
-                    "has_cert_issues": True,
-                    "has_misconfigurations": True,
                 }
             ]
         }
