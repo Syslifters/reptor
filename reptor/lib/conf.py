@@ -84,6 +84,9 @@ class Config:
         try:
             with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                 config = yaml.safe_load(f.read())
+            if not config:
+                config = {}
+                self._no_config_file = True
         except FileNotFoundError:
             self._no_config_file = True
         config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
