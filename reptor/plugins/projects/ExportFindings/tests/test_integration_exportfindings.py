@@ -5,12 +5,12 @@ import pytest
 import tomli
 import yaml
 
-from reptor.plugins.core.Conf.tests.conftest import get_note, projects_api
+from reptor.plugins.core.Conf.tests.conftest import get_note, projects_api  # noqa: F401
 
 
 @pytest.mark.integration
 class TestIntegrationExportFinding(object):
-    def test_export_findings(self, projects_api):
+    def test_export_findings(self, projects_api):  # noqa: F811
         p = subprocess.Popen(
             ["reptor", "exportfindings", "--format", "json", "--fieldnames" "'id,title'"],
             stdout=subprocess.PIPE,

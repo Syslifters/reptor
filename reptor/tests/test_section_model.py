@@ -182,7 +182,7 @@ class TestSectionModelParsing:
         project_design = ProjectDesign(project_design)
         if raises:
             with pytest.raises(ValueError):
-                s = Section(
+                Section(
                     {"data": {"description_objects": value}},
                     project_design,
                     raise_on_unknown_fields=True,
@@ -204,7 +204,7 @@ class TestSectionModelParsing:
         section_data = SectionData(section_raw.data, project_design.report_fields)
         assert section_data.draft.name == "draft"
         assert section_data.draft.type == "boolean"
-        assert section_data.draft.value == True
+        assert section_data.draft.value is True
 
         assert section_data.title.name == "title"
         assert section_data.title.type == "string"
@@ -250,7 +250,7 @@ class TestSectionModelParsing:
             section_data.report_date.value = "new date"
 
         section_data.draft.value = False
-        assert section_data.draft.value == False
+        assert section_data.draft.value is False
         with pytest.raises(ValueError):
             section_data.draft.value = "False"
 

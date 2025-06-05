@@ -7,7 +7,7 @@ import tarfile
 
 import pytest
 import yaml
-from reptor.plugins.core.Conf.tests.conftest import templates_api
+from reptor.plugins.core.Conf.tests.conftest import templates_api  # noqa: F401
 
 
 class TestIntegrationTemplate(object):
@@ -16,7 +16,7 @@ class TestIntegrationTemplate(object):
         "input_file",
         ["template_1.json", "template_2.json", "template_1.toml", "template_2.toml"],
     )
-    def test_upload_finding_template(self, input_file, templates_api):
+    def test_upload_finding_template(self, input_file, templates_api):  # noqa: F811
         # Delete the templates if already exist
         for title in [
             "SQL Injection (SQLi)",
@@ -70,7 +70,7 @@ class TestIntegrationTemplate(object):
             assert len(tar.getmembers()) == len(ids)
 
     def test_template_export(self):
-        input_path = pathlib.Path(os.path.dirname(__file__)) / f"data/template_1.json"
+        input_path = pathlib.Path(os.path.dirname(__file__)) / "data/template_1.json"
         p = subprocess.Popen(
             ["reptor", "template", "--upload"],
             stderr=subprocess.PIPE,

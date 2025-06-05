@@ -6,16 +6,15 @@ import pytest
 
 from reptor.plugins.core.Conf.tests.conftest import (
     get_note,
-    get_notes,
-    notes_api,
-    projects_api,
-    project_design_api,
+    notes_api,  # noqa: F401
+    projects_api,  # noqa: F401
+    project_design_api,  # noqa: F401
 )
 
 
 @pytest.mark.integration
 class TestIntegrationProject(object):
-    def test_render_project(self, projects_api, project_design_api):
+    def test_render_project(self, projects_api, project_design_api):  # noqa: F811
         available_project_designs = project_design_api.search()
         for design in available_project_designs:
             if projects_api.project.project_type != design.id:

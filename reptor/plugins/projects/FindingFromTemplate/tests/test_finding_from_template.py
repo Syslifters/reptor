@@ -8,8 +8,6 @@ from requests.exceptions import HTTPError
 
 from reptor.lib.reptor import reptor
 from reptor.models.FindingTemplate import FindingTemplate
-from reptor.models.Project import Project
-from reptor.models.ProjectDesign import ProjectDesign
 
 from ..FindingFromTemplate import FindingFromTemplate
 

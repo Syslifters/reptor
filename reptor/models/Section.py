@@ -276,7 +276,7 @@ class SectionData(BaseModel):
         for k, v in deepcopy(vars(self)).items():
             if v.type == ProjectFieldTypes.enum.value:
                 valid_enums = [choice["value"] for choice in v.choices]
-                if not v.value in valid_enums:
+                if v.value not in valid_enums:
                     # Prevent adding empty enums because server will complain
                     continue
             result[k] = v.to_dict()

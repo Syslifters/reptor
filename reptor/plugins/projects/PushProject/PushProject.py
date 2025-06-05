@@ -3,7 +3,6 @@ import contextlib
 import json
 import sys
 import typing
-from io import FileIO
 
 import tomli
 

@@ -5,8 +5,8 @@ import pytest
 
 from reptor.plugins.core.Conf.tests.conftest import (
     get_note,
-    private_uploads_id,
-    private_notes_api
+    private_uploads_id,  # noqa: F401
+    private_notes_api  # noqa: F401
 )
 
 
@@ -29,7 +29,7 @@ class TestIntegrationNote(object):
         assert note is not None
         assert note_content.decode() in note["text"]
 
-    def test_notes_upload_with_notetitle(self, private_uploads_id):
+    def test_notes_upload_with_notetitle(self, private_uploads_id):  # noqa: F811
         note_content = str(time.time()).encode()
         # Upload to note with notetitle
         p = subprocess.Popen(

@@ -2,7 +2,6 @@ import argparse
 import sys
 
 from reptor.lib.plugins.UploadBase import UploadBase
-from reptor.api.NotesAPI import NotesAPI
 
 
 class File(UploadBase):

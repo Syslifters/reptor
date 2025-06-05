@@ -4,12 +4,12 @@ import time
 
 import pytest
 
-from reptor.plugins.core.Conf.tests.conftest import projects_api
+from reptor.plugins.core.Conf.tests.conftest import projects_api  # noqa: F401
 
 
 @pytest.mark.integration
 class TestIntegrationFinding(object):
-    def test_push_valid_finding(self, projects_api):
+    def test_push_valid_finding(self, projects_api):  # noqa: F811
         title = str(time.time())
         reference = "https://example.com/" + title
         affected_component = "https://example.com/affected/" + title
@@ -52,7 +52,7 @@ class TestIntegrationFinding(object):
         ]
         assert f.data.summary == "We detected a reflected XSS vülnerability."
 
-    def test_push_invalid_finding(self, projects_api):
+    def test_push_invalid_finding(self, projects_api):  # noqa: F811
         title = str(time.time())
         finding = {
             "status": "in-progress",

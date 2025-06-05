@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from reptor.plugins.core.Conf.tests.conftest import notes_api
+from reptor.plugins.core.Conf.tests.conftest import notes_api  # noqa: F401
 
 
 @pytest.mark.integration
 class TestIntegrationNmap(object):
-    def test_nmap_note(self, notes_api):
+    def test_nmap_note(self, notes_api):  # noqa: F811
         nmap_output_path = (
             Path(os.path.dirname(__file__)) / "data/nmap_multi_target.xml"
         )
