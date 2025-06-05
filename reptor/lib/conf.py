@@ -136,7 +136,7 @@ class Config:
         default_project_id = self._raw_config.get("project_id")
         self._raw_config["project_id"] = (
             input(
-                f"Project ID{ f' [{default_project_id}]' if default_project_id else ''}: "
+                f"Project ID (optional){ f' [{default_project_id}]' if default_project_id else ''}: "
             )
             or default_project_id
         )

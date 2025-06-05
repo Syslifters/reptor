@@ -7,8 +7,8 @@ Project ID: 3fae023a-2632-4c88-a0ea-97ab5eb64c94
 Store to config to C:\Users\aron\.sysreptor\config.yaml? [y/n]:
 ```
 
-Get your API token from https://<your-installation>/users/self/apitokens/.  
-Find your project ID in the URL of your project.
+Get your API token from https://{your-installation-url}/users/self/apitokens/.  
+Find your project ID in the URL of your project (optional).
 
 ![Find the project ID in the URL](/cli/assets/project_id.png)
 
