@@ -1,3 +1,9 @@
+# 0.29
+* Allow finish and reactivate projects
+* Remove wrong timestamps for project sections
+* Improve setting config, mark project ID as optional
+* Fix linting and problems
+
 # 0.28
 * Use pagination for projects, templates and designs
 * Deprecate "get_template_overview" in TemplatesAPI
