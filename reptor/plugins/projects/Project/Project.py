@@ -71,12 +71,14 @@ class Project(Base):
             "--finish",
             help="Set project as finished",
             action="store_true",
+            default=None,
             dest="finish",
         )
         finish_group.add_argument(
             "--reactivate",
             help="Reactivate a finished project",
             action="store_false",
+            default=None,
             dest="finish",
         )
 
