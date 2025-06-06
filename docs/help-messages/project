@@ -1,5 +1,5 @@
 usage: reptor project [-h]
-                      [--search SEARCHTERM | --export {tar.gz,json,toml,yaml} | --render | --duplicate]
+                      [--search SEARCHTERM | --export {tar.gz,json,toml,yaml} | --render | --duplicate | [--finish | --reactivate]]
                       [-o FILENAME] [--design DESIGN ID] [--upload] [--json]
 
 Work with projects
@@ -11,6 +11,8 @@ optional arguments:
                         Export project
   --render              Render project
   --duplicate           Duplicate project
+  --finish              Set project as finished
+  --reactivate          Reactivate a finished project
   -o FILENAME, --output FILENAME
                         Filename for output
   --design DESIGN ID    Render project with alternative design
