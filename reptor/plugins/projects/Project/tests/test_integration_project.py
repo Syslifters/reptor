@@ -43,6 +43,28 @@ class TestIntegrationProject(object):
         # --design duplicates project; check if cleaned up
         assert projects_len == len(projects_api.search())
 
+    def test_finish_project(self, projects_api):  # noqa: F811
+        # Assert project is active
+        assert projects_api.project.readonly is False
+
+        # Finish project
+        p = subprocess.Popen(
+            ["reptor", "project", "--finish"],
+        )
+        p.communicate()
+        assert p.returncode == 0
+        del projects_api._project_dict
+        assert projects_api._get_project().readonly is True
+
+        # Reactivate project
+        p = subprocess.Popen(
+            ["reptor", "project", "--reactivate"],
+        )
+        p.communicate()
+        assert p.returncode == 0
+        del projects_api._project_dict
+        assert projects_api._get_project().readonly is False
+
     def test_export_tar_gz(self):
         fname = "myproject.tar.gz"
         try:

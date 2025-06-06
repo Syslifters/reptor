@@ -114,6 +114,17 @@ class ProjectsAPI(APIClient):
             return grouped
         return data
 
+    def finish_project(self, project_id: typing.Optional[str] = None, unfinish: bool = False) -> bool:
+        if project_id:
+            url = urljoin(self.base_endpoint, project_id)
+        else:
+            url = self.object_endpoint
+        url = urljoin(url, "readonly/")
+        return self.patch(
+            url,
+            json={"readonly": not unfinish}
+        ).json().get("readonly")
+
     def delete_project(self, project_id: typing.Optional[str] = None) -> None:
         if project_id:
             url = urljoin(self.base_endpoint, project_id)
