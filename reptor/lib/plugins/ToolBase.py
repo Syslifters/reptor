@@ -315,9 +315,9 @@ class ToolBase(Base):
             if isinstance(self.raw_input, list):
                 self.parsed_input = list()
                 for raw_input in self.raw_input:
-                    self.parsed_input.append(xmltodict.parse(raw_input))
+                    self.parsed_input.append(xmltodict.parse(raw_input.strip()))
             else:
-                self.parsed_input = xmltodict.parse(self.raw_input)  # type: ignore
+                self.parsed_input = xmltodict.parse(self.raw_input.strip())  # type: ignore
         else:
             if isinstance(self.raw_input, list):
                 self.xml_root = list()

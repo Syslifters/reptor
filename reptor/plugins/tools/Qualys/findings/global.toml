@@ -1,0 +1,6 @@
+[data]
+title = "<!--{{ TITLE }}-->"
+severity = "<!--{{ severity_label }}-->"
+summary = "<!--{{ DESCRIPTION }}-->"
+description = "<!--{{ IMPACT }}-->"
+recommendation = "<!--{{ SOLUTION }}-->"
