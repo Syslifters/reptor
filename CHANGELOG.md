@@ -1,4 +1,4 @@
-# Upcoming
+# 0.30
 * Implement Qualys importer
 * Fix incompatible field types from variables (#173)
 
