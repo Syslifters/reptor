@@ -23,6 +23,9 @@ class ExampleTool(ToolBase):
     def finding_idor(self):
         return {
             "idor_url": "https://example.com/idor/1337",
+            "my_number": 42424242,
+            "my_boolean": True,
+            "other_boolean": 0,
         }
 
     def finding_without_template_empty(self):
@@ -101,7 +104,7 @@ class TestToolbase(TestCaseToolPlugin):
 
         # Assert finding is pushed if no finding from same template exists
         finding = Finding(
-            {"template": "12345"}, ProjectDesign(), raise_on_unknown_fields=True
+            {"template": "12345"}, ProjectDesign(), strict_type_check=True
         )
         self.reptor.api.templates.search = Mock(return_value=[finding])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
@@ -117,7 +120,7 @@ class TestToolbase(TestCaseToolPlugin):
 
         # Assert finding is not pushed if finding from same template exists
         finding_raw = FindingRaw({"template": "12345"})
-        finding = Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=True)
+        finding = Finding(finding_raw, ProjectDesign(), strict_type_check=True)
         self.reptor.api.projects.get_findings = Mock(return_value=[finding_raw])
         self.reptor.api.templates.get_template = Mock(return_value=[finding])
         self.reptor.api.templates.search = Mock(return_value=[finding])
@@ -164,6 +167,8 @@ class TestToolbase(TestCaseToolPlugin):
         assert finding["data"]["retest_notes"] == "My restest notes"
         assert finding["data"]["retest_status"] == "open"
         assert finding["data"]["severity"] == "high"
+        assert finding["data"]["number_field_1"] == 8
+        assert finding["data"]["number_field_2"] == "<!--{{ my_number }}-->"
 
         # Assert loading with file ext works
         finding_1 = self.example_tool.get_local_finding_template("idor.toml")
@@ -245,6 +250,10 @@ class TestToolbase(TestCaseToolPlugin):
         assert idor_finding.data.retest_notes.value == "My restest notes"
         assert idor_finding.data.retest_status.value == "open"
         assert idor_finding.data.severity.value == "high"
+        assert idor_finding.data.number_field_1.value == 8
+        assert idor_finding.data.number_field_2.value == 42424242
+        assert idor_finding.data.boolean_field_1.value is True
+        assert idor_finding.data.boolean_field_2.value is False
 
     @pytest.mark.parametrize(
         "cvss2, expected",

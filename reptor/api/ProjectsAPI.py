@@ -240,7 +240,7 @@ class ProjectsAPI(APIClient):
             Section(
                 section_data,
                 project_design,
-                raise_on_unknown_fields=False,
+                strict_type_check=False,
             )  # Raises ValueError if invalid
 
         # Upload

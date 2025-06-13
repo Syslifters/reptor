@@ -121,17 +121,17 @@ class TestFindingModelParsing:
 
     def test_incompatible_finding_without_design(self):
         finding_raw = FindingRaw(json.loads(self.incompatible_finding))
-        Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=False)
+        Finding(finding_raw, ProjectDesign(), strict_type_check=False)
         with pytest.raises(ValueError):
-            Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=True)
+            Finding(finding_raw, ProjectDesign(), strict_type_check=True)
         with pytest.raises(ValueError):
-            Finding(finding_raw, ProjectDesign(), raise_on_unknown_fields=True)
+            Finding(finding_raw, ProjectDesign(), strict_type_check=True)
 
     def test_finding_unwanted_casting(self):
         finding = Finding(
             json.loads(self.finding_with_predefined_fields),
             ProjectDesign(),
-            raise_on_unknown_fields=True,
+            strict_type_check=True,
         )
         assert isinstance(finding, Finding)
         assert isinstance(finding.data, FindingData)
@@ -145,7 +145,7 @@ class TestFindingModelParsing:
         finding = Finding(
             json.loads(self.finding_with_predefined_fields),
             ProjectDesign(),
-            raise_on_unknown_fields=True,
+            strict_type_check=True,
         )
         assert finding.id == "c8941493-c5e2-4a89-b82e-a3513f54c1b4"
         assert finding.data.title.value == "Test"
@@ -230,7 +230,7 @@ class TestFindingModelParsing:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_finding_fields_only)
         )
-        finding = Finding(finding_raw, project_design, raise_on_unknown_fields=True)
+        finding = Finding(finding_raw, project_design, strict_type_check=True)
         assert finding.id == "d3658ee5-2d43-40f6-9b97-1b98480afe78"
         assert finding.data.boolean_field.value is True
         assert finding.data.boolean_field.type == "boolean"

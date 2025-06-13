@@ -16,3 +16,7 @@ wstg_category = "ATHZ"
 retest_notes = "My restest notes"
 retest_status = "open"
 severity = "high"
+number_field_1 = 8
+number_field_2 = "<!--{{ my_number }}-->"
+boolean_field_1 = "<!--{{ my_boolean }}-->"
+boolean_field_2 = "<!--{{ other_boolean }}-->"

@@ -75,7 +75,7 @@ class FindingData(SectionData):
         *args,
         **kwargs,
     ):
-        kwargs.setdefault("raise_on_unknown_fields", True)
+        kwargs.setdefault("strict_type_check", True)
         super().__init__(*args, **kwargs)
 
 
@@ -91,7 +91,7 @@ class Finding(FindingRaw):
         self,
         raw: typing.Union[FindingRaw, typing.Dict],
         project_design: ProjectDesign,
-        raise_on_unknown_fields: bool = False,
+        strict_type_check: bool = False,
     ):
         if isinstance(raw, dict):
             raw = FindingRaw(raw)
@@ -102,7 +102,7 @@ class Finding(FindingRaw):
         self.data = FindingData(
             raw.data,
             project_design.finding_fields,
-            raise_on_unknown_fields=raise_on_unknown_fields
+            strict_type_check=strict_type_check
         )
 
     @classmethod

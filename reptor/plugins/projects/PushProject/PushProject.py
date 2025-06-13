@@ -57,7 +57,7 @@ class PushProject(UploadBase):
                 (
                     finding,
                     FindingModel(
-                        finding, project_design, raise_on_unknown_fields=False
+                        finding, project_design, strict_type_check=False
                     ),
                 )
             )
@@ -88,13 +88,13 @@ class PushProject(UploadBase):
         report_data = loaded_content.get("report_data", {})
         assert isinstance(report_data, dict)
         SectionModel(
-            {"data": report_data}, ProjectDesign(), raise_on_unknown_fields=False
+            {"data": report_data}, ProjectDesign(), strict_type_check=False
         )
         findings = loaded_content.get("findings", [])
         assert isinstance(findings, list)
         for finding in findings:
             assert isinstance(finding, dict)
-            FindingModel(finding, ProjectDesign(), raise_on_unknown_fields=False)
+            FindingModel(finding, ProjectDesign(), strict_type_check=False)
         return loaded_content
 
 

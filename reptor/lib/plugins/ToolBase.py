@@ -300,7 +300,7 @@ class ToolBase(Base):
         """Puts the input into raw_input"""
         if self.input:
             self.raw_input = list()
-            for filepath in self.input:                
+            for filepath in self.input:
                 with open(filepath, "r") as f:
                     self.raw_input.append(f.read())
             if len(self.raw_input) == 1:
@@ -315,9 +315,9 @@ class ToolBase(Base):
             if isinstance(self.raw_input, list):
                 self.parsed_input = list()
                 for raw_input in self.raw_input:
-                    self.parsed_input.append(xmltodict.parse(raw_input))
+                    self.parsed_input.append(xmltodict.parse(raw_input.strip()))
             else:
-                self.parsed_input = xmltodict.parse(self.raw_input)  # type: ignore
+                self.parsed_input = xmltodict.parse(self.raw_input.strip())  # type: ignore
         else:
             if isinstance(self.raw_input, list):
                 self.xml_root = list()
@@ -523,7 +523,7 @@ class ToolBase(Base):
             finding = Finding.from_translation(
                 translation,
                 project_design=self._project_design,
-                raise_on_unknown_fields=False,
+                strict_type_check=False,
             )
             finding.template = finding_template.id
 
@@ -539,7 +539,7 @@ class ToolBase(Base):
             finding = Finding(
                 finding_dict,
                 project_design=self._project_design,
-                raise_on_unknown_fields=False,
+                strict_type_check=False,
             )
         except ValueError:
             self.log.error("Finding data incompatible with project design.")
@@ -593,12 +593,31 @@ class ToolBase(Base):
                 for finding_data in finding.data:
                     # Iterate over all finding fields
                     if finding_data.value:
-                        if finding_data.type in ["markdown", "string", "cvss"]:
+                        if isinstance(finding_data.value, str):
                             # Render template
                             with custom_django_tags():
                                 finding_data.value = Template(finding_data.value).render(
                                     django_context
                                 )
+                            if finding_data.type == "number":
+                                try:
+                                    num_value = float(finding_data.value)
+                                    if num_value.is_integer():
+                                        finding_data.value = int(num_value)
+                                    else:
+                                        finding_data.value = num_value
+                                except ValueError as e:
+                                    # Conversion to number failed
+                                    raise ValueError from e
+                            elif finding_data.type == "boolean":
+                                # Convert string to boolean
+                                if finding_data.value.lower() in ["true", "1"]:
+                                    finding_data.value = True
+                                elif finding_data.value.lower() in ["false", "0"]:
+                                    finding_data.value = False
+                                else:
+                                    raise ValueError(f'Invalid value "{finding_data.value}" for field "{finding_data.name}"')
+                        
                     elif finding_data.type in [
                         "list",
                         "enum",
@@ -607,6 +626,8 @@ class ToolBase(Base):
                         "number",
                         "boolean",
                     ]:
+                        # A direct mapping of equal variable names from context to project design
+                        # This is the only possibility to set lists.
                         if value := finding_context.get(finding_data.name):
                             try:
                                 finding_data.value = value
@@ -614,7 +635,7 @@ class ToolBase(Base):
                                 log.warning(
                                     f'Invalid value "{finding_data.value}" for field "{finding_data.name}"'
                                 )
-
+#
                 self.findings.append(finding)
         return self.findings
 

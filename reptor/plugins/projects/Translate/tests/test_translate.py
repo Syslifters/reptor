@@ -84,7 +84,7 @@ class TestTranslate:
             json.loads(self.example_design_with_finding_fields_only)
         )
         self.finding = Finding(
-            finding_raw, project_design, raise_on_unknown_fields=True
+            finding_raw, project_design, strict_type_check=True
         )
 
     def test_translate(self):

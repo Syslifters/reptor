@@ -37,7 +37,18 @@ LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 NEWLINE = "\n"
 
 USER_AGENT = "reptor CLI v0.1.0"  # TODO dynamic version
-
+LANGUAGE_CODE = "en"
+FORMAT_MODULE_PATH = []
+LOCALE_PATHS = (
+    'locale',
+)
+USE_THOUSAND_SEPARATOR = False
+USE_L10N = False
+USE_I18N = False
+USE_THOUSAND_SEPARATOR = False
+DECIMAL_SEPARATOR = "."
+THOUSAND_SEPARATOR = ","
+NUMBER_GROUPING = 0
 
 # Django Related Setup
 TEMPLATES = [
@@ -280,6 +291,40 @@ DEFAULT_PROJECT_DESIGN = {
             "origin": "custom",
             "default": None,
             "required": False,
+        },
+        {
+            "id": "number_field_1",
+            "type": "number",
+            "label": "Static Number",
+            "origin": "predefined",
+            "default": None,
+            "maximum": None,
+            "minimum": None,
+            "required": False,
+            "help_text": None
+        },
+        {
+            "id": "number_field_2",
+            "type": "number",
+            "label": "Dynamic Number",
+            "origin": "predefined",
+            "default": None,
+            "maximum": None,
+            "minimum": None,
+            "required": False,
+            "help_text": None
+        },
+        {
+            "id": "boolean_field_1",
+            "type": "boolean",
+            "label": "Boolean Field",
+            "origin": "predefined",
+        },
+        {
+            "id": "boolean_field_2",
+            "type": "boolean",
+            "label": "Boolean Field",
+            "origin": "predefined",
         },
     ],
 }

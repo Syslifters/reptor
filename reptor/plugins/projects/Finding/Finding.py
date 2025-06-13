@@ -48,7 +48,7 @@ class Finding(UploadBase):
         for finding in loaded_content:
             # Create model to assure compatibility of predefined fields
             assert isinstance(finding, dict)
-            FindingModel(finding, ProjectDesign(), raise_on_unknown_fields=False)
+            FindingModel(finding, ProjectDesign(), strict_type_check=False)
             yield finding
 
 
