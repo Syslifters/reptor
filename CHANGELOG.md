@@ -1,3 +1,7 @@
+# Upcoming
+* Implement Qualys importer
+* Fix incompatible field types from variables (#173)
+
 # 0.29
 * Allow finish and reactivate projects
 * Remove wrong timestamps for project sections
