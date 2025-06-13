@@ -3,7 +3,7 @@
 
 A plugin can...
 
-* read tool outputs via stdin
+* read tool outputs via stdin on `-i` command line switch (multiple files are supported)
 * parse them
 * format them
 * upload as notes, or
@@ -11,12 +11,12 @@ A plugin can...
 
 ## Where plugins are located
 
-reptor comes with a number of plugins.  
+`reptor` comes with a number of plugins.  
 However, you can override any plugin by copying it to the `.sysreptor/plugins` folder in your home directory.
 
 You can do this by running `reptor plugins --copy <module name> --full`
 
-If you copy the entire plugin, it overrides the builtin plugins from reptor.  
+If you copy the entire plugin, it overrides the builtin plugins from `reptor`.  
 If you want to override templates only, use `reptor plugins --copy <module name>`.
 So you can customize the templates used for formatting the data, while preserving the official functionality of the plugin.
 
@@ -26,7 +26,7 @@ Let's say we want to build a plugin for a fictional XSS-tool.
 We can start off using our plugin boilerplate by running `reptor plugins --new XssTool`.
 
 This will add the file structure to `.sysreptor/plugins/XssTool`.  
-This directory is already dynamically included by reptor. When you run `reptor --help`, you should see `xsstool` under the section `Tools`.  
+This directory is already dynamically included by `reptor`. When you run `reptor --help`, you should see `xsstool` under the section `Tools`.  
 You can also call the help message of your plugin by `reptor xsstool --help`.
 
 
@@ -108,7 +108,7 @@ printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor x
 
 Now we want to bring our data into a beautiful and human-readable format. SysReptor uses markdown and allows HTML syntax there.
 
-reptor uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/){ target=_blank } with a slightly different syntax for formatting.  
+`reptor` uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/){ target=_blank } with a slightly different syntax for formatting.  
 
 The Django start tags are prepended with the HTML comment start tag and become:
 
@@ -359,7 +359,7 @@ The finding was created successfully. You see from the "T" at the top that the f
 
 ![Finding created from template library](/cli/assets/finding-from-library.png)
 
-If you now re-run the command, reptor will refuse to push the finding again. This is because the report holds a finding that was created from the same finding template.
+If you now re-run the command, `reptor` will refuse to push the finding again. This is because the report holds a finding that was created from the same finding template.
 
 ## Source Code
 
