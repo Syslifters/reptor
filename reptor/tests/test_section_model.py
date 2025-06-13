@@ -185,14 +185,14 @@ class TestSectionModelParsing:
                 Section(
                     {"data": {"description_objects": value}},
                     project_design,
-                    raise_on_unknown_fields=True,
+                    strict_type_check=True,
                 )
                 pass
         else:
             Section(
                 {"data": {"description_objects": value}},
                 project_design,
-                raise_on_unknown_fields=True,
+                strict_type_check=True,
             )
 
     def test_section_data(self):
@@ -201,7 +201,7 @@ class TestSectionModelParsing:
         project_design = ProjectDesign(
             json.loads(self.example_design_with_report_fields_only)
         )
-        section_data = SectionData(section_raw.data, project_design.report_fields)
+        section_data = SectionData(section_raw.data, project_design.report_fields, strict_type_check=True)
         assert section_data.draft.name == "draft"
         assert section_data.draft.type == "boolean"
         assert section_data.draft.value is True

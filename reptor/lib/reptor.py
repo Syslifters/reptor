@@ -8,6 +8,7 @@ import typing
 
 import django
 from django.conf import settings as django_settings
+from django.utils import translation
 
 import reptor.settings as settings
 import reptor.subcommands as subcommands
@@ -292,6 +293,7 @@ class Reptor:
 
         django_settings.configure(settings, DEBUG=True)
         django.setup()
+        translation.deactivate_all()
         self._create_parsers()
 
         self._dynamically_add_plugin_options()

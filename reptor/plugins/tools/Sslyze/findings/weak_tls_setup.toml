@@ -12,7 +12,6 @@ and <!--{{ affected_components_short|length|add:"-1"|safe }}--> other services
 had a weak TLS setup. This might impact the confidentiality and integrity of your data in transit.
 <!--{% endoneliner %}-->"""
 
-
 recommendation = "Update your TLS setup to protect your data in transit."
 references = [
     "https://ssl-config.mozilla.org/",

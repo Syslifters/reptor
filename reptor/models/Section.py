@@ -48,8 +48,10 @@ class SectionDataField(ProjectDesignField):
             float,
             Any,
         ],
-        raise_on_unknown_fields: bool = True,
+        strict_type_check: bool = True,
     ):
+        self.strict_type_check = strict_type_check
+
         # Set attributes from ProjectDesignField
         project_design_type_hints = typing.get_type_hints(ProjectDesignField)
         for attr in project_design_type_hints.items():
@@ -63,14 +65,14 @@ class SectionDataField(ProjectDesignField):
                     property_value[property.name] = self.__class__(
                         property,
                         value[property.name],
-                        raise_on_unknown_fields=raise_on_unknown_fields,
+                        strict_type_check=strict_type_check,
                     )
                 except KeyError:
                     if property.required:
                         raise ValueError(
                             f'"{property.name}" is a required field for "{self.name}".'
                         )
-                if raise_on_unknown_fields and (
+                if strict_type_check and (
                     unknown_fields := [
                         v
                         for v in value.keys()
@@ -86,7 +88,7 @@ class SectionDataField(ProjectDesignField):
             if not isinstance(value, list):
                 raise ValueError(f"Value of '{self.name}' must be list.")
             for v in value:  # type: ignore
-                self.value.append(self.__class__(self.items, v, raise_on_unknown_fields=raise_on_unknown_fields))  # type: ignore
+                self.value.append(self.__class__(self.items, v, strict_type_check=strict_type_check))  # type: ignore
         else:
             self.value = value
 
@@ -98,13 +100,15 @@ class SectionDataField(ProjectDesignField):
             # Iterate through list
             for field in self.value:  # type: ignore
                 # Iterate through field for recursion
-                for f in field:
-                    yield f
+                if isinstance(field, self.__class__):
+                    for f in field:
+                        yield f
         elif self.type == ProjectFieldTypes.object.value:
             yield self  # First yield self, then nested fields
             for _, field in self.value.items():  # type: ignore
-                for f in field:
-                    yield f
+                if isinstance(field, self.__class__):
+                    for f in field:
+                        yield f
         else:
             yield self
 
@@ -143,14 +147,14 @@ class SectionDataField(ProjectDesignField):
                     raise ValueError(
                         f"'{self.name}' expects a string value (got '{__value}')."
                     )
-            elif self.type == ProjectFieldTypes.date.value:
+            elif self.type == ProjectFieldTypes.date.value and self.strict_type_check:
                 try:
                     datetime.datetime.strptime(__value, "%Y-%m-%d")
                 except (ValueError, TypeError):
                     raise ValueError(
                         f"'{self.name}' expects date in format 2000-01-01 (got '{__value}')."
                     )
-            elif self.type == ProjectFieldTypes.enum.value:
+            elif self.type == ProjectFieldTypes.enum.value and self.strict_type_check:
                 valid_enums = [choice["value"] for choice in self.choices] + [""]
                 if __value not in valid_enums:
                     raise ValueError(
@@ -158,9 +162,10 @@ class SectionDataField(ProjectDesignField):
                     )
             elif self.type == ProjectFieldTypes.list.value:
                 if not isinstance(__value, list):
-                    raise ValueError(
-                        f"Value of '{self.name}' must be list (got '{type(__value)}')."
-                    )
+                    if self.strict_type_check:
+                        raise ValueError(
+                            f"Value of '{self.name}' must be list (got '{type(__value)}')."
+                        )
                 if not all([isinstance(v, self.__class__) for v in __value]):
                     try:
                         # Iterate through list and create objects of self's class
@@ -188,7 +193,7 @@ class SectionDataField(ProjectDesignField):
                         f"of multiple types (got {','.join(types)})."
                     )
 
-            elif self.type == ProjectFieldTypes.object.value:
+            elif self.type == ProjectFieldTypes.object.value and self.strict_type_check:
                 if not isinstance(__value, dict):
                     raise ValueError(
                         f"Value of '{self.name}' must be dict (got '{type(__value)}')."
@@ -199,17 +204,17 @@ class SectionDataField(ProjectDesignField):
                             f"Value of '{self.name}' dict values must contain {self.__class__.__name__} "
                             f"(got '{type(v)}' for key '{k}')."
                         )
-            elif self.type == ProjectFieldTypes.boolean.value:
+            elif self.type == ProjectFieldTypes.boolean.value and self.strict_type_check:
                 if not isinstance(__value, bool):
                     raise ValueError(
                         f"'{self.name}' expects a boolean value (got '{__value}')."
                     )
-            elif self.type == ProjectFieldTypes.number.value:
+            elif self.type == ProjectFieldTypes.number.value and self.strict_type_check:
                 if not isinstance(__value, int) and not isinstance(__value, float):
                     raise ValueError(
                         f"'{self.name}' expects int or float (got '{__value}')."
                     )
-            elif self.type == ProjectFieldTypes.user.value:
+            elif self.type == ProjectFieldTypes.user.value and self.strict_type_check:
                 try:
                     UUID(__value, version=4)
                 except (ValueError, AttributeError):
@@ -227,7 +232,7 @@ class SectionData(BaseModel):
         self,
         data_raw: SectionDataRaw,
         design_fields: typing.List[ProjectDesignField],
-        raise_on_unknown_fields: bool = False,
+        strict_type_check: bool = False,
     ):
         error = False
         for design_field in design_fields:
@@ -241,7 +246,7 @@ class SectionData(BaseModel):
                     self.field_class(
                         design_field,
                         value,
-                        raise_on_unknown_fields=raise_on_unknown_fields,
+                        strict_type_check=strict_type_check,
                     ),
                 )
             except ValueError as e:
@@ -250,10 +255,10 @@ class SectionData(BaseModel):
             except KeyError:
                 pass
 
-        if raise_on_unknown_fields:
+        if strict_type_check:
             unknown_fields = [f for f in data_raw.__dict__ if not hasattr(self, f)]
             if len(unknown_fields) > 0:
-                if raise_on_unknown_fields:
+                if strict_type_check:
                     error = True
                 self._log.error(
                     f"Incompatible data and designs: Fields in data but not in design: {','.join(unknown_fields)}"
@@ -317,7 +322,7 @@ class Section(SectionRaw):
         self,
         raw: typing.Union[SectionRaw, typing.Dict],
         project_design: typing.Optional[ProjectDesign] = None,
-        raise_on_unknown_fields: bool = False,
+        strict_type_check: bool = False,
     ):
         if project_design is None:
             project_design = ProjectDesign()
@@ -331,5 +336,5 @@ class Section(SectionRaw):
         self.data = SectionData(
             raw.data,
             project_design.report_fields,
-            raise_on_unknown_fields=raise_on_unknown_fields,
+            strict_type_check=strict_type_check,
         )
