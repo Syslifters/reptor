@@ -26,6 +26,7 @@ class TestQualys(TestCaseToolPlugin):
             self.qualys.raw_input = f.read()
 
     def test_parse(self):
+        # WAS
         self._load_xml_data("webapp_scan")
         self.qualys.parse()
         assert len(self.qualys.parsed_input) == 18
@@ -34,7 +35,13 @@ class TestQualys(TestCaseToolPlugin):
         self.qualys.parse()
         assert len(self.qualys.parsed_input) == 36
 
+        # VULN
+        self._load_xml_data("vuln_scan")
+        self.qualys.parse()
+        assert len(self.qualys.parsed_input) == 2
+
     def test_parse_with_severity_filter(self):
+        # WAS
         self._load_xml_data("webapp_scan")
         self.qualys.severity_filter = {"critical"}
         self.qualys.parse()
@@ -42,7 +49,16 @@ class TestQualys(TestCaseToolPlugin):
         assert isinstance(p, list)
         assert len(p) == 7
 
+        # VULN
+        self._load_xml_data("vuln_scan")
+        self.qualys.severity_filter = {"critical"}
+        self.qualys.parse()
+        p = self.qualys.parsed_input
+        assert isinstance(p, list)
+        assert len(p) == 0
+
     def test_parse_with_qid_filter(self):
+        # WAS
         self._load_xml_data("webapp_scan")
         self.qualys.included_plugins = {"150158"}
         self.qualys.parse()
@@ -57,7 +73,23 @@ class TestQualys(TestCaseToolPlugin):
         assert isinstance(p, list)
         assert not any(f["QID"] == "150158" for f in p)
 
+        # VULN
+        self._load_xml_data("vuln_scan")
+        self.qualys.included_plugins = {"86247"}
+        self.qualys.parse()
+        p = self.qualys.parsed_input
+        assert isinstance(p, list)
+        assert all(f["QID"] == "86247" for f in p)
+
+        self.qualys.included_plugins = {}
+        self.qualys.excluded_plugins = {"86247"}
+        self.qualys.parse()
+        p = self.qualys.parsed_input
+        assert isinstance(p, list)
+        assert not any(f["QID"] == "86247" for f in p)
+
     def test_preprocess_for_template(self):
+        # WAS
         self._load_xml_data("webapp_scan")
         self.qualys.parse()
         p = self.qualys.preprocess_for_template()
@@ -67,6 +99,14 @@ class TestQualys(TestCaseToolPlugin):
         assert isinstance(p[0]["PARAMS"], list)
         assert isinstance(p[0]["ACCESS_PATHS"], list)
 
+        # VULN
+        self._load_xml_data("vuln_scan")
+        self.qualys.parse()
+        p = self.qualys.preprocess_for_template()
+        assert len(p) == 2
+        assert isinstance(p[0]["affected_components"], list)
+        assert isinstance(p[0]["IPS"], list)
+
     def test_aggregate_by_plugin(self):
         self._load_xml_data("webapp_scan")
         self.qualys.parse()
@@ -74,8 +114,8 @@ class TestQualys(TestCaseToolPlugin):
         assert len(a) == 13
         assert sum(len(v) for v in a) == 18
         
-
     def test_create_notes(self):
+        # WAS
         self._load_xml_data("webapp_scan")
         self.qualys.parse()
         note = self.qualys.create_notes()
@@ -85,6 +125,15 @@ class TestQualys(TestCaseToolPlugin):
         assert note.children[0].title == "ginandjuice.shop"
         assert len(note.children[0].children) == 18
 
+        # VULN
+        self._load_xml_data("vuln_scan")
+        self.qualys.parse()
+        note = self.qualys.create_notes()
+        assert isinstance(note, NoteTemplate)
+        assert note.icon_emoji == "🛡️"
+        assert note.title == "Qualys"
+        assert note.children[0].title == "34.249.203.140"
+        assert len(note.children[0].children) == 2
 
     def test_aggregate_by_target(self):
         self._load_xml_data("webapp_scan")

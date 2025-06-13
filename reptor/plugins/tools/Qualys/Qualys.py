@@ -182,9 +182,44 @@ class Qualys(ToolBase):
             vulnerability.update(glossary.get(vulnerability.get("QID", ""), {}))
         return vulnerabilities
 
+    def _get_findings_scan(self, input) -> list:
+        findings = list()
+        ips = input.get("SCAN", dict()).get("IP", list())
+        if not isinstance(ips, list):
+            ips = [ips]
+        for ip in ips:
+            vulns = ip.get("VULNS", list())
+            if not isinstance(vulns, list):
+                vulns = [vulns]
+            for vuln in vulns:
+                cats = vuln.get("CAT", list())
+                if not isinstance(cats, list):
+                    cats = [cats]
+                for cat in cats:
+                    finding = cat.get("VULN", dict())
+                    # Remove special characters from field names
+                    finding["CVEID"] = finding.pop("@cveid", "")
+
+                    # Rename fields to match WAS format
+                    finding["SEVERITY"] = finding.pop("@severity", "1")
+                    finding["QID"] = finding.pop("@number", "")
+                    finding["IMPACT"] = finding.pop("DIAGNOSIS", "")
+                    finding["DESCRIPTION"] = finding.pop("CONSEQUENCE", "")
+                    
+                    # Add additional fields
+                    finding["IP"] = ip.get("@value", "")
+
+                    # Append to findings
+                    findings.append(finding)
+        return findings
+
+            
+
     def _get_findings(self, input) -> list:
         if "WAS_SCAN_REPORT" in input:
             return self._get_findings_was(input)
+        elif "SCAN" in input:
+            return self._get_findings_scan(input)
         else:
             raise NotImplementedError("This report type is not supported yet. Please open an issue at https://github.com/Syslifters/reptor/issues and provide a sample report.")
 
@@ -227,7 +262,7 @@ class Qualys(ToolBase):
     def aggregate_by_target(self) -> list:
         targets = dict()
         for finding in self.parsed_input:
-            url = finding.get("URL", "")
+            url = finding.get("IP") or finding.get("URL", "")
             finding["target"] = urlparse(url).netloc or finding.get("IP") or finding.get("URL") or "Unknown"
             targets.setdefault(finding["target"], list()).append(finding)
 
@@ -262,8 +297,10 @@ class Qualys(ToolBase):
                 m.setdefault("PARAMS", list()).append(param)
             if access_path := finding.get('ACCESS_PATH'):
                 m.setdefault("ACCESS_PATHS", list()).append(access_path)
+            if ip := finding.get('IP'):
+                m.setdefault("IPS", list()).append(ip)
 
-        m["affected_components"] = sorted(set(m.get("URLS") or []))
+        m["affected_components"] = sorted(set(m.get("URLS") or m.get("IPS") or []))
         return m
 
     def preprocess_for_template(self) -> list:
