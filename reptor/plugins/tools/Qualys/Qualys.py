@@ -211,9 +211,7 @@ class Qualys(ToolBase):
 
                     # Append to findings
                     findings.append(finding)
-        return findings
-
-            
+        return findings     
 
     def _get_findings(self, input) -> list:
         if "WAS_SCAN_REPORT" in input:

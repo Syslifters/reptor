@@ -300,7 +300,7 @@ class ToolBase(Base):
         """Puts the input into raw_input"""
         if self.input:
             self.raw_input = list()
-            for filepath in self.input:                
+            for filepath in self.input:
                 with open(filepath, "r") as f:
                     self.raw_input.append(f.read())
             if len(self.raw_input) == 1:
