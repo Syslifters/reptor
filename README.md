@@ -56,7 +56,7 @@ Examples:
                 echo "Upload this!" | reptor note
                 reptor file data/*
                 cat sslyze.json | reptor sslyze --json --push-findings
-                cat nmap.xml | reptor nmap --xml --upload
+                reptor nmap --xml --upload -i nmap.xml
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -91,6 +91,7 @@ subcommands:
    nessus                Nessus vulnerability importer
    nmap                  format nmap output
    openvas               OpenVAS vulnerability importer
+   qualys                Qualys vulnerability importer
    sslyze                format sslyze JSON output
    zap                   Parses ZAP reports (JSON, XML)
   
