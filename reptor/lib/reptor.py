@@ -149,7 +149,7 @@ class Reptor:
                 echo "Upload this!" | reptor note
                 reptor file data/*
                 cat sslyze.json | reptor sslyze --json --push-findings
-                cat nmap.xml | reptor nmap --xml --upload
+                reptor nmap --xml --upload -i nmap.xml
 """
         self._parser = argparse.ArgumentParser(
             prog="reptor",
