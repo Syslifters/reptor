@@ -1,0 +1,25 @@
+usage: reptor qualys [-h] [--conf] [-i [INPUT ...]]
+                     [--format | --upload | --push-findings | --template-vars | --parse | --upload-finding-templates]
+                     [--severity-filter SEVERITY_FILTER]
+                     [--exclude EXCLUDED_PLUGINS] [--include INCLUDED_PLUGINS]
+
+Qualys vulnerability importer
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --conf, --config      Configure plugin settings
+  -i [INPUT ...], --input [INPUT ...]
+                        Input file, if not stdin (multiple files allowed)
+  --format
+  --upload
+  --push-findings
+  --template-vars       Print template variables (needed for finding template customization).
+  --parse
+  --upload-finding-templates
+                        Upload local finding templates to SysReptor
+  --severity-filter SEVERITY_FILTER
+                        Filter findings by severity comma-separated ("high,medium") or as range ("medium-critical")
+  --exclude EXCLUDED_PLUGINS
+                        Exclude plugin IDs, comma-separated
+  --include INCLUDED_PLUGINS
+                        Include plugin IDs, comma-separated; default: all are included
