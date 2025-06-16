@@ -1,5 +1,6 @@
 # 0.31
 * Fix error when loading ZAP inputs
+* Auto-detect ZAP input format
 
 # 0.30
 * Implement Qualys importer
