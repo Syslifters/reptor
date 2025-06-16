@@ -38,7 +38,7 @@ class Zap(ToolBase):
                     file_extension_count[file_extension] += 1
             if file_extension_count:
                 self.input_format = max(file_extension_count.items(), key=lambda x: x[1])[0]
-        else:
+        elif self.input_format == "raw":
             # Use json as default input format
             self.input_format = "json"
 
