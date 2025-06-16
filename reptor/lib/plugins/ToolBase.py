@@ -46,6 +46,9 @@ class ToolBase(Base):
         self.notetitle = self.notetitle or self.plugin_name
         self.push_findings = kwargs.get("push_findings")
         self.input = kwargs.get("input")
+        if not isinstance(self.input, list):
+            # Happens for tools that do not support multiple input files
+            self.input = [self.input] if self.input else None
         self.note_icon = "🛠️"
         self.raw_input = None
         self.parsed_input = None
