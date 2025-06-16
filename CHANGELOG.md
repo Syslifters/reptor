@@ -1,4 +1,5 @@
 # 0.31
+* Allow usage of custom CAs
 * Fix error when loading ZAP inputs
 * Auto-detect ZAP input format
 
