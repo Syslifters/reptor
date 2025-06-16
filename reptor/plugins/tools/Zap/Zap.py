@@ -30,7 +30,16 @@ class Zap(ToolBase):
         super().__init__(**kwargs)
         self.notetitle = kwargs.get("notetitle") or "Zap"
         self.note_icon = "🌩️"
-        if self.input_format == "raw":
+        if self.input:
+            file_extension_count = dict()
+            for file_extension in [s.split(".")[-1] for s in self.input]:
+                if file_extension in ["json", "xml"]:
+                    file_extension_count.setdefault(file_extension, 0)
+                    file_extension_count[file_extension] += 1
+            if file_extension_count:
+                self.input_format = max(file_extension_count.items(), key=lambda x: x[1])[0]
+        else:
+            # Use json as default input format
             self.input_format = "json"
 
     def _parse_alert_data(self, data):
