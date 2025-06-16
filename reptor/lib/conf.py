@@ -99,6 +99,9 @@ class Config:
         if project_id:
             config["project_id"] = project_id
 
+        if requests_ca_bundle := os.environ.get("REQUESTS_CA_BUNDLE", config.get("requests_ca_bundle")):
+            os.environ["REQUESTS_CA_BUNDLE"] = requests_ca_bundle
+
         for k, v in self.get_cli_overwrite().items():
             if v:
                 config[k] = v
