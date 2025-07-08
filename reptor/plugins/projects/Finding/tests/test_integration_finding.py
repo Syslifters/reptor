@@ -80,3 +80,33 @@ class TestIntegrationFinding(object):
         assert (
             "affected_components" in err.decode()
         )  # The errornous field should occur in error message
+
+    def test_update_finding(self, projects_api):  # noqa: F811
+        update_finding = projects_api.get_findings()[0]
+
+        title = str(time.time())
+        finding = {
+            "status": "in-progress",
+            "data": {
+                "title": title,
+            },
+        }
+
+        p = subprocess.Popen(
+            ["reptor", "finding", "--update", update_finding.id],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+        )
+        p.communicate(input=json.dumps([finding, finding]).encode())
+        assert p.returncode != 0  # Multiple findings cannot be updated
+
+        p = subprocess.Popen(
+            ["reptor", "finding", "--update", update_finding.id],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+        )
+        p.communicate(input=json.dumps(finding).encode())
+        assert p.returncode == 0
+        updated_finding = projects_api.get_finding(update_finding.id)
+        assert updated_finding.data.title == title
+        assert updated_finding.data.summary == update_finding.data.summary

@@ -1,10 +1,20 @@
 Create findings in your pentest report by JSON or TOML.
 
-## Example
+## Examples
+
+### Create findings
 ```bash
 cat finding.json | reptor finding
 cat finding.toml | reptor finding
 ```
+
+### Update findings
+```bash
+cat finding.json | reptor finding --update c46fd6f7-b265-4434-a5b1-872b3b90ab71
+cat finding.toml | reptor finding --update c46fd6f7-b265-4434-a5b1-872b3b90ab71
+```
+
+The `--update` switch takes the finding ID you want to update (find the ID in the finding URL).
 
 ### Sample finding
 

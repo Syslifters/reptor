@@ -1,5 +1,6 @@
 # Upcoming
 * Fix bug that removes "insecure" option from conf file
+* Allow updating findings
 
 # 0.31
 * Allow usage of custom CAs
