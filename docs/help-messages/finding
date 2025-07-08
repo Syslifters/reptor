@@ -1,6 +1,7 @@
-usage: reptor finding [-h]
+usage: reptor finding [-h] [--update FINDING ID]
 
 Uploads findings from JSON or TOML
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help           show this help message and exit
+  --update FINDING ID  Update finding with the given ID
