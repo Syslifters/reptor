@@ -16,14 +16,38 @@ class Finding(UploadBase):
         "summary": "Uploads findings from JSON or TOML",
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.update_finding_id = kwargs.get("update_finding_id", None)
+
+    @classmethod
+    def add_arguments(cls, parser, plugin_filepath=None):
+        super().add_arguments(parser, plugin_filepath=plugin_filepath)
+        parser.add_argument(
+            "--update",
+            metavar="FINDING ID",
+            help="Update finding with the given ID",
+            action="store",
+            dest="update_finding_id",
+            default=None,
+        )
+
     def run(self):
         findings = list(self._read_findings())
-        for finding in findings:
-            self.reptor.api.projects.create_finding(finding)
-        findings_count = len(findings)
-        self.log.success(
-            f"Successfully uploaded {findings_count} finding{'s'[:findings_count^1]}"
-        )
+        if self.update_finding_id:
+            if len(findings) != 1:
+                raise ValueError(
+                    "When using --update, exactly one finding must be provided"
+                )
+            self.reptor.api.projects.update_finding(self.update_finding_id, findings[0])
+            self.log.success("Successfully updated finding.")
+        else:
+            for finding in findings:
+                self.reptor.api.projects.create_finding(finding)
+            findings_count = len(findings)
+            self.log.success(
+                f"Successfully uploaded {findings_count} finding{'s'[:findings_count^1]}"
+            )
 
     def _read_findings(
         self, content: typing.Optional[str] = None

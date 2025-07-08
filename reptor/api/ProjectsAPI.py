@@ -198,6 +198,18 @@ class ProjectsAPI(APIClient):
             return []
         return [FindingRaw(f) for f in response]
 
+    def get_finding(self, finding_id: str) -> FindingRaw:
+        """Gets a single finding by ID
+
+        Args:
+            finding_id (str): ID of the finding to retrieve
+
+        Returns:
+            FindingRaw: Finding object
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        return FindingRaw(self.get(url).json())
+
     def delete_finding(self, finding_id: str) -> None:
         url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
         self.delete(url)
