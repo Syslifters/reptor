@@ -1,3 +1,6 @@
+# Upcoming
+* Fix bug that removes "insecure" option from conf file
+
 # 0.31
 * Allow usage of custom CAs
 * Fix error when loading ZAP inputs
