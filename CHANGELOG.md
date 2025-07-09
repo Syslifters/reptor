@@ -1,6 +1,8 @@
 # Upcoming
 * Fix bug that removes "insecure" option from conf file
-* Allow updating findings
+* Allow updating findings with "findings" plugin
+* Allow updating findings with "pushproject" plugin
+* Deprecate "report_data" in favor of "sections" in "pushproject" plugin
 * Clean up NOTICE file
 
 # 0.31
