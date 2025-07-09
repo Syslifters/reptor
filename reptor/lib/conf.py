@@ -163,19 +163,18 @@ class Config:
             config = self._raw_config
         if config:
             settings.PERSONAL_SYSREPTOR_HOME.mkdir(exist_ok=True)                
-            with open(settings.PERSONAL_CONFIG_FILE, "r+") as f:
-                try:
+            try:
+                with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
                     new_config = yaml.safe_load(f.read()) or {}
-                except yaml.YAMLError:
-                    new_config = {}
-                f.seek(0)
-                new_config.update({
-                    k: v
-                    for k, v in config.items()
-                    if k not in self._ignored_keys_in_config
-                })
+            except (FileNotFoundError, yaml.YAMLError):
+                new_config = {}
+            new_config.update({
+                k: v
+                for k, v in config.items()
+                if k not in self._ignored_keys_in_config
+            })
+            with open(settings.PERSONAL_CONFIG_FILE, "w") as f:
                 yaml.dump(new_config, f, encoding="utf-8")
-                f.truncate()
         else:
             raise ValueError("No config is currently set")
 
