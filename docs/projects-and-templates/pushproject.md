@@ -16,7 +16,10 @@ cat project.json | reptor pushproject
 ## Sample project
 
 Upload project data by using the following structures.  
-You can add data to your report sections and create findings.
+You can add data to your report sections and create or update findings.
+
+If a finding has an `id`, reptor will update the finding instead of creating it.
+
 
 ```toml title="Project structure in JSON"
 {

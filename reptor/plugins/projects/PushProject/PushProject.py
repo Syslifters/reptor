@@ -4,12 +4,13 @@ import json
 import sys
 import typing
 
+import requests
 import tomli
 
 from reptor.lib.plugins.UploadBase import UploadBase
-from reptor.models.Section import Section as SectionModel
 from reptor.models.Finding import Finding as FindingModel
 from reptor.models.ProjectDesign import ProjectDesign
+from reptor.models.Section import Section as SectionModel
 
 
 class PushProject(UploadBase):
@@ -64,17 +65,31 @@ class PushProject(UploadBase):
         # Check for valid finding field data format
         project_design = self.reptor.api.project_designs.project_design
         findings = list()
-        for finding in self.projectdata.get("findings", []):  # Check data format
+        for finding in self.projectdata.get("findings", []):
             findings.append(
                 (
                     finding,
                     FindingModel(
                         finding, project_design, strict_type_check=False
-                    ),
+                    ),  # Checks data format
                 )
             )
         # Upload
         for finding, model in findings:
+            if model.id:
+                # Update existing finding
+                try:
+                    self.reptor.api.projects.update_finding(model.id, finding)
+                    self.log.success(f'Updated finding "{model.data.title.value}".')
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 404:
+                        # Finding with finding id not found
+                        # We'll try to create the finding
+                        pass
+                    else:
+                        raise e
+                else:
+                    continue
             self.reptor.api.projects.create_finding(finding)
             self.log.success(f'Created finding "{model.data.title.value}".')
         if not findings:
