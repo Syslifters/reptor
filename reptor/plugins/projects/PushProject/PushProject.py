@@ -37,6 +37,7 @@ class PushProject(UploadBase):
         parser.add_argument("projectdata", nargs="?", type=argparse.FileType("rb"))
 
     def run(self):
+        ##### DEPRECATED
         len_sections = len(
             self.reptor.api.projects.update_report_fields(
                 self.projectdata.get("report_data", {})
@@ -44,10 +45,21 @@ class PushProject(UploadBase):
         )
         if len_sections:
             self.log.success(
-                f"Updated {len_sections} report section{'s'[:len_sections^1]}."
+                f"Updated {len_sections} report section{'s'[:len_sections^1]} using DEPRECATED \"report_data\"."
+            )
+        ##### END DEPRECATED
+
+        len_sections = len(
+            self.reptor.api.projects.update_sections(
+                sections=self.projectdata.get("sections", [])
+            )
+        )
+        if len_sections:
+            self.log.success(
+                f"Updated {len_sections} section{'s'[:len_sections^1]}."
             )
         else:
-            self.log.display("No report sections updated.")
+            self.log.display("No sections updated.")
 
         # Check for valid finding field data format
         project_design = self.reptor.api.project_designs.project_design
@@ -85,11 +97,23 @@ class PushProject(UploadBase):
 
         # Create model to assure compatibility of predefined fields
         assert isinstance(loaded_content, dict)
+
+        ##### DEPRECATED
+        if "report_data" in loaded_content:
+            self.log.warning("The 'report_data' field is deprecated and will be removed in a future version. Use 'sections' instead.")
         report_data = loaded_content.get("report_data", {})
         assert isinstance(report_data, dict)
         SectionModel(
             {"data": report_data}, ProjectDesign(), strict_type_check=False
         )
+        ##### END DEPRECATED
+
+        sections = loaded_content.get("sections", [])
+        assert isinstance(sections, list)
+        for section in sections:
+            assert isinstance(section, dict)
+            SectionModel(section, ProjectDesign(), strict_type_check=False)
+
         findings = loaded_content.get("findings", [])
         assert isinstance(findings, list)
         for finding in findings:

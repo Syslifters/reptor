@@ -2,6 +2,16 @@
 title = "NEW REPORT"
 customer = "CUSTOMER"
 
+[[sections]]
+id = "section1"
+[sections.data]
+title = "NEW REPORT"
+
+[[sections]]
+id = "section2"
+[sections.data]
+custom_report_field = "FIELD VALUE"
+
 [[findings]]
 [findings.data]
 title = "123"

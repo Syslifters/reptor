@@ -229,9 +229,25 @@ class ProjectsAPI(APIClient):
             data["template_language"] = language
         return FindingRaw(self.post(url, json=data).json())
 
-    def _update_section(self, section_id: str, data: dict) -> SectionRaw:
+    def update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
         return SectionRaw(self.patch(url, json=data).json())
+
+    def update_sections(self, sections: typing.List[dict]) -> typing.List[SectionRaw]:
+        project_design = self.reptor.api.project_designs.project_design
+        updated_sections = list()
+        for section_data in sections:
+            Section(
+                section_data,
+                project_design,
+                strict_type_check=False,
+            )  # Raises ValueError if invalid
+            if not section_data.get("id"):
+                raise ValueError("Section data must contain an 'id' field.")
+        for section_data in sections:
+            # Iterate a second time to check that all sections are valid
+            updated_sections.append(self.update_section(section_data.get("id"), section_data))
+        return updated_sections
 
     def update_report_fields(self, data: dict) -> typing.List[SectionRaw]:
         # Get project data to map report fields to sections
@@ -259,7 +275,7 @@ class ProjectsAPI(APIClient):
         sections = list()
         for section_id, section_data in sections_data.items():
             if section_data["data"]:
-                sections.append(self._update_section(section_id, section_data))
+                sections.append(self.update_section(section_id, section_data))
         return sections
 
     def update_project(self, data: dict) -> Project:
