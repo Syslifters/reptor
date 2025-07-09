@@ -76,7 +76,7 @@ class PushProject(UploadBase):
         # Upload
         for finding, model in findings:
             self.reptor.api.projects.create_finding(finding)
-            self.log.success(f'Created finding "{model.data.title}".')
+            self.log.success(f'Created finding "{model.data.title.value}".')
         if not findings:
             self.log.display("No findings created.")
 
