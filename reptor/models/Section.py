@@ -324,7 +324,7 @@ class SectionRaw(BaseModel):
         return self.id
     
     def __repr__(self):
-        return f'SectionRaw(id="{self.id})"'
+        return f'SectionRaw(id="{self.id}")'
 
 
 class Section(SectionRaw):
