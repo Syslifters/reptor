@@ -157,16 +157,16 @@ class ProjectsAPI(APIClient):
     def duplicate_and_cleanup(self):
         original_project_id = self.project_id
         duplicated_project = self.duplicate_project()
-        self.switch_project(duplicated_project.id)
+        self.init_project(duplicated_project.id)
         self.log.info(f"Duplicated project to {duplicated_project.id}")
 
         yield
 
         self.delete_project()
-        self.switch_project(original_project_id)
+        self.init_project(original_project_id)
         self.log.info("Cleaned up duplicated project")
 
-    def switch_project(self, new_project_id) -> None:
+    def init_project(self, new_project_id) -> None:
         self.reptor._config._raw_config["project_id"] = new_project_id
         self._project_id = new_project_id
         self._init_attrs()
