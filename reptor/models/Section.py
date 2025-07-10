@@ -294,6 +294,16 @@ class SectionData(BaseModel):
             result[k] = v.to_dict()
         return result
 
+    def __str__(self):
+        keys = [f'"{k}"' for k in self.to_dict().keys()]
+        if len(keys) <= 3:
+            return ', '.join(keys)
+        else:
+            return ', '.join(keys[:3]) + '...'
+
+    def __repr__(self):
+        return f'SectionData({self.__str__()})' 
+
 
 class SectionRaw(BaseModel):
     """

@@ -89,10 +89,10 @@ class FindingData(SectionData):
         super().__init__(*args, **kwargs)
     
     def __str__(self):
-        return str(self.id)
+        return str(self.title.value)
     
     def __repr__(self):
-        return f'FindingData(id="{self.id}")'
+        return f'FindingData(title="{self.title.value}")'
 
 
 class FindingRaw(BaseModel):
