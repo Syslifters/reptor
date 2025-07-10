@@ -61,14 +61,14 @@ class ProjectsAPI(APIClient):
 
     @cached_property
     def project(self) -> Project:
-        return self._get_project()
+        return self.fetch_project()
 
     @cached_property
     def _project_dict(self) -> dict:
         url = self.object_endpoint
         return self.get(url).json()
 
-    def _get_project(self) -> Project:
+    def fetch_project(self) -> Project:
         return Project(
             self._project_dict,
             self.reptor.api.project_designs.project_design,
