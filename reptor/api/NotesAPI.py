@@ -67,6 +67,7 @@ class NotesAPI(APIClient):
     def create_note(
         self,
         title="CLI Note",
+        text=None,
         parent_id: typing.Optional[str] = None,
         order=None,
         checked=None,
@@ -82,6 +83,7 @@ class NotesAPI(APIClient):
                 "parent": parent_id or None,
                 "checked": checked,
                 "title": title,
+                "text": text or "",
             },
         ).json()
         self.debug(f"We created note with {note}")
