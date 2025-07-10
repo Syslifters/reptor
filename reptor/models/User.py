@@ -34,6 +34,7 @@ class User(BaseModel):
 
     username: str = ""
     name: str = ""
+    color: str = ""
     title_before: str = ""
     first_name: str = ""
     middle_name: str = ""

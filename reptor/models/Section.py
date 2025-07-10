@@ -309,8 +309,8 @@ class SectionRaw(BaseModel):
     project: str = ""
     project_type: str = ""
     language: str = ""
+    label: str = ""
     fields: typing.List[str] = []
-    template: str = ""
     assignee: str = ""
     status: str = "in-progress"
     data: SectionDataRaw

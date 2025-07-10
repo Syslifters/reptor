@@ -22,6 +22,7 @@ class ProjectDesignField(BaseModel):
         items:
         suggestions:
     """
+    id: str = ""  # Keep this definition (even though also inherited); otherwise, init breaks
     type: ProjectFieldTypes
     label: str = ""
     origin: str = ""
