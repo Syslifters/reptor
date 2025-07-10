@@ -65,12 +65,20 @@ class ProjectsAPI(APIClient):
 
     @cached_property
     def _project_dict(self) -> dict:
-        url = self.object_endpoint
-        return self.get(url).json()
+        return self._fetch_project_dict()
+    
+    def _fetch_project_dict(self, html=False) -> dict:
+        """Fetches the project dictionary from the API"""
+        if html:
+            url = urljoin(self.base_endpoint, f"{self.project_id}/md2html/")
+            return self.post(url).json()
+        else:
+            url = self.object_endpoint
+            return self.get(url).json()
 
-    def fetch_project(self) -> Project:
+    def fetch_project(self, html=False) -> Project:
         return Project(
-            self._project_dict,
+            self._fetch_project_dict(html=html),
             self.reptor.api.project_designs.project_design,
         )
 
