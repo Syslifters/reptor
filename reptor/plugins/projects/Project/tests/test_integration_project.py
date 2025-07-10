@@ -53,7 +53,6 @@ class TestIntegrationProject(object):
         )
         p.communicate()
         assert p.returncode == 0
-        del projects_api._project_dict
         assert projects_api.fetch_project().readonly is True
 
         # Reactivate project
@@ -62,7 +61,6 @@ class TestIntegrationProject(object):
         )
         p.communicate()
         assert p.returncode == 0
-        del projects_api._project_dict
         assert projects_api.fetch_project().readonly is False
 
     def test_export_tar_gz(self):
