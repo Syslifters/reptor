@@ -23,3 +23,9 @@ class UserConfig:
     @staticmethod
     def split(value: str, separator=",") -> typing.List[str]:
         return list(filter(None, value.split(separator)))
+
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return f'UserConfig(name="{self.name}", type="{self.type.__name__}")'

@@ -55,3 +55,9 @@ class User(BaseModel):
     is_mfa_enabled: bool = False
     can_login_local: bool = False
     can_login_sso: bool = False
+
+    def __str__(self):
+        return f"{self.name} ({self.username})"
+
+    def __repr__(self):
+        return f'User(username="{self.username}", name="{self.name}", email="{self.email}", id="{self.id}")'

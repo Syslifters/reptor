@@ -18,6 +18,12 @@ class FindingTemplateTranslation(BaseModel):
         result = deepcopy(vars(self))
         result["data"] = self.data.to_dict()
         return result
+    
+    def __str__(self):
+        return self.language
+    
+    def __repr__(self):
+        return f'FindingTemplateTranslation(language="{self.language}", is_main={self.is_main})'
 
 
 class FindingTemplate(BaseModel):
@@ -30,7 +36,6 @@ class FindingTemplate(BaseModel):
         tags:
         translations:
     """
-
     details: str = ""
     images: str = ""
     usage_count: int = 0
@@ -44,3 +49,15 @@ class FindingTemplate(BaseModel):
             result["source"] = self.source.value
         result["translations"] = [t.to_dict() for t in self.translations]
         return result
+
+    def _get_main_title(self) -> str:
+        for translation in self.translations:
+            if translation.is_main:
+                return translation.data.title
+        return "Unknown Title"
+    
+    def __str__(self):
+        return self._get_main_title()
+    
+    def __repr__(self):
+        return f'FindingTemplate(title="{self._get_main_title()}", id="{self.id}")'

@@ -10,7 +10,8 @@ from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 
 class SectionDataRaw(BaseModel):
     def _fill_from_api(self, data: typing.Dict):
-        """Fills Model from reptor.api return JSON data
+        """
+        Fills Model from reptor.api return JSON data
         For FindingDataRaw, undefined keys should also be set.
 
         Args:
@@ -224,6 +225,12 @@ class SectionDataField(ProjectDesignField):
 
         return super().__setattr__(__name, __value)
 
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return f'SectionDataField(name="{self.name}", type="{self.type}", value="{self.value}")'
+
 
 class SectionData(BaseModel):
     field_class = SectionDataField
@@ -299,7 +306,6 @@ class SectionRaw(BaseModel):
         status:
         data:
     """
-
     project: str = ""
     project_type: str = ""
     language: str = ""
@@ -313,6 +319,12 @@ class SectionRaw(BaseModel):
         if "data" not in data:
             data["data"] = dict()
         super().__init__(data, *args, **kwargs)
+    
+    def __str__(self):
+        return self.id
+    
+    def __repr__(self):
+        return f'SectionRaw(id="{self.id}"'
 
 
 class Section(SectionRaw):
@@ -338,3 +350,9 @@ class Section(SectionRaw):
             project_design.report_fields,
             strict_type_check=strict_type_check,
         )
+
+    def __str__(self):
+        return str(self.id)
+    
+    def __repr__(self):
+        return f'Section(id="{self.id}")'

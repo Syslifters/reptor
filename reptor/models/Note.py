@@ -11,6 +11,12 @@ class NoteBase(BaseModel):
     status_emoji: str = ""
     order: int = 0
 
+    def __str__(self):
+        return self.title
+    
+    def __repr__(self):
+        return f'{self.__class__.__name__}(title="{self.title}", id="{self.id}")'
+
 
 class Note(NoteBase):
     parent: str = ""
@@ -27,6 +33,9 @@ class Note(NoteBase):
         if note_template.parent:
             note.parent = note_template.parent
         return note
+    
+    def __repr__(self):
+        return f'Note(title="{self.title}", id="{self.id}", parent="{self.parent}")'
 
 
 class NoteTemplate(NoteBase):
@@ -45,3 +54,6 @@ class NoteTemplate(NoteBase):
     @classmethod
     def from_kwargs(cls, **kwargs):
         return cls(data=kwargs)
+    
+    def __repr__(self):
+        return f'NoteTemplate(title="{self.title}", id="{self.id}", parent="{self.parent}")'

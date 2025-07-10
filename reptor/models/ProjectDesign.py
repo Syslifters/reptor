@@ -8,7 +8,6 @@ from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 class ProjectDesignField(BaseModel):
     """
-
     Attributes:
         name:
         type:
@@ -23,8 +22,6 @@ class ProjectDesignField(BaseModel):
         items:
         suggestions:
     """
-
-    id: str = ""
     type: ProjectFieldTypes
     label: str = ""
     origin: str = ""
@@ -61,6 +58,12 @@ class ProjectDesignField(BaseModel):
             if key in attrs:
                 self.__setattr__(key, value)
 
+    def __str__(self):
+        return self.id
+    
+    def __repr__(self):
+        return f'ProjectDesignField(name="{self.id}", label="{self.label}", type="{self.type}")'
+
 
 class ProjectDesignBase(BaseModel):
     source: str = ""
@@ -72,6 +75,12 @@ class ProjectDesignBase(BaseModel):
         if data is None:
             data = DEFAULT_PROJECT_DESIGN
         super().__init__(data)
+    
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return f'{self.__class__.__name__}(name="{self.name}", id="{self.id}")'
 
 
 class ProjectDesign(ProjectDesignBase):
