@@ -8,7 +8,6 @@ class NoteBase(BaseModel):
     text: str = ""
     checked: typing.Optional[bool] = None
     icon_emoji: str = ""
-    status_emoji: str = ""
     order: int = 0
 
     def __str__(self):
@@ -28,7 +27,6 @@ class Note(NoteBase):
         note.text = note_template.text
         note.checked = note_template.checked
         note.icon_emoji = note_template.icon_emoji
-        note.status_emoji = note_template.status_emoji
         note.order = note_template.order
         if note_template.parent:
             note.parent = note_template.parent

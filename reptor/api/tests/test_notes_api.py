@@ -32,7 +32,6 @@ class TestNotesAPI:
         "text": "My Content",
         "checked": None,
         "icon_emoji": "\ud83d\udd25",
-        "status_emoji": None,
         "order": 4,
         "parent": "8880ce39-90ed-4383-9320-d5d74b1ae34f",
     }

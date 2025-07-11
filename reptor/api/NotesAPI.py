@@ -126,25 +126,31 @@ class NotesAPI(APIClient):
         if not isinstance(note_templates, list):
             note_templates = [note_templates]
         for note_template in note_templates:
-            if note_template.parent_notetitle and not note_template.parent:
-                note_template.parent = self.get_or_create_note_by_title(
-                    note_template.parent_notetitle
-                ).id
-
-            note = None
-            if not note_template.force_new:
-                note = self.get_note_by_title(
-                    note_template.title,
-                    parent_noteid=note_template.parent,
-                )
-            if note is None:
-                new_note = True
-                note = self.create_note(
-                    title=note_template.title,
-                    parent_id=note_template.parent or None,
-                )
-            else:
+            if note_template.id:
                 new_note = False
+                note = self.get_note(noteid=note_template.id)
+                if not note:
+                    raise ValueError(f'Note with ID "{note_template.id}" does not exist.')
+            else:
+                if note_template.parent_notetitle and not note_template.parent:
+                    note_template.parent = self.get_or_create_note_by_title(
+                        note_template.parent_notetitle
+                    ).id
+
+                note = None
+                if not note_template.force_new:
+                    note = self.get_note_by_title(
+                        note_template.title,
+                        parent_noteid=note_template.parent,
+                    )
+                if note is None:
+                    new_note = True
+                    note = self.create_note(
+                        title=note_template.title,
+                        parent_id=note_template.parent or None,
+                    )
+                else:
+                    new_note = False
             self.debug(f"Got note from server {note.title} ({note.id})")
 
             # Prepare note (append content to existing note, etc)
@@ -167,6 +173,14 @@ class NotesAPI(APIClient):
                 upload_note.text = note_text
             else:
                 upload_note = note
+                if note_template.title:
+                    upload_note.title = note_template.title
+                if note_template.checked is not None:
+                    upload_note.checked = note_template.checked
+                if note_template.icon_emoji:
+                    upload_note.icon_emoji = note_template.icon_emoji
+                if note_template.order:
+                    upload_note.order = note_template.order
                 upload_note.text = note_text
 
             # Upload note and children recursively
@@ -190,17 +204,17 @@ class NotesAPI(APIClient):
         title,
         parent_noteid=None,  # Preferred over parent_notetitle
         parent_notetitle=None,
-        ignore_parent=False,
+        any_parent=False,
     ) -> typing.Optional[Note]:
         if not parent_noteid and parent_notetitle:
             try:
-                parent_noteid = self.get_note_by_title(parent_notetitle, ignore_parent=True).id  # type: ignore
+                parent_noteid = self.get_note_by_title(parent_notetitle, any_parent=True).id  # type: ignore
             except AttributeError:
                 raise ValueError(f'Parent note "{parent_notetitle}" does not exist.')
         notes_list = self.get_notes()
 
         for note in notes_list:
-            if note.title == title and (note.parent == parent_noteid or ignore_parent):
+            if note.title == title and (note.parent == parent_noteid or any_parent):
                 break
         else:
             return None
@@ -225,18 +239,17 @@ class NotesAPI(APIClient):
 
     def upload_file(
         self,
+        noteid: typing.Optional[str] = None,
         file: typing.Optional[typing.IO] = None,
         content: typing.Optional[bytes] = None,
-        notetitle: typing.Optional[str] = None,
         filename: typing.Optional[str] = None,
         caption: typing.Optional[str] = None,
+        notetitle: typing.Optional[str] = None,
         parent_notetitle: typing.Optional[str] = None,
         **kwargs,
     ):
         assert file or content
         assert not (file and content)
-        if notetitle is None:
-            notetitle = "Uploads"
 
         if file:
             if file.name == "<stdin>":
@@ -256,9 +269,10 @@ class NotesAPI(APIClient):
                 self.warning(f"{file.name} is empty. Will not upload.")
                 return
 
-        self.get_or_create_note_by_title(
-            notetitle, parent_notetitle=parent_notetitle
-        )
+        if not noteid:
+            noteid = self.get_or_create_note_by_title(
+                notetitle or "Uploads", parent_notetitle=parent_notetitle
+            ).id
         if self.private_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
@@ -275,8 +289,7 @@ class NotesAPI(APIClient):
             note_content = f"\n[{caption or filename}]({file_path})"
 
         self.write_note(
-            title=notetitle,
+            id=noteid,
             text=note_content,
-            parent_notetitle=parent_notetitle,
             **kwargs,
         )

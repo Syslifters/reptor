@@ -9,7 +9,6 @@ class TestNoteModel:
                 "text": "Note Text",
                 "checked": True,
                 "icon_emoji": "📤",
-                "status_emoji": "📤",
                 "order": 1,
                 "parent": "abc-def",
             }
@@ -19,7 +18,6 @@ class TestNoteModel:
         assert note.text == "Note Text"
         assert note.checked is True
         assert note.icon_emoji == "📤"
-        assert note.status_emoji == "📤"
         assert note.order == 1
         assert note.parent == "abc-def"
 
@@ -29,7 +27,6 @@ class TestNoteModel:
             text="Note Text",
             checked=True,
             icon_emoji="📤",
-            status_emoji="📤",
             order=1,
             parent="abc-def",
         )
@@ -37,6 +34,5 @@ class TestNoteModel:
         assert note_template.text == "Note Text"
         assert note_template.checked is True
         assert note_template.icon_emoji == "📤"
-        assert note_template.status_emoji == "📤"
         assert note_template.order == 1
         assert note_template.parent == "abc-def"
