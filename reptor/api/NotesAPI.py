@@ -293,3 +293,12 @@ class NotesAPI(APIClient):
             text=note_content,
             **kwargs,
         )
+
+    def render(
+        self,
+        id: str,
+    ) -> bytes:
+        url = urljoin(self.base_endpoint, f"{id}/export-pdf/")
+        response = self.post(url)
+        response.raise_for_status()
+        return response.content
