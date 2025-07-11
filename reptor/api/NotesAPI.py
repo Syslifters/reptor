@@ -302,3 +302,12 @@ class NotesAPI(APIClient):
         response = self.post(url)
         response.raise_for_status()
         return response.content
+
+    def duplicate(
+        self,
+        id: str,
+    ) -> Note:
+        url = urljoin(self.base_endpoint, f"{id}/copy/")
+        response = self.post(url)
+        response.raise_for_status()
+        return Note(response.json())
