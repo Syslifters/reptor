@@ -194,9 +194,6 @@ class TestProject:
         )
         sys.stdout.buffer.write.assert_called_once_with(content)
         self.project.reptor.api.notes.upload_file.assert_not_called()
-        # self.project.reptor.api.notes.upload_file.assert_called_once_with(
-        #    content=content, filename=default_filename, notetitle="Uploads"
-        # )
 
         # File, no upload
         m = mock_open()
@@ -245,6 +242,6 @@ class TestProject:
             )
             sys.stdout.buffer.write.assert_not_called()
             self.project.reptor.api.notes.upload_file.assert_called_once_with(
-                content=content, filename=default_filename, notetitle="Uploads"
+                content=content, filename=default_filename, note_title="Uploads"
             )
             m.assert_not_called()

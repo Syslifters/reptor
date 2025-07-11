@@ -236,7 +236,7 @@ Our main parent note is a note called `xsstool`. It is created by:
 main_note = NoteTemplate()
 main_note.title = self.notetitle
 main_note.icon_emoji = self.note_icon
-main_note.parent_notetitle = "Uploads"  # Put note below "Uploads"
+main_note.parent_title = "Uploads"  # Put note below "Uploads"
 ```
 
 We then iterate through our URLs, create one note per URL and append it as a child of our parent note. Finally, we return the parent note.

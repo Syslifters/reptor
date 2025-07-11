@@ -21,7 +21,7 @@ class TestIntegrationSslyze(object):
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title(
-            "🚩 www.example.com:443 (127.0.0.1)", parent_notetitle="Sslyze"
+            "🚩 www.example.com:443 (127.0.0.1)", parent_title="Sslyze"
         )
         note_lines = note.text.splitlines()
         lines = [

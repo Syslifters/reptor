@@ -30,24 +30,24 @@ class TestIntegrationZap(object):
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title(
-            "http://localhost (7)", parent_notetitle="Zap"
+            "http://localhost (7)", parent_title="Zap"
         )
         assert isinstance(note, Note)
 
         note = notes_api.get_note_by_title(
             "🔴 Cross Site Scripting (Reflected)",
-            parent_notetitle="http://localhost (7)",
+            parent_title="http://localhost (7)",
         )
         assert isinstance(note, Note)
         note_lines = note.text.splitlines()
         assert "| Risk | High (Medium) |" in note_lines
 
         note = notes_api.get_note_by_title(
-            "https://localhost (5)", parent_notetitle="Zap"
+            "https://localhost (5)", parent_title="Zap"
         )
         assert isinstance(note, Note)
         note = notes_api.get_note_by_title(
-            "🟠 Application Error Disclosure", parent_notetitle="https://localhost (5)"
+            "🟠 Application Error Disclosure", parent_title="https://localhost (5)"
         )
         assert isinstance(note, Note)
         note_lines = note.text.splitlines()

@@ -446,11 +446,11 @@ class ToolBase(Base):
                 self.note_templates, timestamp=self.timestamp
             )
         else:
-            parent_notetitle = "Uploads" if self.notetitle != "Uploads" else None
+            parent_title = "Uploads" if self.notetitle != "Uploads" else None
             self.reptor.api.notes.write_note(
                 title=self.notetitle,
                 text=self.formatted_input,
-                parent_notetitle=parent_notetitle,
+                parent_title=parent_title,
                 icon_emoji=self.note_icon,
                 timestamp=self.timestamp,
             )
