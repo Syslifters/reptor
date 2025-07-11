@@ -239,11 +239,11 @@ class NotesAPI(APIClient):
 
     def upload_file(
         self,
-        id: typing.Optional[str] = None,
         file: typing.Optional[typing.IO] = None,
         content: typing.Optional[bytes] = None,
         filename: typing.Optional[str] = None,
         caption: typing.Optional[str] = None,
+        note_id: typing.Optional[str] = None,
         note_title: typing.Optional[str] = None,
         parent_title: typing.Optional[str] = None,
         **kwargs,
@@ -269,8 +269,8 @@ class NotesAPI(APIClient):
                 self.warning(f"{file.name} is empty. Will not upload.")
                 return
 
-        if not id:
-            id = self.get_or_create_note_by_title(
+        if not note_id:
+            note_id = self.get_or_create_note_by_title(
                 note_title or "Uploads", parent_title=parent_title
             ).id
         if self.private_note:
@@ -289,7 +289,7 @@ class NotesAPI(APIClient):
             note_content = f"\n[{caption or filename}]({file_path})"
 
         self.write_note(
-            id=id,
+            id=note_id,
             text=note_content,
             **kwargs,
         )
