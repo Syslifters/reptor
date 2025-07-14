@@ -4,6 +4,8 @@
 * Allow updating findings with "pushproject" plugin
 * Deprecate "report_data" in favor of "sections" in "pushproject" plugin
 * Changes in APIs for Python library usage
+* Rename `private_note` to `personal_note` for consistency with SysReptor
+* Add docstrings for documentation
 * Clean up NOTICE file
 
 # 0.31

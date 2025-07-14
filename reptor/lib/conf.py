@@ -77,6 +77,7 @@ class Config:
         server: typing.Optional[str] = None,
         token: typing.Optional[str] = None,
         project_id: typing.Optional[str] = None,
+        personal_note: bool = False,
         return_only: bool = False,
     ) -> dict:
         """Loads config file from user home directory"""
@@ -92,6 +93,7 @@ class Config:
         config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
         config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
         config["project_id"] = os.environ.get("REPTOR_PROJECT_ID", config.get("project_id"))
+        config["personal_note"] = personal_note
         if server:
             config["server"] = server
         if token:

@@ -33,7 +33,7 @@ class NotesAPI(APIClient):
     def __init__(self, **kwargs) -> None:
         super().__init__(require_project_id=False, **kwargs)
 
-        if self.private_note:
+        if self.personal_note:
             self.base_endpoint = urljoin(
                 self.reptor.get_config().get_server(),
                 "api/v1/pentestusers/self/notes/",
@@ -45,8 +45,8 @@ class NotesAPI(APIClient):
             )
 
     @property
-    def private_note(self):
-        return self.reptor.get_config().get("private_note")
+    def personal_note(self):
+        return self.reptor.get_config().get("personal_note")
 
     def get_notes(self) -> typing.List[Note]:
         """Gets list of all notes in the current context (project notes or personal notes).
@@ -330,7 +330,7 @@ class NotesAPI(APIClient):
             note_id = self.get_or_create_note_by_title(
                 note_title or "Uploads", parent_title=parent_title
             ).id
-        if self.private_note:
+        if self.personal_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
             url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")

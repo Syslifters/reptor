@@ -62,6 +62,7 @@ class Reptor:
         server: typing.Optional[str] = None,
         token: typing.Optional[str] = None,
         project_id: typing.Optional[str] = None,
+        personal_note: bool = False,
     ) -> None:
         try:
             signal.signal(signal.SIGINT, signal_handler)
@@ -77,7 +78,10 @@ class Reptor:
 
         # Load the config
         self._config = Config()
-        self._config.load_config(server=server, token=token, project_id=project_id)
+        self._config.load_config(server=server,
+                                 token=token,
+                                 project_id=project_id, 
+                                 personal_note=personal_note)
 
         self.plugin_manager = PluginManager(self)
 
@@ -198,11 +202,20 @@ class Reptor:
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
-            "--private-note", dest="private_note", help="add notes to private notes", action="store_true"
+            "--private-note", dest="private_note", help=argparse.SUPPRESS, action="store_true"
         )
         config_parser.add_argument(
             "--privatenote",
-            dest="private_note",
+            dest="personal_note",
+            help=argparse.SUPPRESS,
+            action="store_true",
+        )
+        config_parser.add_argument(
+            "--personal-note", dest="personal_note", help="add notes to personal notes", action="store_true"
+        )
+        config_parser.add_argument(
+            "--personalnote",
+            dest="personal_note",
             help=argparse.SUPPRESS,
             action="store_true",
         )

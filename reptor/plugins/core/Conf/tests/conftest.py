@@ -89,16 +89,16 @@ def projects_api():
 @pytest.fixture(scope="session")
 def notes_api():
     reptor = Reptor()
-    reptor._config._raw_config["cli"] = {"private_note": False}
+    reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
     return NotesAPI(reptor=reptor)
 
 
 @pytest.fixture(scope="session")
-def private_notes_api():
+def personal_notes_api():
     reptor = Reptor()
-    reptor._config._raw_config["cli"] = {"private_note": True}
+    reptor._config._raw_config["cli"] = {"personal_note": True}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
     return NotesAPI(reptor=reptor)
@@ -107,7 +107,7 @@ def private_notes_api():
 @pytest.fixture(scope="session")
 def project_design_api():
     reptor = Reptor()
-    reptor._config._raw_config["cli"] = {"private_note": False}
+    reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
     return ProjectDesignsAPI(reptor=reptor)
@@ -116,7 +116,7 @@ def project_design_api():
 @pytest.fixture(scope="session")
 def templates_api():
     reptor = Reptor()
-    reptor._config._raw_config["cli"] = {"private_note": False}
+    reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
     return TemplatesAPI(reptor=reptor)
@@ -131,8 +131,8 @@ def uploads_id(notes_api):
 
 
 @pytest.fixture(scope="module")
-def private_uploads_id(private_notes_api):
-    private_notes_api.write_note("Create Note")
+def private_uploads_id(personal_notes_api):
+    personal_notes_api.write_note("Create Note")
     uploads_note = get_note("Uploads", None, private=True)
     assert uploads_note is not None
     return uploads_note["id"]
