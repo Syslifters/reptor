@@ -20,6 +20,28 @@ class ProjectDesignsAPI(APIClient):
     def search(
         self, search_term: typing.Optional[str] = "", scope: typing.Optional[str] = "global"
     ) -> typing.List[ProjectDesignOverview]:
+        """Searches project designs by search term and scope.
+
+        Args:
+            search_term (typing.Optional[str], optional): Search term to look for in project designs. Defaults to "".
+            scope (typing.Optional[str], optional): Search scope ("global" or "private"). Defaults to "global".
+
+        Returns:
+            List of project design overviews that match the search criteria.
+        
+        Example:
+            ```python
+            # Search for all project designs
+            designs = reptor.api.project_designs.search()
+            
+            # Search for specific designs
+            webapp_designs = reptor.api.project_designs.search("webapp")
+            
+            # Search in private scope
+            private_designs = reptor.api.project_designs.search(scope="private")
+            ```
+        """
+        
         url = self.base_endpoint
         params = {"search": search_term}
         if scope:
@@ -29,13 +51,18 @@ class ProjectDesignsAPI(APIClient):
 
     @cached_property
     def project_design(self) -> ProjectDesign:
-        """Gets project design
-
-        Args:
-            readonly (bool, optional): Only archived projects. Defaults to False.
+        """Gets project design of project in context.
 
         Returns:
-            ProjectDesign object
+            ProjectDesign object for the configured project design ID.
+            
+        Raises:
+            ValueError: If no project design ID is configured.
+
+        Example:
+            ```python
+            reptor.api.project_designs.project_design
+            ```
         """
         if not self.project_design_id:
             raise ValueError("Missing Project Design ID")
