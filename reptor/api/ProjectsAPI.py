@@ -25,7 +25,7 @@ class ProjectsAPI(APIClient):
             project_id="41c09e60-44f1-453b-98f3-3f1875fe90fe",
         )
 
-        # ProjectAPI is available as reptor.api.projects, e.g.:
+        # ProjectsAPI is available as reptor.api.projects, e.g.:
         reptor.api.projects.fetch_project()
         ```
     """
@@ -56,7 +56,7 @@ class ProjectsAPI(APIClient):
             finished (bool, optional): Filter for (un)finished projects. Defaults to None.
 
         Returns:
-            typing.List[ProjectOverview]: List of project overviews (without sections, findings) that match search
+            List of project overviews (without sections, findings) that match
         
         Example:
             ```python
@@ -129,9 +129,6 @@ class ProjectsAPI(APIClient):
         Args:
             new_project_id (str): Project ID to switch to.
         
-        Returns:
-            None
-        
         Example:
             ```python
             reptor.api.projects.init_project("41c09e60-44f1-453b-98f3-3f1875fe90fe")
@@ -157,7 +154,7 @@ class ProjectsAPI(APIClient):
             tags (List[str] | None, optional): Project tags, defaults to None.
         
         Returns:
-            Project (Project): Project object of the newly created project.
+            Project object of the newly created project.
         
         Example:
             ```python
@@ -182,7 +179,7 @@ class ProjectsAPI(APIClient):
             project_id (str, optional): Project ID to duplicate. If None, duplicates current project. Defaults to None.
 
         Returns:
-            Project: Project object of the duplicated project.
+            Project object of the duplicated project.
         
         Example:
             ```python
@@ -206,7 +203,7 @@ class ProjectsAPI(APIClient):
         """Context manager that duplicates current project, switches to it, and cleans up on exit.
         
         Returns:
-            None: Context manager for temporary project operations.
+            Context manager for temporary project operations.
         
         Example:
             ```python
@@ -235,7 +232,7 @@ class ProjectsAPI(APIClient):
             unfinish (bool, optional): Marks project as unfinished. Defaults to False.
         
         Returns:
-            bool: True if project is readonly/finished, False if unfinished.
+            True if project is readonly/finished, False if unfinished.
         
         Example:
             ```python
@@ -266,7 +263,7 @@ class ProjectsAPI(APIClient):
             project_id (str, optional): Project ID to delete. If None, deletes current project. Defaults to None.
         
         Returns:
-            None
+            :
         
         Example:
             ```python
@@ -314,7 +311,7 @@ class ProjectsAPI(APIClient):
             data (dict): Project data to update (name, tags, etc.).
         
         Returns:
-            Project: Updated project object.
+            Updated project object.
         
         Example:
             ```python
@@ -338,7 +335,7 @@ class ProjectsAPI(APIClient):
             force (bool, optional): Force change even if designs are incompatible (might lead to data loss). Defaults to False.
         
         Returns:
-            Project: Updated project object.
+            Updated project object.
         
         Example:
             ```python
@@ -360,7 +357,7 @@ class ProjectsAPI(APIClient):
         """Exports a Project in archive format (tar.gz).
         
         Returns:
-            bytes: Project archive content.
+            Project archive content.
         
         Example:
             ```python
@@ -376,7 +373,7 @@ class ProjectsAPI(APIClient):
         """Renders project to PDF.
         
         Returns:
-            bytes: PDF content of the project report.
+            PDF content of the project report.
 
         Example:
             ```python
@@ -411,7 +408,7 @@ class ProjectsAPI(APIClient):
         """Gets all sections of the current project.
 
         Returns:
-            typing.List[Section]: List of sections for this project.
+            List of sections for this project.
         
         Example:
             ```python
@@ -441,7 +438,7 @@ class ProjectsAPI(APIClient):
             data (dict): Section data to update.
         
         Returns:
-            SectionRaw: Updated section object.
+            Updated section object.
         
         Example:
             ```python
@@ -461,7 +458,7 @@ class ProjectsAPI(APIClient):
             sections (typing.List[dict]): List of section data dictionaries to update.
         
         Returns:
-            typing.List[SectionRaw]: List of updated section objects.
+            List of updated section objects.
         
         Example:
             ```python
@@ -524,7 +521,7 @@ class ProjectsAPI(APIClient):
         """Gets all findings of the current project.
 
         Returns:
-            typing.List[FindingRaw]: List of findings for this project.
+            List of findings for this project.
         
         Example:
             ```python
@@ -547,7 +544,7 @@ class ProjectsAPI(APIClient):
             finding_id (str): ID of the finding to retrieve.
 
         Returns:
-            FindingRaw: Finding object.
+            Finding object.
         
         Example:
             ```python
@@ -565,7 +562,7 @@ class ProjectsAPI(APIClient):
             data (dict): Finding data for the new finding.
         
         Returns:
-            FindingRaw: Created finding object.
+            Created finding object.
         
         Example:
             ```python
@@ -587,7 +584,7 @@ class ProjectsAPI(APIClient):
             language (str, optional): Language code for the template. Defaults to None.
         
         Returns:
-            FindingRaw: Created finding object.
+            Created finding object.
         
         Example:
             ```python
@@ -611,7 +608,7 @@ class ProjectsAPI(APIClient):
             data (dict): Finding data to update.
         
         Returns:
-            FindingRaw: Updated finding object.
+            Updated finding object.
         
         Example:
             ```python
@@ -631,7 +628,7 @@ class ProjectsAPI(APIClient):
             finding_id (str): ID of the finding to delete.
         
         Returns:
-            None
+            :
         
         Example:
             ```python
