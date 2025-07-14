@@ -822,3 +822,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+
+This product uses parts of crackmapexec (Copyright (c) 2022, byt3bl33d3r, mpgn_x64),
+which is available under a "3-clause BSD" license. For details, see
+https://github.com/byt3bl33d3r/CrackMapExec/blob/master/LICENSE.
+
