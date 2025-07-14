@@ -29,6 +29,8 @@ class ProjectsAPI(APIClient):
         reptor.api.projects.fetch_project()
         ```
     """
+    
+    # Initialization & Configuration
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._init_attrs()
@@ -46,6 +48,101 @@ class ProjectsAPI(APIClient):
     def object_endpoint(self) -> str:
         return urljoin(self.base_endpoint, self.project_id)
 
+    def search(self, search_term: typing.Optional[str] = "", finished: typing.Optional[bool] = None) -> typing.List[ProjectOverview]:
+        """Searches projects by search term and retrieves all projects that match.
+
+        Args:
+            search_term (typing.Optional[str], optional): Search Term to look for. Defaults to None.
+            finished (bool, optional): Filter for (un)finished projects. Defaults to None.
+
+        Returns:
+            typing.List[ProjectOverview]: List of project overviews (without sections, findings) that match search
+        
+        Example:
+            ```python
+            projects = reptor.api.projects.search()
+            ```
+        """
+        params={"search": search_term}
+        if finished is not None:
+            params["readonly"] = finished
+        projects_raw = self.get_paginated(self.base_endpoint, params=params)
+        return [ProjectOverview(project_raw) for project_raw in projects_raw]
+
+    def check_report(self, group_messages=False) -> dict:
+        url = urljoin(self.base_endpoint, f"{self.project_id}/check")
+        data = self.get(url).json()
+        if group_messages:
+            data = data.get("messages")
+            # data is a list of dicts. group by "message" key
+            grouped = dict()
+            for item in data:
+                grouped.setdefault(item["message"], []).append(item)
+            """
+            {
+              "Empty field": [
+                {
+                  "level": "warning",
+                  "message": "Empty field",
+                  "details": null,
+                  "location": {
+                      "type": "section",
+                      "id": "other",
+                      "name": "General",
+                      "path": "report_date"
+                  }
+                }
+              ]
+            }
+            """
+            return grouped
+        """
+        {
+          "messages": [
+            {
+              "level": "warning",
+              "message": "Empty field",
+              "details": null,
+              "location": {
+                  "type": "section",
+                  "id": "other",
+                  "name": "General",
+                  "path": "report_date"
+              }
+            }
+          ]
+        }
+        """
+        return data
+
+    def get_enabled_language_codes(self) -> list:
+        url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
+        settings = self.get(url).json()
+        languages = [
+            language["code"] for language in settings.get("languages", list()) if language["enabled"] is True
+        ]
+        return languages
+
+    def init_project(self, new_project_id) -> None:
+        """Switches the current project context to a new project ID.
+        
+        Args:
+            new_project_id (str): Project ID to switch to.
+        
+        Returns:
+            None
+        
+        Example:
+            ```python
+            reptor.api.projects.init_project("41c09e60-44f1-453b-98f3-3f1875fe90fe")
+            ```
+        """
+        self.reptor._config._raw_config["project_id"] = new_project_id
+        self._project_id = new_project_id
+        self._init_attrs()
+        self.reptor._api = None
+
+    # Project Lifecycle Management
     def create_project(
         self,
         name: str,
@@ -78,157 +175,57 @@ class ProjectsAPI(APIClient):
         }
         return Project(self.post(self.base_endpoint, json=data).json(), ProjectDesign())
 
-    def search(self, search_term: typing.Optional[str] = "", finished: typing.Optional[bool] = None) -> typing.List[ProjectOverview]:
-        """Searches projects by search term and retrieves all projects that match.
+    def duplicate_project(self, project_id: typing.Optional[str] = None) -> Project:
+        """Duplicates a project in SysReptor.
 
         Args:
-            search_term (typing.Optional[str], optional): Search Term to look for. Defaults to None.
-            finished (bool, optional): Filter for (un)finished projects. Defaults to None.
+            project_id (str, optional): Project ID to duplicate. If None, duplicates current project. Defaults to None.
 
         Returns:
-            typing.List[ProjectOverview]: List of project overviews (without sections, findings) that match search
+            Project: Project object of the duplicated project.
         
         Example:
             ```python
-            projects = reptor.api.projects.search()
+            # Duplicate current project
+            duplicated_project = reptor.api.projects.duplicate_project()
+            print(f"Duplicated to project ID: {duplicated_project.id}")
+            
+            # Duplicate specific project
+            duplicated_project = reptor.api.projects.duplicate_project("41c09e60-44f1-453b-98f3-3f1875fe90fe")
             ```
         """
-        params={"search": search_term}
-        if finished is not None:
-            params["readonly"] = finished
-        projects_raw = self.get_paginated(self.base_endpoint, params=params)
-        return [ProjectOverview(project_raw) for project_raw in projects_raw]
-
-    @cached_property
-    def project(self) -> Project:
-        return self.fetch_project()
-
-    @cached_property
-    def _project_dict(self) -> dict:
-        return self._fetch_project_dict()
-    
-    def _fetch_project_dict(self, html=False) -> dict:
-        """Fetches the project dictionary from the API"""
-        if html:
-            url = urljoin(self.base_endpoint, f"{self.project_id}/md2html/")
-            return self.post(url).json()
-        else:
-            url = self.object_endpoint
-            return self.get(url).json()
-
-    def fetch_project(self, html=False) -> Project:
+        url = urljoin(self.base_endpoint, f"{project_id or self.project_id}/copy/")
+        duplicated_project = self.post(url).json()
         return Project(
-            self._fetch_project_dict(html=html),
+            duplicated_project,
             self.reptor.api.project_designs.project_design,
         )
 
-    def export(self) -> bytes:
-        """Exports a Project in archive format (tar.gz).
+    @contextmanager
+    def duplicate_and_cleanup(self):
+        """Context manager that duplicates current project, switches to it, and cleans up on exit.
         
         Returns:
-            bytes: Project archive content.
+            None: Context manager for temporary project operations.
         
         Example:
             ```python
-            project_archive = reptor.api.projects.export()
-            with open("project.tar.gz", "wb") as f:
-                f.write(project_archive)
+            with reptor.api.projects.duplicate_and_cleanup():
+                # Work with duplicated project
+                reptor.api.projects.update_project({"name": "Test Project"})
+                # Project is automatically deleted when exiting context
             ```
         """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
-        return self.post(url).content
+        original_project_id = self.project_id
+        duplicated_project = self.duplicate_project()
+        self.init_project(duplicated_project.id)
+        self.log.info(f"Duplicated project to {duplicated_project.id}")
 
-    def render(self) -> bytes:
-        """Renders project to PDF.
-        
-        Returns:
-            bytes: PDF content of the project report.
+        yield
 
-        Example:
-            ```python
-            my_report = reptor.api.projects.render()
-            with open("my_report.pdf", "wb") as f:
-                f.write(my_report)
-            ```
-        """
-        # Get report checks
-        checks = self.check_report(group_messages=True)
-        for check, warnings in checks.items():
-            if any([w.get("level") == "warning" for w in warnings]):
-                self.log.warning(f'Report Check Warning: "{check}" (x{len(warnings)})')
-
-        # Render report
-        url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
-        try:
-            return self.post(url).content
-        except HTTPError as e:
-            try:
-                for msg in e.response.json().get("messages", []):
-                    if msg.get("level") == "error":
-                        self.log.error(msg.get("message"))
-                    elif msg.get("level") == "warning":
-                        self.log.warning(msg.get("message"))
-            except Exception:
-                pass
-            raise e
-
-    def check_report(self, group_messages=False) -> dict:
-        """Checks the project report for issues and warnings (such as open comments, todos, etc.) and returns a dict with checks and list of messages.
-        
-        Args:
-            group_messages (bool, optional): Groups messages by message type. Defaults to False.
-        
-        Returns:
-            dict: Dictionary with checks and messages.
-        
-        Example:
-            ```python
-            reptor.api.projects.check_report()
-            # Out:
-            # {
-            #   "messages": [
-            #     {
-            #       "level": "warning",
-            #       "message": "Empty field",
-            #       "details": null,
-            #       "location": {
-            #           "type": "section",
-            #           "id": "other",
-            #           "name": "General",
-            #           "path": "report_date"
-            #       }
-            #     }
-            #   ]
-            # }
-            reptor.api.projects.check_report(group_messages=True)
-            # Out:
-            # {
-            #   "Empty field": [
-            #     {
-            #       "level": "warning",
-            #       "message": "Empty field",
-            #       "details": null,
-            #       "location": {
-            #           "type": "section",
-            #           "id": "other",
-            #           "name": "General",
-            #           "path": "report_date"
-            #       }
-            #     }
-            #   ]
-            # }
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/check")
-        data = self.get(url).json()
-        if group_messages:
-            data = data.get("messages")
-            # data is a list of dicts. group by "message" key
-            grouped = dict()
-            for item in data:
-                grouped.setdefault(item["message"], []).append(item)
-            return grouped
-        return data
+        self.delete_project()
+        self.init_project(original_project_id)
+        self.log.info("Cleaned up duplicated project")
 
     def finish_project(self, project_id: typing.Optional[str] = None, unfinish: bool = False) -> bool:
         """Marks a project as finished (readonly) or unfinished.
@@ -286,77 +283,130 @@ class ProjectsAPI(APIClient):
             url = self.object_endpoint
         self.delete(url)
 
-    def duplicate_project(self, project_id: typing.Optional[str] = None) -> Project:
-        """Duplicates a project in SysReptor.
+    # Project Data Operations
+    @cached_property
+    def project(self) -> Project:
+        return self.fetch_project()
 
-        Args:
-            project_id (str, optional): Project ID to duplicate. If None, duplicates current project. Defaults to None.
+    @cached_property
+    def _project_dict(self) -> dict:
+        return self._fetch_project_dict()
+    
+    def _fetch_project_dict(self, html=False) -> dict:
+        """Fetches the project dictionary from the API"""
+        if html:
+            url = urljoin(self.base_endpoint, f"{self.project_id}/md2html/")
+            return self.post(url).json()
+        else:
+            url = self.object_endpoint
+            return self.get(url).json()
 
-        Returns:
-            Project: Project object of the duplicated project.
-        
-        Example:
-            ```python
-            # Duplicate current project
-            duplicated_project = reptor.api.projects.duplicate_project()
-            print(f"Duplicated to project ID: {duplicated_project.id}")
-            
-            # Duplicate specific project
-            duplicated_project = reptor.api.projects.duplicate_project("41c09e60-44f1-453b-98f3-3f1875fe90fe")
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{project_id or self.project_id}/copy/")
-        duplicated_project = self.post(url).json()
+    def fetch_project(self, html=False) -> Project:
         return Project(
-            duplicated_project,
+            self._fetch_project_dict(html=html),
             self.reptor.api.project_designs.project_design,
         )
 
-    @contextmanager
-    def duplicate_and_cleanup(self):
-        """Context manager that duplicates current project, switches to it, and cleans up on exit.
-        
-        Returns:
-            None: Context manager for temporary project operations.
-        
-        Example:
-            ```python
-            with reptor.api.projects.duplicate_and_cleanup():
-                # Work with duplicated project
-                reptor.api.projects.update_project({"name": "Test Project"})
-                # Project is automatically deleted when exiting context
-            ```
-        """
-        original_project_id = self.project_id
-        duplicated_project = self.duplicate_project()
-        self.init_project(duplicated_project.id)
-        self.log.info(f"Duplicated project to {duplicated_project.id}")
-
-        yield
-
-        self.delete_project()
-        self.init_project(original_project_id)
-        self.log.info("Cleaned up duplicated project")
-
-    def init_project(self, new_project_id) -> None:
-        """Switches the current project context to a new project ID.
+    def update_project(self, data: dict) -> Project:
+        """Updates project metadata.
         
         Args:
-            new_project_id (str): Project ID to switch to.
+            data (dict): Project data to update (name, tags, etc.).
         
         Returns:
-            None
+            Project: Updated project object.
         
         Example:
             ```python
-            reptor.api.projects.init_project("41c09e60-44f1-453b-98f3-3f1875fe90fe")
+            updated_project = reptor.api.projects.update_project({
+                "name": "Updated Project Name",
+                "tags": ["webapp", "internal"]
+            })
             ```
         """
-        self.reptor._config._raw_config["project_id"] = new_project_id
-        self._project_id = new_project_id
-        self._init_attrs()
-        self.reptor._api = None
+        url = urljoin(self.base_endpoint, f"{self.project_id}/")
+        return Project(
+            self.patch(url, json=data).json(),
+            self.reptor.api.project_designs.project_design,
+        )
 
+    def update_project_design(self, design_id, force=False) -> Project:
+        """Updates the project design (template) of the current project.
+        
+        Args:
+            design_id (str): ID of the new project design.
+            force (bool, optional): Force change even if designs are incompatible (might lead to data loss). Defaults to False.
+        
+        Returns:
+            Project: Updated project object.
+        
+        Example:
+            ```python
+            updated_project = reptor.api.projects.update_project_design(
+                "b0a54c7d-ca54-4629-bb1d-36d7e5e88bf7",
+            )
+            ```
+        """
+        data = {
+            "project_type": design_id,
+            "force_change_project_type": True if force else False,
+        }
+        try:
+            return self.update_project(data)
+        except HTTPError as e:
+            raise (HTTPError(e.response.text))
+
+    def export(self) -> bytes:
+        """Exports a Project in archive format (tar.gz).
+        
+        Returns:
+            bytes: Project archive content.
+        
+        Example:
+            ```python
+            project_archive = reptor.api.projects.export()
+            with open("project.tar.gz", "wb") as f:
+                f.write(project_archive)
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
+        return self.post(url).content
+
+    def render(self) -> bytes:
+        """Renders project to PDF.
+        
+        Returns:
+            bytes: PDF content of the project report.
+
+        Example:
+            ```python
+            my_report = reptor.api.projects.render()
+            with open("my_report.pdf", "wb") as f:
+                f.write(my_report)
+            ```
+        """
+        # Get report checks
+        checks = self.check_report(group_messages=True)
+        for check, warnings in checks.items():
+            if any([w.get("level") == "warning" for w in warnings]):
+                self.log.warning(f'Report Check Warning: "{check}" (x{len(warnings)})')
+
+        # Render report
+        url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
+        try:
+            return self.post(url).content
+        except HTTPError as e:
+            try:
+                for msg in e.response.json().get("messages", []):
+                    if msg.get("level") == "error":
+                        self.log.error(msg.get("message"))
+                    elif msg.get("level") == "warning":
+                        self.log.warning(msg.get("message"))
+            except Exception:
+                pass
+            raise e
+
+    # Section Operations
     def get_sections(self) -> typing.List[Section]:
         """Gets all sections of the current project.
 
@@ -382,127 +432,6 @@ class ProjectsAPI(APIClient):
             section = Section(SectionRaw(item), self.project_design)
             return_data.append(section)
         return return_data
-
-    def get_findings(self) -> typing.List[FindingRaw]:
-        """Gets all findings of the current project.
-
-        Returns:
-            typing.List[FindingRaw]: List of findings for this project.
-        
-        Example:
-            ```python
-            findings = reptor.api.projects.get_findings()
-            for finding in findings:
-                print(f"Finding: {finding.data.get('title', 'Untitled')}")
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        response = self.get(url).json()
-
-        if not response:
-            return []
-        return [FindingRaw(f) for f in response]
-
-    def get_finding(self, finding_id: str) -> FindingRaw:
-        """Gets a single finding by ID.
-
-        Args:
-            finding_id (str): ID of the finding to retrieve.
-
-        Returns:
-            FindingRaw: Finding object.
-        
-        Example:
-            ```python
-            finding = reptor.api.projects.get_finding("3294a042-0ab6-4463-a95d-1915561d2820")
-            print(finding.data.get('title'))
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
-        return FindingRaw(self.get(url).json())
-
-    def delete_finding(self, finding_id: str) -> None:
-        """Deletes a finding from the current project.
-        
-        Args:
-            finding_id (str): ID of the finding to delete.
-        
-        Returns:
-            None
-        
-        Example:
-            ```python
-            reptor.api.projects.delete_finding("finding-uuid-here")
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
-        self.delete(url)
-
-    def update_finding(self, finding_id: str, data: dict) -> FindingRaw:
-        """Updates an existing finding with new data.
-        
-        Args:
-            finding_id (str): ID of the finding to update.
-            data (dict): Finding data to update.
-        
-        Returns:
-            FindingRaw: Updated finding object.
-        
-        Example:
-            ```python
-            updated_finding = reptor.api.projects.update_finding(
-                "3294a042-0ab6-4463-a95d-1915561d2820",
-                {"title": "Updated Title", "severity": "high"}
-            )
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
-        return FindingRaw(self.patch(url, json=data).json())
-
-    def create_finding(self, data: dict) -> FindingRaw:
-        """Creates a new finding in the current project.
-        
-        Args:
-            data (dict): Finding data for the new finding.
-        
-        Returns:
-            FindingRaw: Created finding object.
-        
-        Example:
-            ```python
-            new_finding = reptor.api.projects.create_finding({
-                "title": "SQL Injection",
-                "severity": "high",
-                "description": "Found SQL injection vulnerability..."
-            })
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
-        return FindingRaw(self.post(url, json=data).json())
-
-    def create_finding_from_template(self, template_id: str, language: typing.Optional[str] = None) -> FindingRaw:
-        """Creates a new finding from a template.
-        
-        Args:
-            template_id (str): Finding template ID.
-            language (str, optional): Language code for the template. Defaults to None.
-        
-        Returns:
-            FindingRaw: Created finding object.
-        
-        Example:
-            ```python
-            finding = reptor.api.projects.create_finding_from_template(
-                "38cbd644-c83c-4157-a27c-df3ee9472f92",
-                language="en-US"
-            )
-            ```
-        """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
-        data = {"template": template_id}
-        if language:
-            data["template_language"] = language
-        return FindingRaw(self.post(url, json=data).json())
 
     def update_section(self, section_id: str, data: dict) -> SectionRaw:
         """Updates a section with new data.
@@ -590,59 +519,124 @@ class ProjectsAPI(APIClient):
                 sections.append(self.update_section(section_id, section_data))
         return sections
 
-    def update_project(self, data: dict) -> Project:
-        """Updates project metadata.
-        
-        Args:
-            data (dict): Project data to update (name, tags, etc.).
-        
+    # Finding Operations
+    def get_findings(self) -> typing.List[FindingRaw]:
+        """Gets all findings of the current project.
+
         Returns:
-            Project: Updated project object.
+            typing.List[FindingRaw]: List of findings for this project.
         
         Example:
             ```python
-            updated_project = reptor.api.projects.update_project({
-                "name": "Updated Project Name",
-                "tags": ["webapp", "internal"]
+            findings = reptor.api.projects.get_findings()
+            for finding in findings:
+                print(f"Finding: {finding.data.get('title', 'Untitled')}")
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
+        response = self.get(url).json()
+
+        if not response:
+            return []
+        return [FindingRaw(f) for f in response]
+
+    def get_finding(self, finding_id: str) -> FindingRaw:
+        """Gets a single finding by ID.
+
+        Args:
+            finding_id (str): ID of the finding to retrieve.
+
+        Returns:
+            FindingRaw: Finding object.
+        
+        Example:
+            ```python
+            finding = reptor.api.projects.get_finding("3294a042-0ab6-4463-a95d-1915561d2820")
+            print(finding.data.get('title'))
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        return FindingRaw(self.get(url).json())
+
+    def create_finding(self, data: dict) -> FindingRaw:
+        """Creates a new finding in the current project.
+        
+        Args:
+            data (dict): Finding data for the new finding.
+        
+        Returns:
+            FindingRaw: Created finding object.
+        
+        Example:
+            ```python
+            new_finding = reptor.api.projects.create_finding({
+                "title": "SQL Injection",
+                "severity": "high",
+                "description": "Found SQL injection vulnerability..."
             })
             ```
         """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/")
-        return Project(
-            self.patch(url, json=data).json(),
-            self.reptor.api.project_designs.project_design,
-        )
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/")
+        return FindingRaw(self.post(url, json=data).json())
 
-    def update_project_design(self, design_id, force=False) -> Project:
-        """Updates the project design (template) of the current project.
+    def create_finding_from_template(self, template_id: str, language: typing.Optional[str] = None) -> FindingRaw:
+        """Creates a new finding from a template.
         
         Args:
-            design_id (str): ID of the new project design.
-            force (bool, optional): Force change even if designs are incompatible (might lead to data loss). Defaults to False.
+            template_id (str): Finding template ID.
+            language (str, optional): Language code for the template. Defaults to None.
         
         Returns:
-            Project: Updated project object.
+            FindingRaw: Created finding object.
         
         Example:
             ```python
-            updated_project = reptor.api.projects.update_project_design(
-                "b0a54c7d-ca54-4629-bb1d-36d7e5e88bf7",
+            finding = reptor.api.projects.create_finding_from_template(
+                "38cbd644-c83c-4157-a27c-df3ee9472f92",
+                language="en-US"
             )
             ```
         """
-        data = {
-            "project_type": design_id,
-            "force_change_project_type": True if force else False,
-        }
-        try:
-            return self.update_project(data)
-        except HTTPError as e:
-            raise (HTTPError(e.response.text))
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/fromtemplate/")
+        data = {"template": template_id}
+        if language:
+            data["template_language"] = language
+        return FindingRaw(self.post(url, json=data).json())
 
-    def get_enabled_language_codes(self) -> list:
-        url = urljoin(self.reptor.get_config().get_server(), "api/v1/utils/settings/")
-        settings = self.get(url).json()
-        languages = [
-            language["code"] for language in settings.get("languages", list()) if language["enabled"] is True
-        ]
-        return languages
+    def update_finding(self, finding_id: str, data: dict) -> FindingRaw:
+        """Updates an existing finding with new data.
+        
+        Args:
+            finding_id (str): ID of the finding to update.
+            data (dict): Finding data to update.
+        
+        Returns:
+            FindingRaw: Updated finding object.
+        
+        Example:
+            ```python
+            updated_finding = reptor.api.projects.update_finding(
+                "3294a042-0ab6-4463-a95d-1915561d2820",
+                {"title": "Updated Title", "severity": "high"}
+            )
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        return FindingRaw(self.patch(url, json=data).json())
+
+    def delete_finding(self, finding_id: str) -> None:
+        """Deletes a finding from the current project.
+        
+        Args:
+            finding_id (str): ID of the finding to delete.
+        
+        Returns:
+            None
+        
+        Example:
+            ```python
+            reptor.api.projects.delete_finding("finding-uuid-here")
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{self.project_id}/findings/{finding_id}/")
+        self.delete(url)
