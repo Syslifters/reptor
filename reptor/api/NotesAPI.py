@@ -13,10 +13,21 @@ from reptor.models.Note import NoteTemplate
 
 
 class NotesAPI(APIClient):
-    """Interacts with Notes Endpoints
+    """API client for interacting with SysReptor project notes or personal notes.
 
-    Args:
-        APIClient (_type_): _description_
+    Example:
+        ```python
+        from reptor import Reptor
+
+        reptor = Reptor(
+            server=os.environ.get("REPTOR_SERVER"),
+            token=os.environ.get("REPTOR_TOKEN"),
+            personal_notes=False,
+        )
+
+        # NotesAPI is available as reptor.api.notes, e.g.:
+        reptor.api.notes.get_notes()
+        ```
     """
 
     def __init__(self, **kwargs) -> None:
@@ -38,11 +49,16 @@ class NotesAPI(APIClient):
         return self.reptor.get_config().get("private_note")
 
     def get_notes(self) -> typing.List[Note]:
+        """Gets list of all notes in the current context (project notes or personal notes).
+
+        Returns:
+            List of notes for this project or user
+
+        Example:
+            ```python
+            reptor.api.notes.get_notes()
+            ```
         """
-        Gets list of notes
-        (Notes are not paginated)
-        """
-        self.debug("Getting Notes List")
         response = self.get(self.base_endpoint)
         notes = list()
         for note_data in response.json():
@@ -54,6 +70,24 @@ class NotesAPI(APIClient):
         id: typing.Optional[str] = None,
         title: typing.Optional[str] = None,
     ) -> typing.Optional[Note]:
+        """Gets a single note by ID or title.
+
+        Args:
+            id (str, optional): Note ID to retrieve (prioritized over title)
+            title (str, optional): Note title to search for
+
+        Returns:
+            Note object if found, None otherwise
+
+        Example:
+            ```python
+            # Get note by ID
+            note = reptor.api.notes.get_note(id="983a7e95-b2d9-4d57-984e-08496264cce8")
+            
+            # Get note by title
+            note = reptor.api.notes.get_note(title="My Note")
+            ```
+        """
         for note in self.get_notes():
             if id:
                 if note.id == id:
@@ -66,14 +100,35 @@ class NotesAPI(APIClient):
 
     def create_note(
         self,
-        title="CLI Note",
+        title="Note by reptor",
         text=None,
         parent: typing.Optional[str] = None,
         order=None,
         checked=None,
         icon=None,
     ) -> Note:
-        self.debug("Creating Note")
+        """Creates a new note.
+
+        Args:
+            title (str, optional): Note title. Defaults to "Note by reptor".
+            text (str, optional): Note content. Defaults to None.
+            parent (str, optional): Parent note ID for nested notes. Defaults to None.
+            order (int, optional): Sort order for the note. Defaults to None.
+            checked (bool, optional): Checkbox state for checklist notes. Defaults to None.
+            icon (str, optional): Emoji icon for the note. Defaults to None.
+
+        Returns:
+            Created note object
+
+        Example:
+            ```python
+            reptor.api.notes.create_note(
+                title="My New Note",
+                text="This is the content",
+                icon="📝"
+            )
+            ```
+        """
         if title is None:
             raise ValueError("Note title must not be null.")
         note = self.post(
@@ -86,36 +141,41 @@ class NotesAPI(APIClient):
                 "text": text or "",
             },
         ).json()
-        self.debug(f"We created note with {note}")
         if icon:
             self.set_icon(note.get("id"), icon)
         elif title == "Uploads":
             self.set_icon(note.get("id"), "📤")
         return Note(note)
 
-    def delete_note(self, id: str):
-        url = urljoin(self.base_endpoint, f"{id}/")
-        self.delete(url)
-
-    def set_icon(self, id: str, icon: str):
-        url = urljoin(self.base_endpoint, f"{id}/")
-        self.put(url, json={"icon_emoji": icon})
-
-    def _upload_note(
+    def write_note(
         self,
-        note: Note,
+        timestamp: bool = False,
+        **kwargs,
     ):
-        self.debug(f"Note has length: {len(note.text)}")
-        url = urljoin(self.base_endpoint, note.id, "")
-        r = self.put(url, json=note.to_dict())
+        """Updates notes, appends text to a note.
 
-        try:
-            r.raise_for_status()
-            self.display(f'Note written to "{note.title}".')
-        except HTTPError as e:
-            raise HTTPError(
-                f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
-            ) from e
+        Args:
+            id (str, optional): Note ID to update
+            title (str, optional): Note title.
+            text (str, optional): Append text to the note. Defaults to empty string.
+            timestamp (bool, optional): Prepend timestamp to newly inserted text. Defaults to False.
+            checked (bool, optional): Checkbox state for checklist notes.
+            icon_emoji (str, optional): Emoji icon for the note.
+            order (int, optional): Sort order for the note. Defaults to 0.
+
+        Example:
+            ```python
+            reptor.api.notes.write_note(
+                title="Security Finding",
+                text="Found vulnerability in authentication",
+                timestamp=True
+            )
+            ```
+        """
+        note_template = NoteTemplate.from_kwargs(**kwargs)
+        self.write_note_templates(
+            note_template, timestamp=timestamp
+        )
 
     def write_note_templates(
         self,
@@ -189,53 +249,20 @@ class NotesAPI(APIClient):
                 child.parent = note.id
                 self.write_note_templates(child, timestamp=timestamp, **kwargs)
 
-    def write_note(
-        self,
-        timestamp: bool = False,
-        **kwargs,
-    ):
-        note_template = NoteTemplate.from_kwargs(**kwargs)
-        self.write_note_templates(
-            note_template, timestamp=timestamp
-        )
+    def set_icon(self, id: str, icon: str):
+        """Sets an emoji icon for a note.
 
-    def get_note_by_title(
-        self,
-        title,
-        parent=None,  # Preferred over parent_title
-        parent_title=None,
-        any_parent=False,
-    ) -> typing.Optional[Note]:
-        if not parent and parent_title:
-            try:
-                parent = self.get_note_by_title(parent_title, any_parent=True).id  # type: ignore
-            except AttributeError:
-                raise ValueError(f'Parent note "{parent_title}" does not exist.')
-        notes_list = self.get_notes()
+        Args:
+            id (str): Note ID
+            icon (str): Emoji character to set as icon
 
-        for note in notes_list:
-            if note.title == title and (note.parent == parent or any_parent):
-                break
-        else:
-            return None
-        return note
-
-    def get_or_create_note_by_title(
-        self,
-        title,
-        parent=None,  # Preferred over parent_title
-        parent_title=None,
-        icon=None,
-    ) -> Note:
-        if not parent and parent_title:
-            parent = self.get_or_create_note_by_title(
-                parent_title, icon=icon
-            ).id
-        note = self.get_note_by_title(title, parent=parent)
-        if not note:
-            # Note does not exist. Create.
-            note = self.create_note(title=title, parent=parent, icon=icon)
-        return note
+        Example:
+            ```python
+            reptor.api.notes.set_icon("983a7e95-b2d9-4d57-984e-08496264cce8", "🔒")
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{id}/")
+        self.put(url, json={"icon_emoji": icon})
 
     def upload_file(
         self,
@@ -248,6 +275,36 @@ class NotesAPI(APIClient):
         parent_title: typing.Optional[str] = None,
         **kwargs,
     ):
+        """Uploads a file to a note.
+
+        Args:
+            file (typing.IO, optional): File object to upload
+            content (bytes, optional): File content as bytes
+            filename (str, optional): Name for the uploaded file
+            caption (str, optional): Caption for the file link
+            note_id (str, optional): ID of note to upload to
+            note_title (str, optional): Title of note to upload to
+            parent_title (str, optional): Parent note title for organization
+            **kwargs: Additional parameters for note writing
+
+        Example:
+            ```python
+            # Upload from file
+            with open("screenshot.png", "rb") as f:
+                reptor.api.notes.upload_file(
+                    file=f,
+                    note_title="Evidence",
+                    caption="Login page screenshot"
+                )
+            
+            # Upload from bytes
+            reptor.api.notes.upload_file(
+                content=b"file content",
+                filename="data.txt",
+                note_title="Files"
+            )
+            ```
+        """
         assert file or content
         assert not (file and content)
 
@@ -298,16 +355,112 @@ class NotesAPI(APIClient):
         self,
         id: str,
     ) -> bytes:
+        """Renders a note to PDF format.
+
+        Args:
+            id (str): Note ID to render
+
+        Returns:
+            PDF content as bytes
+
+        Example:
+            ```python
+            pdf_data = reptor.api.notes.render("note-uuid-here")
+            with open("note.pdf", "wb") as f:
+                f.write(pdf_data)
+            ```
+        """
         url = urljoin(self.base_endpoint, f"{id}/export-pdf/")
         response = self.post(url)
         response.raise_for_status()
         return response.content
 
+    def delete_note(self, id: str):
+        """Deletes a note by ID.
+
+        Args:
+            id (str): Note ID to delete
+
+        Example:
+            ```python
+            reptor.api.notes.delete_note("983a7e95-b2d9-4d57-984e-08496264cce8")
+            ```
+        """
+        url = urljoin(self.base_endpoint, f"{id}/")
+        self.delete(url)
+
     def duplicate(
         self,
         id: str,
     ) -> Note:
+        """Creates a note duplicate.
+
+        Args:
+            id (str): Note ID to duplicate
+
+        Returns:
+            Duplicated note object
+
+        Example:
+            ```python
+            duplicate_note = reptor.api.notes.duplicate("note-uuid-here")
+            print(f"Duplicated note: {duplicate_note.title}")
+            ```
+        """
         url = urljoin(self.base_endpoint, f"{id}/copy/")
         response = self.post(url)
         response.raise_for_status()
         return Note(response.json())
+
+    def get_note_by_title(
+        self,
+        title,
+        parent=None,  # Preferred over parent_title
+        parent_title=None,
+        any_parent=False,
+    ) -> typing.Optional[Note]:
+        if not parent and parent_title:
+            try:
+                parent = self.get_note_by_title(parent_title, any_parent=True).id  # type: ignore
+            except AttributeError:
+                raise ValueError(f'Parent note "{parent_title}" does not exist.')
+        notes_list = self.get_notes()
+
+        for note in notes_list:
+            if note.title == title and (note.parent == parent or any_parent):
+                break
+        else:
+            return None
+        return note
+
+    def get_or_create_note_by_title(
+        self,
+        title,
+        parent=None,  # Preferred over parent_title
+        parent_title=None,
+        icon=None,
+    ) -> Note:
+        if not parent and parent_title:
+            parent = self.get_or_create_note_by_title(
+                parent_title, icon=icon
+            ).id
+        note = self.get_note_by_title(title, parent=parent)
+        if not note:
+            # Note does not exist. Create.
+            note = self.create_note(title=title, parent=parent, icon=icon)
+        return note
+
+    def _upload_note(
+        self,
+        note: Note,
+    ):
+        url = urljoin(self.base_endpoint, note.id, "")
+        r = self.put(url, json=note.to_dict())
+
+        try:
+            r.raise_for_status()
+            self.display(f'Note written to "{note.title}".')
+        except HTTPError as e:
+            raise HTTPError(
+                f'{str(e)} Are you uploading binary content to note? (Try "file" subcommand)'
+            ) from e
