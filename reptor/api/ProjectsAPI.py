@@ -61,16 +61,24 @@ class ProjectsAPI(APIClient):
 
     @cached_property
     def project(self) -> Project:
-        return self._get_project()
+        return self.fetch_project()
 
     @cached_property
     def _project_dict(self) -> dict:
-        url = self.object_endpoint
-        return self.get(url).json()
+        return self._fetch_project_dict()
+    
+    def _fetch_project_dict(self, html=False) -> dict:
+        """Fetches the project dictionary from the API"""
+        if html:
+            url = urljoin(self.base_endpoint, f"{self.project_id}/md2html/")
+            return self.post(url).json()
+        else:
+            url = self.object_endpoint
+            return self.get(url).json()
 
-    def _get_project(self) -> Project:
+    def fetch_project(self, html=False) -> Project:
         return Project(
-            self._project_dict,
+            self._fetch_project_dict(html=html),
             self.reptor.api.project_designs.project_design,
         )
 
@@ -149,16 +157,16 @@ class ProjectsAPI(APIClient):
     def duplicate_and_cleanup(self):
         original_project_id = self.project_id
         duplicated_project = self.duplicate_project()
-        self.switch_project(duplicated_project.id)
+        self.init_project(duplicated_project.id)
         self.log.info(f"Duplicated project to {duplicated_project.id}")
 
         yield
 
         self.delete_project()
-        self.switch_project(original_project_id)
+        self.init_project(original_project_id)
         self.log.info("Cleaned up duplicated project")
 
-    def switch_project(self, new_project_id) -> None:
+    def init_project(self, new_project_id) -> None:
         self.reptor._config._raw_config["project_id"] = new_project_id
         self._project_id = new_project_id
         self._init_attrs()
@@ -229,9 +237,25 @@ class ProjectsAPI(APIClient):
             data["template_language"] = language
         return FindingRaw(self.post(url, json=data).json())
 
-    def _update_section(self, section_id: str, data: dict) -> SectionRaw:
+    def update_section(self, section_id: str, data: dict) -> SectionRaw:
         url = urljoin(self.base_endpoint, f"{self.project_id}/sections/{section_id}/")
         return SectionRaw(self.patch(url, json=data).json())
+
+    def update_sections(self, sections: typing.List[dict]) -> typing.List[SectionRaw]:
+        project_design = self.reptor.api.project_designs.project_design
+        updated_sections = list()
+        for section_data in sections:
+            Section(
+                section_data,
+                project_design,
+                strict_type_check=False,
+            )  # Raises ValueError if invalid
+            if not section_data.get("id"):
+                raise ValueError("Section data must contain an 'id' field.")
+        for section_data in sections:
+            # Iterate a second time to check that all sections are valid
+            updated_sections.append(self.update_section(section_data.get("id"), section_data))
+        return updated_sections
 
     def update_report_fields(self, data: dict) -> typing.List[SectionRaw]:
         # Get project data to map report fields to sections
@@ -259,7 +283,7 @@ class ProjectsAPI(APIClient):
         sections = list()
         for section_id, section_data in sections_data.items():
             if section_data["data"]:
-                sections.append(self._update_section(section_id, section_data))
+                sections.append(self.update_section(section_id, section_data))
         return sections
 
     def update_project(self, data: dict) -> Project:

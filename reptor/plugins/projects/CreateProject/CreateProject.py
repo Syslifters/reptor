@@ -78,7 +78,7 @@ class CreateProject(Base):
         if self.no_update_config:
             return
 
-        self.reptor.api.projects.switch_project(project.id)
+        self.reptor.api.projects.init_project(project.id)
         config_from_file = self.reptor._config.load_config(return_only=True)
         config_from_file["project_id"] = project.id
         if config_from_file and not self.reptor._config._no_config_file:

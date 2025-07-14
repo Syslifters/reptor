@@ -159,7 +159,7 @@ class Base:
         elif upload:
             notetitle = "Uploads"
             self.reptor.api.notes.upload_file(
-                content=content, filename=filename, notetitle=notetitle
+                content=content, filename=filename, note_title=notetitle
             )
             self.log.success(f'Uploaded "{filename}" to "{notetitle}" note')
         else:

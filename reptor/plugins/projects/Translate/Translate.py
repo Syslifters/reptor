@@ -226,7 +226,7 @@ class Translate(Base):
                 f"Updating project metadata{' (dry run)' if self.dry_run else ''}."
             )
             # Switch project to update duplicated project instead of original
-            self.reptor.api.projects.switch_project(to_project_id)
+            self.reptor.api.projects.init_project(to_project_id)
 
             try:
                 data = {"name": self._translate(project_title)}
@@ -261,7 +261,7 @@ class Translate(Base):
                         translated_section.id, {"data": translated_section_data}
                     )
                 elif translated_section.__class__ == Section:
-                    self.reptor.api.projects._update_section(
+                    self.reptor.api.projects.update_section(
                         translated_section.id, {"data": translated_section_data}
                     )
 

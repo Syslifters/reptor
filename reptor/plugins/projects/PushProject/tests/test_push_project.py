@@ -16,6 +16,10 @@ from ..PushProject import PushProject
 
 class TestPushProject:
     valid_data = {
+        "sections": [
+            {"id": "section1", "data": {"title": "NEW REPORT"}},
+            {"id": "section2", "data": {"custom_report_field": "FIELD VALUE"}},
+        ],
         "report_data": {
             "title": "NEW REPORT",
             "custom_report_field": "FIELD VALUE",
@@ -56,7 +60,7 @@ class TestPushProject:
             ProjectDesignField({"name": "title", "type": "string"}),
             ProjectDesignField({"name": "custom_finding_field", "type": "string"}),
         ]
-        self.reptor.api.projects._update_section = MagicMock()
+        self.reptor.api.projects.update_section = MagicMock()
         self.reptor.api.projects.create_finding = MagicMock()
         return pp
 
@@ -69,6 +73,12 @@ class TestPushProject:
                 assert isinstance(pp.projectdata, dict)
                 assert pp.projectdata["report_data"]["title"] == "NEW REPORT"
                 assert pp.projectdata["report_data"]["custom_report_field"] == "FIELD VALUE"
+                assert len(pp.projectdata["sections"]) == 2
+                assert pp.projectdata["sections"][0]["data"]["title"] == "NEW REPORT"
+                assert (
+                    pp.projectdata["sections"][1]["data"]["custom_report_field"]
+                    == "FIELD VALUE"
+                )
                 assert pp.projectdata["findings"][0]["data"]["title"] == "123"
                 assert (
                     pp.projectdata["findings"][0]["data"]["custom_finding_field"]
@@ -82,7 +92,7 @@ class TestPushProject:
             pp = self.get_mocked_push_project(dumps(self.valid_data))
             pp.run()
 
-            assert self.reptor.api.projects._update_section.call_count == 2
+            assert self.reptor.api.projects.update_section.call_count == 4  # 2 sections + 2 report_data (2 if "report_data" was deprecated)
             assert self.reptor.api.projects.create_finding.call_count == 1
 
     @pytest.mark.parametrize(
@@ -90,6 +100,10 @@ class TestPushProject:
         [
             {"report_data": {"title": 123}},
             {"report_data": {"custom_report_field": 123}},
+            {"sections": [{"data": {"title": "123"}}]},  # Missing section id
+            {"sections": [{"data": {"custom_report_field": "123"}}]},  # Missing section id
+            {"sections": [{"id": "section1", "data": {"title": 123}}]},
+            {"sections": [{"id": "section2", "data": {"custom_report_field": 123}}]},
             {"findings": [{"data": {"title": 123}}]},
             {"findings": [{"data": {"custom_finding_field": 123}}]},
         ],

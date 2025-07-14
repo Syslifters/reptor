@@ -31,7 +31,7 @@ class TestIntegrationBurp(object):
         for parent in ["1.1.1.1", "34.249.203.140"]:
             note = notes_api.get_note_by_title(
                 "🔵 Strict transport security not enforced",
-                parent_notetitle=parent,
+                parent_title=parent,
             )
             note_lines = note.text.splitlines()
             lines = [

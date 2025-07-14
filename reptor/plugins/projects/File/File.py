@@ -49,10 +49,10 @@ class File(UploadBase):
         for file in files:
             self.reptor.api.notes.upload_file(
                 file=file,
-                notetitle=notetitle,
                 filename=filename,
                 caption=filename,
-                parent_notetitle=parent_notetitle,
+                note_title=notetitle,
+                parent_title=parent_notetitle,
                 timestamp=timestamp,
                 icon=icon,
             )

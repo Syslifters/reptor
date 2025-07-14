@@ -94,7 +94,7 @@ class TestIntegrationNessus(object):
         assert p.returncode == 0
 
         note = notes_api.get_note_by_title(
-            "🟢 Nessus SYN scanner", parent_notetitle="preprod.boardvantage.net"
+            "🟢 Nessus SYN scanner", parent_title="preprod.boardvantage.net"
         )
         note_lines = note.text.splitlines()
         lines = [

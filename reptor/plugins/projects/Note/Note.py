@@ -17,7 +17,7 @@ class Note(UploadBase):
         super().__init__(**kwargs)
         self.list = kwargs.get("list")
         self.format = kwargs.get("format")
-        self.notetitle = self.reptor.get_config().get_cli_overwrite().get("notetitle")
+        self.title = self.reptor.get_config().get_cli_overwrite().get("notetitle")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -49,12 +49,12 @@ class Note(UploadBase):
             self.console.print(table)
 
     def _write_note(self):
-        parent_notetitle = None
+        parent_title = None
         icon = None
-        if self.notetitle:
-            parent_notetitle = "Uploads"
+        if self.title:
+            parent_title = "Uploads"
         else:
-            self.notetitle = "Uploads"
+            self.title = "Uploads"
             icon = "📤"
         timestamp = not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
 
@@ -68,8 +68,8 @@ class Note(UploadBase):
 
         self.reptor.api.notes.write_note(
             text=content,
-            title=self.notetitle,
-            parent_notetitle=parent_notetitle,
+            title=self.title,
+            parent_title=parent_title,
             icon=icon,
             timestamp=timestamp,
         )

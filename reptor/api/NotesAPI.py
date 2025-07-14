@@ -51,23 +51,24 @@ class NotesAPI(APIClient):
 
     def get_note(
         self,
-        noteid: typing.Optional[str] = None,
-        notetitle: typing.Optional[str] = None,
+        id: typing.Optional[str] = None,
+        title: typing.Optional[str] = None,
     ) -> typing.Optional[Note]:
         for note in self.get_notes():
-            if noteid:
-                if note.id == noteid:
+            if id:
+                if note.id == id:
                     return note
-            elif notetitle:
-                if note.title == notetitle:
+            elif title:
+                if note.title == title:
                     return note
             else:
-                raise ValueError("Either noteid or notetitle must be provided")
+                raise ValueError("Either id or title must be provided")
 
     def create_note(
         self,
         title="CLI Note",
-        parent_id: typing.Optional[str] = None,
+        text=None,
+        parent: typing.Optional[str] = None,
         order=None,
         checked=None,
         icon=None,
@@ -79,9 +80,10 @@ class NotesAPI(APIClient):
             self.base_endpoint,
             json={
                 "order": order,
-                "parent": parent_id or None,
+                "parent": parent or None,
                 "checked": checked,
                 "title": title,
+                "text": text or "",
             },
         ).json()
         self.debug(f"We created note with {note}")
@@ -91,12 +93,12 @@ class NotesAPI(APIClient):
             self.set_icon(note.get("id"), "📤")
         return Note(note)
 
-    def delete_note(self, notes_id: str):
-        url = urljoin(self.base_endpoint, f"{notes_id}/")
+    def delete_note(self, id: str):
+        url = urljoin(self.base_endpoint, f"{id}/")
         self.delete(url)
 
-    def set_icon(self, notes_id: str, icon: str):
-        url = urljoin(self.base_endpoint, f"{notes_id}/")
+    def set_icon(self, id: str, icon: str):
+        url = urljoin(self.base_endpoint, f"{id}/")
         self.put(url, json={"icon_emoji": icon})
 
     def _upload_note(
@@ -124,25 +126,31 @@ class NotesAPI(APIClient):
         if not isinstance(note_templates, list):
             note_templates = [note_templates]
         for note_template in note_templates:
-            if note_template.parent_notetitle and not note_template.parent:
-                note_template.parent = self.get_or_create_note_by_title(
-                    note_template.parent_notetitle
-                ).id
-
-            note = None
-            if not note_template.force_new:
-                note = self.get_note_by_title(
-                    note_template.title,
-                    parent_noteid=note_template.parent,
-                )
-            if note is None:
-                new_note = True
-                note = self.create_note(
-                    title=note_template.title,
-                    parent_id=note_template.parent or None,
-                )
-            else:
+            if note_template.id:
                 new_note = False
+                note = self.get_note(id=note_template.id)
+                if not note:
+                    raise ValueError(f'Note with ID "{note_template.id}" does not exist.')
+            else:
+                if note_template.parent_title and not note_template.parent:
+                    note_template.parent = self.get_or_create_note_by_title(
+                        note_template.parent_title
+                    ).id
+
+                note = None
+                if not note_template.force_new:
+                    note = self.get_note_by_title(
+                        note_template.title,
+                        parent=note_template.parent,
+                    )
+                if note is None:
+                    new_note = True
+                    note = self.create_note(
+                        title=note_template.title,
+                        parent=note_template.parent or None,
+                    )
+                else:
+                    new_note = False
             self.debug(f"Got note from server {note.title} ({note.id})")
 
             # Prepare note (append content to existing note, etc)
@@ -165,6 +173,14 @@ class NotesAPI(APIClient):
                 upload_note.text = note_text
             else:
                 upload_note = note
+                if note_template.title:
+                    upload_note.title = note_template.title
+                if note_template.checked is not None:
+                    upload_note.checked = note_template.checked
+                if note_template.icon_emoji:
+                    upload_note.icon_emoji = note_template.icon_emoji
+                if note_template.order:
+                    upload_note.order = note_template.order
                 upload_note.text = note_text
 
             # Upload note and children recursively
@@ -186,19 +202,19 @@ class NotesAPI(APIClient):
     def get_note_by_title(
         self,
         title,
-        parent_noteid=None,  # Preferred over parent_notetitle
-        parent_notetitle=None,
-        ignore_parent=False,
+        parent=None,  # Preferred over parent_title
+        parent_title=None,
+        any_parent=False,
     ) -> typing.Optional[Note]:
-        if not parent_noteid and parent_notetitle:
+        if not parent and parent_title:
             try:
-                parent_noteid = self.get_note_by_title(parent_notetitle, ignore_parent=True).id  # type: ignore
+                parent = self.get_note_by_title(parent_title, any_parent=True).id  # type: ignore
             except AttributeError:
-                raise ValueError(f'Parent note "{parent_notetitle}" does not exist.')
+                raise ValueError(f'Parent note "{parent_title}" does not exist.')
         notes_list = self.get_notes()
 
         for note in notes_list:
-            if note.title == title and (note.parent == parent_noteid or ignore_parent):
+            if note.title == title and (note.parent == parent or any_parent):
                 break
         else:
             return None
@@ -207,34 +223,33 @@ class NotesAPI(APIClient):
     def get_or_create_note_by_title(
         self,
         title,
-        parent_noteid=None,  # Preferred over parent_notetitle
-        parent_notetitle=None,
+        parent=None,  # Preferred over parent_title
+        parent_title=None,
         icon=None,
     ) -> Note:
-        if not parent_noteid and parent_notetitle:
-            parent_noteid = self.get_or_create_note_by_title(
-                parent_notetitle, icon=icon
+        if not parent and parent_title:
+            parent = self.get_or_create_note_by_title(
+                parent_title, icon=icon
             ).id
-        note = self.get_note_by_title(title, parent_noteid=parent_noteid)
+        note = self.get_note_by_title(title, parent=parent)
         if not note:
             # Note does not exist. Create.
-            note = self.create_note(title=title, parent_id=parent_noteid, icon=icon)
+            note = self.create_note(title=title, parent=parent, icon=icon)
         return note
 
     def upload_file(
         self,
         file: typing.Optional[typing.IO] = None,
         content: typing.Optional[bytes] = None,
-        notetitle: typing.Optional[str] = None,
         filename: typing.Optional[str] = None,
         caption: typing.Optional[str] = None,
-        parent_notetitle: typing.Optional[str] = None,
+        note_id: typing.Optional[str] = None,
+        note_title: typing.Optional[str] = None,
+        parent_title: typing.Optional[str] = None,
         **kwargs,
     ):
         assert file or content
         assert not (file and content)
-        if notetitle is None:
-            notetitle = "Uploads"
 
         if file:
             if file.name == "<stdin>":
@@ -254,9 +269,10 @@ class NotesAPI(APIClient):
                 self.warning(f"{file.name} is empty. Will not upload.")
                 return
 
-        self.get_or_create_note_by_title(
-            notetitle, parent_notetitle=parent_notetitle
-        )
+        if not note_id:
+            note_id = self.get_or_create_note_by_title(
+                note_title or "Uploads", parent_title=parent_title
+            ).id
         if self.private_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
@@ -273,8 +289,25 @@ class NotesAPI(APIClient):
             note_content = f"\n[{caption or filename}]({file_path})"
 
         self.write_note(
-            title=notetitle,
+            id=note_id,
             text=note_content,
-            parent_notetitle=parent_notetitle,
             **kwargs,
         )
+
+    def render(
+        self,
+        id: str,
+    ) -> bytes:
+        url = urljoin(self.base_endpoint, f"{id}/export-pdf/")
+        response = self.post(url)
+        response.raise_for_status()
+        return response.content
+
+    def duplicate(
+        self,
+        id: str,
+    ) -> Note:
+        url = urljoin(self.base_endpoint, f"{id}/copy/")
+        response = self.post(url)
+        response.raise_for_status()
+        return Note(response.json())

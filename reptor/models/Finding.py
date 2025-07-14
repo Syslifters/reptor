@@ -1,11 +1,11 @@
 import typing
 
+from reptor.models.Base import BaseModel
 from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import (
     SectionData,
     SectionDataField,
     SectionDataRaw,
-    SectionRaw,
 )
 
 
@@ -30,7 +30,6 @@ class FindingDataRaw(SectionDataRaw):
         retest_status:
         severity:
     """
-
     title: str = ""
     cvss: str = ""
     summary: str = ""
@@ -47,8 +46,19 @@ class FindingDataRaw(SectionDataRaw):
     retest_status: str = ""
     severity: str = ""
 
+    def __str__(self):
+        return self.title
+    
+    def __repr__(self):
+        return f'FindingDataRaw(title="{self.title}", id="{self.id}")'
 
-class FindingDataField(SectionDataField): ...
+
+class FindingDataField(SectionDataField):
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return f'FindingDataField(name="{self.name}", type="{self.type}", value="{self.value}")'
 
 
 class FindingData(SectionData):
@@ -77,11 +87,34 @@ class FindingData(SectionData):
     ):
         kwargs.setdefault("strict_type_check", True)
         super().__init__(*args, **kwargs)
+    
+    def __str__(self):
+        return str(self.title.value)
+    
+    def __repr__(self):
+        return f'FindingData(title="{self.title.value}")'
 
 
-class FindingRaw(SectionRaw):
+class FindingRaw(BaseModel):
+    project: str = ""
+    project_type: str = ""
+    language: str = ""
+    template: str = ""
+    assignee: str = ""
+    status: str = "in-progress"
     order: int = 0
     data: FindingDataRaw
+
+    def __init__(self, data, *args, **kwargs):
+        if "data" not in data:
+            data["data"] = dict()
+        super().__init__(data, *args, **kwargs)
+    
+    def __str__(self):
+        return self.data.title
+    
+    def __repr__(self):
+        return f'FindingRaw(title="{self.data.title}", id="{self.id}")'
 
 
 class Finding(FindingRaw):
@@ -104,6 +137,12 @@ class Finding(FindingRaw):
             project_design.finding_fields,
             strict_type_check=strict_type_check
         )
+    
+    def __str__(self):
+        return self.data.title
+    
+    def __repr__(self):
+        return f'Finding(title="{self.data.title}", id="{self.id}")'
 
     @classmethod
     def from_translation(
