@@ -50,14 +50,16 @@ class FindingTemplate(BaseModel):
         result["translations"] = [t.to_dict() for t in self.translations]
         return result
 
-    def _get_main_title(self) -> str:
+    def get_main_title(self) -> str:
+        return self.get_main_translation().data.title
+    
+    def get_main_translation(self) -> FindingTemplateTranslation:
         for translation in self.translations:
             if translation.is_main:
-                return translation.data.title
-        return "Unknown Title"
+                return translation
     
     def __str__(self):
-        return self._get_main_title()
+        return self.get_main_title()
     
     def __repr__(self):
-        return f'FindingTemplate(title="{self._get_main_title()}", id="{self.id}")'
+        return f'FindingTemplate(title="{self.get_main_title()}", id="{self.id}")'
