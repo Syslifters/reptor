@@ -124,15 +124,15 @@ def templates_api():
 
 @pytest.fixture(scope="module")
 def uploads_id(notes_api):
-    notes_api.write_note("Create Note")
+    notes_api.write_note(title="Create Note")
     uploads_note = get_note("Uploads", None)
     assert uploads_note is not None
     return uploads_note["id"]
 
 
 @pytest.fixture(scope="module")
-def private_uploads_id(personal_notes_api):
-    personal_notes_api.write_note("Create Note")
+def personal_uploads_id(personal_notes_api):
+    personal_notes_api.write_note(title="Create Note")
     uploads_note = get_note("Uploads", None, private=True)
     assert uploads_note is not None
     return uploads_note["id"]

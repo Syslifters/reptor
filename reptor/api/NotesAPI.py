@@ -178,7 +178,15 @@ class NotesAPI(APIClient):
             )
             ```
         """
-        note_template = NoteTemplate.from_kwargs(id, title, text, checked, icon_emoji, order, **kwargs)
+        note_template = NoteTemplate.from_kwargs(
+            id=id, 
+            title=title, 
+            text=text, 
+            checked=checked, 
+            icon_emoji=icon_emoji, 
+            order=order,
+            **kwargs
+        )
         self.write_note_templates(
             note_template, timestamp=timestamp
         )
