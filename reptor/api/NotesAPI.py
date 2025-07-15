@@ -149,6 +149,12 @@ class NotesAPI(APIClient):
 
     def write_note(
         self,
+        id: str = None,
+        title: str = None,
+        text: str = "",
+        checked: bool = None,
+        icon_emoji: str = None,
+        order: int = 0,
         timestamp: bool = False,
         **kwargs,
     ):
@@ -172,7 +178,7 @@ class NotesAPI(APIClient):
             )
             ```
         """
-        note_template = NoteTemplate.from_kwargs(**kwargs)
+        note_template = NoteTemplate.from_kwargs(id, title, text, checked, icon_emoji, order, **kwargs)
         self.write_note_templates(
             note_template, timestamp=timestamp
         )

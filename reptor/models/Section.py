@@ -9,6 +9,15 @@ from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField
 
 
 class SectionDataRaw(BaseModel):
+    """
+    This data class holds the section field raw values (usually, strings or lists).  
+    The objects of this class may hold custom attributes, depending on your SysReptor project design and report fields.
+
+    E.g, if your project design defines a field `executive_summary` of type `string`, then this class will have an attribute `executive_summary` of type `str`.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     def _fill_from_api(self, data: typing.Dict):
         """
         Fills Model from reptor.api return JSON data
@@ -24,11 +33,30 @@ class SectionDataRaw(BaseModel):
 
 class SectionDataField(ProjectDesignField):
     """
-    Section data holds values only and does not contain type definitions.
-    Most data types cannot be differentiated (like strings and enums).
+    `SectionDataField` holds the section field definition, metadata and its value.
 
-    This model joins finding data values from an acutal report with project
-    design field definitions.
+    Attributes:
+        id (str): Section field ID (e.g., `executive_summary`).
+        type (ProjectFieldTypes): Report field type (e.g., `cvss`, `string`, `markdown`, etc.).
+        label (str): Human-readable label of the field (displayed in SysReptor UI).
+        origin (str): Field origin (one of `core`, `predefined`, `custom`)
+        default (str): Default value of the field (if any).
+        required (bool): Whether the field is required.
+        spellcheck (bool): Whether the field value should be spellchecked.
+        properties (List['ProjectDesignField']): Nested fields. Used for object fields.
+        choices (List[dict]): List of choices for enum fields.
+        items (dict): Items for list fields.
+        suggestions (List[str]): Suggestions for combobox fields.
+        value (str | List | bool | float | SectionDataField]): The value of the field. Type depends on the field type:
+
+            - `str`: For cvss, string, markdown, enum, user, combobox, date fields
+            - `List`: For list fields
+            - `bool`: For boolean fields
+            - `float`: For number fields
+            - `SectionDataField`: For object fields (holds nested `SectionDataField`)
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
     """
 
     value: typing.Union[
@@ -94,8 +122,8 @@ class SectionDataField(ProjectDesignField):
             self.value = value
 
     def __iter__(self):
-        """Recursive iteration through potentially nested SectionDataFields
-        returns iterator of SectionDataField"""
+        # Recursive iteration through potentially nested SectionDataFields
+        # returns iterator of SectionDataField
         if self.type == ProjectFieldTypes.list.value:
             yield self  # First yield self, then nested fields
             # Iterate through list
@@ -233,6 +261,15 @@ class SectionDataField(ProjectDesignField):
 
 
 class SectionData(BaseModel):
+    """
+    This data class holds the section fields as `SectionDataField` objects.  
+    The objects of this class may hold custom attributes, depending on your SysReptor project design and report fields.
+
+    E.g, if your project design defines a field `executive_summary` of type `string`, then this class will have an attribute `executive_summary` of type `SectionDataField` (which in turn specifies allowed values, etc.).
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     field_class = SectionDataField
 
     def __init__(
@@ -274,8 +311,8 @@ class SectionData(BaseModel):
             raise ValueError("Invalid data format")
 
     def __iter__(self):
-        """Recursive iteration through cls attributes
-        returns FindingDataField"""
+        # Recursive iteration through cls attributes
+        # returns FindingDataField
         for _, finding_field in vars(self).items():
             for nested_field in finding_field:
                 yield nested_field
@@ -308,13 +345,21 @@ class SectionData(BaseModel):
 class SectionRaw(BaseModel):
     """
     Attributes:
-        project:
-        project_type:
-        language:
-        template:
-        assignee:
-        status:
-        data:
+        id (str): Section ID (e.g., `scope`).
+        created (datetime): Section creation time (equals project creation time).
+        updated (datetime): Section last update time.
+
+        project (str): Project ID (uuid).
+        project_type (str): Project design ID.
+        language (str): Language code (e.g., "en-US").
+        label (str): Section label (displayed in SysReptor UI).
+        fields (List[str]): List of field IDs that are used in this section (e.g., [`executive_summary`]).
+        assignee (str): User ID of the assignee.
+        status (str): Status of the section (e.g., "in-progress", etc.).
+        data (SectionDataRaw): Section field data.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
     """
     project: str = ""
     project_type: str = ""
@@ -338,6 +383,15 @@ class SectionRaw(BaseModel):
 
 
 class Section(SectionRaw):
+    """
+    `Section` has the same attributes as `SectionRaw`, but the `data` attribute is an instance of `SectionData` class, which performs type checks and holds allowed values and other field metadata.
+
+    Attributes:
+        data (SectionData): Section field data with type checks and metadata.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     data: SectionData
 
     def __init__(

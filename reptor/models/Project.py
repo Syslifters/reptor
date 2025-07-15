@@ -30,6 +30,34 @@ class ProjectBase(BaseModel):
 
 
 class Project(ProjectBase):
+    """
+    Attributes:
+        id (str): Project ID (uuid).
+        created (datetime): Date when the project was created.
+        updated (datetime): Date when the project metadata was last updated.
+                
+        name (str): Project name.
+        project_type (str): Project design ID.
+        language (str): Project language code (e.g., "en-US").
+        tags (List[str]): List of tags associated with the project.
+        readonly (bool): Whether the project is read-only (finished).
+        source (str): Source of the project design. Possible values: `created`, `imported`, `imported_dependecy`, `customized`, `snapshot`.
+        copy_of (str): ID of the project this is a copy of.
+        override_finding_order (bool): Whether to override the default finding order.
+        members (List[User]): List of project members.
+        imported_members (List[User]): List of imported project members (members that are part of an imported project, but do not exist in the SysReptor installation).
+        details (str): Project API endpoint (URL).
+        notes (str): Project notes API endpoint (URL).
+        images (str): Project images API endpoint (URL).
+
+        findings (List[Finding]): List of findings associated with the project.
+        sections (List[Section]): List of sections that make up the project.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
+
+
     findings: typing.List[Finding] = []
     sections: typing.List[Section] = []
 
@@ -51,6 +79,17 @@ class Project(ProjectBase):
 
 
 class ProjectOverview(ProjectBase):
+    """
+    `ProjectOverview` has the same attributes as `Project`.  
+    The only difference is that it does not contain the `findings` and `sections` attributes, but rather the API endpoints for these resources.
+
+    Attributes:
+        findings (str): Findings API endpoint (URL).
+        sections (str): Sections API endpoint (URL).
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     findings: str = ""
     sections: str = ""
 

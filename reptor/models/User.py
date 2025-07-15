@@ -6,30 +6,42 @@ import typing
 
 class User(BaseModel):
     """
+    Representation of a SysReptor user.
+
     Attributes:
-        username:
-        name:
-        title_before:
-        first_name:
-        middle_name:
-        last_name:
-        title_after:
-        is_active:
-        roles:
-        email:
-        phone:
-        mobile:
-        scope:
-        is_superuser:
-        is_designer:
-        is_template_editor:
-        is_guest:
-        is_user_manager:
-        is_system_user:
-        is_global_archiver:
-        is_mfa_enabled:
-        can_login_local:
-        can_login_sso:
+        id (str): User ID (uuid).
+        created (datetime): Date when the user was created.
+        updated (datetime): Date when the user was last updated.
+        
+        username (str): Username.
+        is_active (bool): Whether the user account is active.
+        name (str): Display name of the user (computed propery; consists of title and name fields).
+        
+        title_before (str): Academic title before the name.
+        first_name (str): User's first name.
+        middle_name (str): User's middle name.
+        last_name (str): User's last name.
+        title_after (str): Academic title after the name.
+
+        color (str): Color associated with the user (for UI purposes).
+        email (str): User's email address.
+        phone (str): User's phone number.
+        mobile (str): User's mobile phone number.
+        
+        scope (List[str]): List of scopes/permissions for the user (e.g., `template_editor`, `designer`, `user_manager`).
+        is_superuser (bool): Whether the user has superuser privileges.
+        is_designer (bool): Whether the user can design project templates.
+        is_template_editor (bool): Whether the user can edit templates.
+        is_guest (bool): Whether the user is a guest user.
+        is_user_manager (bool): Whether the user can manage other users.
+        is_system_user (bool): Whether this is a system user account.
+        is_global_archiver (bool): Whether the user can archive projects globally.
+        is_mfa_enabled (bool): Whether multi-factor authentication is enabled.
+        can_login_local (bool): Whether the user can login using local authentication.
+        can_login_sso (bool): Whether the user can login using SSO.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
     """
 
     username: str = ""

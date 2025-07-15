@@ -114,6 +114,9 @@ class BaseModel:
 
 
 class ProjectFieldTypes(enum.Enum):
+    """
+    Enum for project field types.
+    """
     cvss = "cvss"
     string = "string"
     markdown = "markdown"
@@ -128,6 +131,9 @@ class ProjectFieldTypes(enum.Enum):
 
 
 class FindingTemplateSources(enum.Enum):
+    """
+    Enum for finding template sources.
+    """
     CREATED = "created"
     IMPORTED = "imported"
     IMPORTED_DEPENDENCY = "imported_dependency"

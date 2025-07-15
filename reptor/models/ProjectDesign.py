@@ -8,19 +8,25 @@ from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 class ProjectDesignField(BaseModel):
     """
-    Attributes:
-        name:
-        type:
-        label:
-        origin:
-        default:
-        required:
-        spellcheck:
+    Represents a field definition in a project design template.
 
-        properties: "ProjectDesignField"
-        choices:
-        items:
-        suggestions:
+    Attributes:
+        id (str): Field identifier/name.
+        type (ProjectFieldTypes): Field type (string, enum, list, object, etc.).
+        label (str): Human-readable field label.
+        origin (str): Source origin of the field.
+        default (str): Default value for the field.
+        required (bool): Whether the field is required.
+        spellcheck (bool): Whether spellcheck is enabled for this field.
+        properties (Any): Nested field properties for object types.
+        choices (List[dict]): Available choices for enum fields.
+        items (dict): Item definition for list fields.
+        suggestions (List[str]): List of suggested values for the field.
+        pattern (str): Regular expression pattern for validation (used for fields in project designs).
+        help_text (str): Help text for the field.
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
     """
     id: str = ""  # Keep this definition (even though also inherited); otherwise, init breaks
     type: ProjectFieldTypes
@@ -35,6 +41,8 @@ class ProjectDesignField(BaseModel):
     choices: typing.List[dict] = []
     items: dict = {}
     suggestions: typing.List[str] = []
+    pattern: str = ""
+    help_text: str = ""
 
     @property
     def name(self):
@@ -70,7 +78,12 @@ class ProjectDesignBase(BaseModel):
     source: str = ""
     scope: str = ""
     name: str = ""
+    tags: typing.List[str] = []
     language: str = ""
+    usage_count: int = 0
+
+    details: str = ""
+    assets: str = ""
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data is None:
@@ -85,8 +98,34 @@ class ProjectDesignBase(BaseModel):
 
 
 class ProjectDesign(ProjectDesignBase):
-    report_fields: typing.List[ProjectDesignField] = []
+    """
+    Project design template with incl. field definitions and default values.
+
+    Attributes:
+        id (str): Project design ID (uuid).
+        created (datetime): Date when the project design was created.
+        updated (datetime): Date when the project design was last updated.
+        
+        source (str): Source of the project design. Possible values: `created`, `imported`, `imported_dependecy`, `customized`, `snapshot`.
+        scope (str): Scope of the project design (e.g., "global", "user").
+        name (str): Project design name.
+        tags (List[str]): List of tags associated with the project design.
+        language (str): Language code for the project design (e.g., "en-US").
+        usage_count (int): Counts how often the project design has been assigned to a project.
+        details (str): Project design details API endpoint (URL).
+        assets (str): Project design assets API endpoint (URL).
+
+        copy_of (str): ID of the original project design this is a copy of (if any).
+        finding_fields (List[ProjectDesignField]): List of field definitions for findings.
+        report_fields (List[ProjectDesignField]): List of field definitions for report sections (derived from `report_sections` received from the API).
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
+    copy_of: str = ""
+    
     finding_fields: typing.List[ProjectDesignField] = []
+    report_fields: typing.List[ProjectDesignField] = []
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data:
@@ -119,6 +158,26 @@ class ProjectDesign(ProjectDesignBase):
 
 
 class ProjectDesignOverview(ProjectDesignBase):
+    """    
+    `ProjectDesignOverview` has the same base attributes as `ProjectDesign`, except for `copy_of`, `report_fields` and `finding_fields`.
+
+    Attributes:
+        id (str): Project design ID (uuid).
+        created (datetime): Date when the project design was created.
+        updated (datetime): Date when the project design was last updated.
+        
+        source (str): Source of the project design. Possible values: `created`, `imported`, `imported_dependecy`, `customized`, `snapshot`.
+        scope (str): Scope of the project design (e.g., "global", "user").
+        name (str): Project design name.
+        tags (List[str]): List of tags associated with the project design.
+        language (str): Language code for the project design (e.g., "en-US").
+        usage_count (int): Counts how often the project design has been assigned to a project.
+        details (str): Project design details API endpoint (URL).
+        assets (str): Project design assets API endpoint (URL).
+
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     report_fields: str = ""
     finding_fields: str = ""
 

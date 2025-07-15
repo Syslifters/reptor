@@ -6,6 +6,17 @@ from reptor.models.Finding import FindingDataRaw
 
 
 class FindingTemplateTranslation(BaseModel):
+    """
+    Attributes:
+        id (str): Translation ID (uuid).
+        created (datetime): Translation creation time.
+        updated (datetime): Translation last update time.
+
+        language (str): Language code (e.g., "en-US").
+        status (str): Status of the translation (e.g., "in-progress", etc.).
+        is_main (bool): Whether this translation is the main one for the finding template.
+        data (FindingDataRaw): Finding template data for this translation.
+    """
     language: str = "en-US"
     status: str = "in-progress"
     is_main: bool = True
@@ -29,12 +40,21 @@ class FindingTemplateTranslation(BaseModel):
 class FindingTemplate(BaseModel):
     """
     Attributes:
-        details:
-        images:
-        usage_count:
-        source:
-        tags:
-        translations:
+        id (str): Finding template ID (uuid).
+        created (datetime): Finding template creation time.
+        updated (datetime): Finding template last update time.
+
+        translations (List[FindingTemplateTranslation]): List of translations for the finding template. This holds the action finding template data.
+        tags (List[str]): List of finding template tags.
+        usage_count (int): Number of times the template has been used for creating a finding.
+        source (FindingTemplateSources): Source of the finding template (one of `created`, `imported`, `customized`, `imported_dependency`, `snapshot`).
+        images (str): Finding template images API endpoint (URL).
+        details (str): Finding template details API endpoint (URL).
+
+    Methods:
+        get_main_title(): Get the main title of the finding template.
+        get_main_translation(): Get the main translation of the finding template.
+        to_dict(): Convert to a dictionary representation.
     """
     details: str = ""
     images: str = ""

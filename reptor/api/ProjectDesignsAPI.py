@@ -7,6 +7,26 @@ from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignOverview
 
 
 class ProjectDesignsAPI(APIClient):
+    """
+    API client for interacting with SysReptor project designs.  
+
+    Note:
+        For historic reasons, the SysReptor REST API uses the term "project types" instead of "project designs".  
+        "Project types" and "project designs" are the same thing in SysReptor.
+
+    Example:
+        ```python
+        from reptor import Reptor
+
+        reptor = Reptor(
+            server=os.environ.get("REPTOR_SERVER"),
+            token=os.environ.get("REPTOR_TOKEN"),
+        )
+
+        # ProjectDesignsAPI is available as reptor.api.project_designs, e.g.:
+        reptor.api.project_designs.search()
+        ```
+    """
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
@@ -49,21 +69,24 @@ class ProjectDesignsAPI(APIClient):
         designs_raw = self.get_paginated(url, params=params)
         return [ProjectDesignOverview(item) for item in designs_raw]
 
+    def fetch_project_design(self, project_design_id: typing.Optional[str] = None) -> ProjectDesign:
+        """Fetches the project design in context from SysReptor.
+
+        Args:
+            project_design_id (str, optional): ID of the project design to fetch. If not provided, it uses the project design of the project in context.
+        
+        Returns:
+            Project object with sections and findings.
+        """
+        if project_design_id:
+            object_endpoint = urljoin(self.base_endpoint, project_design_id)
+        else:
+            object_endpoint = self.object_endpoint
+        response = self.get(object_endpoint)
+        return ProjectDesign(response.json())
+
     @cached_property
     def project_design(self) -> ProjectDesign:
-        """Gets project design of project in context.
-
-        Returns:
-            ProjectDesign object for the configured project design ID.
-            
-        Raises:
-            ValueError: If no project design ID is configured.
-
-        Example:
-            ```python
-            reptor.api.project_designs.project_design
-            ```
-        """
         if not self.project_design_id:
             raise ValueError("Missing Project Design ID")
 

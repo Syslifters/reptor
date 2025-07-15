@@ -69,6 +69,21 @@ class ProjectsAPI(APIClient):
         projects_raw = self.get_paginated(self.base_endpoint, params=params)
         return [ProjectOverview(project_raw) for project_raw in projects_raw]
 
+    def fetch_project(self, project_id: typing.Optional[str] = None, html: bool=False) -> Project:
+        """Fetches the project in context from SysReptor.
+
+        Args:
+            project_id (str, optional): ID of the project to fetch. If not provided, it uses the project in context.
+            html (bool, optional): If True, fetches markdown fields as HTML. Defaults to False.
+        
+        Returns:
+            Project object with sections and findings.
+        """
+        return Project(
+            self._fetch_project_dict(project_id=project_id, html=html),
+            self.reptor.api.project_designs.project_design,
+        )
+
     def check_report(self, group_messages=False) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/check")
         data = self.get(url).json()
@@ -202,9 +217,6 @@ class ProjectsAPI(APIClient):
     def duplicate_and_cleanup(self):
         """Context manager that duplicates current project, switches to it, and cleans up on exit.
         
-        Returns:
-            Context manager for temporary project operations.
-        
         Example:
             ```python
             with reptor.api.projects.duplicate_and_cleanup():
@@ -289,23 +301,19 @@ class ProjectsAPI(APIClient):
     def _project_dict(self) -> dict:
         return self._fetch_project_dict()
     
-    def _fetch_project_dict(self, html=False) -> dict:
+    def _fetch_project_dict(self, project_id: typing.Optional[str] = None, html=False) -> dict:
         """Fetches the project dictionary from the API"""
+        if project_id is None:
+            project_id = self.project_id
         if html:
-            url = urljoin(self.base_endpoint, f"{self.project_id}/md2html/")
+            url = urljoin(self.base_endpoint, f"{project_id}/md2html/")
             return self.post(url).json()
         else:
-            url = self.object_endpoint
+            url = urljoin(self.base_endpoint, project_id)
             return self.get(url).json()
 
-    def fetch_project(self, html=False) -> Project:
-        return Project(
-            self._fetch_project_dict(html=html),
-            self.reptor.api.project_designs.project_design,
-        )
-
     def update_project(self, data: dict) -> Project:
-        """Updates project metadata.
+        """Updates project metadata of the current project.
         
         Args:
             data (dict): Project data to update (name, tags, etc.).
@@ -353,43 +361,65 @@ class ProjectsAPI(APIClient):
         except HTTPError as e:
             raise (HTTPError(e.response.text))
 
-    def export(self) -> bytes:
+    def export(self, project_id: typing.Optional[str] = None) -> bytes:
         """Exports a Project in archive format (tar.gz).
+        
+        Args:
+            project_id (str, optional): ID of the project to export. If not provided, it uses the project in context.
         
         Returns:
             Project archive content.
         
         Example:
             ```python
+            # Export current project
             project_archive = reptor.api.projects.export()
             with open("project.tar.gz", "wb") as f:
                 f.write(project_archive)
+            
+            # Export specific project
+            other_project = reptor.api.projects.export("41c09e60-44f1-453b-98f3-3f1875fe90fe")
+            with open("other_project.tar.gz", "wb") as f:
+                f.write(other_project)
             ```
         """
-        url = urljoin(self.base_endpoint, f"{self.project_id}/export/all")
+        if project_id is None:
+            project_id = self.project_id
+        url = urljoin(self.base_endpoint, f"{project_id}/export/all")
         return self.post(url).content
 
-    def render(self) -> bytes:
+    def render(self, project_id: typing.Optional[str] = None) -> bytes:
         """Renders project to PDF.
+        
+        Args:
+            project_id (str, optional): ID of the project to render. If not provided, it uses the project in context.
         
         Returns:
             PDF content of the project report.
 
         Example:
             ```python
+            # Render current project
             my_report = reptor.api.projects.render()
             with open("my_report.pdf", "wb") as f:
                 f.write(my_report)
+                
+            # Render specific project
+            other_report = reptor.api.projects.render("41c09e60-44f1-453b-98f3-3f1875fe90fe")
+            with open("other_report.pdf", "wb") as f:
+                f.write(other_report)
             ```
         """
         # Get report checks
+        project_id = project_id or self.project_id
+        
         checks = self.check_report(group_messages=True)
         for check, warnings in checks.items():
             if any([w.get("level") == "warning" for w in warnings]):
                 self.log.warning(f'Report Check Warning: "{check}" (x{len(warnings)})')
 
         # Render report
-        url = urljoin(self.base_endpoint, f"{self.project_id}/generate/")
+        url = urljoin(self.base_endpoint, f"{project_id}/generate/")
         try:
             return self.post(url).content
         except HTTPError as e:

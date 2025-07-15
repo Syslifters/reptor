@@ -18,6 +18,24 @@ class NoteBase(BaseModel):
 
 
 class Note(NoteBase):
+    """
+    This class represents a note in the Reptor system.
+
+    Attributes:
+        id (str): Note ID (uuid).
+        created (datetime): Note creation time.
+        updated (datetime): Note last update time.
+
+        title (str): Note title.
+        text (str): Note text content (markdown).
+        checked (bool): Whether the note is checked (used for tasks).
+        icon_emoji (str): Emoji icon for the note.
+        order (int): Order of the note in the list.
+        parent (str): ID of the parent note (if any).
+    
+    Methods:
+        to_dict(): Convert to a dictionary representation.
+    """
     parent: str = ""
 
     @classmethod
