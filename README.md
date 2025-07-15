@@ -75,7 +75,7 @@ pacman -S reptor
 ### Usage
 
 ```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
-              [--private-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
+              [--personal-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
               [--file FILE]
 
 Examples:
@@ -138,6 +138,6 @@ configuration:
   -k, --insecure        do not verify server certificate
   -p PROJECT_ID, --project-id PROJECT_ID
                         SysReptor project ID
-  --private-note        add notes to private notes
+  --personal-note       add notes to personal notes
 
 ```
