@@ -111,7 +111,7 @@ class UnpackArchive(Base):
                     elif self.format == "toml":
                         data_output = tomlkit.dumps(to_toml(data_dict))
                     path_output = path_json.with_suffix(f".{self.format}")
-                    path_output.write_text(data_output)
+                    path_output.write_text(data_output, encoding='utf-8')
                     if path_output != path_json:
                         path_json.unlink()
 
