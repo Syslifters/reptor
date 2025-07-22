@@ -50,9 +50,9 @@ class PackArchive(Base):
         if not path_input.is_file():
             return None
         elif path_input.suffix == ".toml":
-            data_dict = tomli.loads(path_input.read_text())
+            data_dict = tomli.loads(path_input.read_text(encoding='utf-8'))
         else:
-            data_dict = json.loads(path_input.read_text())
+            data_dict = json.loads(path_input.read_text(encoding='utf-8'))
         if not isinstance(data_dict, dict) or not isinstance(data_dict.get('format'), str):
             return None
         return data_dict
