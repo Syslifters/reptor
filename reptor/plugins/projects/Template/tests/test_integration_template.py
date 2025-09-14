@@ -10,8 +10,8 @@ import yaml
 from reptor.plugins.core.Conf.tests.conftest import templates_api  # noqa: F401
 
 
+@pytest.mark.integration
 class TestIntegrationTemplate(object):
-    @pytest.mark.integration
     @pytest.mark.parametrize(
         "input_file",
         ["template_1.json", "template_2.json", "template_1.toml", "template_2.toml"],
