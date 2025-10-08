@@ -10,10 +10,10 @@ jobs:
   help-messages:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.10'
         cache: 'pip'
     - run: pip install .[all]
     - run: |
@@ -32,8 +32,8 @@ jobs:
   update-readme:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
     - run: cat docs/getting-started.md | sed "/## Usage/q" > README.md
     - run: |
         printf "\n\`\`\`" >> README.md

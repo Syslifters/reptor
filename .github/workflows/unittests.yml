@@ -1,32 +1,17 @@
 name: main unittests
-run-name: unittests
 on: [push]
 jobs:
-  run:
+  tests:
+    name: unittests ${{ matrix.python-version }}
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
-        cache: 'pip'
-    - run: pip install .[all]
-    - run: make unittest
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-        cache: 'pip'
-    - run: pip install .[all]
-    - run: make unittest
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-    - run: pip install .[all]
-    - run: make unittest
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
     - run: pip install .[all]
     - run: make unittest

@@ -31,5 +31,5 @@ class TestMyModule(TestCaseToolPlugin):
             self.mymodule.raw_input = f.read()
 
     def test_true_example(self):
-        assert True == True
+        assert True
         raise NotImplementedError("Test not implemented")

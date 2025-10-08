@@ -103,7 +103,7 @@ class UnpackArchive(Base):
                 with tarfile.open(fileobj=file, mode="r:gz") as tar:
                     tar.extractall(tempdir)
                 for path_json in Path(tempdir).glob("*.json"):
-                    if not path_json.is_file():
+                    if not path_json.exists() or not path_json.is_file():
                         continue
                     data_dict = json.loads(path_json.read_text())
                     if self.format == "json":

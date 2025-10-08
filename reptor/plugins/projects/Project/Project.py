@@ -66,7 +66,7 @@ class Project(Base):
             action="store_true",
             dest="duplicate",
         )
-        finish_group = project_parser.add_mutually_exclusive_group()
+        finish_group = parser.add_mutually_exclusive_group()
         finish_group.add_argument(
             "--finish",
             help="Set project as finished",

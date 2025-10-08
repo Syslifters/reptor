@@ -39,7 +39,7 @@ You can use it to:
 
 ## Prerequisites
 
-* Python 3.9-3.12
+* Python 3.10-3.14
 * pip3
 
 ## Installation

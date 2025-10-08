@@ -62,7 +62,7 @@ class ProjectDesignField(BaseModel):
             elif isinstance(data['properties'], list):
                 data["properties"] = [ProjectDesignField(f) for f in data["properties"]]
 
-        attrs = typing.get_type_hints(self).keys()
+        attrs = typing.get_type_hints(self.__class__).keys()
         for key, value in data.items():
             if key in attrs:
                 self.__setattr__(key, value)

@@ -12,7 +12,7 @@ from reptor.lib.plugins.Base import Base
 
 def dir_or_file(path):
     p = Path(path)
-    if not p.is_dir() and not p.is_file():
+    if not p.exists() and not p.is_dir() and not p.is_file():
         raise argparse.ArgumentTypeError(f"readable_dir:{path} is not a valid path")
     return p
 
@@ -47,7 +47,7 @@ class PackArchive(Base):
         )
 
     def load_file(self, path_input: Path):
-        if not path_input.is_file():
+        if not path_input.exists() or not path_input.is_file():
             return None
         elif path_input.suffix == ".toml":
             data_dict = tomli.loads(path_input.read_text(encoding='utf-8'))
@@ -111,8 +111,8 @@ class PackArchive(Base):
 
             # Add directory contents to archive
             d_dir = Path(path_input).parent / ds
-            if d_dir.is_dir():
-                tar.add(d_dir, arcname=dd)
+            if d_dir.exists() and d_dir.is_dir():
+                tar.add(d_dir, arcname=dd, recursive=True)
                 for path_file in d_dir.glob("*"):
                     # Add file entry to data_dict
                     data_file = next(filter(lambda f: f.get('name') == path_file.name, data_dict.get(data_key, [])), None)
@@ -141,10 +141,10 @@ class PackArchive(Base):
             return
         with tarfile.open(fileobj=self.output, mode="w:gz") as tar:
             for path_dir in self.directories:
-                if path_dir.is_dir():
+                if path_dir.exists() and path_dir.is_dir():
                     # Add NOTICE files at top level
                     notice_path = path_dir / "NOTICE"
-                    if notice_path.is_file():
+                    if notice_path.exists() and notice_path.is_file():
                         notice_filename = "NOTICE"
                         if notice_filename in tar.getnames():
                             i = 0
@@ -163,7 +163,7 @@ class PackArchive(Base):
                         if not data_dict:
                             continue
                         self.add_to_archive(tar=tar, path_input=path_input, data_dict=data_dict)
-                elif path_dir.is_file():
+                elif path_dir.exists() and path_dir.is_file():
                     data_dict = self.load_file(path_dir)
                     if not data_dict:
                         raise ValueError(f"Could not load file: {path_dir}")

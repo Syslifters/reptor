@@ -115,7 +115,7 @@ class Translate(Base):
         try:
             self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
         except TypeError:
-            raise TypeError(f"skip_fields should be list.")
+            raise TypeError("skip_fields should be list.")
         if not hasattr(self, "deepl_api_token"):
             self.deepl_api_token = ""
 

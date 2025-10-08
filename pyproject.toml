@@ -14,7 +14,8 @@ maintainers = [
 ]
 description = "reptor allows you automating pentest reporting with SysReptor."
 readme = "README.md"
-license = {file = 'LICENSE'}
+license = 'MIT'
+license-files = ["LICENSE"]
 dependencies = [
   'certifi >= 2023.5.7',
   'cvss >= 3.0',
@@ -29,15 +30,15 @@ dependencies = [
   'tomli-w >= 1.0',
   'tomlkit >= 0.12.3',
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
 ]
 

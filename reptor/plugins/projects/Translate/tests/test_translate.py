@@ -95,7 +95,7 @@ class TestTranslate:
         text = "Hello World"
         assert self.translate._translate(text) == f"Translated: {text}"
         assert self.translate.chars_count_to_translate == 5 + len(text)
-        assert self.translate._translate("123") == f"123"
+        assert self.translate._translate("123") == "123"
         assert self.translate.chars_count_to_translate == 5 + len(text)
 
         self.translate.skip_fields = ["title"]
