@@ -6,10 +6,7 @@ import pytest
 import yaml
 
 from reptor.plugins.core.Conf.tests.conftest import (
-    notes_api,
-    projects_api,
     read_until,
-    templates_api,
 )
 
 
