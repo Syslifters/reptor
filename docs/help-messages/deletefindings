@@ -4,7 +4,7 @@ usage: reptor deletefindings [-h] [--title-contains SEARCHTERM]
 
 Deletes findings by title
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --title-contains SEARCHTERM
                         Match string in title

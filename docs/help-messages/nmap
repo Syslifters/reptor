@@ -3,7 +3,7 @@ usage: reptor nmap [-h] [-i [INPUT ...]] [--format | --upload | --parse]
 
 format nmap output
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -i [INPUT ...], --input [INPUT ...]
                         Input file, if not stdin (multiple files allowed)

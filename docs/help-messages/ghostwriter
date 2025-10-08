@@ -2,7 +2,7 @@ usage: reptor ghostwriter [-h] [--conf] [--tags TAGS] [--url [URL]]
 
 Imports GhostWriter finding templates
 
-optional arguments:
+options:
   -h, --help        show this help message and exit
   --conf, --config  Configure plugin settings
 

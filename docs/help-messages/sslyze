@@ -3,7 +3,7 @@ usage: reptor sslyze [-h] [-i [INPUT ...]]
 
 format sslyze JSON output
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -i [INPUT ...], --input [INPUT ...]
                         Input file, if not stdin (multiple files allowed)

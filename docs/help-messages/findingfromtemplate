@@ -3,7 +3,7 @@ usage: reptor findingfromtemplate [-h] [--template-id [TEMPLATE_ID]]
 
 Creates findings from remote finding templates
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
   --template-id [TEMPLATE_ID]

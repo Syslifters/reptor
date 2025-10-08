@@ -5,5 +5,5 @@ Push data to project from JSON or TOML
 positional arguments:
   projectdata
 
-optional arguments:
+options:
   -h, --help   show this help message and exit

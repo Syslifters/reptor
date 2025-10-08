@@ -1,10 +1,11 @@
 usage: reptor project [-h]
-                      [--search SEARCHTERM | --export {tar.gz,json,toml,yaml} | --render | --duplicate | [--finish | --reactivate]]
-                      [-o FILENAME] [--design DESIGN ID] [--upload] [--json]
+                      [--search SEARCHTERM | --export {tar.gz,json,toml,yaml} | --render | --duplicate]
+                      [--finish | --reactivate] [-o FILENAME]
+                      [--design DESIGN ID] [--upload] [--json]
 
 Work with projects
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --search SEARCHTERM   Search for term
   --export {tar.gz,json,toml,yaml}

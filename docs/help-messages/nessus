@@ -5,7 +5,7 @@ usage: reptor nessus [-h] [--conf] [-i [INPUT ...]]
 
 Nessus vulnerability importer
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --conf, --config      Configure plugin settings
   -i [INPUT ...], --input [INPUT ...]

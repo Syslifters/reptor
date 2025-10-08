@@ -4,7 +4,7 @@ usage: reptor exportfindings [-h] [--format {csv,json,toml,yaml}]
 
 Export your project findings as a summary or checklist
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --format {csv,json,toml,yaml}
                         Output format

@@ -5,7 +5,7 @@ usage: reptor qualys [-h] [--conf] [-i [INPUT ...]]
 
 Qualys vulnerability importer
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --conf, --config      Configure plugin settings
   -i [INPUT ...], --input [INPUT ...]

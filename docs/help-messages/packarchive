@@ -5,6 +5,6 @@ Pack directories into a .tar.gz file
 positional arguments:
   directories
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT

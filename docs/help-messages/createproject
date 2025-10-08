@@ -3,7 +3,7 @@ usage: reptor createproject [-h] [-n PROJECT NAME] -d DESIGN ID [-t TAGS]
 
 Create a new pentest project
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -n PROJECT NAME, --name PROJECT NAME
                         Project name

@@ -6,7 +6,7 @@ Unpack .tar.gz exported archives
 positional arguments:
   files
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
   -f {json,toml}, --format {json,toml}

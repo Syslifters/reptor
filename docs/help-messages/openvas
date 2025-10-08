@@ -6,7 +6,7 @@ usage: reptor openvas [-h] [--conf] [-i [INPUT ...]]
 
 OpenVAS vulnerability importer
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --conf, --config      Configure plugin settings
   -i [INPUT ...], --input [INPUT ...]

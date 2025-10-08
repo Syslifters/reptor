@@ -3,7 +3,7 @@ usage: reptor template [-h] [--list] [--search SEARCH] [--language LANGUAGE]
 
 Queries Finding Templates from SysReptor
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -o FILENAME, --output FILENAME
                         Filename for output
