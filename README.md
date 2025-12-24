@@ -30,6 +30,7 @@ You can use it to:
  * Download PDF reports
  * Read, update, create notes
  * Export notes as PDF
+ * Model Context Protocol (MCP): Connect SysReptor to AI agents.
  * and more...
 
 **GitHub:** [https://github.com/Syslifters/reptor/](https://github.com/Syslifters/reptor/)  
@@ -49,6 +50,7 @@ You can use it to:
 #### Optional dependencies
 * translate (requires deepl)
 * ghostwriter (requires gql)
+* mcp (requires mcp, Faker)
 * dev (requires pytest)
 
 Install by `pip3 install reptor[translate]`.  
@@ -97,6 +99,7 @@ subcommands:
   
   Core:
    conf                  Shows config and sets config
+   mcp                   Starts the Model Context Protocol (MCP) server
    plugins               Allows plugin management & development
   
   Projects & Templates:
@@ -141,3 +144,50 @@ configuration:
   --personal-note       add notes to personal notes
 
 ```
+
+## Model Context Protocol (MCP)
+
+Reptor can act as an MCP server, allowing AI agents to interact with your SysReptor instance.
+
+### General Configuration
+
+Most MCP-compatible AI tools and agents (e.g., Claude Desktop, Cursor, IDE extensions) use a standard JSON configuration. Add the following to your tool's MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "reptor": {
+      "command": "reptor",
+      "args": ["mcp", "--anonymize"]
+    }
+  }
+}
+```
+
+### Setup for gemini-cli
+
+To add the server to `gemini-cli`, use the `mcp add` command:
+
+```bash
+gemini mcp add reptor reptor mcp --anonymize
+```
+
+### Setup for Claude Code
+
+Run the following command:
+
+```bash
+claude mcp add reptor -- reptor mcp --anonymize
+```
+
+### Anonymization
+
+The `--anonymize` flag ensures that sensitive data like IP addresses or hostnames in "Affected Components" are anonymized before being sent to the LLM. Reptor handles the re-mapping transparently when the LLM sends data back to create or update findings.
+
+#### Anonymization Scope
+
+**Important:** The `--anonymize` flag only masks data in the `affected_components` field. Other fields such as `description`, `recommendation`, and custom text fields are sent to the LLM as-is.
+
+**Best practice:** When using anonymization mode, avoid including sensitive hostnames, IP addresses, or infrastructure details in free-text fields. Use the `affected_components` list for infrastructure references, which will be automatically anonymized.
+
+**How it works:** Each affected component is replaced with a deterministic hash (e.g., `192.168.1.5` becomes `REDACTED_abc12345`). The mapping is maintained in memory, allowing Reptor to restore original values when the LLM creates or updates findings.
