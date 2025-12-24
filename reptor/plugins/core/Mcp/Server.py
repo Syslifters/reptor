@@ -1,5 +1,4 @@
 from typing import Optional, List, Any, Dict
-from pydantic import BaseModel, Field, ConfigDict
 try:
     from mcp.server.fastmcp import FastMCP
 except ImportError:
@@ -7,27 +6,6 @@ except ImportError:
 
 from reptor.plugins.core.Mcp.Anonymizer import Anonymizer
 from reptor.plugins.core.Mcp.Logic import McpLogic
-
-class FindingInput(BaseModel):
-    """
-    Model representing finding data.
-
-    WARNING: This schema defines COMMON fields only. Your project MAY require additional fields 
-    not listed here (e.g., custom metadata) or have different requirements.
-
-    You MUST use `get_finding_schema()` to identify all required fields and correct types 
-    for the active project.
-    """
-
-    title: str = Field(..., description="The title of the finding (Required)")
-    status: Optional[str] = Field("in-progress", description="Status (e.g., in-progress, open, closed)")
-    cvss: Optional[str] = Field(None, description="CVSS Score")
-    description: Optional[str] = Field(None, description="Detailed description (Markdown)")
-    recommendation: Optional[str] = Field(None, description="Recommendation (Markdown)")
-    affected_components: Optional[List[str]] = Field(None, description="List of affected components/IPs")
-    references: Optional[List[str]] = Field(None, description="List of references")
-    
-    model_config = ConfigDict(extra="allow")
 
 class MCPServer:
     def __init__(self, name: str = "Reptor", reptor_instance: Any = None, anonymizer: Optional[Anonymizer] = None, logger: Optional[Any] = None):
@@ -89,7 +67,7 @@ class MCPServer:
         def list_findings() -> List[Dict[str, Any]]:
             """Lists all findings for the configured project.
 
-            Returns a summary list of finding objects (id, title, status, cvss).
+            Returns a summary list of finding objects (id, title, severity, status, cvss).
             Use 'get_finding' for full details.
             """
             return self.logic.list_findings()
@@ -103,7 +81,7 @@ class MCPServer:
             return self.logic.get_finding(finding_id)
 
         @self.mcp.tool()
-        def create_finding(data: FindingInput) -> Dict[str, Any]:
+        def create_finding(data: Dict[str, Any]) -> Dict[str, Any]:
             """Creates a new finding in SysReptor.
 
             **Mandatory workflow:**
@@ -117,10 +95,10 @@ class MCPServer:
 
             Returns the created finding object.
             """
-            return self.logic.create_finding(data.model_dump())
+            return self.logic.create_finding(data)
 
         @self.mcp.tool()
-        def update_finding(finding_id: str, data: FindingInput) -> Dict[str, Any]:
+        def update_finding(finding_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             """Updates an existing finding in SysReptor.
 
             **Mandatory workflow:**
@@ -130,7 +108,7 @@ class MCPServer:
 
             Returns the updated finding object.
             """
-            return self.logic.update_finding(finding_id, data.model_dump())
+            return self.logic.update_finding(finding_id, data)
 
         @self.mcp.tool()
         def delete_finding(finding_id: str) -> str:
