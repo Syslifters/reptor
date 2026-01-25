@@ -1,13 +1,20 @@
 from typing import Optional, List, Any, Dict
 
+
 class McpLogic:
     """
     Business logic for MCP operations, decoupling SysReptor API interactions
     from the MCP transport layer.
     """
-    def __init__(self, reptor_instance: Any, anonymizer: Optional[Any] = None, logger: Optional[Any] = None):
+
+    def __init__(
+        self,
+        reptor_instance: Any,
+        field_excluder: Optional[Any] = None,
+        logger: Optional[Any] = None,
+    ):
         self.reptor = reptor_instance
-        self.anonymizer = anonymizer
+        self.field_excluder = field_excluder
         self.logger = logger
 
     def _log(self, msg: str):
@@ -44,7 +51,13 @@ class McpLogic:
                         finding_summary[field_name] = field_obj.value
                     else:
                         finding_summary[field_name] = field_obj
-            
+
+            # Apply field exclusion to summary if configured
+            if self.field_excluder:
+                finding_summary = self.field_excluder.remove_fields(
+                    finding_summary
+                )
+
             results.append(finding_summary)
         self._log(f"list_findings returning {len(results)} findings summary")
         return results
@@ -55,18 +68,21 @@ class McpLogic:
         templates = self.reptor.api.templates.search()
         results = []
         for t in templates:
-            results.append({
-                "id": t.id,
-                "title": t.get_main_title(),
-                "source": t.source.value if hasattr(t.source, "value") else str(t.source),
-                "tags": t.tags
-            })
+            results.append(
+                {
+                    "id": t.id,
+                    "title": t.get_main_title(),
+                    "source": t.source.value
+                    if hasattr(t.source, "value")
+                    else str(t.source),
+                    "tags": t.tags,
+                }
+            )
         self._log(f"list_templates returning {len(results)} templates summary")
         return results
 
-
     def get_finding(self, finding_id: str) -> Dict[str, Any]:
-        """Retrieves a single finding with anonymization.
+        """Retrieves a single finding with field exclusion.
 
         Args:
             finding_id: The ID of the finding to retrieve.
@@ -79,14 +95,19 @@ class McpLogic:
         finding = self.reptor.api.projects.get_finding(finding_id)
         finding_dict = finding.to_dict()
 
-        if self.anonymizer:
-            finding_dict["data"] = self.anonymizer.anonymize(project_id, finding_dict["data"])
+        if self.field_excluder:
+            finding_dict["data"] = self.field_excluder.remove_fields(
+                finding_dict["data"]
+            )
         self._log(f"get_finding returning: {finding_dict}")
 
         return finding_dict
 
     def create_finding(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Creates a new finding, handling de-anonymization.
+        """Creates a new finding.
+
+        Note: Field exclusion is NOT applied on write operations. Excluded fields
+        included in the input data are silently ignored (not written to API).
 
         Args:
             data: The finding data.
@@ -112,61 +133,24 @@ class McpLogic:
             else:
                 vulnerability_data[key] = value
 
-        if self.anonymizer:
-            vulnerability_data = self.anonymizer.deanonymize(project_id, vulnerability_data)
+        # Remove excluded fields from data being written
+        if self.field_excluder:
+            vulnerability_data = self.field_excluder.remove_fields(
+                vulnerability_data
+            )
 
         payload["data"] = vulnerability_data
 
         finding = self.reptor.api.projects.create_finding(payload)
         result = finding.to_dict()
 
-        if self.anonymizer:
-            result["data"] = self.anonymizer.anonymize(project_id, result["data"])
+        # Apply field exclusion to result for consistency
+        if self.field_excluder:
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"]
+            )
         self._log(f"create_finding returning: {result}")
 
-        return result
-
-    def update_finding(self, finding_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Updates an existing finding, handling de-anonymization.
-
-        Args:
-            finding_id: The ID of the finding to update.
-            data: The updated finding data fields.
-                Vulnerability fields will be automatically nested into a 'data' object.
-        """
-        self._log(f"update_finding called for {finding_id} with data: {data}")
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
-
-        # Handle explicit nesting (e.g. from get_finding output)
-        if "data" in data and isinstance(data["data"], dict):
-            if self.anonymizer:
-                data["data"] = self.anonymizer.deanonymize(project_id, data["data"])
-            payload = data
-        else:
-            # Handle flat structure (similar to create_finding)
-            payload = {}
-            vulnerability_data = {}
-
-            # Define fields that stay at the top level
-            top_level_fields = ["status", "assignee", "language", "template", "order"]
-
-            for key, value in data.items():
-                if key in top_level_fields:
-                    payload[key] = value
-                else:
-                    vulnerability_data[key] = value
-
-            if self.anonymizer:
-                vulnerability_data = self.anonymizer.deanonymize(project_id, vulnerability_data)
-
-            payload["data"] = vulnerability_data
-
-        finding = self.reptor.api.projects.update_finding(finding_id, payload)
-        result = finding.to_dict()
-        if self.anonymizer:
-            result["data"] = self.anonymizer.anonymize(project_id, result["data"])
-        self._log(f"update_finding returning: {result}")
         return result
 
     def delete_finding(self, finding_id: str):
@@ -182,6 +166,69 @@ class McpLogic:
 
         self.reptor.api.projects.delete_finding(finding_id)
 
+    def patch_finding(
+        self, finding_id: str, field_name: str, field_value: Any
+    ) -> Dict[str, Any]:
+        """Patches a single field on a finding.
+
+        This method implements the MCP single-field update workflow:
+        1. Constructs a partial payload with only the specified field
+        2. Auto-nests data fields into a "data" object
+        3. Sends partial payload to API without fetching current finding
+        4. API validates, merges, and returns updated finding
+
+        Note: Field exclusion is NOT applied on write operations. The API
+        validates field types and ignores unknown fields per Decision 3.
+        API errors are propagated without modification per Decision 4.
+
+        Args:
+            finding_id: The ID of the finding to update.
+            field_name: The name of the field to update (e.g., "title", "status").
+            field_value: The new value for the field.
+
+        Returns:
+            Updated finding data from API response.
+
+        Raises:
+            ValueError: If no project is configured.
+            HTTPError: If the API returns an error (propagated without modification).
+        """
+        self._log(
+            f"patch_finding called for {finding_id}, field: {field_name}, value: {field_value}"
+        )
+
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+
+        # Field classification: top-level vs data fields (nested in "data")
+        top_level_fields = [
+            "status",
+            "assignee",
+            "language",
+            "template",
+            "order",
+        ]
+
+        # Construct partial payload based on field classification
+        if field_name in top_level_fields:
+            payload = {field_name: field_value}
+        else:
+            # Auto-nest data fields into "data" object
+            payload = {"data": {field_name: field_value}}
+
+        # Send partial payload to API (no fetching, no client-side validation)
+        finding = self.reptor.api.projects.update_finding(finding_id, payload)
+        result = finding.to_dict()
+
+        # Apply field exclusion to result for consistency
+        if self.field_excluder:
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"]
+            )
+
+        self._log(f"patch_finding returning: {result}")
+        return result
+
     def search_templates(self, query: str = "") -> List[Dict[str, Any]]:
         """Searches finding templates (summary).
 
@@ -192,12 +239,16 @@ class McpLogic:
         templates = self.reptor.api.templates.search(query)
         results = []
         for t in templates:
-            results.append({
-                "id": t.id,
-                "title": t.get_main_title(),
-                "source": t.source.value if hasattr(t.source, "value") else str(t.source),
-                "tags": t.tags
-            })
+            results.append(
+                {
+                    "id": t.id,
+                    "title": t.get_main_title(),
+                    "source": t.source.value
+                    if hasattr(t.source, "value")
+                    else str(t.source),
+                    "tags": t.tags,
+                }
+            )
         return results
 
     def get_template(self, template_id: str) -> Dict[str, Any]:
@@ -226,11 +277,15 @@ class McpLogic:
         self.reptor.api.projects.init_project(project_id)
 
         project = self.reptor.api.projects.project
-        design = self.reptor.api.project_designs.fetch_project_design(project.project_type)
+        design = self.reptor.api.project_designs.fetch_project_design(
+            project.project_type
+        )
 
         def simplify_field(field) -> Dict[str, Any]:
             """Convert a ProjectDesignField to a simplified dict."""
-            field_type = field.type.value if hasattr(field.type, 'value') else str(field.type)
+            field_type = (
+                field.type.value if hasattr(field.type, "value") else str(field.type)
+            )
             field_info: Dict[str, Any] = {
                 "id": field.id,
                 "type": field_type,
@@ -239,10 +294,12 @@ class McpLogic:
             }
             # Include choices for enum fields
             if field_type == "enum" and field.choices:
-                field_info["choices"] = [c.get("value") for c in field.choices if c.get("value")]
+                field_info["choices"] = [
+                    c.get("value") for c in field.choices if c.get("value")
+                ]
             # Include items for list fields (recursively simplify if it's a ProjectDesignField)
             if field_type == "list" and field.items:
-                if hasattr(field.items, 'id'):
+                if hasattr(field.items, "id"):
                     field_info["items"] = simplify_field(field.items)
                 else:
                     field_info["items"] = field.items
@@ -254,5 +311,5 @@ class McpLogic:
         return {
             "project_id": project_id,
             "project_type": project.project_type,
-            "finding_fields": [simplify_field(f) for f in design.finding_fields]
+            "finding_fields": [simplify_field(f) for f in design.finding_fields],
         }
