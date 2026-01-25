@@ -50,7 +50,7 @@ You can use it to:
 #### Optional dependencies
 * translate (requires deepl)
 * ghostwriter (requires gql)
-* mcp (requires mcp, Faker)
+* mcp (requires mcp)
 * dev (requires pytest)
 
 Install by `pip3 install reptor[translate]`.  
@@ -158,7 +158,7 @@ Most MCP-compatible AI tools and agents (e.g., Claude Desktop, Cursor, IDE exten
   "mcpServers": {
     "reptor": {
       "command": "reptor",
-      "args": ["mcp", "--anonymize"]
+      "args": ["mcp", "--remove-fields=affected_components"]
     }
   }
 }
@@ -169,7 +169,7 @@ Most MCP-compatible AI tools and agents (e.g., Claude Desktop, Cursor, IDE exten
 To add the server to `gemini-cli`, use the `mcp add` command:
 
 ```bash
-gemini mcp add reptor reptor mcp --anonymize
+gemini mcp add reptor reptor mcp --remove-fields=affected_components
 ```
 
 ### Setup for Claude Code
@@ -177,17 +177,32 @@ gemini mcp add reptor reptor mcp --anonymize
 Run the following command:
 
 ```bash
-claude mcp add reptor -- reptor mcp --anonymize
+claude mcp add reptor -- reptor mcp --remove-fields=affected_components
 ```
 
-### Anonymization
+### Field Removal
 
-The `--anonymize` flag ensures that sensitive data like IP addresses or hostnames in "Affected Components" are anonymized before being sent to the LLM. Reptor handles the re-mapping transparently when the LLM sends data back to create or update findings.
+The `--remove-fields` flag allows you to exclude specific fields from findings before they are sent to the LLM. This is useful for preventing sensitive data from being exposed to AI agents.
 
-#### Anonymization Scope
+#### Usage
 
-**Important:** The `--anonymize` flag only masks data in the `affected_components` field. Other fields such as `description`, `recommendation`, and custom text fields are sent to the LLM as-is.
+Specify fields to remove as a comma-separated list:
 
-**Best practice:** When using anonymization mode, avoid including sensitive hostnames, IP addresses, or infrastructure details in free-text fields. Use the `affected_components` list for infrastructure references, which will be automatically anonymized.
+```bash
+reptor mcp --remove-fields=affected_components,internal_notes
+```
 
-**How it works:** Each affected component is replaced with a deterministic hash (e.g., `192.168.1.5` becomes `REDACTED_abc12345`). The mapping is maintained in memory, allowing Reptor to restore original values when the LLM creates or updates findings.
+#### Common Field Names
+
+- `affected_components`: Lists affected hosts, IPs, URLs
+- `internal_notes`: Internal notes not meant for LLM consumption
+- `evidence`: File attachments and evidence data
+- `recommendation`: Remediation steps (optional)
+
+#### Field Removal Scope
+
+**Important:** The `--remove-fields` flag only removes the specified fields from data sent to the LLM. Fields are completely excluded, not masked.
+
+**Best practice:** Only remove fields that contain truly sensitive information (e.g., `affected_components` with internal IP addresses). Be selective to ensure the LLM has enough context to provide meaningful assistance.
+
+**How it works:** When a tool or resource returns data, the FieldExcluder removes the specified fields from the data structure before sending it to the LLM. On write operations (create/update), the LLM's data is sent directly without restoration, since the excluded fields are not part of the conversation context.

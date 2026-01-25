@@ -14,10 +14,11 @@ def mock_reptor():
 
 
 @pytest.fixture
-def anonymizer():
-    """Fresh Anonymizer instance for each test."""
-    from reptor.plugins.core.Mcp.Anonymizer import Anonymizer
-    return Anonymizer()
+def field_excluder():
+    """Fresh FieldExcluder instance for each test."""
+    from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
+
+    return FieldExcluder(exclude_fields=["affected_components"])
 
 
 @pytest.fixture
@@ -36,8 +37,8 @@ def sample_finding_data():
             "title": "SQL Injection",
             "severity": "high",
             "cvss": "8.8",
-            "affected_components": ["192.168.1.5"]
-        }
+            "affected_components": ["192.168.1.5"],
+        },
     }
 
 
@@ -85,7 +86,7 @@ def sample_project_design():
         {"value": "low", "label": "Low"},
         {"value": "medium", "label": "Medium"},
         {"value": "high", "label": "High"},
-        {"value": "critical", "label": "Critical"}
+        {"value": "critical", "label": "Critical"},
     ]
     mock_severity_field.items = None
     mock_severity_field.properties = None
@@ -100,5 +101,9 @@ def sample_project_design():
     mock_description_field.items = None
     mock_description_field.properties = None
 
-    mock_design.finding_fields = [mock_title_field, mock_severity_field, mock_description_field]
+    mock_design.finding_fields = [
+        mock_title_field,
+        mock_severity_field,
+        mock_description_field,
+    ]
     return mock_design

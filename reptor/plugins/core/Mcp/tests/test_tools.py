@@ -8,119 +8,120 @@ class TestMCPFindingCRUD:
     """Tests for Finding CRUD operations."""
 
     # ===== CREATE TESTS =====
-    def test_create_finding_tool_deanonymized(self, mock_reptor, anonymizer):
-        logic = McpLogic(reptor_instance=mock_reptor, anonymizer=anonymizer)
+    def test_create_finding_tool_field_exclusion(self, mock_reptor, field_excluder):
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
 
-        # We need to populate the anonymizer map so it knows how to de-anonymize
-        # Use the same project_id that get_active_project_id returns
         project_id = "test-project-id"
-        anon_result = anonymizer.anonymize(project_id, {"affected_components": ["1.1.1.1"]})
-        mock_component = anon_result["affected_components"][0]  # Get the actual hash
 
-        # Tool input from LLM (using the anonymized component)
-        tool_input = {"title": "SQLi", "affected_components": [mock_component]}
+        # Tool input from LLM (includes excluded field)
+        tool_input = {
+            "title": "SQLi",
+            "affected_components": ["1.1.1.1"],
+            "cvss": "8.8",
+        }
 
         # Mock the return value of create_finding
-        mock_reptor.api.projects.create_finding.return_value = FindingRaw({
-            "id": "f1",
-            "data": {
-                "title": "SQLi",
-                "affected_components": ["1.1.1.1"]
+        mock_reptor.api.projects.create_finding.return_value = FindingRaw(
+            {
+                "id": "f1",
+                "data": {
+                    "title": "SQLi",
+                    "cvss": "8.8",
+                    "affected_components": ["1.1.1.1"],
+                },
             }
-        })
+        )
 
         result = logic.create_finding(tool_input)
 
+        # Verify excluded fields are removed before sending to API
         expected_data = {
             "data": {
                 "title": "SQLi",
-                "affected_components": ["1.1.1.1"]
+                "cvss": "8.8",
+                # affected_components should be excluded
             }
         }
         mock_reptor.api.projects.init_project.assert_called_with(project_id)
         mock_reptor.api.projects.create_finding.assert_called_once_with(expected_data)
-        
-        # Verify returned result is anonymized
-        assert result["data"]["affected_components"][0].startswith("REDACTED_")
-        assert result["data"]["affected_components"][0] == mock_component
+
+        # Verify returned result has field exclusion applied
+        assert "affected_components" not in result["data"]
+        assert result["data"]["title"] == "SQLi"
+        assert result["data"]["cvss"] == "8.8"
 
     # ===== READ TESTS =====
-    def test_get_finding_tool_anonymized(self, mock_reptor, anonymizer):
-        """Test that get_finding returns anonymized data."""
-        logic = McpLogic(reptor_instance=mock_reptor, anonymizer=anonymizer)
+    def test_list_findings_field_exclusion(self, mock_reptor):
+        """Test that list_findings returns summaries with excluded fields removed."""
+        # Create a field_excluder that excludes cvss (which IS in the summary)
+        from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 
-        # Mock Finding
+        field_excluder = FieldExcluder(exclude_fields=["cvss"])
+
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Create mock FindingRaw objects with title and cvss (fields that appear in summary)
+        mock_finding1 = MagicMock()
+        mock_finding1.id = "f1"
+        mock_finding1.status = "in-progress"
+        mock_finding1.data.title = "SQL Injection"
+        mock_finding1.data.cvss = "8.8"
+
+        mock_finding2 = MagicMock()
+        mock_finding2.id = "f2"
+        mock_finding2.status = "completed"
+        mock_finding2.data.title = "XSS"
+        mock_finding2.data.cvss = "7.5"
+
+        mock_reptor.api.projects.get_findings.return_value = [
+            mock_finding1,
+            mock_finding2,
+        ]
+
+        results = logic.list_findings()
+
+        # Verify both findings are returned but cvss is excluded
+        assert len(results) == 2
+        # Verify excluded field is removed
+        assert "cvss" not in results[0], (
+            "Excluded field 'cvss' should not be in summary"
+        )
+        assert "cvss" not in results[1], (
+            "Excluded field 'cvss' should not be in summary"
+        )
+        # Verify other fields are still present
+        assert results[0]["id"] == "f1"
+        assert results[0]["title"] == "SQL Injection"
+        assert results[0]["status"] == "in-progress"
+        assert results[1]["id"] == "f2"
+        assert results[1]["title"] == "XSS"
+        assert results[1]["status"] == "completed"
+        mock_reptor.api.projects.init_project.assert_called_with("test-project-id")
+        mock_reptor.api.projects.get_findings.assert_called_once()
+
+    def test_get_finding_tool_field_exclusion(self, mock_reptor, field_excluder):
+        """Test that get_finding returns data with excluded fields removed."""
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Mock Finding with excluded field
         finding_data = {
             "id": "f1",
             "data": {
                 "title": "SQLi",
-                "affected_components": ["1.1.1.1"]
-            }
+                "affected_components": ["1.1.1.1"],
+                "cvss": "8.8",
+            },
         }
         mock_reptor.api.projects.get_finding.return_value = FindingRaw(finding_data)
 
         finding = logic.get_finding("f1")
 
-        anon_component = finding["data"]["affected_components"][0]
-        assert anon_component.startswith("REDACTED_")
-        assert anon_component != "1.1.1.1"
+        # Verify excluded field is removed
+        assert "affected_components" not in finding["data"]
+        assert finding["data"]["title"] == "SQLi"
+        assert finding["data"]["cvss"] == "8.8"
         mock_reptor.api.projects.init_project.assert_called_with("test-project-id")
         mock_reptor.api.projects.get_finding.assert_called_once_with("f1")
-
-    # ===== UPDATE TESTS =====
-    def test_update_finding_tool_nested_deanonymization(self, mock_reptor, anonymizer):
-        """
-        Test that update_finding correctly de-anonymizes data,
-        even if the input is nested in a 'data' key (as returned by get_finding).
-        """
-        logic = McpLogic(reptor_instance=mock_reptor, anonymizer=anonymizer)
-        project_id = "test-project-id"
-
-        # 1. Pre-calculate the redacted value for 1.1.1.1
-        # We can do this by anonymizing it first
-        original_data = {"affected_components": ["1.1.1.1"]}
-        anonymized_result = anonymizer.anonymize(project_id, original_data)
-        redacted_ip = anonymized_result["affected_components"][0]
-
-        # 2. Simulate input from an Agent that got this data from get_finding
-        # The agent might send back the whole structure including 'data' wrapper
-        input_data = {
-            "data": {
-                "title": "Updated Title",
-                "affected_components": [redacted_ip]
-            }
-        }
-
-        # Mock the return value of update_finding
-        mock_reptor.api.projects.update_finding.return_value = FindingRaw({
-            "id": "f1",
-            "data": {"title": "Updated Title", "affected_components": ["1.1.1.1"]}
-        })
-
-        result = logic.update_finding("f1", input_data)
-
-        # Check what was passed to the API client
-        call_args = mock_reptor.api.projects.update_finding.call_args
-        assert call_args is not None
-        _, kwargs = call_args
-        # If passed as positional args:
-        if not kwargs:
-             args = call_args[0]
-             passed_data = args[1]
-        else:
-             passed_data = kwargs['data']
-
-        components = []
-        if "data" in passed_data and "affected_components" in passed_data["data"]:
-            components = passed_data["data"]["affected_components"]
-        elif "affected_components" in passed_data:
-            components = passed_data["affected_components"]
-
-        assert "1.1.1.1" in components, f"Expected '1.1.1.1' in components, got {components}"
-        assert redacted_ip not in components, "Redacted value was sent to API!"
-        
-        # Verify returned result is anonymized
-        assert result["data"]["affected_components"][0] == redacted_ip
 
     # ===== DELETE TESTS =====
     def test_delete_finding_tool(self, mock_reptor):
@@ -171,7 +172,9 @@ class TestMCPSchemaDiscovery:
         mock_project.project_type = "design-123"
         mock_reptor.api.projects.project = mock_project
 
-        mock_reptor.api.project_designs.fetch_project_design.return_value = sample_project_design
+        mock_reptor.api.project_designs.fetch_project_design.return_value = (
+            sample_project_design
+        )
 
         result = logic.get_finding_schema()
 
@@ -192,7 +195,13 @@ class TestMCPSchemaDiscovery:
         assert severity_field["id"] == "severity"
         assert severity_field["type"] == "enum"
         assert severity_field["required"] is True
-        assert severity_field["choices"] == ["info", "low", "medium", "high", "critical"]
+        assert severity_field["choices"] == [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical",
+        ]
 
         # Check description field
         desc_field = result["finding_fields"][2]
@@ -202,7 +211,9 @@ class TestMCPSchemaDiscovery:
 
         # Verify API calls
         mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
-        mock_reptor.api.project_designs.fetch_project_design.assert_called_once_with("design-123")
+        mock_reptor.api.project_designs.fetch_project_design.assert_called_once_with(
+            "design-123"
+        )
 
 
 class TestMCPErrorHandling:
@@ -265,7 +276,9 @@ class TestMCPErrorHandling:
         from requests.exceptions import Timeout
 
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.projects.get_findings.side_effect = Timeout("Connection timeout")
+        mock_reptor.api.projects.get_findings.side_effect = Timeout(
+            "Connection timeout"
+        )
 
         with pytest.raises(Timeout):
             logic.list_findings()
@@ -275,7 +288,9 @@ class TestMCPErrorHandling:
         from requests.exceptions import ConnectionError
 
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.templates.search.side_effect = ConnectionError("Failed to connect")
+        mock_reptor.api.templates.search.side_effect = ConnectionError(
+            "Failed to connect"
+        )
 
         with pytest.raises(ConnectionError):
             logic.search_templates("test")
@@ -287,27 +302,22 @@ class TestMCPErrorHandling:
 
         logic = McpLogic(reptor_instance=mock_reptor)
         # API would typically reject this
-        mock_reptor.api.projects.create_finding.side_effect = HTTPError("400 Bad Request: title is required")
+        mock_reptor.api.projects.create_finding.side_effect = HTTPError(
+            "400 Bad Request: title is required"
+        )
 
         with pytest.raises(HTTPError, match="title is required"):
             logic.create_finding({"description": "Test without title"})
 
-    def test_update_finding_invalid_id(self, mock_reptor):
-        """Test updating finding with invalid ID format."""
-        from requests.exceptions import HTTPError
-
-        logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.projects.update_finding.side_effect = HTTPError("400 Bad Request: Invalid ID")
-
-        with pytest.raises(HTTPError, match="Invalid ID"):
-            logic.update_finding("invalid@id!", {"title": "Test"})
 
     def test_create_finding_invalid_severity(self, mock_reptor):
         """Test creating finding with invalid severity value."""
         from requests.exceptions import HTTPError
 
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.projects.create_finding.side_effect = HTTPError("400 Bad Request: Invalid severity")
+        mock_reptor.api.projects.create_finding.side_effect = HTTPError(
+            "400 Bad Request: Invalid severity"
+        )
 
         with pytest.raises(HTTPError, match="Invalid severity"):
             logic.create_finding({"title": "Test", "severity": "super-ultra-critical"})
@@ -349,34 +359,420 @@ class TestMCPErrorHandling:
         with pytest.raises(HTTPError):
             logic.get_template("nonexistent-template-id")
 
-    # ===== ANONYMIZATION EDGE CASES =====
-    def test_anonymize_with_none_anonymizer(self, mock_reptor, sample_finding_raw):
-        """Test that operations work correctly when anonymizer is None."""
-        logic = McpLogic(reptor_instance=mock_reptor, anonymizer=None)
+    # ===== FIELD EXCLUSION EDGE CASES =====
+    def test_field_exclusion_with_none_excluder(self, mock_reptor, sample_finding_raw):
+        """Test that operations work correctly when field_excluder is None."""
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=None)
         mock_reptor.api.projects.get_finding.return_value = sample_finding_raw
 
         result = logic.get_finding("f1")
-        # Should return data as-is without anonymization
+        # Should return data as-is without field exclusion
         assert result["data"]["affected_components"] == ["192.168.1.5"]
 
-    def test_deanonymize_unknown_redacted_value(self, mock_reptor, anonymizer):
-        """Test de-anonymization with unknown REDACTED value."""
-        logic = McpLogic(reptor_instance=mock_reptor, anonymizer=anonymizer)
+    def test_field_exclusion_excludes_on_write(self, mock_reptor, field_excluder):
+        """Test that excluded fields are removed from write operations."""
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
 
-        # Try to create finding with REDACTED value that wasn't previously anonymized
-        # According to anonymizer logic, unknown values pass through
-        mock_reptor.api.projects.create_finding.return_value = FindingRaw({
-            "id": "f1",
-            "data": {"title": "Test", "affected_components": ["REDACTED_unknown"]}
-        })
+        # Try to create finding with excluded field
+        mock_reptor.api.projects.create_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "cvss": "5.0"}}
+        )
 
-        result = logic.create_finding({
-            "title": "Test",
-            "affected_components": ["REDACTED_unknown"]
-        })
+        result = logic.create_finding(
+            {
+                "title": "Test",
+                "affected_components": ["1.1.1.1"],  # This should be excluded
+                "cvss": "5.0",
+            }
+        )
 
-        # Verify the API was called (de-anonymization doesn't fail on unknown tokens)
+        # Verify the API was called without excluded field
         assert mock_reptor.api.projects.create_finding.called
-        # The result is now anonymized, so REDACTED_unknown becomes another REDACTED_ value
-        assert result["data"]["affected_components"][0].startswith("REDACTED_")
-        assert result["data"]["affected_components"][0] != "REDACTED_unknown"
+        call_args = mock_reptor.api.projects.create_finding.call_args[0][0]
+        assert "affected_components" not in call_args["data"], (
+            "Excluded field should not be sent to API"
+        )
+        assert call_args["data"]["title"] == "Test"
+        assert call_args["data"]["cvss"] == "5.0"
+
+        # Verify result also has field exclusion applied
+        assert "affected_components" not in result["data"]
+        assert result["data"]["title"] == "Test"
+        assert result["data"]["cvss"] == "5.0"
+
+
+class TestMCPFindingPartialUpdate:
+    """Tests for single-field partial update logic."""
+
+    # ===== TOP-LEVEL FIELD UPDATES =====
+    def test_update_finding_field_status(self, mock_reptor):
+        """Test updating a top-level field (status)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Mock API response
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {
+                "id": "f1",
+                "status": "in-progress",
+                "data": {"title": "SQL Injection"},
+            }
+        )
+
+        result = logic.patch_finding("f1", "status", "in-progress")
+
+        # Verify partial payload was sent to API
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[0] == "f1"
+        assert call_args[1] == {"status": "in-progress"}
+
+        # Verify API was initialized
+        mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
+
+        # Verify result
+        assert result["status"] == "in-progress"
+
+    def test_update_finding_field_assignee(self, mock_reptor):
+        """Test updating assignee field (top-level)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "assignee": "user1", "data": {"title": "Test"}}
+        )
+
+        result = logic.patch_finding("f1", "assignee", "user1")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"assignee": "user1"}
+        assert result["assignee"] == "user1"
+
+    def test_update_finding_field_language(self, mock_reptor):
+        """Test updating language field (top-level)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "language": "en-US", "data": {"title": "Test"}}
+        )
+
+        result = logic.patch_finding("f1", "language", "en-US")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"language": "en-US"}
+        assert result["language"] == "en-US"
+
+    def test_update_finding_field_template(self, mock_reptor):
+        """Test updating template field (top-level)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "template": "tpl1", "data": {"title": "Test"}}
+        )
+
+        result = logic.patch_finding("f1", "template", "tpl1")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"template": "tpl1"}
+        assert result["template"] == "tpl1"
+
+    def test_update_finding_field_order(self, mock_reptor):
+        """Test updating order field (top-level)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "order": 5, "data": {"title": "Test"}}
+        )
+
+        result = logic.patch_finding("f1", "order", 5)
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"order": 5}
+        assert result["order"] == 5
+
+    # ===== DATA FIELD UPDATES (NESTED) =====
+    def test_update_finding_field_title(self, mock_reptor):
+        """Test updating title field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "New Title", "severity": "high"}}
+        )
+
+        result = logic.patch_finding("f1", "title", "New Title")
+
+        # Verify partial payload with data nesting
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"title": "New Title"}}
+        assert result["data"]["title"] == "New Title"
+
+    def test_update_finding_field_cvss(self, mock_reptor):
+        """Test updating cvss field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "cvss": "9.5"}}
+        )
+
+        result = logic.patch_finding("f1", "cvss", "9.5")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"cvss": "9.5"}}
+        assert result["data"]["cvss"] == "9.5"
+
+    def test_update_finding_field_severity(self, mock_reptor):
+        """Test updating severity field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "severity": "critical"}}
+        )
+
+        result = logic.patch_finding("f1", "severity", "critical")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"severity": "critical"}}
+        assert result["data"]["severity"] == "critical"
+
+    def test_update_finding_field_description(self, mock_reptor):
+        """Test updating description field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "description": "Detailed desc"}}
+        )
+
+        result = logic.patch_finding("f1", "description", "Detailed desc")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"description": "Detailed desc"}}
+        assert result["data"]["description"] == "Detailed desc"
+
+    def test_update_finding_field_summary(self, mock_reptor):
+        """Test updating summary field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "summary": "Brief summary"}}
+        )
+
+        result = logic.patch_finding("f1", "summary", "Brief summary")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"summary": "Brief summary"}}
+        assert result["data"]["summary"] == "Brief summary"
+
+    def test_update_finding_field_affected_components(self, mock_reptor):
+        """Test updating affected_components field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "affected_components": ["1.1.1.1"]}}
+        )
+
+        result = logic.patch_finding("f1", "affected_components", ["1.1.1.1"])
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"affected_components": ["1.1.1.1"]}}
+        assert result["data"]["affected_components"] == ["1.1.1.1"]
+
+    def test_update_finding_field_precondition(self, mock_reptor):
+        """Test updating precondition field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {
+                "id": "f1",
+                "data": {"title": "Test", "precondition": "Pre-condition text"},
+            }
+        )
+
+        result = logic.patch_finding("f1", "precondition", "Pre-condition text")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"precondition": "Pre-condition text"}}
+        assert result["data"]["precondition"] == "Pre-condition text"
+
+    def test_update_finding_field_impact(self, mock_reptor):
+        """Test updating impact field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "impact": "High impact"}}
+        )
+
+        result = logic.patch_finding("f1", "impact", "High impact")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"impact": "High impact"}}
+        assert result["data"]["impact"] == "High impact"
+
+    def test_update_finding_field_recommendation(self, mock_reptor):
+        """Test updating recommendation field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "recommendation": "Fix it"}}
+        )
+
+        result = logic.patch_finding("f1", "recommendation", "Fix it")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"recommendation": "Fix it"}}
+        assert result["data"]["recommendation"] == "Fix it"
+
+    def test_update_finding_field_short_recommendation(self, mock_reptor):
+        """Test updating short_recommendation field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "short_recommendation": "Fix"}}
+        )
+
+        result = logic.patch_finding("f1", "short_recommendation", "Fix")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"short_recommendation": "Fix"}}
+        assert result["data"]["short_recommendation"] == "Fix"
+
+    def test_update_finding_field_references(self, mock_reptor):
+        """Test updating references field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {
+                "id": "f1",
+                "data": {"title": "Test", "references": ["https://example.com"]},
+            }
+        )
+
+        result = logic.patch_finding("f1", "references", ["https://example.com"])
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"references": ["https://example.com"]}}
+        assert result["data"]["references"] == ["https://example.com"]
+
+    def test_update_finding_field_owasp_top10_2021(self, mock_reptor):
+        """Test updating owasp_top10_2021 field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "owasp_top10_2021": "A01"}}
+        )
+
+        result = logic.patch_finding("f1", "owasp_top10_2021", "A01")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"owasp_top10_2021": "A01"}}
+        assert result["data"]["owasp_top10_2021"] == "A01"
+
+    def test_update_finding_field_wstg_category(self, mock_reptor):
+        """Test updating wstg_category field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "wstg_category": "INFO-005"}}
+        )
+
+        result = logic.patch_finding("f1", "wstg_category", "INFO-005")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"wstg_category": "INFO-005"}}
+        assert result["data"]["wstg_category"] == "INFO-005"
+
+    def test_update_finding_field_retest_notes(self, mock_reptor):
+        """Test updating retest_notes field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "retest_notes": "Retest notes"}}
+        )
+
+        result = logic.patch_finding("f1", "retest_notes", "Retest notes")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"retest_notes": "Retest notes"}}
+        assert result["data"]["retest_notes"] == "Retest notes"
+
+    def test_update_finding_field_retest_status(self, mock_reptor):
+        """Test updating retest_status field (nested in data)."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "retest_status": "passed"}}
+        )
+
+        result = logic.patch_finding("f1", "retest_status", "passed")
+
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"retest_status": "passed"}}
+        assert result["data"]["retest_status"] == "passed"
+
+    # ===== ERROR HANDLING =====
+    def test_update_finding_field_api_error_propagation(self, mock_reptor):
+        """Test that API errors are propagated without modification (Decision 4)."""
+        from requests.exceptions import HTTPError
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Mock API error
+        mock_reptor.api.projects.update_finding.side_effect = HTTPError(
+            "404 Not Found: Finding not found"
+        )
+
+        # Verify error is propagated as-is
+        with pytest.raises(HTTPError, match="404 Not Found"):
+            logic.patch_finding("nonexistent-id", "title", "New Title")
+
+    def test_update_finding_field_no_project_error(self):
+        """Test error when no project is configured."""
+        mock_reptor = MagicMock()
+        mock_reptor.get_active_project_id.return_value = ""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        with pytest.raises(ValueError, match="No project configured"):
+            logic.patch_finding("f1", "title", "Test")
+
+    # ===== FIELD EXCLUSION =====
+    def test_update_finding_field_with_exclusion(self, mock_reptor, field_excluder):
+        """Test that excluded fields are removed from result when field_excluder is set."""
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Update title (not excluded)
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {
+                "id": "f1",
+                "data": {
+                    "title": "New Title",
+                    "affected_components": ["1.1.1.1"],  # Excluded field
+                },
+            }
+        )
+
+        result = logic.patch_finding("f1", "title", "New Title")
+
+        # Verify payload only contains the field being updated
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"title": "New Title"}}
+
+        # Verify result has field exclusion applied
+        assert result["data"]["title"] == "New Title"
+        assert "affected_components" not in result["data"]
+
+    def test_update_finding_field_excluded_field_write(
+        self, mock_reptor, field_excluder
+    ):
+        """Test that trying to update an excluded field still sends it to API (no validation)."""
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Mock API accepts the update (API handles exclusion)
+        mock_reptor.api.projects.update_finding.return_value = FindingRaw(
+            {"id": "f1", "data": {"title": "Test", "affected_components": ["1.1.1.1"]}}
+        )
+
+        # Try to update an excluded field
+        result = logic.patch_finding("f1", "affected_components", ["1.1.1.1"])
+
+        # Verify excluded field is sent to API (no client-side validation)
+        call_args = mock_reptor.api.projects.update_finding.call_args[0]
+        assert call_args[1] == {"data": {"affected_components": ["1.1.1.1"]}}
+
+        # Verify result has field exclusion applied
+        assert "affected_components" not in result["data"]
