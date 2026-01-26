@@ -24,40 +24,42 @@ class MCPServer:
 
         instructions = (
             "Reptor MCP Server for SysReptor automation.\n\n"
+            "⚠️ **CRITICAL: ALWAYS CHECK SCHEMA FIRST** ⚠️\n"
+            "Before ANY create_finding or patch_finding call, you MUST call get_finding_schema() first.\n"
+            "Field names, types, and constraints vary by project. Never assume or guess - always check.\n"
+            "Skipping this step WILL result in errors. NO EXCEPTIONS.\n\n"
+            "---\n\n"
             "This server allows AI agents to manage penetration testing projects and findings in SysReptor.\n\n"
             "**Project Context:**\n"
             "This server operates on the pre-configured project. The project is set via:\n"
             "- `reptor conf` command\n"
             "- Environment variable `REPTOR_PROJECT_ID`\n"
             "- CLI flag `--project-id`\n\n"
-            "Key workflows:\n"
-            "1. Findings: Use 'get_finding_schema' to discover fields, 'list_findings' or 'get_finding' to review, 'create_finding' or 'patch_finding' to manage.\n"
-            "2. Templates: Use 'search_templates' to find templates and 'get_template' to see full details.\n\n"
-            "**Finding Field Schema Discovery Workflow**\n"
-            "Finding fields vary by project design. Before creating or updating findings:\n"
-            "1. You MUST call `get_finding_schema()` to get the field schema for the current project\n"
-            "2. Review the returned `finding_fields` array for available fields, types, and requirements\n"
-            "3. Construct your data matching the schema exactly\n\n"
-            "**Creating Findings**\n"
-            "1. Call `get_finding_schema()` to understand available fields (MANDATORY)\n"
-            "2. Build data dict with required fields (at minimum: title)\n"
-            "3. Call `create_finding(data)`\n\n"
-            "**Updating Findings (Single-Field Workflow)**\n"
-            "This server uses a single-field update workflow. You must update one field at a time.\n\n"
-            "Example workflow to update a finding:\n"
-            "1. Call `get_finding_schema()` to understand field types, allowed values, and formatting requirements (MANDATORY)\n"
-            "2. Identify the field name from the schema (e.g., 'title', 'status', 'cvss')\n"
-            "3. Construct the appropriate field_value based on the schema type:\n"
-            "   - string: Plain text value\n"
-            "   - markdown: Formatted text (use CommonMark, single backslash for newlines)\n"
-            "   - enum: Value must match one of the choices in the schema\n"
-            "   - object: Dictionary matching the properties in the schema\n"
-            "   - list: Array of items matching the items definition in the schema\n"
-            "4. Call `patch_finding(finding_id, field_name, field_value)` for the specific field\n"
-            "5. Review the returned finding object to verify the field was updated correctly\n\n"
-            "**Field Formats & Markdown:**\n"
-            "1. All data MUST match the types and constraints in the schema (e.g., valid CVSS strings, specific enum values).\n"
-            "2. For 'markdown' fields: Follow CommonMark standards. Always precede lists with a blank line and ensure newlines are not double-escaped (use \\n, not \\\\n)."
+            "**Key Workflows:**\n"
+            "1. Findings: get_finding_schema → list_findings/get_finding → create_finding/patch_finding\n"
+            "2. Templates: search_templates → get_template\n\n"
+            "**Creating Findings (MANDATORY 3-Step Process)**\n"
+            "1. Call get_finding_schema() to discover available fields, types, and requirements\n"
+            "2. Build data dict with required fields (at minimum: title), matching schema exactly\n"
+            "3. Call create_finding(data)\n\n"
+            "**Updating Findings (MANDATORY Single-Field Workflow)**\n"
+            "This server updates ONE field at a time:\n"
+            "1. Call get_finding_schema() to understand field types and allowed values\n"
+            "2. Identify the exact field name from schema (e.g., 'title', 'status', 'cvss')\n"
+            "3. Construct field_value matching the schema type:\n"
+            "   • string: Plain text\n"
+            "   • markdown: CommonMark formatted text (use \\n for newlines, precede lists with blank line)\n"
+            "   • enum: Must match one of the 'choices' from schema\n"
+            "   • object: Dict matching 'properties' from schema\n"
+            "   • list: Array matching 'items' definition from schema\n"
+            "4. Call patch_finding(finding_id, field_name, field_value)\n"
+            "5. Verify the field was updated in the returned object\n\n"
+            "**Common Mistakes to Avoid:**\n"
+            "❌ Calling create_finding/patch_finding without checking schema first\n"
+            "❌ Assuming field names (they vary: 'description' vs 'summary', 'severity' vs 'cvss')\n"
+            "❌ Guessing field types or enum values\n"
+            "❌ Double-escaping markdown newlines (\\\\n instead of \\n)\n"
+            "✅ Always: get_finding_schema() → review fields → construct data → call create/patch"
         )
 
         self.mcp = FastMCP(name, instructions=instructions)
@@ -100,6 +102,9 @@ class MCPServer:
         def create_finding(data: Dict[str, Any]) -> Dict[str, Any]:
             """Creates a new finding in SysReptor.
 
+            ⚠️ WARNING: You MUST call get_finding_schema() BEFORE using this tool.
+            Field names and types vary by project. Guessing will cause errors.
+
             **Mandatory workflow:**
             1. Call `get_finding_schema()` to understand available fields
             2. Build data dict with required fields (at minimum: title)
@@ -118,6 +123,9 @@ class MCPServer:
             finding_id: str, field_name: str, field_value: Any
         ) -> Dict[str, Any]:
             """Updates a single field on an existing finding in SysReptor.
+
+            ⚠️ WARNING: You MUST call get_finding_schema() BEFORE using this tool.
+            Field names, types, and allowed values vary by project. Guessing WILL fail.
 
             **Mandatory workflow:**
             1. Call `get_finding_schema()` to understand field types, allowed values, and formatting requirements
