@@ -62,15 +62,19 @@ class Mcp(Base):
         if self.mcp_debug:
             import logging
 
-            logger = logging.getLogger("[MCP - Reptor]")
-            logger.setLevel(logging.DEBUG)
-            fh = logging.FileHandler(self.mcp_debug)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-            fh.setFormatter(formatter)
-            logger.addHandler(fh)
-            logger.propagate = False
+            try:
+                logger = logging.getLogger("[MCP - Reptor]")
+                logger.setLevel(logging.DEBUG)
+                fh = logging.FileHandler(self.mcp_debug)
+                formatter = logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+                fh.setFormatter(formatter)
+                logger.addHandler(fh)
+                logger.propagate = False
+            except Exception as e:
+                self.error(f"Failed to initialize MCP debug logger at '{self.mcp_debug}': {e}")
+                logger = None
 
         return logger
 
