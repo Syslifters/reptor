@@ -55,11 +55,10 @@ class MCPServer:
             "4. Call patch_finding(finding_id, field_name, field_value)\n"
             "5. Verify the field was updated in the returned object\n\n"
             "**Common Mistakes to Avoid:**\n"
-            "❌ Calling create_finding/patch_finding without checking schema first\n"
-            "❌ Assuming field names (they vary: 'description' vs 'summary', 'severity' vs 'cvss')\n"
-            "❌ Guessing field types or enum values\n"
-            "❌ Double-escaping markdown newlines (\\\\n instead of \\n)\n"
-            "✅ Always: get_finding_schema() → review fields → construct data → call create/patch"
+            "- Calling create_finding/patch_finding without checking schema first\n"
+            "- Assuming field names (they vary: 'description' vs 'summary', 'severity' vs 'cvss')\n"
+            "- Guessing field types or enum values\n"
+            "- Double-escaping markdown newlines (\\\\n instead of \\n)\n"
         )
 
         self.mcp = FastMCP(name, instructions=instructions)
@@ -124,7 +123,7 @@ class MCPServer:
         ) -> Dict[str, Any]:
             """Updates a single field on an existing finding in SysReptor.
 
-            ⚠️ WARNING: You MUST call get_finding_schema() BEFORE using this tool.
+            WARNING: You MUST call get_finding_schema() BEFORE using this tool.
             Field names, types, and allowed values vary by project. Guessing WILL fail.
 
             **Mandatory workflow:**
