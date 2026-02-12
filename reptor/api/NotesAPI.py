@@ -289,7 +289,7 @@ class NotesAPI(APIClient):
         parent_title: typing.Optional[str] = None,
         **kwargs,
     ):
-        """Uploads a file to a note.
+        """Uploads a file and append to note.
 
         Args:
             file (typing.IO, optional): File object to upload
@@ -319,6 +319,56 @@ class NotesAPI(APIClient):
             )
             ```
         """
+        # Upload the file
+        upload_result = self._upload_file(
+            file=file,
+            content=content,
+            filename=filename,
+        )
+        
+        if upload_result is None:
+            return
+        
+        filename = upload_result["filename"]
+        filepath = upload_result["filepath"]
+        response_json = upload_result["response"]
+        
+        # Prepare note content
+        if not note_id:
+            note_id = self.get_or_create_note_by_title(
+                note_title or "Uploads", parent_title=parent_title
+            ).id
+        
+        is_image = True if response_json.get("resource_type") == "image" else False
+        if is_image:
+            markdown_link = f"\n![{caption or filename}]({filepath})"
+        else:
+            markdown_link = f"\n[{caption or filename}]({filepath})"
+
+        # Write to note
+        self.write_note(
+            id=note_id,
+            text=markdown_link,
+            **kwargs,
+        )
+
+    def _upload_file(
+        self,
+        file: typing.Optional[typing.IO] = None,
+        content: typing.Optional[bytes] = None,
+        filename: typing.Optional[str] = None,
+    ) -> typing.Optional[dict[str, typing.Any]]:
+        """File upload without adding a reference (e.g., in a note).
+        Note that unreferences files will be cleaned up by SysReptor in the course of regular cleanup tasks.
+        
+        Args:
+            file (typing.IO, optional): File object to upload
+            content (bytes, optional): File content as bytes
+            filename (str, optional): Name for the uploaded file
+            
+        Returns:
+            dict: Upload result with 'filename', 'filepath', and 'response' keys
+        """
         assert file or content
         assert not (file and content)
 
@@ -338,32 +388,25 @@ class NotesAPI(APIClient):
 
             if not content:
                 self.warning(f"{file.name} is empty. Will not upload.")
-                return
+                return None
 
-        if not note_id:
-            note_id = self.get_or_create_note_by_title(
-                note_title or "Uploads", parent_title=parent_title
-            ).id
         if self.personal_note:
             url = urljoin(self.base_endpoint, "upload/")
         else:
             url = urljoin(self.base_endpoint.rsplit("/", 2)[0], "upload/")
+        
         response_json = self.post(
             url, files={"file": (filename, content)}, json_content=False
         ).json()
+        
+        # Parse file path based on resource type
         is_image = True if response_json.get("resource_type") == "image" else False
         if is_image:
-            file_path = f"/images/name/{response_json['name']}"
-            note_content = f"\n![{caption or filename}]({file_path})"
+            filepath = f"/images/name/{response_json['name']}"
         else:
-            file_path = f"/files/name/{response_json['name']}"
-            note_content = f"\n[{caption or filename}]({file_path})"
-
-        self.write_note(
-            id=note_id,
-            text=note_content,
-            **kwargs,
-        )
+            filepath = f"/files/name/{response_json['name']}"
+        
+        return {"filename": filename, "filepath": filepath, "response": response_json}
 
     def render(
         self,
