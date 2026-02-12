@@ -1,5 +1,6 @@
 # Upcoming
 * Fix (un)packarchive error with UTF-8 characters (#219)
+* Fix broken stdin when using reptor as a library (#226)
 
 # 0.32
 * Fix bug that removes "insecure" option from conf file
