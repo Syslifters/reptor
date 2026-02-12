@@ -85,7 +85,7 @@ Examples:
                 cat sslyze.json | reptor sslyze --json --push-findings
                 reptor nmap --xml --upload -i nmap.xml
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -v, --verbose         increase output verbosity (> INFO)
   --debug               sets logging to DEBUG
