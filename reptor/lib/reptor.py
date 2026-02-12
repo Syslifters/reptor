@@ -63,6 +63,7 @@ class Reptor:
         token: typing.Optional[str] = None,
         project_id: typing.Optional[str] = None,
         personal_note: bool = False,
+        from_cli: bool = False,
     ) -> None:
         try:
             signal.signal(signal.SIGINT, signal_handler)
@@ -70,11 +71,14 @@ class Reptor:
             # not possible in thread. ignore
             pass
 
-        # Set encoding for stdin utf-8
-        try:
-            sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
-        except ValueError:
-            pass
+        
+        if not from_cli:
+            try:
+                # Set encoding for stdin utf-8
+                # Only modify stdin when running as CLI
+                sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+            except ValueError:
+                pass
 
         # Load the config
         self._config = Config()
@@ -336,4 +340,4 @@ class Reptor:
             print(self._parser.format_help())
 
 
-reptor = Reptor()
+reptor = Reptor(from_cli=True)
