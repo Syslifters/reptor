@@ -180,7 +180,7 @@ class Template(Base):
     def run(self):
         filename = self.output
 
-        if self.list or self.arg_search:
+        if self.list or self.arg_search or self.export:
             templates = self.reptor.api.templates.search(self.arg_search or "")
         else:
             i = None

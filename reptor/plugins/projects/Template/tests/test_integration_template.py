@@ -76,11 +76,11 @@ class TestIntegrationTemplate(object):
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
-        _, output = p.communicate(input=input_path.read_bytes())
+        _, _ = p.communicate(input=input_path.read_bytes())
         assert p.returncode == 0
 
         p = subprocess.Popen(
-            ["reptor", "template", "--list", "--export", "json"],
+            ["reptor", "template", "--export", "json"],
             stdout=subprocess.PIPE,
         )
         templates, _ = p.communicate()
