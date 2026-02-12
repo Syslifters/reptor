@@ -97,6 +97,7 @@ subcommands:
   
   Core:
    conf                  Shows config and sets config
+   mcp                   Starts the Model Context Protocol (MCP) server
    plugins               Allows plugin management & development
   
   Projects & Templates:
