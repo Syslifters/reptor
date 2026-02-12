@@ -9,6 +9,46 @@ from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 from reptor.plugins.core.Mcp.Logic import McpLogic
 
 
+MCP_SERVER_INSTRUCTIONS = (
+    "Reptor MCP Server for SysReptor automation.\n\n"
+    "⚠️ **CRITICAL: ALWAYS CHECK SCHEMA FIRST** ⚠️\n"
+    "Before ANY create_finding or patch_finding call, you MUST call get_finding_schema() first.\n"
+    "Field names, types, and constraints vary by project. Never assume or guess - always check.\n"
+    "Skipping this step WILL result in errors. NO EXCEPTIONS.\n\n"
+    "---\n\n"
+    "This server allows AI agents to manage penetration testing projects and findings in SysReptor.\n\n"
+    "**Project Context:**\n"
+    "This server operates on the pre-configured project. The project is set via:\n"
+    "- `reptor conf` command\n"
+    "- Environment variable `REPTOR_PROJECT_ID`\n"
+    "- CLI flag `--project-id`\n\n"
+    "**Key Workflows:**\n"
+    "1. Findings: get_finding_schema → list_findings/get_finding → create_finding/patch_finding\n"
+    "2. Templates: search_templates → get_template\n\n"
+    "**Creating Findings (MANDATORY 3-Step Process)**\n"
+    "1. Call get_finding_schema() to discover available fields, types, and requirements\n"
+    "2. Build data dict with required fields (at minimum: title), matching schema exactly\n"
+    "3. Call create_finding(data)\n\n"
+    "**Updating Findings (MANDATORY Single-Field Workflow)**\n"
+    "This server updates ONE field at a time:\n"
+    "1. Call get_finding_schema() to understand field types and allowed values\n"
+    "2. Identify the exact field name from schema (e.g., 'title', 'status', 'cvss')\n"
+    "3. Construct field_value matching the schema type:\n"
+    "   • string: Plain text\n"
+    "   • markdown: CommonMark formatted text (use \\n for newlines, precede lists with blank line)\n"
+    "   • enum: Must match one of the 'choices' from schema\n"
+    "   • object: Dict matching 'properties' from schema\n"
+    "   • list: Array matching 'items' definition from schema\n"
+    "4. Call patch_finding(finding_id, field_name, field_value)\n"
+    "5. Verify the field was updated in the returned object\n\n"
+    "**Common Mistakes to Avoid:**\n"
+    "- Calling create_finding/patch_finding without checking schema first\n"
+    "- Assuming field names (they vary: 'description' vs 'summary', 'severity' vs 'cvss')\n"
+    "- Guessing field types or enum values\n"
+    "- Double-escaping markdown newlines (\\\\n instead of \\n)\n"
+)
+
+
 class MCPServer:
     def __init__(
         self,
@@ -22,46 +62,7 @@ class MCPServer:
                 "mcp library is not installed. Please install reptor[mcp]."
             )
 
-        instructions = (
-            "Reptor MCP Server for SysReptor automation.\n\n"
-            "⚠️ **CRITICAL: ALWAYS CHECK SCHEMA FIRST** ⚠️\n"
-            "Before ANY create_finding or patch_finding call, you MUST call get_finding_schema() first.\n"
-            "Field names, types, and constraints vary by project. Never assume or guess - always check.\n"
-            "Skipping this step WILL result in errors. NO EXCEPTIONS.\n\n"
-            "---\n\n"
-            "This server allows AI agents to manage penetration testing projects and findings in SysReptor.\n\n"
-            "**Project Context:**\n"
-            "This server operates on the pre-configured project. The project is set via:\n"
-            "- `reptor conf` command\n"
-            "- Environment variable `REPTOR_PROJECT_ID`\n"
-            "- CLI flag `--project-id`\n\n"
-            "**Key Workflows:**\n"
-            "1. Findings: get_finding_schema → list_findings/get_finding → create_finding/patch_finding\n"
-            "2. Templates: search_templates → get_template\n\n"
-            "**Creating Findings (MANDATORY 3-Step Process)**\n"
-            "1. Call get_finding_schema() to discover available fields, types, and requirements\n"
-            "2. Build data dict with required fields (at minimum: title), matching schema exactly\n"
-            "3. Call create_finding(data)\n\n"
-            "**Updating Findings (MANDATORY Single-Field Workflow)**\n"
-            "This server updates ONE field at a time:\n"
-            "1. Call get_finding_schema() to understand field types and allowed values\n"
-            "2. Identify the exact field name from schema (e.g., 'title', 'status', 'cvss')\n"
-            "3. Construct field_value matching the schema type:\n"
-            "   • string: Plain text\n"
-            "   • markdown: CommonMark formatted text (use \\n for newlines, precede lists with blank line)\n"
-            "   • enum: Must match one of the 'choices' from schema\n"
-            "   • object: Dict matching 'properties' from schema\n"
-            "   • list: Array matching 'items' definition from schema\n"
-            "4. Call patch_finding(finding_id, field_name, field_value)\n"
-            "5. Verify the field was updated in the returned object\n\n"
-            "**Common Mistakes to Avoid:**\n"
-            "- Calling create_finding/patch_finding without checking schema first\n"
-            "- Assuming field names (they vary: 'description' vs 'summary', 'severity' vs 'cvss')\n"
-            "- Guessing field types or enum values\n"
-            "- Double-escaping markdown newlines (\\\\n instead of \\n)\n"
-        )
-
-        self.mcp = FastMCP(name, instructions=instructions)
+        self.mcp = FastMCP(name, instructions=MCP_SERVER_INSTRUCTIONS)
 
         self.logic = McpLogic(reptor_instance, field_excluder, logger=logger)
 
