@@ -30,9 +30,15 @@ class File(UploadBase):
         parser.add_argument(
             "-fn", "--filename", help="filename if file provided via stdin"
         )
+        parser.add_argument(
+            "--no-link",
+            action="store_true",
+            help="upload file to project without adding markdown link to note (note that unreferenced files are deleted during regular cleanup jobs)",
+        )
 
     def run(self):
         files = self.reptor.get_config().get("cli").get("file")
+        no_link = self.reptor.get_config().get("cli", dict()).get("no_link", False)
         if not files:
             files = [sys.stdin]
         filename = self.reptor.get_config().get("cli").get("filename")
@@ -45,17 +51,24 @@ class File(UploadBase):
             notetitle = "Uploads"
             icon = "📤"
         timestamp = not self.reptor.get_config().get("cli", dict()).get("no_timestamp")
-
+        
         for file in files:
-            self.reptor.api.notes.upload_file(
-                file=file,
-                filename=filename,
-                caption=filename,
-                note_title=notetitle,
-                parent_title=parent_notetitle,
-                timestamp=timestamp,
-                icon=icon,
-            )
+            if no_link:
+                result = self.reptor.api.notes._upload_file(
+                    file=file,
+                    filename=filename or file.name,
+                )
+                self.success(f'File uploaded: "{result["filepath"]}"')
+            else:
+                self.reptor.api.notes.upload_file(
+                    file=file,
+                    filename=filename,
+                    caption=filename,
+                    note_title=notetitle,
+                    parent_title=parent_notetitle,
+                    timestamp=timestamp,
+                    icon=icon,
+                )
 
 
 loader = File
