@@ -21,10 +21,3 @@ ignore="reptor termcolor typing_extensions attrs urllib3"
 
 pip3 install pip-licenses
 pip-licenses --allow-only "$allow_only" --ignore-packages $ignore >/dev/null
-
-cme_license='''
-This product uses parts of crackmapexec (Copyright (c) 2022, byt3bl33d3r, mpgn_x64),
-which is available under a "3-clause BSD" license. For details, see
-https://github.com/byt3bl33d3r/CrackMapExec/blob/master/LICENSE.
-'''
-echo "$cme_license" >> NOTICE
