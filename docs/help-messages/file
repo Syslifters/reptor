@@ -1,4 +1,4 @@
-usage: reptor file [-h] [-fn FILENAME] [file ...]
+usage: reptor file [-h] [-fn FILENAME] [--no-link] [file ...]
 
 Uploads a file
 
@@ -9,3 +9,4 @@ options:
   -h, --help            show this help message and exit
   -fn FILENAME, --filename FILENAME
                         filename if file provided via stdin
+  --no-link             upload file to project without adding markdown link to note (note that unreferenced files are deleted during regular cleanup jobs)
