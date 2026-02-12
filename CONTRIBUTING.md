@@ -10,7 +10,7 @@ Add yourself to the [credits](#credits) if you whish.
 # Dependencies
 You can use external dependencies if they have permissive licenses (like MIT, BSD, etc.) or licensed under LGPL. You can always use software under licenses on [Blue Oak Council’s permissive license list](https://blueoakcouncil.org/list) with a rating of “Bronze” or better.
 
-Licenses of dependencies (and their dependencies) are automatically checked via pip-licenses in [generate_notice.sh](./generate_notice.sh). Update allowed licenses, if necessary. The NOTICE file will be updated automatically.
+Licenses of dependencies (and their dependencies) are automatically checked via pip-licenses in [check_licenses.sh](./check_licenses.sh). Update allowed licenses, if necessary.
 
 # Credits
 ## Special thanks for all the people who had helped this project so far:
