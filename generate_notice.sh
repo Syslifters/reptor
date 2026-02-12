@@ -5,6 +5,7 @@ set -e
 allow_only="MIT"
 allow_only="$allow_only;MIT License"
 allow_only="$allow_only;BSD License"
+allow_only="$allow_only;BSD-3-Clause"
 allow_only="$allow_only;Apache Software License"
 allow_only="$allow_only;GNU Library or Lesser General Public License (LGPL)"
 allow_only="$allow_only;GNU Lesser General Public License v2 or later (LGPLv2+)"
