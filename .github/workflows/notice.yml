@@ -1,4 +1,4 @@
-name: generate license notice file
+name: check licenses
 run-name: licenses
 on: [push]
 jobs:
