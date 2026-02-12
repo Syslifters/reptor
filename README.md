@@ -30,6 +30,7 @@ You can use it to:
  * Download PDF reports
  * Read, update, create notes
  * Export notes as PDF
+ * Model Context Protocol (MCP): Connect SysReptor to AI agents.
  * and more...
 
 **GitHub:** [https://github.com/Syslifters/reptor/](https://github.com/Syslifters/reptor/)  
@@ -49,6 +50,7 @@ You can use it to:
 #### Optional dependencies
 * translate (requires deepl)
 * ghostwriter (requires gql)
+* mcp (requires mcp)
 * dev (requires pytest)
 
 Install by `pip3 install reptor[translate]`.  
@@ -97,6 +99,7 @@ subcommands:
   
   Core:
    conf                  Shows config and sets config
+   mcp                   Starts the Model Context Protocol (MCP) server
    plugins               Allows plugin management & development
   
   Projects & Templates:
@@ -141,3 +144,65 @@ configuration:
   --personal-note       add notes to personal notes
 
 ```
+
+## Model Context Protocol (MCP)
+
+Reptor can act as an MCP server, allowing AI agents to interact with your SysReptor instance.
+
+### General Configuration
+
+Most MCP-compatible AI tools and agents (e.g., Claude Desktop, Cursor, IDE extensions) use a standard JSON configuration. Add the following to your tool's MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "reptor": {
+      "command": "reptor",
+      "args": ["mcp", "--remove-fields=affected_components"]
+    }
+  }
+}
+```
+
+### Setup for gemini-cli
+
+To add the server to `gemini-cli`, use the `mcp add` command:
+
+```bash
+gemini mcp add reptor reptor mcp --remove-fields=affected_components
+```
+
+### Setup for Claude Code
+
+Run the following command:
+
+```bash
+claude mcp add reptor -- reptor mcp --remove-fields=affected_components
+```
+
+### Field Removal
+
+The `--remove-fields` flag allows you to exclude specific fields from findings before they are sent to the LLM. This is useful for preventing sensitive data from being exposed to AI agents.
+
+#### Usage
+
+Specify fields to remove as a comma-separated list:
+
+```bash
+reptor mcp --remove-fields=affected_components,internal_notes
+```
+
+#### Common Field Names
+
+- `affected_components`: Lists affected hosts, IPs, URLs
+- `internal_notes`: Internal notes not meant for LLM consumption
+- `evidence`: File attachments and evidence data
+- `recommendation`: Remediation steps (optional)
+
+#### Field Removal Scope
+
+**Important:** The `--remove-fields` flag only removes the specified fields from data sent to the LLM. Fields are completely excluded, not masked.
+
+**Best practice:** Only remove fields that contain truly sensitive information (e.g., `affected_components` with internal IP addresses). Be selective to ensure the LLM has enough context to provide meaningful assistance.
+
+**How it works:** When a tool or resource returns data, the FieldExcluder removes the specified fields from the data structure before sending it to the LLM. On write operations (create/update), the LLM's data is sent directly without restoration, since the excluded fields are not part of the conversation context.

@@ -46,7 +46,8 @@ classifiers = [
 translate = ['deepl >= 1.15.0']
 ghostwriter = ['gql[aiohttp] >= 3.4.1',]
 dev = ['pytest >= 7.4.0',]
-all = ['reptor[translate,ghostwriter,dev]']
+mcp = ['mcp >= 1.25.0']
+all = ['reptor[translate,ghostwriter,dev,mcp]']
 
 [project.scripts]
 reptor = 'reptor.__main__:run'
