@@ -13,8 +13,25 @@ from reptor.lib.reptor import Reptor
 from test_helpers import conf, get_note, get_notes
 
 
+def pytest_configure(config):
+    """Check if running integration tests"""
+    k_filter = config.getoption("-k", default="")
+    config.run_integration_tests = "integration" in k_filter and "not integration" not in k_filter
+
+
+def skip_if_not_integration(request):
+    """Skip fixture if not running integration tests"""
+    if not getattr(request.config, "run_integration_tests", False):
+        pytest.skip("Not running integration tests")
+
+
 @pytest.fixture(scope="session", autouse=True)
-def setUp():
+def integration_setup(request):
+    """Setup and teardown for integration tests"""
+    if not getattr(request.config, "run_integration_tests", False):
+        yield
+        return
+    
     # Rename config file
     filename_timestamp = int(time.time())
     try:
@@ -77,7 +94,8 @@ def setUp():
 
 
 @pytest.fixture(scope="session")
-def projects_api():
+def projects_api(request):
+    skip_if_not_integration(request)
     reptor = Reptor()
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
@@ -85,7 +103,8 @@ def projects_api():
 
 
 @pytest.fixture(scope="session")
-def notes_api():
+def notes_api(request):
+    skip_if_not_integration(request)
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
@@ -94,7 +113,8 @@ def notes_api():
 
 
 @pytest.fixture(scope="session")
-def personal_notes_api():
+def personal_notes_api(request):
+    skip_if_not_integration(request)
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"personal_note": True}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
@@ -103,7 +123,8 @@ def personal_notes_api():
 
 
 @pytest.fixture(scope="session")
-def project_design_api():
+def project_design_api(request):
+    skip_if_not_integration(request)
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
@@ -112,7 +133,8 @@ def project_design_api():
 
 
 @pytest.fixture(scope="session")
-def templates_api():
+def templates_api(request):
+    skip_if_not_integration(request)
     reptor = Reptor()
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
@@ -137,30 +159,49 @@ def personal_uploads_id(personal_notes_api):
 
 
 @pytest.fixture(autouse=True, scope="session")
-def delete_notes(setUp, notes_api):
+def delete_notes(request, integration_setup):
+    """Cleanup notes after integration tests"""
+    if not getattr(request.config, "run_integration_tests", False):
+        yield
+        return
+    
+    # Create notes_api only for integration tests
+    reptor = Reptor()
+    reptor._config._raw_config["cli"] = {"personal_note": False}
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["cli"]["insecure"] = True
+    notes_api = NotesAPI(reptor=reptor)
+    
     yield
-
-    # Delete all notes via notes_api
+    
+    # Delete all notes
     for note in get_notes():
         try:
             notes_api.delete_note(note["id"])
         except requests.exceptions.HTTPError:
             pass
-    # Assert notes are gone
-    notes = get_notes()
-    assert len(notes) == 0
+    assert len(get_notes()) == 0
 
 
 @pytest.fixture(autouse=True, scope="session")
-def delete_findings(setUp, projects_api):
+def delete_findings(request, integration_setup):
+    """Cleanup findings after integration tests"""
+    if not getattr(request.config, "run_integration_tests", False):
+        yield
+        return
+    
+    # Create projects_api only for integration tests
+    reptor = Reptor()
+    if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
+        reptor._config._raw_config["insecure"] = True
+    projects_api = ProjectsAPI(reptor=reptor)
+    
     yield
-
-    # Delete findings via projects_api
+    
+    # Delete all findings
     for finding in projects_api.get_findings():
         projects_api.delete_finding(finding.id)
-    # Assert findings are gone
-    findings = projects_api.get_findings()
-    assert len(findings) == 0
+    assert len(projects_api.get_findings()) == 0
 
 
 

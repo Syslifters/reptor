@@ -6,6 +6,8 @@ import subprocess
 import pytest
 import yaml
 
+from test_helpers import read_until
+
 
 @pytest.mark.integration
 class TestIntegrationNessus(object):
