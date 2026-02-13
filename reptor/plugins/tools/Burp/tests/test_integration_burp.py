@@ -5,14 +5,12 @@ import subprocess
 import pytest
 import yaml
 
-from reptor.plugins.core.Conf.tests.conftest import (
-    read_until,
-)
+from test_helpers import read_until
 
 
 @pytest.mark.integration
 class TestIntegrationBurp(object):
-    def test_burp_note(self, notes_api):
+    def test_burp_note(self, notes_api):  # noqa: F811
         input_path = (
             pathlib.Path(os.path.dirname(__file__)) / "data/burp.xml"
         )

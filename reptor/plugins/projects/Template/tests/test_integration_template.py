@@ -7,7 +7,6 @@ import tarfile
 
 import pytest
 import yaml
-from reptor.plugins.core.Conf.tests.conftest import templates_api  # noqa: F401
 
 
 @pytest.mark.integration

@@ -4,8 +4,6 @@ import time
 
 import pytest
 
-from reptor.plugins.core.Conf.tests.conftest import projects_api  # noqa: F401
-
 
 @pytest.mark.integration
 class TestIntegrationFinding(object):

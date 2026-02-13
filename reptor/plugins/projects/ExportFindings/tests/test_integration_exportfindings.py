@@ -5,7 +5,7 @@ import pytest
 import tomli
 import yaml
 
-from reptor.plugins.core.Conf.tests.conftest import get_note, projects_api  # noqa: F401
+from test_helpers import get_note
 
 
 @pytest.mark.integration

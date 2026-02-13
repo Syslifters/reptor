@@ -3,11 +3,7 @@ import time
 
 import pytest
 
-from reptor.plugins.core.Conf.tests.conftest import (
-    get_note,
-    personal_uploads_id,  # noqa: F401
-    personal_notes_api  # noqa: F401
-)
+from test_helpers import get_note
 
 
 @pytest.mark.integration

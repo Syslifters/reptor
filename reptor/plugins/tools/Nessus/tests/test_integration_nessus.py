@@ -6,10 +6,6 @@ import subprocess
 import pytest
 import yaml
 
-from reptor.plugins.core.Conf.tests.conftest import (
-    read_until,
-)
-
 
 @pytest.mark.integration
 class TestIntegrationNessus(object):

@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 
 from reptor.models.Note import Note
-from reptor.plugins.core.Conf.tests.conftest import notes_api  # noqa: F401
 
 
 @pytest.mark.integration

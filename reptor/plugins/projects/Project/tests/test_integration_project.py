@@ -4,12 +4,7 @@ import subprocess
 
 import pytest
 
-from reptor.plugins.core.Conf.tests.conftest import (
-    get_note,
-    notes_api,  # noqa: F401
-    projects_api,  # noqa: F401
-    project_design_api,  # noqa: F401
-)
+from test_helpers import get_note
 
 
 @pytest.mark.integration
