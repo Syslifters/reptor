@@ -1,4 +1,5 @@
-usage: reptor template [-h] [--list] [--search SEARCH] [--language LANGUAGE]
+usage: reptor template [-h] [--list] [--search SEARCH] [--update UPDATE]
+                       [--language LANGUAGE]
                        [--export {tar.gz,json,yaml,plain}] [-o FILENAME]
 
 Queries Finding Templates from SysReptor
@@ -10,6 +11,7 @@ options:
 
   --list                List all finding templates
   --search SEARCH       Search for term
+  --update UPDATE       Update existing template with given UUID
   --language LANGUAGE   Template language for export format "plain", e.g. "en"
   --export {tar.gz,json,yaml,plain}
                         Export templates
