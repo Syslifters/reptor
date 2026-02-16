@@ -116,16 +116,22 @@ class ProjectDesign(ProjectDesignBase):
         assets (str): Project design assets API endpoint (URL).
 
         copy_of (str): ID of the original project design this is a copy of (if any).
+        report_template (str): Report design HTML source.
+        report_styles (str): Report CSS styles.
         finding_fields (List[ProjectDesignField]): List of field definitions for findings.
         report_fields (List[ProjectDesignField]): List of field definitions for report sections (derived from `report_sections` received from the API).
-
+        report_preview_data (dict): Preview data for report design.
+        
     Methods:
         to_dict(): Convert to a dictionary representation.
     """
     copy_of: str = ""
     
+    report_template: str = ""
+    report_styles: str = ""
     finding_fields: typing.List[ProjectDesignField] = []
     report_fields: typing.List[ProjectDesignField] = []
+    report_preview_data: dict = {}
 
     def __init__(self, data: typing.Optional[typing.Dict] = None):
         if data:

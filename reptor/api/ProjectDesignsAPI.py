@@ -2,6 +2,8 @@ from functools import cached_property
 from posixpath import join as urljoin
 import typing
 
+from reptor.models.Finding import FindingDataRaw
+from reptor.models.Section import SectionDataRaw
 from reptor.api.APIClient import APIClient
 from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignOverview
 
@@ -36,6 +38,63 @@ class ProjectDesignsAPI(APIClient):
 
         self.project_design_id = kwargs.get("project_design_id", "")
         self.object_endpoint = urljoin(self.base_endpoint, self.project_design_id)
+    
+    def create_project_design(self, name: str, scope: typing.Optional[str] = "global") -> ProjectDesign:
+        """Creates a new project design with the given name.
+
+        Args:
+            name (str): Name of the project design to create.
+            scope (str, optional): Scope of the project design ("global" or "private"). Defaults to "global".
+
+        Returns:
+            The created ProjectDesign object.
+        """
+        payload = {"name": name, "scope": scope}
+        response = self.post(self.base_endpoint, json=payload)
+        return ProjectDesign(response.json())
+    
+    def update_project_design(
+            self,
+            id: str,
+            report_template: typing.Optional[str] = None,
+            report_styles: typing.Optional[str] = None,
+            preview_findings: typing.Optional[typing.List[FindingDataRaw]] = None,
+            preview_report: typing.Optional[SectionDataRaw] = None,
+        ) -> ProjectDesign:
+        """Updates the project design with the given id.
+
+            Args:
+                id (str): ID of the project design to update.
+                report_template (str, optional): Report design HTML source. None value means no update. Defaults to None.
+                report_styles (str, optional): Report CSS styles to update. None value means no update. Defaults to None.
+                preview_findings (List[FindingDataRaw], optional): Preview findings to update. Defaults to None.
+                preview_report (SectionDataRaw, optional): Preview report sections to update. Defaults to None.
+            Returns:
+                The updated ProjectDesign object.
+        """
+        payload = {}
+        if report_template is not None:
+            payload["report_template"] = report_template
+        if report_styles is not None:
+            payload["report_styles"] = report_styles
+        payload["report_preview_data"] = dict()
+        if preview_findings is not None:
+            payload["report_preview_data"]["findings"] = [finding.to_dict() for finding in preview_findings]
+        if preview_report is not None:
+            payload["report_preview_data"]["report"] = preview_report.to_dict()
+        response = self.patch(urljoin(self.base_endpoint, id), json=payload)
+        return ProjectDesign(response.json())
+
+    def delete_project_design(self, id: str) -> None:
+        """Deletes the project design with the given id.
+
+            Args:
+                id (str): ID of the project design to delete.
+
+        Returns:
+            None
+        """
+        self.delete(urljoin(self.base_endpoint, id))
 
     def search(
         self, search_term: typing.Optional[str] = "", scope: typing.Optional[str] = "global"
