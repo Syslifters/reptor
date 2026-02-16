@@ -93,6 +93,31 @@ class TemplatesAPI(APIClient):
         )
         return FindingTemplate(res.json())
 
+    def update_template(
+        self, template_id: str, template: FindingTemplate
+    ) -> FindingTemplate:
+        """Updates an existing finding template using a PATCH request.
+
+        Args:
+            template_id (str): Finding template ID to update
+            template (FindingTemplate): The template model data with updated fields
+
+        Returns:
+            The updated FindingTemplate object
+
+        Example:
+            ```python
+            template = reptor.api.templates.get_template("123e4567-e89b-12d3-a456-426614174000")
+            template.translations[0].data.title = "Updated Title"
+            updated = reptor.api.templates.update_template(template.id, template)
+            ```
+        """
+        res = self.patch(
+            urljoin(self.base_endpoint, template_id),
+            json=template.to_dict(),
+        )
+        return FindingTemplate(res.json())
+
     def delete_template(self, template_id: str) -> None:
         """Deletes a finding template by ID.
 
