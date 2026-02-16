@@ -46,6 +46,21 @@ title = "My title"
 description = "My description"
 ```
 
+## Update finding templates
+
+You can update an existing finding template by providing its UUID with the `--update` parameter.
+
+```bash
+cat template.json | reptor template --update <UUID>
+cat template.toml | reptor template --update <UUID>
+```
+
+!!! note
+    Only one template can be updated at a time. If you attempt to update with multiple templates, you will receive an error.
+
+!!! tip
+    To get the UUID of an existing template, use `reptor template --search <keyword>` to list templates with their IDs.
+
 ## Read finding templates
 ```
 reptor template --list  # template overview

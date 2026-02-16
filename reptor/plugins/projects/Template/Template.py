@@ -30,6 +30,7 @@ class Template(Base):
         self.export: typing.Optional[str] = kwargs.get("export")
         self.language: typing.Optional[str] = kwargs.get("language")
         self.output: typing.Optional[str] = kwargs.get("output")
+        self.update: typing.Optional[str] = kwargs.get("update")
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -43,6 +44,12 @@ class Template(Base):
         )
         templates_parsers.add_argument(
             "--search", help="Search for term", action="store", default=None
+        )
+        templates_parsers.add_argument(
+            "--update",
+            help="Update existing template with given UUID",
+            action="store",
+            default=None,
         )
         templates_parsers.add_argument(
             "--language",
@@ -183,15 +190,27 @@ class Template(Base):
         if self.list or self.arg_search or self.export:
             templates = self.reptor.api.templates.search(self.arg_search or "")
         else:
-            i = None
-            for i, finding_template in enumerate(self._read_finding_templates()):
-                new = self.reptor.api.templates.upload_template(finding_template)
-                self.log.display(
-                    f'Uploaded finding template "{new.translations[0].data.title}" with new ID {new.id}'
-                )
-            if i is not None:
+            finding_templates = list(self._read_finding_templates())
+            
+            if self.update and len(finding_templates) > 1:
+                self.log.error("Only one template can be updated at a time")
+                return
+            
+            for i, finding_template in enumerate(finding_templates):
+                if self.update:
+                    updated = self.reptor.api.templates.update_template(self.update, finding_template)
+                    self.log.display(
+                        f'Updated finding template "{updated.translations[0].data.title}" with ID {updated.id}'
+                    )
+                else:
+                    new = self.reptor.api.templates.upload_template(finding_template)
+                    self.log.display(
+                        f'Uploaded finding template "{new.translations[0].data.title}" with new ID {new.id}'
+                    )
+            if finding_templates:
+                action = "updated" if self.update else "uploaded"
                 self.log.success(
-                    f"Successfully uploaded {i+1} finding template{'s'[:i^1]}"
+                    f"Successfully {action} {len(finding_templates)} finding template{'s'[:len(finding_templates)^1]}"
                 )
             return
 
