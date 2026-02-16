@@ -55,7 +55,7 @@ class ProjectDesignsAPI(APIClient):
     
     def update_project_design(
             self,
-            id: str,
+            project_design_id: str,
             report_template: typing.Optional[str] = None,
             report_styles: typing.Optional[str] = None,
             preview_findings: typing.Optional[typing.List[FindingDataRaw]] = None,
@@ -64,7 +64,7 @@ class ProjectDesignsAPI(APIClient):
         """Updates the project design with the given id.
 
             Args:
-                id (str): ID of the project design to update.
+                project_design_id (str): ID of the project design to update.
                 report_template (str, optional): Report design HTML source. None value means no update. Defaults to None.
                 report_styles (str, optional): Report CSS styles to update. None value means no update. Defaults to None.
                 preview_findings (List[FindingDataRaw], optional): Preview findings to update. Defaults to None.
@@ -82,19 +82,19 @@ class ProjectDesignsAPI(APIClient):
             payload["report_preview_data"]["findings"] = [finding.to_dict() for finding in preview_findings]
         if preview_report is not None:
             payload["report_preview_data"]["report"] = preview_report.to_dict()
-        response = self.patch(urljoin(self.base_endpoint, id), json=payload)
+        response = self.patch(urljoin(self.base_endpoint, project_design_id), json=payload)
         return ProjectDesign(response.json())
 
-    def delete_project_design(self, id: str) -> None:
+    def delete_project_design(self, project_design_id: str) -> None:
         """Deletes the project design with the given id.
 
             Args:
-                id (str): ID of the project design to delete.
+                project_design_id (str): ID of the project design to delete.
 
         Returns:
             None
         """
-        self.delete(urljoin(self.base_endpoint, id))
+        self.delete(urljoin(self.base_endpoint, project_design_id))
 
     def search(
         self, search_term: typing.Optional[str] = "", scope: typing.Optional[str] = "global"

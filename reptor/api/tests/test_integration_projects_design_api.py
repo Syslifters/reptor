@@ -64,7 +64,7 @@ class TestIntegrationProjectDesignsAPI:
         assert design.id in [d.id for d in reptor.api.project_designs.search(scope=scope)]
 
         # Clean up by deleting the created project design
-        ret = reptor.api.project_designs.delete_project_design(id=design.id)
+        ret = reptor.api.project_designs.delete_project_design(project_design_id=design.id)
         assert ret is None
         assert design.id not in [d.id for d in reptor.api.project_designs.search(scope=scope)]
     
@@ -83,7 +83,7 @@ class TestIntegrationProjectDesignsAPI:
             # Test updating report_template
             new_template = "<h1>Test Report Template</h1><p>This is a test template.</p>"
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 report_template=new_template
             )
             assert hasattr(updated_design, "report_template")
@@ -92,7 +92,7 @@ class TestIntegrationProjectDesignsAPI:
             # Test updating report_styles
             new_styles = "h1 { color: blue; } p { font-size: 14px; }"
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 report_styles=new_styles
             )
             assert hasattr(updated_design, "report_styles")
@@ -102,7 +102,7 @@ class TestIntegrationProjectDesignsAPI:
             newer_template = "<h2>Updated Template</h2>"
             newer_styles = "h2 { color: red; }"
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 report_template=newer_template,
                 report_styles=newer_styles
             )
@@ -126,7 +126,7 @@ class TestIntegrationProjectDesignsAPI:
             preview_finding_2.cvss = "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
             
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 preview_findings=[preview_finding_1, preview_finding_2]
             )
             assert hasattr(updated_design, "report_preview_data")
@@ -145,7 +145,7 @@ class TestIntegrationProjectDesignsAPI:
             preview_report.scope = "This is the scope"
             
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 preview_report=preview_report
             )
             assert hasattr(updated_design, "report_preview_data")
@@ -162,7 +162,7 @@ class TestIntegrationProjectDesignsAPI:
             preview_finding_3.severity = "critical"
             
             updated_design = reptor.api.project_designs.update_project_design(
-                id=design.id,
+                project_design_id=design.id,
                 report_template=final_template,
                 report_styles=final_styles,
                 preview_findings=[preview_finding_3],
@@ -177,6 +177,6 @@ class TestIntegrationProjectDesignsAPI:
             
         finally:
             # Clean up by deleting the created project design
-            reptor.api.project_designs.delete_project_design(id=design.id)
+            reptor.api.project_designs.delete_project_design(project_design_id=design.id)
             assert design.id not in [d.id for d in reptor.api.project_designs.search(scope="private")]
 
