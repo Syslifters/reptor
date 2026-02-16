@@ -15,8 +15,8 @@ class TestReptorTutorial:
 
     def setup_method(self):
         self.reptor = Reptor(
-            server=os.environ.get("REPTOR_SERVER"),
-            token=os.environ.get("REPTOR_TOKEN"),
+            server=os.environ.get("SYSREPTOR_SERVER"),
+            token=os.environ.get("SYSREPTOR_API_TOKEN"),
         )
 
         self.projects = self.reptor.api.projects.search()
@@ -24,8 +24,8 @@ class TestReptorTutorial:
 
     def test_init(self):
         reptor = Reptor(
-            server=os.environ.get("REPTOR_SERVER"),
-            token=os.environ.get("REPTOR_TOKEN"),
+            server=os.environ.get("SYSREPTOR_SERVER"),
+            token=os.environ.get("SYSREPTOR_API_TOKEN"),
             project_id=self.projects[0].id,
         )
         project = reptor.api.projects.fetch_project()

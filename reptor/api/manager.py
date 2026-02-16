@@ -31,12 +31,15 @@ class APIManager:
     @property
     def project_designs(self) -> ProjectDesignsAPI:
         if not self._project_designs:
-            project_design_id = self.projects._project_dict[
-                "project_type"
-            ]  # Cannot get Project object because this requires design (recursion)
-            self._project_designs = ProjectDesignsAPI(
-                reptor=self._reptor, project_design_id=project_design_id
-            )
+            if self._project_id:
+                project_design_id = self.projects._project_dict[
+                    "project_type"
+                ]  # Cannot get Project object because this requires design (recursion)
+                self._project_designs = ProjectDesignsAPI(
+                    reptor=self._reptor, project_design_id=project_design_id
+                )
+            else:
+                self._project_designs = ProjectDesignsAPI(reptor=self._reptor)
         return self._project_designs
 
     @property

@@ -79,20 +79,25 @@ class Config:
         project_id: typing.Optional[str] = None,
         personal_note: bool = False,
         return_only: bool = False,
+        load_from_file: bool = True,
+        load_from_env: bool = True,
     ) -> dict:
-        """Loads config file from user home directory"""
-        config = dict()
-        try:
-            with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
-                config = yaml.safe_load(f.read())
-            if not config:
-                config = {}
-                self._no_config_file = True
-        except FileNotFoundError:
-            self._no_config_file = True
-        config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
-        config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
-        config["project_id"] = os.environ.get("REPTOR_PROJECT_ID", config.get("project_id"))
+        config = None
+        self._no_config_file = True
+        if load_from_file:
+            """Loads config file from user home directory"""
+            try:
+                with open(settings.PERSONAL_CONFIG_FILE, "r") as f:
+                    config = yaml.safe_load(f.read())
+                if config:
+                    self._no_config_file = False
+            except FileNotFoundError:
+                pass
+        config = config or {}
+        if load_from_env:
+            config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
+            config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
+            config["project_id"] = os.environ.get("REPTOR_PROJECT_ID", config.get("project_id"))
         config["personal_note"] = personal_note
         if server:
             config["server"] = server

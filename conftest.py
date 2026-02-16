@@ -46,7 +46,7 @@ def integration_setup(request):
     conf()
 
     # Get design ID
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
         reptor._config._raw_config["cli"] = {"insecure": True}
@@ -63,6 +63,7 @@ def integration_setup(request):
     project = projects_api.create_project(
         "Integration Test Project", project_design_id, tags=["integration-test"]
     )
+    os.environ["SYSREPTOR_PROJECT_ID"] = project.id  # Set project ID for other tests
 
     # Also add project_id
     conf(project_id=project.id)
@@ -71,7 +72,7 @@ def integration_setup(request):
 
     # Delete Project
     conf(project_id=project.id)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
         reptor._config._raw_config["cli"] = {"insecure": True}
@@ -96,7 +97,7 @@ def integration_setup(request):
 @pytest.fixture(scope="session")
 def projects_api(request):
     skip_if_not_integration(request)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
     return ProjectsAPI(reptor=reptor)
@@ -105,7 +106,7 @@ def projects_api(request):
 @pytest.fixture(scope="session")
 def notes_api(request):
     skip_if_not_integration(request)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
@@ -115,7 +116,7 @@ def notes_api(request):
 @pytest.fixture(scope="session")
 def personal_notes_api(request):
     skip_if_not_integration(request)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     reptor._config._raw_config["cli"] = {"personal_note": True}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
@@ -125,7 +126,7 @@ def personal_notes_api(request):
 @pytest.fixture(scope="session")
 def project_design_api(request):
     skip_if_not_integration(request)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
@@ -135,7 +136,7 @@ def project_design_api(request):
 @pytest.fixture(scope="session")
 def templates_api(request):
     skip_if_not_integration(request)
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
@@ -166,7 +167,7 @@ def delete_notes(request, integration_setup):
         return
     
     # Create notes_api only for integration tests
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     reptor._config._raw_config["cli"] = {"personal_note": False}
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["cli"]["insecure"] = True
@@ -191,7 +192,7 @@ def delete_findings(request, integration_setup):
         return
     
     # Create projects_api only for integration tests
-    reptor = Reptor()
+    reptor = Reptor(server=os.environ.get("SYSREPTOR_SERVER"), token=os.environ.get("SYSREPTOR_API_TOKEN"), project_id=os.environ.get("SYSREPTOR_PROJECT_ID"))
     if os.environ.get("HTTPS_PROXY", "").startswith("http://"):
         reptor._config._raw_config["insecure"] = True
     projects_api = ProjectsAPI(reptor=reptor)

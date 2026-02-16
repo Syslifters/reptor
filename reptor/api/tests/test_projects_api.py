@@ -11,12 +11,12 @@ from ..ProjectsAPI import ProjectsAPI
 
 class TestConf(object):
     def test_config_from_environment(self):
-        reptor_file = Reptor()
+        reptor_file = Reptor(from_cli=True)
         reptor_file_config = copy.copy(reptor_file._config._raw_config)
         os.environ["REPTOR_SERVER"] = "https://demo1234.sysre.pt"
         os.environ["REPTOR_TOKEN"] = "sysreptor_abcdef"
         os.environ["REPTOR_PROJECT_ID"] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
-        reptor_environ = Reptor()
+        reptor_environ = Reptor(from_cli=True)
 
         assert (
             reptor_file_config["server"] != reptor_environ._config._raw_config["server"]

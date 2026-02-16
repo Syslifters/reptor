@@ -53,7 +53,7 @@ class Reptor:
     _api: APIManager
 
     def __new__(cls, **kwargs):
-        if not hasattr(cls, "instance") or kwargs:
+        if not hasattr(cls, "instance") or (set(kwargs.keys())-{"from_cli"}):
             cls.instance = super(Reptor, cls).__new__(cls)
         return cls.instance
 
@@ -85,7 +85,9 @@ class Reptor:
         self._config.load_config(server=server,
                                  token=token,
                                  project_id=project_id, 
-                                 personal_note=personal_note)
+                                 personal_note=personal_note,
+                                 load_from_file=from_cli,
+                                 load_from_env=from_cli)
 
         self.plugin_manager = PluginManager(self)
 
