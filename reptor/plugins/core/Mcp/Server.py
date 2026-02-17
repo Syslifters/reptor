@@ -199,6 +199,84 @@ class MCPServer:
             """
             return self.logic.get_finding_schema()
 
+        @self.mcp.tool()
+        def reptor_get_project_schema() -> Dict[str, Any]:
+            """Gets the report field schema for the configured project.
+
+            **Call this before patch_project_data** to discover:
+            - Available report field names and types
+            - Required vs optional report fields
+            - Enum choices for enumeration fields
+            - Structure for nested object/list fields
+
+            Returns:
+                Schema with project_type and report_fields definitions including:
+                - id: Field name
+                - type: Field type (string, markdown, enum, list, object, etc.)
+                - label: Human-readable field label
+                - required: Whether the field is required
+                - choices: Available values for enum fields
+                - items: Item definition for list fields
+                - properties: Nested field definitions for object fields
+            """
+            return self.logic.get_project_schema()
+
+        @self.mcp.tool()
+        def reptor_list_sections() -> List[Dict[str, Any]]:
+            """Lists all report sections for the configured project.
+
+            Returns a summary list of section objects (id, type, label).
+            Use 'reptor_get_section' for full section data.
+            """
+            return self.logic.list_sections()
+
+        @self.mcp.tool()
+        def reptor_get_section(section_id: str) -> Dict[str, Any]:
+            """Gets a single report section by ID.
+
+            Args:
+                section_id: The ID of the section to retrieve.
+
+            Returns the full section object including section data fields.
+            """
+            return self.logic.get_section(section_id)
+
+        @self.mcp.tool()
+        def reptor_patch_project_data(
+            section_id: str, field_id: str, value: Any
+        ) -> Dict[str, Any]:
+            """Updates a single field in a report section's data.
+
+            **WARNING: You MUST call reptor_get_project_schema() BEFORE using this tool.**
+            Field names, types, and allowed values vary by project. Guessing WILL fail.
+
+            **Mandatory workflow:**
+            1. Call `reptor_get_project_schema()` to understand report field types and allowed values
+            2. Identify the exact field name from the schema
+            3. Construct the value matching the schema type:
+               - string: Plain text
+               - markdown: CommonMark formatted text (use \\n for newlines)
+               - enum: Must match one of the 'choices' from schema
+               - object: Dict matching 'properties' from schema
+               - list: Array matching 'items' definition from schema
+            4. Call this function with section_id, field_id, and value
+            5. Review the returned section to verify the field was updated correctly
+
+            Args:
+                section_id: The ID of the section to update (e.g., "executive_summary").
+                field_id: The ID of the field within the section's data to update.
+                    Use `reptor_get_project_schema()` to discover available field names.
+                value: The new value for the field. Type must match the field type in the schema
+                    (string, number, boolean, object, or array depending on the field).
+
+            Returns the updated section object with all fields.
+
+            This tool updates one field at a time. The API validates field types and will
+            return an error for invalid types. Unknown fields are silently ignored (check the response
+            to verify the field was actually updated).
+            """
+            return self.logic.patch_project_data(section_id, field_id, value)
+
     def run(self, transport: str = "stdio"):
         """
         Starts the MCP server.
