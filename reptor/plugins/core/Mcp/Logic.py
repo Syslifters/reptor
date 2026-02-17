@@ -368,3 +368,41 @@ class McpLogic:
 
         self._log(f"list_sections returning {len(results)} sections")
         return results
+
+    def get_section(self, section_id: str) -> Dict[str, Any]:
+        """Retrieves a single section by ID with field exclusion.
+
+        Args:
+            section_id: The ID of the section to retrieve.
+
+        Returns:
+            Section data dictionary with field exclusion applied.
+        """
+        self._log(f"get_section called for id: {section_id}")
+
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+
+        sections = self.reptor.api.projects.get_sections()
+
+        # Find the section with matching ID
+        section = None
+        for s in sections:
+            if s.id == section_id:
+                section = s
+                break
+
+        if section is None:
+            raise ValueError(f"Section with id '{section_id}' not found")
+
+        # Convert section to dictionary
+        section_dict = section.to_dict()
+
+        # Apply field exclusion to section data if configured
+        if self.field_excluder and "data" in section_dict:
+            section_dict["data"] = self.field_excluder.remove_fields(
+                section_dict["data"]
+            )
+
+        self._log(f"get_section returning: {section_dict}")
+        return section_dict
