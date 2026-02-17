@@ -406,3 +406,49 @@ class McpLogic:
 
         self._log(f"get_section returning: {section_dict}")
         return section_dict
+
+    def patch_project_data(
+        self, section_id: str, field_id: str, value: Any
+    ) -> Dict[str, Any]:
+        """Patches a single field in a section's data.
+
+        This method implements the MCP single-field update workflow:
+        1. Constructs a partial payload with only the specified field
+        2. Sends partial payload to API without fetching current section
+        3. API validates, merges, and returns updated section
+        4. Returns updated section data with FieldExcluder filtering
+
+        Args:
+            section_id: The ID of the section to update (e.g., "executive_summary").
+            field_id: The ID of the field to update within section.data.
+            value: The new value for the field.
+
+        Returns:
+            Updated section data from API response with FieldExcluder filtering applied.
+
+        Raises:
+            ValueError: If no project is configured.
+            HTTPError: If the API returns an error (propagated without modification).
+        """
+        self._log(
+            f"patch_project_data called for section: {section_id}, field: {field_id}, value: {value}"
+        )
+
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+
+        # Send partial update (consistent with patch_finding pattern)
+        section_data = {"data": {field_id: value}}
+        updated_section_raw = self.reptor.api.projects.update_section(
+            section_id, section_data
+        )
+
+        # Convert to dict and apply FieldExcluder filtering
+        updated_section = updated_section_raw.to_dict()
+        if self.field_excluder and "data" in updated_section:
+            updated_section["data"] = self.field_excluder.remove_fields(
+                updated_section["data"]
+            )
+
+        self._log(f"patch_project_data returning: {updated_section}")
+        return updated_section
