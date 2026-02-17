@@ -1,4 +1,4 @@
-# Upcoming
+# 0.33
 * Add MCP Server
 * Allow uploading file without adding it to note (#231)
 * Implement more Project Design API calls (create, update, delete; #235)
@@ -8,7 +8,6 @@
 * Fix (un)packarchive error with UTF-8 characters (#219)
 * Fix broken stdin when using reptor as a library (#226)
 * Fix template export without --search (#223)
-
 
 # 0.32
 * Fix bug that removes "insecure" option from conf file
