@@ -333,3 +333,38 @@ class McpLogic:
             "project_type": project.project_type,
             "report_fields": [self._simplify_field(f) for f in design.report_fields],
         }
+
+    def list_sections(self) -> List[Dict[str, Any]]:
+        """Lists all report sections for the configured project.
+
+        Returns a simplified list of sections with metadata (id, type, label)
+        for each section. This provides a high-level overview without sensitive
+        section data content.
+
+        Returns:
+            List of section metadata dictionaries containing:
+            - id: Section ID (e.g., "executive_summary")
+            - type: Section type (e.g., "section")
+            - label: Human-readable label (e.g., "Executive Summary")
+        """
+        self._log("list_sections called")
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+        sections = self.reptor.api.projects.get_sections()
+
+        results = []
+        for section in sections:
+            section_info = {
+                "id": section.id,
+                "type": "section",
+                "label": section.label,
+            }
+
+            # Apply field exclusion if configured
+            if self.field_excluder:
+                section_info = self.field_excluder.remove_fields(section_info)
+
+            results.append(section_info)
+
+        self._log(f"list_sections returning {len(results)} sections")
+        return results
