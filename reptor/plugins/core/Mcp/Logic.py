@@ -54,9 +54,7 @@ class McpLogic:
 
             # Apply field exclusion to summary if configured
             if self.field_excluder:
-                finding_summary = self.field_excluder.remove_fields(
-                    finding_summary
-                )
+                finding_summary = self.field_excluder.remove_fields(finding_summary)
 
             results.append(finding_summary)
         self._log(f"list_findings returning {len(results)} findings summary")
@@ -135,9 +133,7 @@ class McpLogic:
 
         # Remove excluded fields from data being written
         if self.field_excluder:
-            vulnerability_data = self.field_excluder.remove_fields(
-                vulnerability_data
-            )
+            vulnerability_data = self.field_excluder.remove_fields(vulnerability_data)
 
         payload["data"] = vulnerability_data
 
@@ -146,9 +142,7 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(
-                result["data"]
-            )
+            result["data"] = self.field_excluder.remove_fields(result["data"])
         self._log(f"create_finding returning: {result}")
 
         return result
@@ -222,9 +216,7 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(
-                result["data"]
-            )
+            result["data"] = self.field_excluder.remove_fields(result["data"])
 
         self._log(f"patch_finding returning: {result}")
         return result
@@ -261,6 +253,35 @@ class McpLogic:
         template = self.reptor.api.templates.get_template(template_id)
         return template.to_dict()
 
+    def _simplify_field(self, field) -> Dict[str, Any]:
+        """Convert a ProjectDesignField to a simplified dict."""
+        field_type = (
+            field.type.value if hasattr(field.type, "value") else str(field.type)
+        )
+        field_info: Dict[str, Any] = {
+            "id": field.id,
+            "type": field_type,
+            "label": field.label,
+            "required": field.required,
+        }
+        # Include choices for enum fields
+        if field_type == "enum" and field.choices:
+            field_info["choices"] = [
+                c.get("value") for c in field.choices if c.get("value")
+            ]
+        # Include items for list fields (recursively simplify if it's a ProjectDesignField)
+        if field_type == "list" and field.items:
+            if hasattr(field.items, "id"):
+                field_info["items"] = self._simplify_field(field.items)
+            else:
+                field_info["items"] = field.items
+        # Include properties for object fields (recursively simplify)
+        if field_type == "object" and field.properties:
+            field_info["properties"] = [
+                self._simplify_field(p) for p in field.properties
+            ]
+        return field_info
+
     def get_finding_schema(self) -> Dict[str, Any]:
         """Gets the finding field schema for the configured project.
 
@@ -281,35 +302,34 @@ class McpLogic:
             project.project_type
         )
 
-        def simplify_field(field) -> Dict[str, Any]:
-            """Convert a ProjectDesignField to a simplified dict."""
-            field_type = (
-                field.type.value if hasattr(field.type, "value") else str(field.type)
-            )
-            field_info: Dict[str, Any] = {
-                "id": field.id,
-                "type": field_type,
-                "label": field.label,
-                "required": field.required,
-            }
-            # Include choices for enum fields
-            if field_type == "enum" and field.choices:
-                field_info["choices"] = [
-                    c.get("value") for c in field.choices if c.get("value")
-                ]
-            # Include items for list fields (recursively simplify if it's a ProjectDesignField)
-            if field_type == "list" and field.items:
-                if hasattr(field.items, "id"):
-                    field_info["items"] = simplify_field(field.items)
-                else:
-                    field_info["items"] = field.items
-            # Include properties for object fields (recursively simplify)
-            if field_type == "object" and field.properties:
-                field_info["properties"] = [simplify_field(p) for p in field.properties]
-            return field_info
+        return {
+            "project_id": project_id,
+            "project_type": project.project_type,
+            "finding_fields": [self._simplify_field(f) for f in design.finding_fields],
+        }
+
+    def get_project_schema(self) -> Dict[str, Any]:
+        """Gets the report field schema for the configured project.
+
+        This is a convenience method that fetches the project's design and returns
+        a simplified schema of report fields, making it easier to understand
+        what report sections and fields are available and their types.
+
+        Returns:
+            A dict containing project_id, project_type, and report_fields with
+            simplified field definitions (id, type, label, required, choices, items, properties).
+        """
+        project_id = self._get_project_id()
+        self._log(f"get_project_schema called for project {project_id}")
+        self.reptor.api.projects.init_project(project_id)
+
+        project = self.reptor.api.projects.project
+        design = self.reptor.api.project_designs.get_project_design(
+            project.project_type
+        )
 
         return {
             "project_id": project_id,
             "project_type": project.project_type,
-            "finding_fields": [simplify_field(f) for f in design.finding_fields],
+            "report_fields": [self._simplify_field(f) for f in design.report_fields],
         }
