@@ -277,7 +277,7 @@ class McpLogic:
         self.reptor.api.projects.init_project(project_id)
 
         project = self.reptor.api.projects.project
-        design = self.reptor.api.project_designs.fetch_project_design(
+        design = self.reptor.api.project_designs.get_project_design(
             project.project_type
         )
 

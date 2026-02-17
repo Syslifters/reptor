@@ -172,7 +172,7 @@ class TestMCPSchemaDiscovery:
         mock_project.project_type = "design-123"
         mock_reptor.api.projects.project = mock_project
 
-        mock_reptor.api.project_designs.fetch_project_design.return_value = (
+        mock_reptor.api.project_designs.get_project_design.return_value = (
             sample_project_design
         )
 
@@ -211,7 +211,7 @@ class TestMCPSchemaDiscovery:
 
         # Verify API calls
         mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
-        mock_reptor.api.project_designs.fetch_project_design.assert_called_once_with(
+        mock_reptor.api.project_designs.get_project_design.assert_called_once_with(
             "design-123"
         )
 

@@ -26,7 +26,7 @@ class TestIntegrationProjectDesignsAPI:
         assert len(filtered_designs) > 0
         assert len(filtered_designs) <= len(all_designs)
 
-    def test_fetch_project_design(self):
+    def test_get_project_design(self):
         reptor = Reptor(
             server=os.environ.get("SYSREPTOR_SERVER"),
             token=os.environ.get("SYSREPTOR_API_TOKEN"),
@@ -34,7 +34,7 @@ class TestIntegrationProjectDesignsAPI:
         all_designs = reptor.api.project_designs.search()
         assert len(all_designs) > 0
         design_id = all_designs[0].id
-        design = reptor.api.project_designs.fetch_project_design(project_design_id=design_id)
+        design = reptor.api.project_designs.get_project_design(project_design_id=design_id)
         assert hasattr(design, "id")
         assert hasattr(design, "name")
         assert hasattr(design, "finding_fields")
@@ -110,7 +110,7 @@ class TestIntegrationProjectDesignsAPI:
             assert updated_design.report_styles == newer_styles
             
             # Verify the updates persisted by fetching again
-            final_design = reptor.api.project_designs.fetch_project_design(project_design_id=design.id)
+            final_design = reptor.api.project_designs.get_project_design(project_design_id=design.id)
             assert final_design.report_template == newer_template
             assert final_design.report_styles == newer_styles
             

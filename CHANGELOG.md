@@ -3,6 +3,8 @@
 * Allow uploading file without adding it to note (#231)
 * Implement more Project Design API calls (create, update, delete; #235)
 * Allow updating finding templates (#224)
+* Rename "id" parameter in NotesAPI.py to "note_id"
+* Rename "fetch_" methods to "get_*"
 * Fix (un)packarchive error with UTF-8 characters (#219)
 * Fix broken stdin when using reptor as a library (#226)
 * Fix template export without --search (#223)

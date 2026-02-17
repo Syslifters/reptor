@@ -128,14 +128,19 @@ class ProjectDesignsAPI(APIClient):
         designs_raw = self.get_paginated(url, params=params)
         return [ProjectDesignOverview(item) for item in designs_raw]
 
-    def fetch_project_design(self, project_design_id: typing.Optional[str] = None) -> ProjectDesign:
-        """Fetches the project design in context from SysReptor.
+    def get_project_design(self, project_design_id: typing.Optional[str] = None) -> ProjectDesign:
+        """Gets the project design in context from SysReptor.
 
         Args:
             project_design_id (str, optional): ID of the project design to fetch. If not provided, it uses the project design of the project in context.
         
         Returns:
-            Project object with sections and findings.
+            ProjectDesign object with sections and findings.
+        
+        Example:
+            ```python
+            design = reptor.api.project_designs.get_project_design()
+            ```
         """
         if project_design_id:
             object_endpoint = urljoin(self.base_endpoint, project_design_id)
@@ -143,6 +148,24 @@ class ProjectDesignsAPI(APIClient):
             object_endpoint = self.object_endpoint
         response = self.get(object_endpoint)
         return ProjectDesign(response.json())
+
+    def fetch_project_design(self, project_design_id: typing.Optional[str] = None) -> ProjectDesign:
+        """Fetches the project design in context from SysReptor.
+        
+        .. deprecated::
+            Use :meth:`get_project_design` instead. This method will be removed in a future version.
+
+        Args:
+            project_design_id (str, optional): ID of the project design to fetch. If not provided, it uses the project design of the project in context.
+        
+        Returns:
+            ProjectDesign object with sections and findings.
+        """
+        self.log.warning(
+            "fetch_project_design() is deprecated and will be removed in a future version. "
+            "Use get_project_design() instead."
+        )
+        return self.get_project_design(project_design_id=project_design_id)
 
     @cached_property
     def project_design(self) -> ProjectDesign:

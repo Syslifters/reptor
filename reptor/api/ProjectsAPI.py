@@ -26,7 +26,7 @@ class ProjectsAPI(APIClient):
         )
 
         # ProjectsAPI is available as reptor.api.projects, e.g.:
-        reptor.api.projects.fetch_project()
+        reptor.api.projects.get_project()
         ```
     """
     
@@ -69,8 +69,31 @@ class ProjectsAPI(APIClient):
         projects_raw = self.get_paginated(self.base_endpoint, params=params)
         return [ProjectOverview(project_raw) for project_raw in projects_raw]
 
+    def get_project(self, project_id: typing.Optional[str] = None, html: bool=False) -> Project:
+        """Gets the project in context from SysReptor.
+
+        Args:
+            project_id (str, optional): ID of the project to fetch. If not provided, it uses the project in context.
+            html (bool, optional): If True, fetches markdown fields as HTML. Defaults to False.
+        
+        Returns:
+            Project object with sections and findings.
+        
+        Example:
+            ```python
+            project = reptor.api.projects.get_project()
+            ```
+        """
+        return Project(
+            self._get_project_dict(project_id=project_id, html=html),
+            self.reptor.api.project_designs.project_design,
+        )
+
     def fetch_project(self, project_id: typing.Optional[str] = None, html: bool=False) -> Project:
         """Fetches the project in context from SysReptor.
+        
+        .. deprecated::
+            Use :meth:`get_project` instead. This method will be removed in a future version.
 
         Args:
             project_id (str, optional): ID of the project to fetch. If not provided, it uses the project in context.
@@ -79,10 +102,11 @@ class ProjectsAPI(APIClient):
         Returns:
             Project object with sections and findings.
         """
-        return Project(
-            self._fetch_project_dict(project_id=project_id, html=html),
-            self.reptor.api.project_designs.project_design,
+        self.log.warning(
+            "fetch_project() is deprecated and will be removed in a future version. "
+            "Use get_project() instead."
         )
+        return self.get_project(project_id=project_id, html=html)
 
     def check_report(self, group_messages=False) -> dict:
         url = urljoin(self.base_endpoint, f"{self.project_id}/check")
@@ -295,13 +319,13 @@ class ProjectsAPI(APIClient):
     # Project Data Operations
     @cached_property
     def project(self) -> Project:
-        return self.fetch_project()
+        return self.get_project()
 
     @cached_property
     def _project_dict(self) -> dict:
-        return self._fetch_project_dict()
+        return self._get_project_dict()
     
-    def _fetch_project_dict(self, project_id: typing.Optional[str] = None, html=False) -> dict:
+    def _get_project_dict(self, project_id: typing.Optional[str] = None, html=False) -> dict:
         """Fetches the project dictionary from the API"""
         if project_id is None:
             project_id = self.project_id

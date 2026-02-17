@@ -142,9 +142,9 @@ class NotesAPI(APIClient):
             },
         ).json()
         if icon:
-            self.set_icon(note.get("id"), icon)
+            self.set_icon(note_id=note.get("id"), icon=icon)
         elif title == "Uploads":
-            self.set_icon(note.get("id"), "📤")
+            self.set_icon(note_id=note.get("id"), icon="📤")
         return Note(note)
 
     def write_note(
@@ -263,19 +263,32 @@ class NotesAPI(APIClient):
                 child.parent = note.id
                 self.write_note_templates(child, timestamp=timestamp, **kwargs)
 
-    def set_icon(self, id: str, icon: str):
+    def set_icon(self, note_id: str = None, icon: str = None, id: str = None):
         """Sets an emoji icon for a note.
 
         Args:
-            id (str): Note ID
+            note_id (str): Note ID
             icon (str): Emoji character to set as icon
+            id (str, deprecated): Deprecated. Use note_id instead.
 
         Example:
             ```python
-            reptor.api.notes.set_icon("983a7e95-b2d9-4d57-984e-08496264cce8", "🔒")
+            reptor.api.notes.set_icon(note_id="983a7e95-b2d9-4d57-984e-08496264cce8", icon="🔒")
             ```
         """
-        url = urljoin(self.base_endpoint, f"{id}/")
+        # Handle deprecated 'id' parameter
+        if id is not None:
+            self.log.warning(
+                "The 'id' parameter is deprecated and will be removed in a future version. "
+                "Use 'note_id' instead."
+            )
+            if note_id is None:
+                note_id = id
+        
+        if note_id is None:
+            raise ValueError("note_id parameter is required")
+        
+        url = urljoin(self.base_endpoint, f"{note_id}/")
         self.put(url, json={"icon_emoji": icon})
 
     def upload_file(
@@ -410,24 +423,38 @@ class NotesAPI(APIClient):
 
     def render(
         self,
-        id: str,
+        note_id: str = None,
+        id: str = None,
     ) -> bytes:
         """Renders a note to PDF format.
 
         Args:
-            id (str): Note ID to render
+            note_id (str): Note ID to render
+            id (str, deprecated): Deprecated. Use note_id instead.
 
         Returns:
             PDF content as bytes
 
         Example:
             ```python
-            pdf_data = reptor.api.notes.render("note-uuid-here")
+            pdf_data = reptor.api.notes.render(note_id="note-uuid-here")
             with open("note.pdf", "wb") as f:
                 f.write(pdf_data)
             ```
         """
-        url = urljoin(self.base_endpoint, f"{id}/export-pdf/")
+        # Handle deprecated 'id' parameter
+        if id is not None:
+            self.log.warning(
+                "The 'id' parameter is deprecated and will be removed in a future version. "
+                "Use 'note_id' instead."
+            )
+            if note_id is None:
+                note_id = id
+        
+        if note_id is None:
+            raise ValueError("note_id parameter is required")
+        
+        url = urljoin(self.base_endpoint, f"{note_id}/export-pdf/")
         response = self.post(url)
         response.raise_for_status()
         return response.content
@@ -448,23 +475,37 @@ class NotesAPI(APIClient):
 
     def duplicate(
         self,
-        id: str,
+        note_id: str = None,
+        id: str = None,
     ) -> Note:
         """Creates a note duplicate.
 
         Args:
-            id (str): Note ID to duplicate
+            note_id (str): Note ID to duplicate
+            id (str, deprecated): Deprecated. Use note_id instead.
 
         Returns:
             Duplicated note object
 
         Example:
             ```python
-            duplicate_note = reptor.api.notes.duplicate("note-uuid-here")
+            duplicate_note = reptor.api.notes.duplicate(note_id="note-uuid-here")
             print(f"Duplicated note: {duplicate_note.title}")
             ```
         """
-        url = urljoin(self.base_endpoint, f"{id}/copy/")
+        # Handle deprecated 'id' parameter
+        if id is not None:
+            self.log.warning(
+                "The 'id' parameter is deprecated and will be removed in a future version. "
+                "Use 'note_id' instead."
+            )
+            if note_id is None:
+                note_id = id
+        
+        if note_id is None:
+            raise ValueError("note_id parameter is required")
+        
+        url = urljoin(self.base_endpoint, f"{note_id}/copy/")
         response = self.post(url)
         response.raise_for_status()
         return Note(response.json())

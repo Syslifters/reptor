@@ -28,7 +28,7 @@ class TestReptorTutorial:
             token=os.environ.get("SYSREPTOR_API_TOKEN"),
             project_id=self.projects[0].id,
         )
-        project = reptor.api.projects.fetch_project()
+        project = reptor.api.projects.get_project()
         assert isinstance(project, reptor_models.Project.Project)
 
     def test_project_search(self):
@@ -43,15 +43,15 @@ class TestReptorTutorial:
         assert isinstance(self.projects[0], reptor_models.Project.ProjectOverview)
         assert isinstance(self.projects[0].to_dict(), dict)
 
-    def test_fetch_project(self):
+    def test_get_project(self):
         self.reptor.api.projects.init_project(self.projects[0].id)
 
-        project = self.reptor.api.projects.fetch_project()
+        project = self.reptor.api.projects.get_project()
         assert isinstance(project, reptor_models.Project.Project)
         assert isinstance(project.to_dict(), dict)
         assert project.name == self.projects[0].name
 
-        html_project = self.reptor.api.projects.fetch_project(html=True)
+        html_project = self.reptor.api.projects.get_project(html=True)
         assert isinstance(html_project, reptor_models.Project.Project)
 
     def test_findings(self):
@@ -107,7 +107,7 @@ class TestReptorTutorial:
         assert isinstance(finding, reptor_models.Finding.FindingRaw)
         assert finding.data.title == templates[0].get_main_translation().data.title
 
-        project = self.reptor.api.projects.fetch_project()
+        project = self.reptor.api.projects.get_project()
         section_id = project.sections[0].id
         
         field = project.sections[0].fields[0]
