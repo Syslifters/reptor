@@ -9,7 +9,7 @@ reptor exportfindings --format json
 
 Or use it as a Python library:
 
-```python title="Fetch project in Python script"
+```python title="Get project in Python script"
 from reptor import Reptor
 
 reptor = Reptor(
@@ -17,7 +17,7 @@ reptor = Reptor(
     token=os.environ.get("REPTOR_TOKEN"),
     project_id="41c09e60-44f1-453b-98f3-3f1875fe90fe",
 )
-reptor.api.projects.fetch_project()
+reptor.api.projects.get_project()
 ```
 
 You can use it to:
