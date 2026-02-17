@@ -309,7 +309,6 @@ class TestMCPErrorHandling:
         with pytest.raises(HTTPError, match="title is required"):
             logic.create_finding({"description": "Test without title"})
 
-
     def test_create_finding_invalid_severity(self, mock_reptor):
         """Test creating finding with invalid severity value."""
         from requests.exceptions import HTTPError
@@ -776,3 +775,378 @@ class TestMCPFindingPartialUpdate:
 
         # Verify result has field exclusion applied
         assert "affected_components" not in result["data"]
+
+
+class TestMCPProjectDataOperations:
+    """Tests for project data operations (sections and report fields)."""
+
+    # ===== GET PROJECT SCHEMA TESTS =====
+    def test_get_project_schema_success(
+        self, mock_reptor, sample_project_design_with_report_fields
+    ):
+        """Test successful project schema retrieval with report fields."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Mock project
+        mock_project = MagicMock()
+        mock_project.project_type = "design-456"
+        mock_reptor.api.projects.project = mock_project
+
+        mock_reptor.api.project_designs.get_project_design.return_value = (
+            sample_project_design_with_report_fields
+        )
+
+        result = logic.get_project_schema()
+
+        assert result["project_id"] == "test-project-id"
+        assert result["project_type"] == "design-456"
+        assert len(result["report_fields"]) == 3
+
+        # Check executive_summary field (string, required)
+        exec_field = result["report_fields"][0]
+        assert exec_field["id"] == "executive_summary"
+        assert exec_field["type"] == "string"
+        assert exec_field["label"] == "Executive Summary"
+        assert exec_field["required"] is True
+        assert "choices" not in exec_field
+
+        # Check scope field (markdown, optional)
+        scope_field = result["report_fields"][1]
+        assert scope_field["id"] == "scope"
+        assert scope_field["type"] == "markdown"
+        assert scope_field["label"] == "Scope"
+        assert scope_field["required"] is False
+
+        # Check test_methodology field (enum with choices)
+        method_field = result["report_fields"][2]
+        assert method_field["id"] == "test_methodology"
+        assert method_field["type"] == "enum"
+        assert method_field["required"] is True
+        assert method_field["choices"] == ["blackbox", "whitebox"]
+
+        # Verify API calls
+        mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
+        mock_reptor.api.project_designs.get_project_design.assert_called_once_with(
+            "design-456"
+        )
+
+    def test_get_project_schema_api_error(self, mock_reptor):
+        """Test error handling when project design fetch fails."""
+        from requests.exceptions import HTTPError
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        mock_project = MagicMock()
+        mock_project.project_type = "design-456"
+        mock_reptor.api.projects.project = mock_project
+
+        mock_reptor.api.project_designs.get_project_design.side_effect = HTTPError(
+            "404 Not Found: Project design not found"
+        )
+
+        with pytest.raises(HTTPError, match="404 Not Found"):
+            logic.get_project_schema()
+
+    def test_get_project_schema_no_project(self):
+        """Test error when no project is configured."""
+        mock_reptor = MagicMock()
+        mock_reptor.get_active_project_id.return_value = ""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        with pytest.raises(ValueError, match="No project configured"):
+            logic.get_project_schema()
+
+    # ===== LIST SECTIONS TESTS =====
+    def test_list_sections_success(self, mock_reptor):
+        """Test successful section listing with metadata extraction."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Create mock sections
+        section1 = MagicMock(spec=SectionRaw)
+        section1.id = "executive_summary"
+        section1.label = "Executive Summary"
+
+        section2 = MagicMock(spec=SectionRaw)
+        section2.id = "scope"
+        section2.label = "Scope"
+
+        section3 = MagicMock(spec=SectionRaw)
+        section3.id = "findings"
+        section3.label = "Findings"
+
+        mock_reptor.api.projects.get_sections.return_value = [
+            section1,
+            section2,
+            section3,
+        ]
+
+        results = logic.list_sections()
+
+        assert len(results) == 3
+        assert results[0] == {
+            "id": "executive_summary",
+            "type": "section",
+            "label": "Executive Summary",
+        }
+        assert results[1] == {
+            "id": "scope",
+            "type": "section",
+            "label": "Scope",
+        }
+        assert results[2] == {
+            "id": "findings",
+            "type": "section",
+            "label": "Findings",
+        }
+
+        mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
+        mock_reptor.api.projects.get_sections.assert_called_once()
+
+    def test_list_sections_empty(self, mock_reptor):
+        """Test handling empty section list."""
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.projects.get_sections.return_value = []
+
+        results = logic.list_sections()
+
+        assert results == []
+        mock_reptor.api.projects.get_sections.assert_called_once()
+
+    def test_list_sections_with_field_exclusion(self, mock_reptor, field_excluder):
+        """Test that FieldExcluder is applied to section metadata."""
+        from reptor.models.Section import SectionRaw
+
+        # Create field excluder that excludes 'label' field
+        from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
+
+        label_excluder = FieldExcluder(exclude_fields=["label"])
+
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=label_excluder)
+
+        section1 = MagicMock(spec=SectionRaw)
+        section1.id = "executive_summary"
+        section1.label = "Executive Summary"
+
+        mock_reptor.api.projects.get_sections.return_value = [section1]
+
+        results = logic.list_sections()
+
+        assert len(results) == 1
+        assert results[0]["id"] == "executive_summary"
+        assert "type" in results[0]
+        assert "label" not in results[0], "Excluded field 'label' should be removed"
+
+    def test_list_sections_no_project(self):
+        """Test error when no project is configured."""
+        mock_reptor = MagicMock()
+        mock_reptor.get_active_project_id.return_value = ""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        with pytest.raises(ValueError, match="No project configured"):
+            logic.list_sections()
+
+    # ===== GET SECTION TESTS =====
+    def test_get_section_success(self, mock_reptor, sample_section_raw):
+        """Test successful section retrieval."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Mock get_sections to return list with our section
+        mock_reptor.api.projects.get_sections.return_value = [sample_section_raw]
+
+        result = logic.get_section("executive_summary")
+
+        assert result["id"] == "executive_summary"
+        assert result["label"] == "Executive Summary"
+        assert "data" in result
+        assert result["data"]["executive_summary"] == "This is a test summary"
+
+        mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
+        mock_reptor.api.projects.get_sections.assert_called_once()
+
+    def test_get_section_with_field_exclusion(self, mock_reptor, field_excluder):
+        """Test that FieldExcluder filters section.data."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Create section with excluded field
+        section_data = {
+            "id": "executive_summary",
+            "label": "Executive Summary",
+            "data": {
+                "executive_summary": "Test summary",
+                "affected_components": ["192.168.1.1"],  # Excluded field
+            },
+        }
+        section = SectionRaw(section_data)
+        mock_reptor.api.projects.get_sections.return_value = [section]
+
+        result = logic.get_section("executive_summary")
+
+        assert "affected_components" not in result["data"], (
+            "Excluded field should be removed from data"
+        )
+        assert result["data"]["executive_summary"] == "Test summary"
+
+    def test_get_section_not_found(self, mock_reptor):
+        """Test ValueError raised when section is not found."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Create section with different ID
+        section = MagicMock(spec=SectionRaw)
+        section.id = "scope"
+        section.label = "Scope"
+
+        mock_reptor.api.projects.get_sections.return_value = [section]
+
+        with pytest.raises(ValueError, match="Section with id 'nonexistent' not found"):
+            logic.get_section("nonexistent")
+
+    def test_get_section_api_error(self, mock_reptor):
+        """Test API error handling in get_section."""
+        from requests.exceptions import HTTPError
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.projects.get_sections.side_effect = HTTPError(
+            "500 Internal Server Error"
+        )
+
+        with pytest.raises(HTTPError):
+            logic.get_section("executive_summary")
+
+    def test_get_section_no_project(self):
+        """Test error when no project is configured."""
+        mock_reptor = MagicMock()
+        mock_reptor.get_active_project_id.return_value = ""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        with pytest.raises(ValueError, match="No project configured"):
+            logic.get_section("executive_summary")
+
+    # ===== PATCH PROJECT DATA TESTS =====
+    def test_patch_project_data_success(self, mock_reptor):
+        """Test successful partial update of section data."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Mock the updated section returned by API
+        updated_section_data = {
+            "id": "executive_summary",
+            "label": "Executive Summary",
+            "data": {
+                "executive_summary": "Updated summary text",
+            },
+        }
+        updated_section = SectionRaw(updated_section_data)
+        mock_reptor.api.projects.update_section.return_value = updated_section
+
+        result = logic.patch_project_data(
+            "executive_summary", "executive_summary", "Updated summary text"
+        )
+
+        # Verify partial payload was sent (not full section)
+        mock_reptor.api.projects.update_section.assert_called_once_with(
+            "executive_summary",
+            {"data": {"executive_summary": "Updated summary text"}},
+        )
+
+        # Verify result
+        assert result["id"] == "executive_summary"
+        assert result["data"]["executive_summary"] == "Updated summary text"
+
+    def test_patch_project_data_with_field_exclusion(self, mock_reptor, field_excluder):
+        """Test FieldExcluder is applied to returned data."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+
+        # Mock section with excluded field in response
+        updated_section_data = {
+            "id": "scope",
+            "label": "Scope",
+            "data": {
+                "scope": "Test scope",
+                "affected_components": ["10.0.0.1"],  # Excluded field
+            },
+        }
+        updated_section = SectionRaw(updated_section_data)
+        mock_reptor.api.projects.update_section.return_value = updated_section
+
+        result = logic.patch_project_data("scope", "scope", "Test scope")
+
+        # Verify partial payload was sent
+        call_args = mock_reptor.api.projects.update_section.call_args[0]
+        assert call_args[1] == {"data": {"scope": "Test scope"}}
+
+        # Verify excluded field is removed from result
+        assert "affected_components" not in result["data"]
+        assert result["data"]["scope"] == "Test scope"
+
+    def test_patch_project_data_api_error(self, mock_reptor):
+        """Test API error handling in patch_project_data."""
+        from requests.exceptions import HTTPError
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.projects.update_section.side_effect = HTTPError(
+            "404 Not Found: Section not found"
+        )
+
+        with pytest.raises(HTTPError, match="404 Not Found"):
+            logic.patch_project_data("nonexistent", "field", "value")
+
+    def test_patch_project_data_no_project(self):
+        """Test error when no project is configured."""
+        mock_reptor = MagicMock()
+        mock_reptor.get_active_project_id.return_value = ""
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        with pytest.raises(ValueError, match="No project configured"):
+            logic.patch_project_data("section", "field", "value")
+
+    def test_patch_project_data_complex_value(self, mock_reptor):
+        """Test patch with complex value types (lists, dicts)."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor)
+
+        # Test with list value
+        updated_section = SectionRaw(
+            {
+                "id": "scope",
+                "data": {"scope_items": ["item1", "item2"]},
+            }
+        )
+        mock_reptor.api.projects.update_section.return_value = updated_section
+
+        result = logic.patch_project_data("scope", "scope_items", ["item1", "item2"])
+
+        call_args = mock_reptor.api.projects.update_section.call_args[0]
+        assert call_args[1] == {"data": {"scope_items": ["item1", "item2"]}}
+        assert result["data"]["scope_items"] == ["item1", "item2"]
+
+    def test_patch_project_data_field_excluder_none(self, mock_reptor):
+        """Test that patch works when field_excluder is None."""
+        from reptor.models.Section import SectionRaw
+
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=None)
+
+        section_data = {
+            "id": "executive_summary",
+            "data": {"executive_summary": "Test", "other_field": "value"},
+        }
+        updated_section = SectionRaw(section_data)
+        mock_reptor.api.projects.update_section.return_value = updated_section
+
+        result = logic.patch_project_data(
+            "executive_summary", "executive_summary", "Test"
+        )
+
+        # Should return data as-is without field exclusion
+        assert result["data"]["other_field"] == "value"
