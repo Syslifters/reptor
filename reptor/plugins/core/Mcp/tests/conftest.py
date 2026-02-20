@@ -107,3 +107,71 @@ def sample_project_design():
         mock_description_field,
     ]
     return mock_design
+
+
+@pytest.fixture
+def sample_section_data():
+    """Standard section data for testing."""
+    return {
+        "id": "executive_summary",
+        "label": "Executive Summary",
+        "status": "in-progress",
+        "data": {
+            "executive_summary": "This is a test summary",
+            "affected_components": ["192.168.1.1"],
+        },
+    }
+
+
+@pytest.fixture
+def sample_section_raw(sample_section_data):
+    """SectionRaw instance with sample data."""
+    from reptor.models.Section import SectionRaw
+
+    return SectionRaw(sample_section_data)
+
+
+@pytest.fixture
+def sample_project_design_with_report_fields():
+    """Mock ProjectDesign with report fields for testing get_project_schema."""
+    mock_design = MagicMock(spec=ProjectDesign)
+
+    # Executive summary field (string)
+    mock_exec_field = MagicMock()
+    mock_exec_field.id = "executive_summary"
+    mock_exec_field.type = MagicMock(value="string")
+    mock_exec_field.label = "Executive Summary"
+    mock_exec_field.required = True
+    mock_exec_field.choices = []
+    mock_exec_field.items = None
+    mock_exec_field.properties = None
+
+    # Scope field (markdown)
+    mock_scope_field = MagicMock()
+    mock_scope_field.id = "scope"
+    mock_scope_field.type = MagicMock(value="markdown")
+    mock_scope_field.label = "Scope"
+    mock_scope_field.required = False
+    mock_scope_field.choices = []
+    mock_scope_field.items = None
+    mock_scope_field.properties = None
+
+    # Test methodology field (enum)
+    mock_method_field = MagicMock()
+    mock_method_field.id = "test_methodology"
+    mock_method_field.type = MagicMock(value="enum")
+    mock_method_field.label = "Test Methodology"
+    mock_method_field.required = True
+    mock_method_field.choices = [
+        {"value": "blackbox", "label": "Black Box"},
+        {"value": "whitebox", "label": "White Box"},
+    ]
+    mock_method_field.items = None
+    mock_method_field.properties = None
+
+    mock_design.report_fields = [
+        mock_exec_field,
+        mock_scope_field,
+        mock_method_field,
+    ]
+    return mock_design

@@ -54,9 +54,7 @@ class McpLogic:
 
             # Apply field exclusion to summary if configured
             if self.field_excluder:
-                finding_summary = self.field_excluder.remove_fields(
-                    finding_summary
-                )
+                finding_summary = self.field_excluder.remove_fields(finding_summary)
 
             results.append(finding_summary)
         self._log(f"list_findings returning {len(results)} findings summary")
@@ -135,9 +133,7 @@ class McpLogic:
 
         # Remove excluded fields from data being written
         if self.field_excluder:
-            vulnerability_data = self.field_excluder.remove_fields(
-                vulnerability_data
-            )
+            vulnerability_data = self.field_excluder.remove_fields(vulnerability_data)
 
         payload["data"] = vulnerability_data
 
@@ -146,9 +142,7 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(
-                result["data"]
-            )
+            result["data"] = self.field_excluder.remove_fields(result["data"])
         self._log(f"create_finding returning: {result}")
 
         return result
@@ -222,9 +216,7 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(
-                result["data"]
-            )
+            result["data"] = self.field_excluder.remove_fields(result["data"])
 
         self._log(f"patch_finding returning: {result}")
         return result
@@ -261,6 +253,35 @@ class McpLogic:
         template = self.reptor.api.templates.get_template(template_id)
         return template.to_dict()
 
+    def _simplify_field(self, field) -> Dict[str, Any]:
+        """Convert a ProjectDesignField to a simplified dict."""
+        field_type = (
+            field.type.value if hasattr(field.type, "value") else str(field.type)
+        )
+        field_info: Dict[str, Any] = {
+            "id": field.id,
+            "type": field_type,
+            "label": field.label,
+            "required": field.required,
+        }
+        # Include choices for enum fields
+        if field_type == "enum" and field.choices:
+            field_info["choices"] = [
+                c.get("value") for c in field.choices if c.get("value")
+            ]
+        # Include items for list fields (recursively simplify if it's a ProjectDesignField)
+        if field_type == "list" and field.items:
+            if hasattr(field.items, "id"):
+                field_info["items"] = self._simplify_field(field.items)
+            else:
+                field_info["items"] = field.items
+        # Include properties for object fields (recursively simplify)
+        if field_type == "object" and field.properties:
+            field_info["properties"] = [
+                self._simplify_field(p) for p in field.properties
+            ]
+        return field_info
+
     def get_finding_schema(self) -> Dict[str, Any]:
         """Gets the finding field schema for the configured project.
 
@@ -281,35 +302,153 @@ class McpLogic:
             project.project_type
         )
 
-        def simplify_field(field) -> Dict[str, Any]:
-            """Convert a ProjectDesignField to a simplified dict."""
-            field_type = (
-                field.type.value if hasattr(field.type, "value") else str(field.type)
-            )
-            field_info: Dict[str, Any] = {
-                "id": field.id,
-                "type": field_type,
-                "label": field.label,
-                "required": field.required,
-            }
-            # Include choices for enum fields
-            if field_type == "enum" and field.choices:
-                field_info["choices"] = [
-                    c.get("value") for c in field.choices if c.get("value")
-                ]
-            # Include items for list fields (recursively simplify if it's a ProjectDesignField)
-            if field_type == "list" and field.items:
-                if hasattr(field.items, "id"):
-                    field_info["items"] = simplify_field(field.items)
-                else:
-                    field_info["items"] = field.items
-            # Include properties for object fields (recursively simplify)
-            if field_type == "object" and field.properties:
-                field_info["properties"] = [simplify_field(p) for p in field.properties]
-            return field_info
+        return {
+            "project_id": project_id,
+            "project_type": project.project_type,
+            "finding_fields": [self._simplify_field(f) for f in design.finding_fields],
+        }
+
+    def get_project_schema(self) -> Dict[str, Any]:
+        """Gets the report field schema for the configured project.
+
+        This is a convenience method that fetches the project's design and returns
+        a simplified schema of report fields, making it easier to understand
+        what report sections and fields are available and their types.
+
+        Returns:
+            A dict containing project_id, project_type, and report_fields with
+            simplified field definitions (id, type, label, required, choices, items, properties).
+        """
+        project_id = self._get_project_id()
+        self._log(f"get_project_schema called for project {project_id}")
+        self.reptor.api.projects.init_project(project_id)
+
+        project = self.reptor.api.projects.project
+        design = self.reptor.api.project_designs.get_project_design(
+            project.project_type
+        )
 
         return {
             "project_id": project_id,
             "project_type": project.project_type,
-            "finding_fields": [simplify_field(f) for f in design.finding_fields],
+            "report_fields": [self._simplify_field(f) for f in design.report_fields],
         }
+
+    def list_sections(self) -> List[Dict[str, Any]]:
+        """Lists all report sections for the configured project.
+
+        Returns a simplified list of sections with metadata (id, type, label)
+        for each section. This provides a high-level overview without sensitive
+        section data content.
+
+        Returns:
+            List of section metadata dictionaries containing:
+            - id: Section ID (e.g., "executive_summary")
+            - type: Section type (e.g., "section")
+            - label: Human-readable label (e.g., "Executive Summary")
+        """
+        self._log("list_sections called")
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+        sections = self.reptor.api.projects.get_sections()
+
+        results = []
+        for section in sections:
+            section_info = {
+                "id": section.id,
+                "type": "section",
+                "label": section.label,
+            }
+
+            # Apply field exclusion if configured
+            if self.field_excluder:
+                section_info = self.field_excluder.remove_fields(section_info)
+
+            results.append(section_info)
+
+        self._log(f"list_sections returning {len(results)} sections")
+        return results
+
+    def get_section(self, section_id: str) -> Dict[str, Any]:
+        """Retrieves a single section by ID with field exclusion.
+
+        Args:
+            section_id: The ID of the section to retrieve.
+
+        Returns:
+            Section data dictionary with field exclusion applied.
+        """
+        self._log(f"get_section called for id: {section_id}")
+
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+
+        sections = self.reptor.api.projects.get_sections()
+
+        # Find the section with matching ID
+        section = None
+        for s in sections:
+            if s.id == section_id:
+                section = s
+                break
+
+        if section is None:
+            raise ValueError(f"Section with id '{section_id}' not found")
+
+        # Convert section to dictionary
+        section_dict = section.to_dict()
+
+        # Apply field exclusion to section data if configured
+        if self.field_excluder and "data" in section_dict:
+            section_dict["data"] = self.field_excluder.remove_fields(
+                section_dict["data"]
+            )
+
+        self._log(f"get_section returning: {section_dict}")
+        return section_dict
+
+    def patch_project_data(
+        self, section_id: str, field_id: str, value: Any
+    ) -> Dict[str, Any]:
+        """Patches a single field in a section's data.
+
+        This method implements the MCP single-field update workflow:
+        1. Constructs a partial payload with only the specified field
+        2. Sends partial payload to API without fetching current section
+        3. API validates, merges, and returns updated section
+        4. Returns updated section data with FieldExcluder filtering
+
+        Args:
+            section_id: The ID of the section to update (e.g., "executive_summary").
+            field_id: The ID of the field to update within section.data.
+            value: The new value for the field.
+
+        Returns:
+            Updated section data from API response with FieldExcluder filtering applied.
+
+        Raises:
+            ValueError: If no project is configured.
+            HTTPError: If the API returns an error (propagated without modification).
+        """
+        self._log(
+            f"patch_project_data called for section: {section_id}, field: {field_id}, value: {value}"
+        )
+
+        project_id = self._get_project_id()
+        self.reptor.api.projects.init_project(project_id)
+
+        # Send partial update (consistent with patch_finding pattern)
+        section_data = {"data": {field_id: value}}
+        updated_section_raw = self.reptor.api.projects.update_section(
+            section_id, section_data
+        )
+
+        # Convert to dict and apply FieldExcluder filtering
+        updated_section = updated_section_raw.to_dict()
+        if self.field_excluder and "data" in updated_section:
+            updated_section["data"] = self.field_excluder.remove_fields(
+                updated_section["data"]
+            )
+
+        self._log(f"patch_project_data returning: {updated_section}")
+        return updated_section
