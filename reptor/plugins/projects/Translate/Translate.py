@@ -15,13 +15,18 @@ try:
 except ImportError:
     deepl = None
 
+try:
+    from openai import AzureOpenAI
+except ImportError:
+    AzureOpenAI = None
+
 
 class Translate(Base):
     """ """
 
     meta = {
         "name": "Translate",
-        "summary": "Translate Projects to other languages via Deepl",
+        "summary": "Translate Projects to other languages via Deepl or Azure OpenAI",
     }
 
     PREDEFINED_SKIP_FIELDS = [
@@ -32,7 +37,7 @@ class Translate(Base):
         ProjectFieldTypes.string.value,
         ProjectFieldTypes.markdown.value,
     ]
-    DEEPL_FROM = [
+    LANG_FROM = [
         "BG",
         "CS",
         "DA",
@@ -63,7 +68,7 @@ class Translate(Base):
         "UK",
         "ZH",
     ]
-    DEEPL_TO = [
+    LANG_TO = [
         "BG",
         "CS",
         "DA",
@@ -98,12 +103,14 @@ class Translate(Base):
         "UK",
         "ZH",
     ]
+    TRANSLATION_SERVICES = ["deepl", "azure"]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.from_lang = kwargs.get("from")
         self.to_lang = kwargs["to"]
         self.dry_run = kwargs.get("dry_run")
+        self.translation_service = kwargs.get("service") or kwargs.get("translation_service", "deepl")
         self.chars_count_to_translate = 0
         self.skip_fields = kwargs.get("skip_fields", None) or getattr(
             self, "skip_fields", None
@@ -116,20 +123,57 @@ class Translate(Base):
             self.skip_fields.extend(self.PREDEFINED_SKIP_FIELDS)
         except TypeError:
             raise TypeError("skip_fields should be list.")
-        if not hasattr(self, "deepl_api_token"):
-            self.deepl_api_token = ""
-
-        try:
-            if not self.deepl_api_token:
-                raise AttributeError("No Deepl API token found. Try --conf.")
-            if not deepl:
-                raise ModuleNotFoundError(
-                    'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
+        
+        if self.translation_service == "deepl":
+            if not hasattr(self, "deepl_api_token"):
+                self.deepl_api_token = ""
+            try:
+                if not self.deepl_api_token:
+                    raise AttributeError("No Deepl API token found. Try --conf.")
+                if not deepl:
+                    raise ModuleNotFoundError(
+                        'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
+                    )
+                self.deepl_translator = deepl.Translator(self.deepl_api_token)
+            except (AttributeError, ModuleNotFoundError) as e:
+                if not self.dry_run:
+                    raise e
+        elif self.translation_service == "azure":
+            if not hasattr(self, "azure_api_key"):
+                self.azure_api_key = ""
+            if not hasattr(self, "azure_resource_name"):
+                self.azure_resource_name = ""
+            if not hasattr(self, "azure_api_version"):
+                self.azure_api_version = ""
+            if not hasattr(self, "azure_endpoint"):
+                self.azure_endpoint = ""
+            if not hasattr(self, "azure_model"):
+                self.azure_model = "gpt-4"
+            
+            try:
+                if not self.azure_api_key:
+                    raise AttributeError("No Azure API key found. Try --conf.")
+                if not self.azure_resource_name:
+                    raise AttributeError("No Azure resource name found. Try --conf.")
+                if not self.azure_api_version:
+                    raise AttributeError("No Azure API version found. Try --conf.")
+                if not self.azure_endpoint and not self.azure_resource_name:
+                    raise AttributeError("No Azure endpoint or resource name found. Try --conf.")
+                if not AzureOpenAI:
+                    raise ModuleNotFoundError(
+                        'openai library not found. Install with "pip3 install openai'
+                    )
+                
+                endpoint = self.azure_endpoint or f"https://{self.azure_resource_name}.openai.azure.com/"
+                
+                self.azure_translator = AzureOpenAI(
+                    api_key=self.azure_api_key,
+                    api_version=self.azure_api_version,
+                    azure_endpoint=endpoint,
                 )
-            self.deepl_translator = deepl.Translator(self.deepl_api_token)
-        except (AttributeError, ModuleNotFoundError) as e:
-            if not self.dry_run:
-                raise e
+            except (AttributeError, ModuleNotFoundError) as e:
+                if not self.dry_run:
+                    raise e
 
     @property
     def user_config(self):
@@ -138,7 +182,32 @@ class Translate(Base):
                 name="deepl_api_token",
                 friendly_name="Deepl API Token",
                 redact_current_value=True,
-            )
+            ),
+            UserConfig(
+                name="azure_api_key",
+                friendly_name="Azure OpenAI API Key",
+                redact_current_value=True,
+            ),
+            UserConfig(
+                name="azure_resource_name",
+                friendly_name="Azure Resource Name",
+                redact_current_value=False,
+            ),
+            UserConfig(
+                name="azure_api_version",
+                friendly_name="Azure API Version (e.g., 2024-02-15-preview)",
+                redact_current_value=False,
+            ),
+            UserConfig(
+                name="azure_endpoint",
+                friendly_name="Azure Endpoint URL (optional if resource name provided)",
+                redact_current_value=False,
+            ),
+            UserConfig(
+                name="azure_model",
+                friendly_name="Azure Model Deployment Name (e.g., gpt-4-turbo)",
+                redact_current_value=False,
+            ),
         ]
 
     @classmethod
@@ -148,7 +217,7 @@ class Translate(Base):
             "--from",
             metavar="LANGUAGE_CODE",
             help="Language code of source language",
-            choices=cls.DEEPL_FROM,
+            choices=cls.LANG_FROM,
             action="store",
             default=None,
         )
@@ -156,9 +225,17 @@ class Translate(Base):
             "--to",
             metavar="LANGUAGE_CODE",
             help="Language code of dest language",
-            choices=cls.DEEPL_TO,
+            choices=cls.LANG_TO,
             action="store",
             default=None,
+        )
+        parser.add_argument(
+            "--service",
+            metavar="SERVICE",
+            help="Translation service to use (deepl or azure)",
+            choices=cls.TRANSLATION_SERVICES,
+            action="store",
+            default="deepl",
         )
         parser.add_argument(
             "--skip-fields",
@@ -177,7 +254,7 @@ class Translate(Base):
         parser.add_argument(
             "--dry-run",
             dest="dry_run",
-            help="Do not translate, count characters to be translated and checks Deepl quota",
+            help="Do not translate, count characters to be translated and checks quota",
             action="store_true",
         )
         parser.add_argument(
@@ -187,12 +264,8 @@ class Translate(Base):
             action="store_true",
         )
 
-    def _translate(self, text: str) -> str:
-        if not re.search("[a-zA-Z]", text):
-            return text
-
-        self.chars_count_to_translate += len(text)
-
+    def _translate_deepl(self, text: str) -> str:
+        """Translate text using DeepL API."""
         result = self.deepl_translator.translate_text(
             text,
             source_lang=self.from_lang,  # Can be None
@@ -200,6 +273,51 @@ class Translate(Base):
             preserve_formatting=True,
         )
         return result.text  # type: ignore
+
+    def _translate_azure(self, text: str) -> str:
+        """Translate text using Azure OpenAI Chat Model."""
+        from_lang = self.from_lang or "auto-detected"
+        to_lang = self.to_lang
+        
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    f"You are a professional cybersecurity translator with expertise in penetration testing reports. "
+                    f"Translate the following text from {from_lang} to {to_lang} using accurate, formal, and technically precise language appropriate for security documentation. "
+                    f"DO NOT translate: code snippets, command syntax, file paths, framework names, tool names, CVE identifiers, or standard names (e.g., HTTP, REST, SQL). "
+                    f"Maintain consistent terminology throughout. "
+                    f"Preserve all original formatting: headings, markdown, bullet points, numbering, code blocks, tables, and special characters. "
+                    f"Return ONLY translated text with no explanations or comments."
+                )
+            },
+            {
+                "role": "user",
+                "content": text
+            }
+        ]
+        
+        response = self.azure_translator.chat.completions.create(
+            model=self.azure_model,
+            messages=messages,
+            temperature=0.3,
+            top_p=0.95,
+        )
+        
+        return response.choices[0].message.content
+
+    def _translate(self, text: str) -> str:
+        if not re.search("[a-zA-Z]", text):
+            return text
+
+        self.chars_count_to_translate += len(text)
+
+        if self.translation_service == "deepl":
+            return self._translate_deepl(text)
+        elif self.translation_service == "azure":
+            return self._translate_azure(text)
+        else:
+            raise ValueError(f"Unknown translation service: {self.translation_service}")
 
     def _translate_section(
         self, section: Union[Finding, Section]
@@ -268,24 +386,30 @@ class Translate(Base):
         self.display(
             f"Translated {self.chars_count_to_translate} characters{' (dry run)' if self.dry_run else ''}."
         )
-        self._log_deepl_usage()
+        self._log_service_usage()
         self.success(f"Project translated{' (dry run)' if self.dry_run else ''}.")
         self.display(
             "We recommend to check quality of the translation, or to add a note that the report was "
             "translated by a machine."
         )
 
-    def _log_deepl_usage(self):
-        try:
-            usage = self.deepl_translator.get_usage()
-            if usage.any_limit_reached:
-                self.warning("Deepl transaction limit reached.")
-            if usage.character.valid:
-                self.display(
-                    f"Deepl usage: {usage.character.count} of {usage.character.limit} characters"
-                )
-        except AttributeError:
-            pass
+    def _log_service_usage(self):
+        """Log usage information for the translation service."""
+        if self.translation_service == "deepl":
+            try:
+                usage = self.deepl_translator.get_usage()
+                if usage.any_limit_reached:
+                    self.warning("Deepl transaction limit reached.")
+                if usage.character.valid:
+                    self.display(
+                        f"Deepl usage: {usage.character.count} of {usage.character.limit} characters"
+                    )
+            except AttributeError:
+                pass
+        elif self.translation_service == "azure":
+            self.display(
+                f"Azure OpenAI: Translated {self.chars_count_to_translate} characters. Translated from {self.from_lang or 'auto-detected language'} to {self.to_lang} using model {self.azure_model}."
+            )
 
     def _get_sysreptor_language_code(self, language_code) -> str:
         enabled_language_codes = self.reptor.api.projects.get_enabled_language_codes()
