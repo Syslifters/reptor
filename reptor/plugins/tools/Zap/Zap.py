@@ -143,5 +143,72 @@ class Zap(ToolBase):
             main_note.children.append(site_note)
         return main_note
 
+    def preprocess_for_template(self) -> list:
+        """Aggregate findings by alert for template generation"""
+        alerts_dict = dict()
+        
+        for site in self.parsed_input:
+            for alert in site.get("alerts", []):
+                alert_key = alert.get("alertRef", alert.get("pluginid"))
+                
+                if alert_key not in alerts_dict:
+                    alerts_dict[alert_key] = {
+                        "name": alert.get("name", ""),
+                        "description": alert.get("desc", ""),
+                        "solution": alert.get("solution", ""),
+                        "riskcode": alert.get("riskcode", "0"),
+                        "confidence": alert.get("confidence", ""),
+                        "cweid": alert.get("cweid", ""),
+                        "wascid": alert.get("wascid", ""),
+                        "reference": alert.get("reference", ""),
+                        "alertRef": alert.get("alertRef", ""),
+                        "pluginid": alert.get("pluginid", ""),
+                        "affected_components": [],
+                        "instances": [],
+                        "finding_templates": alert_key,
+                    }
+                
+                for instance in alert.get("instances", []):
+                    uri = instance.get("uri", "")
+                    if uri and uri not in alerts_dict[alert_key]["affected_components"]:
+                        alerts_dict[alert_key]["affected_components"].append(uri)
+                    alerts_dict[alert_key]["instances"].append(instance)
+        
+        findings = []
+        risk_mapping = {
+            "3": "critical",
+            "2": "high",
+            "1": "medium",
+            "0": "low",
+        }
+        # Map risk codes to CVSS vectors because ZAP doesn't provide CVSS by default
+        cvss_mapping = {
+            "3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",  # 9.8 - critical
+            "2": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:H/A:N",  # 7.1 - high
+            "1": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",  # 6.5 - medium
+            "0": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",  # 3.7 - low
+        }
+        
+        for alert in alerts_dict.values():
+            riskcode = alert.get("riskcode", "0")
+            alert["severity"] = risk_mapping.get(riskcode, "low")
+            alert["risk_factor"] = alert["severity"]
+            alert["affected_components"] = sorted(set(alert["affected_components"]))
+            alert["cvss"] = cvss_mapping.get(riskcode, cvss_mapping["0"])
+            findings.append(alert)
+        
+        findings.sort(
+            key=lambda x: (
+                -int(x.get("riskcode", "0")),
+                x.get("name", "")
+            )
+        )
+        
+        return findings
+
+    def finding_global(self):
+        """Return all findings for push-findings feature"""
+        return self.preprocess_for_template()
+
 
 loader = Zap

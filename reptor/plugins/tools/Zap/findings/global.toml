@@ -1,0 +1,14 @@
+[data]
+title = "<!--{{ name }}-->"
+cvss = "<!--{{ cvss }}-->"
+severity = "<!--{{ risk_factor }}-->"
+summary = "<!--{{ description }}-->"
+recommendation = "<!--{{ solution }}-->"
+description = """
+**Risk Code:** <!--{{ riskcode }}-->
+**Confidence:** <!--{{ confidence }}-->
+
+<!--{{ description }}-->
+
+**CWE ID:** <!--{{ cweid }}-->
+**WASC ID:** <!--{{ wascid }}-->"""
