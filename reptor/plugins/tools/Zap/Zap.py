@@ -181,20 +181,13 @@ class Zap(ToolBase):
             "1": "medium",
             "0": "low",
         }
-        # Map risk codes to CVSS vectors because ZAP doesn't provide CVSS by default
-        cvss_mapping = {
-            "3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",  # 9.8 - critical
-            "2": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:H/A:N",  # 7.1 - high
-            "1": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",  # 6.5 - medium
-            "0": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",  # 3.7 - low
-        }
         
         for alert in alerts_dict.values():
             riskcode = alert.get("riskcode", "0")
             alert["severity"] = risk_mapping.get(riskcode, "low")
             alert["risk_factor"] = alert["severity"]
             alert["affected_components"] = sorted(set(alert["affected_components"]))
-            alert["cvss"] = cvss_mapping.get(riskcode, cvss_mapping["0"])
+            alert["cvss"] = "n/a"
             findings.append(alert)
         
         findings.sort(

@@ -1,10 +1,13 @@
 import os
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
 from reptor.lib.plugins.TestCaseToolPlugin import TestCaseToolPlugin
 from reptor.models.Note import NoteTemplate
+from reptor.models.ProjectDesign import ProjectDesign
+from reptor.settings import DEFAULT_PROJECT_DESIGN
 
 from ..Zap import Zap
 
@@ -112,3 +115,84 @@ class TestOwaspZap(TestCaseToolPlugin):
 | CWE | [693](https://cwe.mitre.org/data/definitions/693.html) |
 """
         assert csp_issue in self.zap.formatted_input
+
+    def test_preprocess_for_template(self):
+        """Test preprocessing findings for template generation"""
+        self._load_xml_data("zap-report.xml")
+        self.zap.parse()
+        findings = self.zap.preprocess_for_template()
+
+        assert isinstance(findings, list)
+        assert len(findings) > 0
+
+        for finding in findings:
+            assert "name" in finding
+            assert "description" in finding
+            assert "riskcode" in finding
+            assert "severity" in finding
+            assert "risk_factor" in finding
+            assert "cvss" in finding
+            assert "affected_components" in finding
+            assert "finding_templates" in finding
+            assert finding["cvss"] == "n/a"
+
+    def test_risk_severity_mapping(self):
+        """Test that risk codes are correctly mapped to severity levels"""
+        self._load_xml_data("zap-report.xml")
+        self.zap.parse()
+        findings = self.zap.preprocess_for_template()
+
+        risk_to_severity = {
+            "3": "critical",
+            "2": "high",
+            "1": "medium",
+            "0": "low",
+        }
+
+        for finding in findings:
+            riskcode = finding.get("riskcode", "0")
+            expected_severity = risk_to_severity.get(riskcode, "low")
+            assert finding["severity"] == expected_severity
+            assert finding["risk_factor"] == expected_severity
+
+    def test_affected_components_deduplicated(self):
+        """Test that affected components (URIs) are deduplicated and sorted"""
+        self._load_xml_data("zap-report.xml")
+        self.zap.parse()
+        findings = self.zap.preprocess_for_template()
+
+        for finding in findings:
+            components = finding.get("affected_components", [])
+            assert isinstance(components, list)
+            assert components == sorted(components)
+            assert len(components) == len(set(components))
+
+    def test_finding_global(self):
+        """Test finding_global method for push-findings feature"""
+        self._load_xml_data("zap-report.xml")
+        self.zap.parse()
+        findings = self.zap.finding_global()
+
+        assert isinstance(findings, list)
+        assert len(findings) > 0
+
+        for finding in findings:
+            assert finding.get("finding_templates")
+            assert "name" in finding
+            assert "severity" in finding
+
+    def test_generate_findings(self):
+        """Test finding generation from parsed ZAP data"""
+        self._load_xml_data("zap-report.xml")
+        self.zap.load = MagicMock(return_value=self.zap.raw_input.encode())  # type: ignore
+        self.zap._project_design = ProjectDesign(DEFAULT_PROJECT_DESIGN)
+        self.reptor.api.templates.search = MagicMock(return_value=[])
+        findings = self.zap.generate_findings()
+        preprocessed = self.zap.preprocess_for_template()
+
+        assert len(preprocessed) == len(findings)
+
+        valid_severities = {"critical", "high", "medium", "low"}
+        for finding in findings:
+            assert finding.data.severity.value in valid_severities
+
