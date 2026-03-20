@@ -15,3 +15,4 @@ Licenses of dependencies (and their dependencies) are automatically checked via 
 # Credits
 ## Special thanks for all the people who had helped this project so far:
 * [Richard Schwabe](https://github.com/richardschwabe)
+* [Patrick Di Fazio](https://github.com/BlessedRebuS)
