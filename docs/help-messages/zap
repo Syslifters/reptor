@@ -1,5 +1,6 @@
-usage: reptor zap [-h] [-i [INPUT]] [--format | --upload | --parse]
-                  [--xml | --json]
+usage: reptor zap [-h] [-i [INPUT]] [--format] [--upload] [--push-findings]
+                  [--template-vars] [--parse] [--xml | --json]
+                  [--upload-finding-templates]
 
 Parses ZAP reports (JSON, XML)
 
@@ -9,6 +10,10 @@ options:
                         Input file, if not stdin 
   --format
   --upload
+  --push-findings
+  --template-vars       Print template variables (needed for finding template customization).
   --parse
   --xml
   --json
+  --upload-finding-templates
+                        Upload local finding templates to SysReptor
