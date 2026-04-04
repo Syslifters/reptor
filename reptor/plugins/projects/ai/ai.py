@@ -75,9 +75,10 @@ class SkillSelector(ABC):
 class AISkillSelector(SkillSelector):
     """Selects skills using OpenAI API to determine the best match."""
 
-    def __init__(self, openai_processor: Optional["OpenAIProcessor"] = None):
+    def __init__(self, openai_processor: Optional["OpenAIProcessor"] = None, dry_run: bool = False):
         """Initialize AI-based skill selector."""
         self.openai_processor = openai_processor
+        self.dry_run = dry_run
 
     def select(self, task_prompt: str, available_skills: list[str]) -> Optional[str]:
         """Select skill using AI-powered analysis."""
@@ -103,7 +104,8 @@ Return ONLY the skill name, nothing else. Do not include quotes or explanation."
             if response:
                 selected = response.strip().strip("'\"")
                 if selected in available_skills:
-                    logger.info(f"AI selected skill: {selected}")
+                    if not self.dry_run:
+                        logger.info(f"AI selected skill: {selected}")
                     return selected
         except Exception as e:
             logger.warning(f"AI skill selection failed: {e}. Falling back to first skill.")
@@ -250,7 +252,6 @@ class SectionProcessor:
 
         if selected_skill:
             skill_content = self.skill_loader.load_skill(selected_skill)
-            logger.debug(f"Selected skill: {selected_skill}")
 
         for field in section.data:
             if field.type not in self.PROCESSABLE_TYPES:
@@ -367,7 +368,7 @@ class Ai(Base):
             self.openai_processor = None
 
         self.skill_loader = SkillLoader(self.skills_dir)
-        self.skill_selector = AISkillSelector(openai_processor=self.openai_processor)
+        self.skill_selector = AISkillSelector(openai_processor=self.openai_processor, dry_run=self.dry_run)
         self.prompt_builder = PromptBuilder()
 
         self.section_processor = SectionProcessor(
@@ -456,6 +457,10 @@ class Ai(Base):
         self.display(
             f"Processing sections with task: '{self.task_prompt}'{' (dry run)' if self.dry_run else ''}"
         )
+
+        if not self.dry_run:
+            selected_skill = self._get_selected_skill()
+            self.display(f"Selected skill: {selected_skill}")
 
         sections = [
             Finding(f, self.reptor.api.project_designs.project_design)
