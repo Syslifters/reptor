@@ -43,11 +43,12 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+ai = ['openai >= 1.0.0']
 translate = ['deepl >= 1.15.0']
 ghostwriter = ['gql[aiohttp] >= 3.4.1',]
 dev = ['pytest >= 7.4.0',]
 mcp = ['mcp >= 1.25.0']
-all = ['reptor[translate,ghostwriter,dev,mcp]']
+all = ['reptor[ai,translate,ghostwriter,dev,mcp]']
 
 [project.scripts]
 reptor = 'reptor.__main__:run'
