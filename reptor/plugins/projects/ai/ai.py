@@ -42,10 +42,38 @@ class SkillLoader:
         """Initialize skill loader with skills directory."""
         self.skills_dir = Path(skills_dir)
 
+    @staticmethod
+    def _parse_frontmatter(content: str) -> dict:
+        """Parse YAML frontmatter from content."""
+        if not content.startswith('---'):
+            return {}
+        
+        try:
+            lines = content.split('\n')
+            if len(lines) < 2:
+                return {}
+            
+            end_index = None
+            for i in range(1, len(lines)):
+                if lines[i].strip() == '---':
+                    end_index = i
+                    break
+            
+            if end_index is None:
+                return {}
+            
+            frontmatter_str = '\n'.join(lines[1:end_index])
+            if yaml:
+                return yaml.safe_load(frontmatter_str) or {}
+            return {}
+        except Exception as e:
+            logger.warning(f"Failed to parse frontmatter: {e}")
+            return {}
+
     @lru_cache(maxsize=32)
     def load_skill(self, skill_name: str) -> Optional[str]:
         """Load a skill file by name (cached)."""
-        skill_path = self.skills_dir / f"{skill_name}.md"
+        skill_path = self.skills_dir / skill_name / "SKILL.md"
         if not skill_path.exists():
             return None
 
@@ -56,18 +84,41 @@ class SkillLoader:
             logger.warning(f"Failed to load skill {skill_name}: {e}")
             return None
 
-    def list_skills(self) -> list[str]:
-        """List all available skills."""
+    def list_skills(self) -> list[dict]:
+        """List all available skills with metadata."""
         if not self.skills_dir.exists():
             return []
-        return [f.stem for f in self.skills_dir.glob("*.md")]
+        
+        skills = []
+        for skill_dir in self.skills_dir.iterdir():
+            if not skill_dir.is_dir():
+                continue
+            
+            skill_md_path = skill_dir / "SKILL.md"
+            if not skill_md_path.exists():
+                continue
+            
+            try:
+                content = skill_md_path.read_text(encoding="utf-8")
+                metadata = self._parse_frontmatter(content)
+                
+                skill_info = {
+                    'name': metadata.get('name', skill_dir.name),
+                    'description': metadata.get('description', 'No description available'),
+                }
+                # print(f"Loaded skill: {skill_info['name']} - {skill_info['description']}")
+                skills.append(skill_info)
+            except Exception as e:
+                logger.warning(f"Failed to load skill from {skill_dir.name}: {e}")
+        
+        return skills
 
 # This can be extended in the future to support multiple selection strategies (e.g. pattern-based)
 class SkillSelector(ABC):
     """Abstract base class for skill selection strategy."""
 
     @abstractmethod
-    def select(self, task_prompt: str, available_skills: list[str]) -> Optional[str]:
+    def select(self, task_prompt: str, available_skills: list[dict]) -> Optional[str]:
         """Select the most relevant skill for the given task."""
         pass
 
@@ -80,37 +131,41 @@ class AISkillSelector(SkillSelector):
         self.openai_processor = openai_processor
         self.dry_run = dry_run
 
-    def select(self, task_prompt: str, available_skills: list[str]) -> Optional[str]:
+    def select(self, task_prompt: str, available_skills: list[dict]) -> Optional[str]:
         """Select skill using AI-powered analysis."""
         if not available_skills or not self.openai_processor:
-            return available_skills[0] if available_skills else None
+            return available_skills[0]['name'] if available_skills else None
 
         if len(available_skills) == 1:
-            return available_skills[0]
+            return available_skills[0]['name']
 
-        skills_list = ", ".join(f"'{skill}'" for skill in available_skills)
-        
+        skills_formatted = []
+        for skill in available_skills:
+            skills_formatted.append(f"- {skill['name']}: {skill['description']}")
+        skills_list = "\n".join(skills_formatted)
+        # print(f"Available skills:\n{skills_list}")
         prompt = f"""You are a skill selector for an AI report processing system.
 
-Available skills: {skills_list}
-
+Available skills:
+{skills_list}
 Task: {task_prompt}
 
-Analyze the task and select the SINGLE most appropriate skill from the available options.
+Analyze the task and select the SINGLE most appropriate skill name from the available options.
 Return ONLY the skill name, nothing else. Do not include quotes or explanation."""
-
+        print("Prompt for skill selection:\n", prompt)
         try:
             response = self.openai_processor.process(prompt)
             if response:
                 selected = response.strip().strip("'\"")
-                if selected in available_skills:
+                available_skill_names = [s['name'] for s in available_skills]
+                if selected in available_skill_names:
                     if not self.dry_run:
                         logger.info(f"AI selected skill: {selected}")
                     return selected
         except Exception as e:
             logger.warning(f"AI skill selection failed: {e}. Falling back to first skill.")
 
-        return available_skills[0]
+        return available_skills[0]['name']
 
 
 class PromptBuilder:
@@ -244,16 +299,19 @@ class SectionProcessor:
         self,
         section: Union[Finding, Section],
         task_prompt: str,
+        selected_skill: Optional[str] = None,
     ) -> Union[Finding, Section]:
         """Process a single section using the task prompt and skills."""
-        available_skills = self.skill_loader.list_skills()
-        selected_skill = self.skill_selector.select(task_prompt, available_skills)
+        if not selected_skill:
+            available_skills = self.skill_loader.list_skills()
+            selected_skill = self.skill_selector.select(task_prompt, available_skills)
+        
         skill_content = None
-
         if selected_skill:
             skill_content = self.skill_loader.load_skill(selected_skill)
 
         for field in section.data:
+            # print(f"Processing field: {field}")
             if field.type not in self.PROCESSABLE_TYPES:
                 continue
             if field.name in self.skip_fields:
@@ -458,10 +516,6 @@ class Ai(Base):
             f"Processing sections with task: '{self.task_prompt}'{' (dry run)' if self.dry_run else ''}"
         )
 
-        if not self.dry_run:
-            selected_skill = self._get_selected_skill()
-            self.display(f"Selected skill: {selected_skill}")
-
         sections = [
             Finding(f, self.reptor.api.project_designs.project_design)
             for f in self.reptor.api.projects.get_findings()
@@ -472,6 +526,9 @@ class Ai(Base):
             if getattr(s, "id", None) not in self.skip_fields
         ]
 
+        selected_skill = self._get_selected_skill()
+        self.display(f"Selected skill: {selected_skill}")
+
         for processed_index, section in enumerate(sections_to_process, 1):
             section_type = "Finding" if isinstance(section, Finding) else "Section"
             section_name = getattr(section, "id", None)
@@ -480,10 +537,10 @@ class Ai(Base):
 
             try:
                 if self.dry_run:
-                    self._preview_section(section)
+                    self._preview_section(section, selected_skill=selected_skill)
                 else:
                     processed_section = self.section_processor.process_section(
-                        section, self.task_prompt
+                        section, self.task_prompt, selected_skill=selected_skill
                     )
                     self._save_section(processed_section)
 
@@ -505,14 +562,11 @@ class Ai(Base):
         available_skills = self.skill_loader.list_skills()
         return self.skill_selector.select(self.task_prompt, available_skills)
 
-    def _preview_section(self, section: Union[Finding, Section]):
+    def _preview_section(self, section: Union[Finding, Section], selected_skill: Optional[str] = None):
         """Preview what would be processed without making changes."""
-        selected_skill = self._get_selected_skill()
-        
+        skill_content = None
         if selected_skill:
             skill_content = self.skill_loader.load_skill(selected_skill)
-        else:
-            skill_content = None
 
         for field in section.data:
             if field.type not in SectionProcessor.PROCESSABLE_TYPES:
