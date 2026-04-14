@@ -22,6 +22,15 @@ from ai import (
 )
 
 
+def create_skill(skills_dir: Path, name: str, description: str|None = None, content: str|None = None):
+    description = description or f'{name} skill'
+    content = content or f'{name} skill content'
+
+    sdir = skills_dir / name
+    sdir.mkdir(parents=True, exist_ok=True)
+    (sdir / "SKILL.md").write_text(f"---\nname: {name}\ndescription: {description}\n---\n{content}")
+
+
 class TestSkillLoader(unittest.TestCase):
     """Tests for SkillLoader class."""
 
@@ -29,10 +38,9 @@ class TestSkillLoader(unittest.TestCase):
         """Set up test fixtures."""
         self.temp_dir = TemporaryDirectory()
         self.skills_dir = Path(self.temp_dir.name)
-
-        (self.skills_dir / "test_skill.md").write_text("Test skill content")
-        (self.skills_dir / "another_skill.md").write_text("Another skill")
-
+        create_skill(self.skills_dir, "test_skill", "Test skill", "Test skill content")
+        create_skill(self.skills_dir, "another_skill", "Another skill", "Another skill content")
+        
     def tearDown(self):
         """Clean up test fixtures."""
         self.temp_dir.cleanup()
@@ -53,9 +61,7 @@ class TestSkillLoader(unittest.TestCase):
         """Test listing available skills."""
         loader = SkillLoader(self.skills_dir)
         skills = loader.list_skills()
-        self.assertIn("test_skill", skills)
-        self.assertIn("another_skill", skills)
-        self.assertEqual(len(skills), 2)
+        self.assertEqual(set(s['name'] for s in skills), {"test_skill", "another_skill"})
 
     def test_list_skills_empty_directory(self):
         """Test listing skills in empty directory."""
@@ -71,7 +77,7 @@ class TestAISkillSelector(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.selector = AISkillSelector(openai_processor=MagicMock())
-        self.available_skills = ["grammar", "security", "technical", "expand"]
+        self.available_skills = [{"name": s, "description": f"{s} description"} for s in ["grammar", "security", "technical", "expand"]]
 
     @patch("ai.OpenAI")
     def test_skill_selection_with_api(self, mock_openai):

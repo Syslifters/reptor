@@ -70,6 +70,32 @@ class SkillLoader:
             logger.warning(f"Failed to parse frontmatter: {e}")
             return {}
 
+    @staticmethod
+    def _strip_frontmatter(content: str) -> str:
+        """Strip YAML frontmatter block and return only body content."""
+        # Frontmatter must start at the very top of the file.
+        if not content.startswith("---"):
+            return content.strip("\n\r")
+
+        lines = content.splitlines()
+        if not lines or lines[0].strip() != "---":
+            return content.strip("\n\r")
+
+        end_index = None
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                end_index = i
+                break
+
+        if end_index is None:
+            # No closing delimiter; treat as plain content.
+            return content.strip("\n\r")
+
+        body = "\n".join(lines[end_index + 1 :])
+        # Remove only surrounding newlines/carriage returns, not meaningful spaces.
+        body = body.lstrip("\n\r").rstrip("\n\r")
+        return body
+
     @lru_cache(maxsize=32)
     def load_skill(self, skill_name: str) -> Optional[str]:
         """Load a skill file by name (cached)."""
@@ -79,7 +105,7 @@ class SkillLoader:
 
         try:
             content = skill_path.read_text(encoding="utf-8")
-            return content
+            return self._strip_frontmatter(content)
         except Exception as e:
             logger.warning(f"Failed to load skill {skill_name}: {e}")
             return None
