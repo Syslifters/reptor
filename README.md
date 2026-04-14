@@ -101,6 +101,7 @@ subcommands:
    plugins               Allows plugin management & development
   
   Projects & Templates:
+   ai                    Process report sections using OpenAI with dynamic skill selection
    createproject         Create a new pentest project
    deletefindings        Deletes findings by title
    deleteprojects        Deletes projects by title
