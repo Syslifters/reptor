@@ -1,0 +1,13 @@
+usage: reptor mcp [-h] [--remove-fields REMOVE_FIELDS]
+                  [--transport {stdio,sse}] [--mcp-debug MCP_DEBUG]
+
+Starts the Model Context Protocol (MCP) server
+
+options:
+  -h, --help            show this help message and exit
+  --remove-fields REMOVE_FIELDS
+                        Comma-separated list of field names to remove from findings before sending to LLM (e.g., 'affected_components,internal_notes')
+  --transport {stdio,sse}
+                        Transport mode for MCP server (default: stdio)
+  --mcp-debug MCP_DEBUG
+                        Path to log file for debugging MCP communication

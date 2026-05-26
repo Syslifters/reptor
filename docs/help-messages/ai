@@ -1,0 +1,16 @@
+usage: reptor ai [-h] [--conf] --task TASK [--model MODEL]
+                 [--temperature TEMP] [--skills-dir DIR]
+                 [--skip-fields FIELDS] [--dry-run] [--duplicate]
+
+Process report sections using OpenAI with dynamic skill selection
+
+options:
+  -h, --help            show this help message and exit
+  --conf, --config      Configure plugin settings
+  --task TASK           Task prompt for processing sections
+  --model MODEL         OpenAI model to use (default: gpt-5.4-mini)
+  --temperature TEMP    Sampling temperature 0-2 (default: 0.7)
+  --skills-dir DIR      Directory containing skill .md files
+  --skip-fields FIELDS  Fields to skip, comma-separated
+  --dry-run             Preview processing without making API calls
+  --duplicate           Duplicate the project before processing (applies changes to copy, not original)
