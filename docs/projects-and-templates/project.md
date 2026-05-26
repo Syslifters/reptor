@@ -1,7 +1,9 @@
+# Project
+
 The project plugin lets you interact with your SysReptor projects.
 
 ## Render Reports
-```bash
+```shell
 reptor project --render  # Render report to PDF and download
 reptor project --render -o file.pdf  # Save to file.pdf
 reptor project --render -o -  # Write to stdout
@@ -17,7 +19,7 @@ project:
 ```
 
 ## Export Reports
-```bash title="Export reports"
+```shell
 reptor project --export tar.gz  # Export your report to tar.gz
 reptor project --export tar.gz -o -  # Export your report to tar.gz, write to stdout
 reptor project --export json
@@ -26,6 +28,4 @@ reptor project --export yaml --upload  # Export report as yaml and upload to not
 ```
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/project"
-```
+<<< @/cli/help-messages/project{txt}

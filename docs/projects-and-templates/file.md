@@ -1,8 +1,10 @@
+# File
+
 `file` uploads files from your system into a SysReptor note.
 
 ## Examples
 
-```bash title="Upload files from folder"
+```shell
 reptor file archive.zip
 reptor file *  # Upload all files
 ```
@@ -10,6 +12,4 @@ reptor file *  # Upload all files
 ![Uploaded files](/cli/assets/uploaded-files.png)
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/file"
-```
+<<< @/cli/help-messages/file{txt}

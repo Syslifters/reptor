@@ -1,4 +1,9 @@
 # How to write a tool plugin
+
+::: warning Deprecated
+CLI importers are deprecated. Import scan results from the SysReptor web UI using the [scanimport](https://github.com/Syslifters/sysreptor/tree/main/plugins/scanimport) plugin instead.
+:::
+
 ## What a plugin does
 
 A plugin can...
@@ -99,7 +104,7 @@ if self.input_format == "raw":
 
 We are now done with implementing our parser. We can test it using:
 
-```bash
+```shell
 printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --parse      
 ['https://example.com/alert(1)', 'https://example.com/q=alert(1)']
 ```
@@ -108,9 +113,11 @@ printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor x
 
 Now we want to bring our data into a beautiful and human-readable format. SysReptor uses markdown and allows HTML syntax there.
 
-`reptor` uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/){ target=_blank } with a slightly different syntax for formatting.  
+`reptor` uses the [Django template language](https://docs.djangoproject.com/en/4.2/ref/templates/language/) with a slightly different syntax for formatting.  
 
 The Django start tags are prepended with the HTML comment start tag and become:
+
+::: v-pre
 
 * `{{` becomes `<!--{{`
 * `{%` becomes `<!--{%`
@@ -121,6 +128,8 @@ An HTML comment end tag is appended to the Django end tags:
 * `}}` becomes `}}-->`
 * `%}` becomes `%}-->`
 * `#}` becomes `#}-->`
+
+:::
 
 (Find the reason for this later in this tutorial.)
 
@@ -147,7 +156,7 @@ This method is like a second parsing step for preparing the parsed data for usag
 
 We can now try to format our output:
 
-```bash
+```shell
 printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --format 
 | XSS target |
 | ------- |
@@ -177,7 +186,7 @@ Create an API token at `https://yourinstallation.local/users/self/apitokens/` an
 
 Let's upload our formatted data to the project notes:
 
-```bash
+```shell
 printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --upload
 Successfully uploaded to notes.
 ```
@@ -281,7 +290,7 @@ As soon as you have defined a `finding_*` method, you should have an option in y
 Now we have to define, what the contents of the findings should be. Find a sample finding in the `findings` directory.  
 Rename this file to `xss.toml` to match it our vulnerability name.
 
-The findings definitions are in [TOML](https://toml.io/){ target=_blank } format. Adapt the contents of the file, as needed, e. g.:
+The findings definitions are in [TOML](https://toml.io/) format. Adapt the contents of the file, as needed, e. g.:
 
 ```toml
 [data]
@@ -350,7 +359,7 @@ Templates from the SysReptor template library are preferred over TOML-templates.
 
 You can now generate your finding from your template library:
 
-```bash
+```shell
 printf "https://example.com/alert(1)\nhttps://example.com/q=alert(1)" | reptor xsstool --push-findings
 Pushed finding "Reflected Cross-Site Scripting (XSS)"
 ```

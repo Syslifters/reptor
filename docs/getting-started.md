@@ -3,13 +3,13 @@
 
 You can use `reptor` as a command line (CLI) tool:
 
-```python title="Export your findings as json from the CLI"
+```shell
 reptor exportfindings --format json
 ```
 
 Or use it as a Python library:
 
-```python title="Get project in Python script"
+```python
 from reptor import Reptor
 
 reptor = Reptor(
@@ -32,10 +32,10 @@ You can use it to:
  * Export notes as PDF
  * and more...
 
-**GitHub:** [https://github.com/Syslifters/reptor/](https://github.com/Syslifters/reptor/)  
-**Python Library Docs:** [https://docs.sysreptor.com/python-library/](https://docs.sysreptor.com/python-library/)   
-**CLI Docs:** [https://docs.sysreptor.com/cli/getting-started/](https://docs.sysreptor.com/cli/getting-started/)   
-**PyPi:** [https://pypi.org/project/reptor/](https://pypi.org/project/reptor/)   
+**GitHub:** <https://github.com/Syslifters/reptor/>  
+**Python Library Docs:** <https://docs.sysreptor.com/python-library/>   
+**CLI Docs:** <https://docs.sysreptor.com/cli/getting-started/>   
+**PyPi:** <https://pypi.org/project/reptor/>   
 
 ## Prerequisites
 
@@ -44,7 +44,9 @@ You can use it to:
 
 ## Installation
 ### From pypi
-`pip3 install reptor`
+```shell
+pip3 install reptor
+```
 
 #### Optional dependencies
 * translate (requires deepl)
@@ -55,7 +57,7 @@ Install by `pip3 install reptor[translate]`.
 Install all optional dependencies using `pip3 install reptor[all]`
 
 ### From source
-```
+```shell
 git clone https://github.com/Syslifters/reptor.git
 cd reptor
 pip3 install .
@@ -65,7 +67,7 @@ Install [optional dependencies](#optional-dependencies) by `pip3 install .[all]`
 
 ### From BlackArch
 
-```
+```shell
 pacman -S reptor
 ```
 
@@ -73,6 +75,4 @@ pacman -S reptor
 
 
 ### Usage
-```
---8<-- "docs/cli/help-messages/reptor"
-```
+<<< @/cli/help-messages/reptor{txt}

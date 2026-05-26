@@ -1,7 +1,9 @@
+# Translate
+
 Translate pentest reports using Deepl (bring your own Deepl API token).
 
 ## Examples
-```
+```shell
 reptor translate -to DE --dry-run
 reptor translate --from EN -to DE
 reptor translate -to DE --skip-fields recommendation,summary
@@ -13,7 +15,7 @@ Make sure you installed required dependencies by using `pip install reptor[trans
 ## Configuration
 The translate module needs additional configurations, which you can add to `~/.sysreptor/config.yaml`:
 
-```
+```yaml
 translate:
   deepl_api_token: <your-api-token>
   skip_fields:
@@ -24,6 +26,4 @@ translate:
 
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/translate"
-```
+<<< @/cli/help-messages/translate{txt}

@@ -1,14 +1,16 @@
+# PushProject
+
 Push project data (section and finding data) to your pentest report by JSON or TOML.
 
 ## Example
-```bash
+```shell
 cat project.json | reptor pushproject
 cat project.toml | reptor pushproject
 ```
 
 If to push your data to a new report, create a project beforehand.
 
-```bash
+```shell
 reptor createproject --name "New project" --design "8a6ebd7b-637f-4f38-bfdd-3e8e9a24f64e"
 cat project.json | reptor pushproject
 ```
@@ -21,7 +23,7 @@ You can add data to your report sections and create or update findings.
 If a finding has an `id`, reptor will update the finding instead of creating it.
 
 
-```toml title="Project structure in JSON"
+```json
 {
   "sections": [
     { 
@@ -75,7 +77,7 @@ If a finding has an `id`, reptor will update the finding instead of creating it.
 }
 ```
 
-```toml title="Project structure in TOML"
+```toml
 [[sections]]
 status = "finished"
 
@@ -115,6 +117,4 @@ affected_components = [
 ```
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/pushproject"
-```
+<<< @/cli/help-messages/pushproject{txt}
