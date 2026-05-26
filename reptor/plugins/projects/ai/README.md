@@ -1,7 +1,7 @@
 AI-powered report section processing using **OpenAI**.
 
 ## Examples
-```
+```shell
 reptor ai --task "Fix all grammar and spelling errors" --dry-run
 reptor ai --task "Expand findings with technical details" --duplicate
 reptor ai --task "Translate to Italian" --model gpt-5.4-mini --duplicate
@@ -16,7 +16,7 @@ For OpenAI support, also install: `pip install openai`
 The Ai module needs additional configurations, which you can add to `~/.sysreptor/config.yaml`:
 
 ### OpenAI Configuration
-```
+```yaml
 ai:
   openai_api_key: <your-openai-api-key>
   model: gpt-5.4-mini  
@@ -49,7 +49,7 @@ Custom skills can be added in the skills/ directory.
 
 ## Usage
 
-```
+```shell
 reptor ai [options]
 ```
 
@@ -68,7 +68,7 @@ reptor ai [options]
 ## Examples by Use Case
 
 ### Fix Grammar
-```bash
+```shell
 # Modify in-place
 reptor ai --task "Fix all grammar and spelling errors"
 
@@ -76,7 +76,7 @@ reptor ai --task "Fix all grammar and spelling errors" --duplicate
 ```
 
 ### Improve Security Findings
-```bash
+```shell
 reptor ai \
   --task "Improve security findings with business impact and remediation steps" \
   --skip-fields "affected_components,references" \
@@ -84,14 +84,14 @@ reptor ai \
 ```
 
 ### Expand Technical Details
-```bash
+```shell
 reptor ai \
   --task "Expand findings with additional technical details and examples" \
   --duplicate
 ```
 
 ### Translate Content
-```bash
+```shell
 reptor ai \
   --task "Translate to German" \
   --model gpt-5.4-mini \
@@ -99,6 +99,6 @@ reptor ai \
 ```
 
 ### Preview Before Processing
-```bash
+```shell
 reptor ai --task "Your task here" --dry-run
 ```

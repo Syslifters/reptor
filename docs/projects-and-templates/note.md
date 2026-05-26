@@ -1,12 +1,12 @@
+# Note
+
 `note` creates a new note in SysReptor.
 
 ## Examples
-```bash title="Upload notes"
+```shell
 echo "*Upload me*" | reptor note  # Appends to "Uploads" note
 echo "*Upload me*" | reptor note --notetitle "My Note"  # Custom notetitle
 ```
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/note"
-```
+<<< @/cli/help-messages/note{txt}

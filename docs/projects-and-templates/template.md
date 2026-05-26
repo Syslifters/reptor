@@ -1,8 +1,10 @@
+# Template
+
 Upload and query Finding Templates from SysReptor
 
 ## Upload finding templates
 
-```bash
+```shell
 cat template.json | reptor template
 cat template.toml | reptor template
 ```
@@ -12,7 +14,7 @@ cat template.toml | reptor template
 Upload one finding template by using the following structures.  
 Use a list to upload multiple finding templates.
 
-```json title="JSON finding template structure"
+```json
 {
   "tags": [
     "web"
@@ -31,7 +33,7 @@ Use a list to upload multiple finding templates.
 }
 ```
 
-```toml title="TOML finding template structure"
+```toml
 tags = [
     "web",
 ]
@@ -50,19 +52,21 @@ description = "My description"
 
 You can update an existing finding template by providing its UUID with the `--update` parameter.
 
-```bash
+```shell
 cat template.json | reptor template --update <UUID>
 cat template.toml | reptor template --update <UUID>
 ```
 
-!!! note
-    Only one template can be updated at a time. If you attempt to update with multiple templates, you will receive an error.
+::: info
+Only one template can be updated at a time. If you attempt to update with multiple templates, you will receive an error.
+:::
 
-!!! tip
-    To get the UUID of an existing template, use `reptor template --search <keyword>` to list templates with their IDs.
+::: tip
+To get the UUID of an existing template, use `reptor template --search <keyword>` to list templates with their IDs.
+:::
 
 ## Read finding templates
-```
+```shell
 reptor template --list  # template overview
 reptor template --search SQL  # template overview, search for keywords
 reptor template --search SQL --export plain  # print templates for copy&paste
@@ -73,6 +77,4 @@ reptor template --export tar.gz  # export all templates as tar.gz (importable vi
 ```
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/template"
-```
+<<< @/cli/help-messages/template{txt}

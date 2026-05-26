@@ -1,10 +1,16 @@
+# nmap
+
+::: warning Deprecated
+CLI importers are deprecated. Import scan results from the SysReptor web UI using the [scanimport](https://github.com/Syslifters/sysreptor/tree/main/plugins/scanimport) plugin instead.
+:::
+
 ## Examples
 
-```bash title="Nmap scan"
+```shell
 sudo -n nmap -Pn -n -sV -oX - -p 0-65535 $target | tee nmap-output.xml
 ```
 
-```bash title="Format nmap output"
+```shell
 cat nmap-output.xml | reptor nmap -oX
 | Hostname | IP | Port | Service | Version |
 | ------- | ------- | ------- | ------- | ------- |
@@ -14,7 +20,7 @@ cat nmap-output.xml | reptor nmap -oX
 | www.syslifters.com | 34.249.200.254 | 443/tcp | https | n/a |
 ```
 
-```bash
+```shell
 cat nmap-output.xml | reptor nmap -oX --upload  # Upload table to notes
 reptor nmap -oX -i nmap_1.xml nmap_2.xml --upload  # Use multiple input files
 ```
@@ -23,6 +29,4 @@ reptor nmap -oX -i nmap_1.xml nmap_2.xml --upload  # Use multiple input files
 
 
 ## Usage
-```
---8<-- "docs/cli/help-messages/nmap"
-```
+<<< @/cli/help-messages/nmap{txt}

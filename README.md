@@ -3,13 +3,13 @@
 
 You can use `reptor` as a command line (CLI) tool:
 
-```python title="Export your findings as json from the CLI"
+```shell
 reptor exportfindings --format json
 ```
 
 Or use it as a Python library:
 
-```python title="Get project in Python script"
+```python
 from reptor import Reptor
 
 reptor = Reptor(
@@ -44,7 +44,9 @@ You can use it to:
 
 ## Installation
 ### From pypi
-`pip3 install reptor`
+```shell
+pip3 install reptor
+```
 
 #### Optional dependencies
 * translate (requires deepl)
@@ -55,7 +57,7 @@ Install by `pip3 install reptor[translate]`.
 Install all optional dependencies using `pip3 install reptor[all]`
 
 ### From source
-```
+```shell
 git clone https://github.com/Syslifters/reptor.git
 cd reptor
 pip3 install .
@@ -65,16 +67,17 @@ Install [optional dependencies](#optional-dependencies) by `pip3 install .[all]`
 
 ### From BlackArch
 
-```
+```shell
 pacman -S reptor
 ```
 
 [![BlackArch package](https://repology.org/badge/version-for-repo/blackarch/reptor.svg)](https://repology.org/project/reptor/versions)
 
 
-### Usage
+## Usage
 
-```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
+```
+usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
               [--personal-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
               [--file FILE]
 
