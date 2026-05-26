@@ -32,10 +32,10 @@ You can use it to:
  * Export notes as PDF
  * and more...
 
-**GitHub:** [https://github.com/Syslifters/reptor/](https://github.com/Syslifters/reptor/)  
-**Python Library Docs:** [https://docs.sysreptor.com/python-library/](https://docs.sysreptor.com/python-library/)   
-**CLI Docs:** [https://docs.sysreptor.com/cli/getting-started/](https://docs.sysreptor.com/cli/getting-started/)   
-**PyPi:** [https://pypi.org/project/reptor/](https://pypi.org/project/reptor/)   
+**GitHub:** <https://github.com/Syslifters/reptor/>  
+**Python Library Docs:** <https://docs.sysreptor.com/python-library/>   
+**CLI Docs:** <https://docs.sysreptor.com/cli/getting-started/>   
+**PyPi:** <https://pypi.org/project/reptor/>   
 
 ## Prerequisites
 
@@ -74,10 +74,9 @@ pacman -S reptor
 [![BlackArch package](https://repology.org/badge/version-for-repo/blackarch/reptor.svg)](https://repology.org/project/reptor/versions)
 
 
-## Usage
+### Usage
 
-```
-usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
+```usage: reptor [-h] [-s SERVER] [-t TOKEN] [-k] [-p PROJECT_ID]
               [--personal-note] [-v] [--debug] [-n NOTETITLE] [--no-timestamp]
               [--file FILE]
 
