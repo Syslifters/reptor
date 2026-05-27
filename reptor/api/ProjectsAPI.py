@@ -409,8 +409,8 @@ class ProjectsAPI(APIClient):
         """
         if project_id is None:
             project_id = self.project_id
-        url = urljoin(self.base_endpoint, f"{project_id}/export/all")
-        return self.post(url).content
+        url = urljoin(self.base_endpoint, f"{project_id}/export/")
+        return self.post(url, json={"export_all": True}).content
 
     def render(self, project_id: typing.Optional[str] = None) -> bytes:
         """Renders project to PDF.
