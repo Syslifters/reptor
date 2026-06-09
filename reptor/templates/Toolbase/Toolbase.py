@@ -43,19 +43,19 @@ class MYMODULENAME(ToolBase):
         )
 
     def parse_xml(self, xml_root):
-        """This is called automatically if the user provices --format xml
+        """This is called automatically if the user provides --format xml
         For more infos look at the parent parse() method in ToolBase
         """
         super().parse_xml()
 
     def parse_json(self):
-        """This is called automatically if the user provices --format json
+        """This is called automatically if the user provides --format json
         For more infos look at the parent parse() method in ToolBase
         """
         super().parse_json()
 
     def parse_csv(self):
-        """This is called automatically if the user provices --format csv
+        """This is called automatically if the user provides --format csv
         For more infos look at the parent parse() method in ToolBase
         """
         ...
