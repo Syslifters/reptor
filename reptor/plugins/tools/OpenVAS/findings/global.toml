@@ -1,5 +1,6 @@
 [data]
 title = "<!--{{ name }}-->"
+affected_components = []
 cvss = "<!--{{ cvss_vector }}-->"
 summary = "<!--{{ summary }}-->"
 description = """

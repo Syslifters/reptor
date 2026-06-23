@@ -1,5 +1,6 @@
 [data]
 title = "Detected network services"
+affected_components = []
 cvss = "n/a"
 severity = "info"
 summary = "<!--{{ synopsis }}-->"

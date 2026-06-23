@@ -1,5 +1,6 @@
 [data]
 title = "<!--{{ pluginName }}-->"
+affected_components = []
 cvss = "<!--{{ cvss_vector }}-->"
 summary = "<!--{{ synopsis }}-->"
 recommendation = "<!--{{ solution }}-->"

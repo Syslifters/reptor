@@ -1,5 +1,6 @@
 [data]
 title = "<!--{{ name }}-->"
+affected_components = []
 cvss = "n/a"
 summary = "<!--{{ issueBackground }}-->"
 description = "<!--{{ issueDetail }}-->"

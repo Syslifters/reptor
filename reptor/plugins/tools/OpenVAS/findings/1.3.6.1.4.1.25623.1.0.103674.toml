@@ -1,5 +1,6 @@
 [data]
 title = "Unsupported Operating System detected (EOL)"
+affected_components = []
 cvss = "<!--{{ cvss_vector }}-->"
 summary = "<!--{{ summary }}-->"
 description = """

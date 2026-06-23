@@ -456,37 +456,72 @@ class ToolBase(Base):
             )
         self.log.success("Successfully uploaded to notes.")
 
+    def _merge_finding_data(
+        self,
+        new_finding: "Finding",
+        existing_data: dict,
+    ) -> dict:
+        new_data = new_finding.data.to_dict()
+        merged = dict(existing_data)
+        for field_name, new_value in new_data.items():
+            field_obj = getattr(new_finding.data, field_name, None)
+            if (
+                field_obj
+                and hasattr(field_obj, "type")
+                and field_obj.type == "list"
+                and isinstance(new_value, list)
+            ):
+                old_value = existing_data.get(field_name, [])
+                if isinstance(old_value, list):
+                    merged_values = list(set(old_value + new_value))
+                    merged[field_name] = sorted(merged_values, key=str)
+                else:
+                    merged[field_name] = new_value
+            else:
+                merged[field_name] = new_value
+        return merged
+
     def generate_and_push_findings(self) -> None:
         self.generate_findings()
         if len(self.findings) == 0:
             self.log.display("No findings generated.")
             return
-        project_findings = [
-            Finding(f, self._project_design)
-            for f in self.reptor.api.projects.get_findings()
-        ]
-        project_finding_titles = [f.data.title.value for f in project_findings]
+        existing_findings = {
+            f.data.title: f for f in self.reptor.api.projects.get_findings()
+        }
         for finding in self.findings:
-            self.log.info(f'Checking if finding "{finding.data.title.value}" exists')
-            if finding.data.title.value in project_finding_titles:
-                self.log.display(
-                    f'Finding "{finding.data.title.value}" already exists. Skipping.'
+            title = finding.data.title.value
+            existing_raw = existing_findings.get(title)
+            if existing_raw:
+                full_existing = self.reptor.api.projects.get_finding(
+                    existing_raw.id
                 )
-                continue
-
-            self.log.info(f'Pushing finding "{finding.data.title.value}"')
-            if finding.template:
-                # First create from template to keep template reference
-                created_finding = self.reptor.api.projects.create_finding_from_template(
-                    finding.template
+                existing_data = (
+                    full_existing.data.to_dict() if full_existing.data else {}
                 )
-                # ...then update and add data
+                merged_data = self._merge_finding_data(finding, existing_data)
+                if merged_data == existing_data:
+                    self.log.display(f'Skipped finding "{title}" (no changes)')
+                    continue
+                self.log.info(f'Updating finding "{title}"')
                 self.reptor.api.projects.update_finding(
-                    created_finding.id, finding.to_dict()
+                    full_existing.id, {"data": merged_data}
                 )
+                self.log.success(f'Updated finding "{title}"')
             else:
-                self.reptor.api.projects.create_finding(finding.to_dict())
-            self.log.success(f'Pushed finding "{finding.data.title.value}"')
+                self.log.info(f'Pushing finding "{title}"')
+                if finding.template:
+                    created_finding = (
+                        self.reptor.api.projects.create_finding_from_template(
+                            finding.template
+                        )
+                    )
+                    self.reptor.api.projects.update_finding(
+                        created_finding.id, finding.to_dict()
+                    )
+                else:
+                    self.reptor.api.projects.create_finding(finding.to_dict())
+                self.log.success(f'Pushed finding "{title}"')
 
     @cached_property
     def _project_language(self) -> str:

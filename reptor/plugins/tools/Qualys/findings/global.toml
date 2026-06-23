@@ -1,5 +1,6 @@
 [data]
 title = "<!--{{ TITLE }}-->"
+affected_components = []
 severity = "<!--{{ severity_label }}-->"
 summary = "<!--{{ DESCRIPTION }}-->"
 description = "<!--{{ IMPACT }}-->"
