@@ -1,6 +1,8 @@
 import typing
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 import reptor.settings as settings
 from reptor.lib.console import reptor_console
@@ -27,6 +29,8 @@ class APIClient:
             import urllib3
 
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # type: ignore
+
+        self._session = self._build_session()
 
         try:
             self._project_id = self.reptor.get_active_project_id()
@@ -56,10 +60,36 @@ class APIClient:
         self.debug(f"HTTP Headers: {headers_debug}")
         return headers
 
+    def _build_session(self) -> requests.Session:
+        """Builds a requests Session with automatic retries for transient
+        failures. Retries cover connection/TLS handshake errors (e.g. a reset
+        socket producing SSLEOFError) and the retryable status codes in
+        settings.API_RETRY_STATUS_FORCELIST. Only idempotent methods are
+        retried on a status code (urllib3's default allowed_methods), so
+        POST/PATCH are not replayed against the server; connection-establishment
+        failures are still retried for every method.
+        """
+        retry = Retry(
+            total=settings.API_MAX_RETRIES,
+            connect=settings.API_MAX_RETRIES,
+            read=settings.API_MAX_RETRIES,
+            status=settings.API_MAX_RETRIES,
+            backoff_factor=settings.API_RETRY_BACKOFF_FACTOR,
+            status_forcelist=settings.API_RETRY_STATUS_FORCELIST,
+            raise_on_status=False,
+            respect_retry_after_header=True,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session = requests.Session()
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        return session
+
     def _prepare_kwargs(self, kwargs, json_content=True):
         return kwargs | {
             'headers': kwargs.get('headers', {}) | self._get_headers(json_content=json_content),
             'verify': kwargs.get('verify', self.verify),
+            'timeout': kwargs.get('timeout', settings.API_TIMEOUT),
             'allow_redirects': False,
         }
 
@@ -153,11 +183,11 @@ class APIClient:
         self, url, method: str = "GET", json_content: bool = True, **kwargs
     ) -> requests.models.Response:
         methods = {
-            "GET": requests.get,
-            "POST": requests.post,
-            "PUT": requests.put,
-            "PATCH": requests.patch,
-            "DELETE": requests.delete,
+            "GET": self._session.get,
+            "POST": self._session.post,
+            "PUT": self._session.put,
+            "PATCH": self._session.patch,
+            "DELETE": self._session.delete,
         }
         method = method.upper()
         if method not in methods.keys():
