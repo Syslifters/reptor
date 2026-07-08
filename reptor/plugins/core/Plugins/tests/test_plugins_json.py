@@ -7,7 +7,6 @@ SysReptor server (no integration marker).
 
 import io
 import json
-import sys
 
 from reptor.lib.plugins.PluginMeta import PluginMeta
 from reptor.plugins.core.Plugins.Plugins import Plugins
@@ -73,6 +72,18 @@ class TestPluginsJsonFlag:
         override.set_overwrites_plugin(base)
         result = Plugins(json=True)._plugin_to_dict(override)
         assert result["overwrites"] == {"name": "Base", "category": "tools"}
+
+    def test_plugin_to_dict_sorts_tags_when_set(self):
+        plugin = _make_plugin("Tagged", tags=["b", "a"])
+        plugin.tags = {"b", "a"}
+        result = Plugins(json=True)._plugin_to_dict(plugin)
+        assert result["tags"] == ["a", "b"]
+
+    def test_plugin_to_dict_handles_none_tags(self):
+        plugin = _make_plugin("NoTags", tags=[])
+        plugin.tags = None
+        result = Plugins(json=True)._plugin_to_dict(plugin)
+        assert result["tags"] == []
 
     def test_list_outputs_valid_json_array(self):
         plugins = [

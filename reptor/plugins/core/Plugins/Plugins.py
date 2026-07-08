@@ -87,10 +87,19 @@ class Plugins(Base):
         )
 
     def _plugin_to_dict(self, plugin):
+        tags = getattr(plugin, "tags", None)
+        if not tags:
+            tags = []
+        try:
+            tags = list(tags)
+        except TypeError:
+            tags = []
+        tags = sorted([str(t) for t in tags])
+
         result = {
             "name": plugin.name,
             "summary": plugin.summary,
-            "tags": list(plugin.tags),
+            "tags": tags,
             "category": plugin.category,
             "author": plugin.author,
             "version": plugin.version,
