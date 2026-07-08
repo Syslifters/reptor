@@ -1,3 +1,4 @@
+import json
 import pathlib
 import shutil
 
@@ -21,6 +22,7 @@ class Plugins(Base):
     * --search    Allows you to search for a specific plugin by name and tag
     * --copy PLUGINNAME      Copies a plugin to your local folder for development
     * --new PLUGINNAME  Creates a new plugin based off a template and your input
+    * --json      Output the plugin list as JSON (scriptable)
     * --verbose   Provides more information about a plugin
 
     # Developer Notes
@@ -40,6 +42,7 @@ class Plugins(Base):
         self.copy_plugin_name = kwargs.get("copy_plugin_name")
         self.copy_full = kwargs.get("full")
         self.verbose = kwargs.get("verbose")
+        self.json = kwargs.get("json", False)
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -76,8 +79,47 @@ class Plugins(Base):
             action="store_true",
             help="At copy include plugin source code; default: templates only",
         )
+        parser.add_argument(
+            "--json",
+            action="store_true",
+            help="Output plugin list as JSON (scriptable)",
+            dest="json",
+        )
+
+    def _plugin_to_dict(self, plugin):
+        tags = getattr(plugin, "tags", None)
+        if not tags:
+            tags = []
+        try:
+            tags = list(tags)
+        except TypeError:
+            tags = []
+        tags = sorted([str(t) for t in tags])
+
+        result = {
+            "name": plugin.name,
+            "summary": plugin.summary,
+            "tags": tags,
+            "category": plugin.category,
+            "author": plugin.author,
+            "version": plugin.version,
+            "license": plugin.license,
+            "website": plugin.website,
+        }
+        overwritten = plugin.get_overwritten_plugin()
+        if overwritten:
+            result["overwrites"] = {
+                "name": overwritten.name,
+                "category": overwritten.category,
+            }
+        return result
 
     def _list(self, plugins):
+        if self.json:
+            payload = [self._plugin_to_dict(tool) for tool in plugins]
+            self.print(json.dumps(payload, indent=2))
+            return
+
         if self.verbose:
             table = make_table(
                 [
@@ -135,7 +177,8 @@ class Plugins(Base):
         for _, group_plugins in subcommands.SUBCOMMANDS_GROUPS.items():
             plugins.extend(group_plugins[1])
         if self.search:
-            self.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
+            if not self.json:
+                self.console.print(f"\nSearching for: [red]{self.search}[/red]\n")
             results = list()
             for plugin in plugins:
                 if self.search in plugin.tags:

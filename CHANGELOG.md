@@ -1,3 +1,6 @@
+# Upcoming
+* Add `reptor plugins --json` for scriptable plugin list output
+
 # 0.34
 * Allow pushing Zap findings to SysReptor reports (https://github.com/Syslifters/reptor/pull/242#issue-4082198330)
 * Add project data management tools to MCP server (https://github.com/Syslifters/reptor/pull/240#issue-3956788481)
