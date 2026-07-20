@@ -12,6 +12,7 @@ import tomlkit
 import tomlkit.items
 
 from reptor.lib.plugins.Base import Base
+from reptor.utils.file_operations import safe_extractall
 
 
 def to_toml(data: Any):
@@ -101,7 +102,7 @@ class UnpackArchive(Base):
         with tempfile.TemporaryDirectory() as tempdir:
             for file in self.files:
                 with tarfile.open(fileobj=file, mode="r:gz") as tar:
-                    tar.extractall(tempdir)
+                    safe_extractall(tar, tempdir)
                 for path_json in Path(tempdir).glob("*.json"):
                     if not path_json.exists() or not path_json.is_file():
                         continue
