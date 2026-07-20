@@ -5,7 +5,7 @@ import typing
 from reptor.models.Finding import FindingDataRaw
 from reptor.models.Section import SectionDataRaw
 from reptor.api.APIClient import APIClient
-from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignOverview
+from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField, ProjectDesignOverview
 
 
 class ProjectDesignsAPI(APIClient):
@@ -60,6 +60,8 @@ class ProjectDesignsAPI(APIClient):
             report_styles: typing.Optional[str] = None,
             preview_findings: typing.Optional[typing.List[FindingDataRaw]] = None,
             preview_report: typing.Optional[SectionDataRaw] = None,
+            finding_fields: typing.Optional[typing.List[ProjectDesignField]] = None,
+            report_fields: typing.Optional[typing.List[ProjectDesignField]] = None,
         ) -> ProjectDesign:
         """Updates the project design with the given id.
 
@@ -69,6 +71,8 @@ class ProjectDesignsAPI(APIClient):
                 report_styles (str, optional): Report CSS styles to update. None value means no update. Defaults to None.
                 preview_findings (List[FindingDataRaw], optional): Preview findings to update. Defaults to None.
                 preview_report (SectionDataRaw, optional): Preview report sections to update. Defaults to None.
+                finding_fields (List[ProjectDesignField], optional): Finding field definitions to update. Defaults to None.
+                report_fields (List[ProjectDesignField], optional): Report field definitions to update. Defaults to None.
             Returns:
                 The updated ProjectDesign object.
         """
@@ -82,6 +86,10 @@ class ProjectDesignsAPI(APIClient):
             payload["report_preview_data"]["findings"] = [finding.to_dict() for finding in preview_findings]
         if preview_report is not None:
             payload["report_preview_data"]["report"] = preview_report.to_dict()
+        if finding_fields is not None:
+            payload["finding_fields"] = [f.to_dict() for f in finding_fields]
+        if report_fields is not None:
+            payload["report_fields"] = [f.to_dict() for f in report_fields]
         response = self.patch(urljoin(self.base_endpoint, project_design_id), json=payload)
         return ProjectDesign(response.json())
 
