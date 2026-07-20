@@ -1,5 +1,10 @@
-# Upcoming
-* Add `reptor plugins --json` for scriptable plugin list output
+# 0.35
+This is a security release.
+
+* Fix Arbitrary File Write via Zip Slip vulnerability (https://github.com/Syslifters/reptor/pull/253)
+* Add `reptor plugins --json` for scriptable plugin list output (https://github.com/Syslifters/reptor/pull/248)
+* Add reptor AI integration (https://github.com/Syslifters/reptor/pull/244)
+* Fix project export after API change (https://github.com/Syslifters/reptor/pull/246)
 
 # 0.34
 * Allow pushing Zap findings to SysReptor reports (https://github.com/Syslifters/reptor/pull/242#issue-4082198330)
