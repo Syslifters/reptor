@@ -64,13 +64,8 @@ def to_toml(data: Any):
         return tomlkit.items.Float(data, trivia=tomlkit.items.Trivia(), raw=str(data))
     elif isinstance(data, str):
         if "\n" in data:
-            if data[0] != "\n":
-                data = "\n" + data
-            if data[-1] != "\n":
-                data += "\n"
             return tomlkit.string(data, multiline=True)
-        else:
-            return tomlkit.string(data)
+        return tomlkit.string(data)
     # elif data is None:
     #    # TOML does not support null values
     #    return None

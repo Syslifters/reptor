@@ -3,9 +3,22 @@ import json
 import tarfile
 
 import pytest
+import tomli
+import tomlkit
 
-from reptor.plugins.utils.unpackarchive.unpackarchive import UnpackArchive
+from reptor.plugins.utils.unpackarchive.unpackarchive import UnpackArchive, to_toml
 from reptor.utils import file_operations
+
+
+def test_to_toml_preserves_leading_backslash_newline():
+    data = {
+        "report": {
+            "scope": "\\\n\\\\\nThe scope of this pentest included:\n* item\n\\\\\n\\\n",
+            "attack_paths_description": "\\\n\\\\\nasdasd\\\\\n\\\n",
+        }
+    }
+    unpacked = tomli.loads(tomlkit.dumps(to_toml(data)))
+    assert unpacked == data
 
 
 def build_archive(member_name: str, payload: bytes) -> io.BytesIO:
