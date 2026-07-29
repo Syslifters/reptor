@@ -118,6 +118,7 @@ class ProjectFieldTypes(enum.Enum):
     Enum for project field types.
     """
     cvss = "cvss"
+    cwe = "cwe"
     string = "string"
     markdown = "markdown"
     list = "list"
@@ -128,6 +129,7 @@ class ProjectFieldTypes(enum.Enum):
     date = "date"
     number = "number"
     boolean = "boolean"
+    json = "json"
 
 
 class FindingTemplateSources(enum.Enum):
