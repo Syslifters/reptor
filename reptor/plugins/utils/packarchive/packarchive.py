@@ -55,11 +55,31 @@ class PackArchive(Base):
             data_dict = json.loads(path_input.read_text(encoding='utf-8'))
         if not isinstance(data_dict, dict) or not isinstance(data_dict.get('format'), str):
             return None
+        self.normalize_notes(data_dict)
         return data_dict
+
+    def normalize_notes(self, data_dict: dict):
+        """TOML cannot represent null; restore parent/checked nulls expected by the UI."""
+        for notes in (
+            data_dict.get("default_notes"),
+            data_dict.get("notes"),
+            (data_dict.get("project_type") or {}).get("default_notes"),
+        ):
+            if not isinstance(notes, list):
+                continue
+            for note in notes:
+                if not isinstance(note, dict):
+                    continue
+                if "parent" not in note:
+                    note["parent"] = None
+                if "checked" not in note:
+                    note["checked"] = None
 
     def add_to_archive(self, tar: tarfile.TarFile, path_input: Path, data_dict: dict, is_subresource=False):
         if not data_dict.get("id"):
             data_dict["id"] = str(uuid.uuid4())
+
+        self.normalize_notes(data_dict)
 
         # Include file directories
         file_dirs = {}

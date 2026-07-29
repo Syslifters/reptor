@@ -47,6 +47,109 @@ def create_png_file() -> bytes:
     )
 
 
+class TestNormalizeNotes:
+    def setup_method(self):
+        self.packer = PackArchive(directories=[], output=io.BytesIO())
+
+    def test_adds_null_parent_and_checked_to_notes(self):
+        data = {"notes": [{"title": "Note 1"}]}
+        self.packer.normalize_notes(data)
+        assert data["notes"][0]["parent"] is None
+        assert data["notes"][0]["checked"] is None
+
+    def test_adds_null_parent_and_checked_to_default_notes(self):
+        data = {"default_notes": [{"title": "Default"}]}
+        self.packer.normalize_notes(data)
+        assert data["default_notes"][0]["parent"] is None
+        assert data["default_notes"][0]["checked"] is None
+
+    def test_adds_null_parent_and_checked_to_project_type_default_notes(self):
+        data = {
+            "project_type": {
+                "default_notes": [{"title": "Design note"}],
+            },
+        }
+        self.packer.normalize_notes(data)
+        note = data["project_type"]["default_notes"][0]
+        assert note["parent"] is None
+        assert note["checked"] is None
+
+    def test_preserves_existing_parent_and_checked(self):
+        parent_id = str(uuid.uuid4())
+        data = {
+            "notes": [
+                {"title": "Child", "parent": parent_id, "checked": True},
+                {"title": "Unchecked", "parent": None, "checked": False},
+            ],
+        }
+        self.packer.normalize_notes(data)
+        assert data["notes"][0]["parent"] == parent_id
+        assert data["notes"][0]["checked"] is True
+        assert data["notes"][1]["parent"] is None
+        assert data["notes"][1]["checked"] is False
+
+    def test_normalizes_all_note_collections(self):
+        data = {
+            "notes": [{"title": "Project note"}],
+            "default_notes": [{"title": "Default note"}],
+            "project_type": {
+                "default_notes": [{"title": "Design note"}],
+            },
+        }
+        self.packer.normalize_notes(data)
+        for note in (
+            data["notes"][0],
+            data["default_notes"][0],
+            data["project_type"]["default_notes"][0],
+        ):
+            assert note["parent"] is None
+            assert note["checked"] is None
+
+    def test_skips_non_list_note_collections(self):
+        data = {
+            "notes": {"title": "not a list"},
+            "default_notes": "also not a list",
+            "project_type": {"default_notes": None},
+        }
+        self.packer.normalize_notes(data)
+        assert data["notes"] == {"title": "not a list"}
+        assert data["default_notes"] == "also not a list"
+        assert data["project_type"]["default_notes"] is None
+
+    def test_skips_non_dict_note_items(self):
+        data = {"notes": ["string note", 42, None, {"title": "Real note"}]}
+        self.packer.normalize_notes(data)
+        assert data["notes"][0] == "string note"
+        assert data["notes"][1] == 42
+        assert data["notes"][2] is None
+        assert data["notes"][3]["parent"] is None
+        assert data["notes"][3]["checked"] is None
+
+    def test_noop_when_no_notes(self):
+        data = {"format": "projects/v1", "id": str(uuid.uuid4())}
+        self.packer.normalize_notes(data)
+        assert data == {"format": "projects/v1", "id": data["id"]}
+
+    def test_handles_missing_project_type(self):
+        data = {"notes": [{"title": "Only notes"}]}
+        self.packer.normalize_notes(data)
+        assert data["notes"][0]["parent"] is None
+        assert data["notes"][0]["checked"] is None
+
+    def test_fills_only_missing_fields(self):
+        data = {
+            "notes": [
+                {"title": "Has parent", "parent": "p1"},
+                {"title": "Has checked", "checked": True},
+            ],
+        }
+        self.packer.normalize_notes(data)
+        assert data["notes"][0]["parent"] == "p1"
+        assert data["notes"][0]["checked"] is None
+        assert data["notes"][1]["parent"] is None
+        assert data["notes"][1]["checked"] is True
+
+
 class TestPackExport:
     def pack(self, files, format):
         with mock_files(

@@ -1,3 +1,6 @@
+# Upcoming
+* Restore missing "parent" and "checked" fields in packarchive
+
 # 0.35
 This is a security release.
 
