@@ -37,6 +37,16 @@ LOG_FOLDER: pathlib.Path = PERSONAL_SYSREPTOR_HOME / "logs"
 NEWLINE = "\n"
 
 USER_AGENT = "reptor CLI v0.1.0"  # TODO dynamic version
+
+# HTTP client defaults (see reptor/api/APIClient.py)
+# Defaults for HTTP timeouts; overridable via config (api_timeout), CLI (--timeout),
+# or REPTOR_API_TIMEOUT. See Config.get_api_timeout() / get_api_timeout_long().
+API_TIMEOUT = 30  # per-request (connect, read) timeout in seconds; prevents indefinite hangs
+# Long-running ops (report render, project/template export); never below API_TIMEOUT
+API_TIMEOUT_LONG = max(300, API_TIMEOUT)
+API_MAX_RETRIES = 3  # retries for transient connection/TLS failures and retryable status codes
+API_RETRY_BACKOFF_FACTOR = 0.5  # exponential backoff: 0s, 0.5s, 1s, 2s, ...
+API_RETRY_STATUS_FORCELIST = [429, 500, 502, 503, 504]  # only these statuses are retried
 LANGUAGE_CODE = "en"
 FORMAT_MODULE_PATH = []
 LOCALE_PATHS = (

@@ -455,7 +455,7 @@ class NotesAPI(APIClient):
             raise ValueError("note_id parameter is required")
         
         url = urljoin(self.base_endpoint, f"{note_id}/export-pdf/")
-        response = self.post(url)
+        response = self.post(url, timeout=self.reptor.get_config().get_api_timeout_long())
         response.raise_for_status()
         return response.content
 

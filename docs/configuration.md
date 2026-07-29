@@ -36,5 +36,21 @@ export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 Environment variables override config file settings.
 
 
+### API timeout
+HTTP request timeout defaults to 30 seconds. Increase it for slow connections or large exports via config file, environment variable, or CLI:
+
+```yaml
+# ~/.sysreptor/config.yaml
+api_timeout: 60
+```
+
+```shell
+export REPTOR_API_TIMEOUT=60
+reptor project --timeout 60
+```
+
+Long-running operations (report render, project/template export) use at least 300 seconds, or your configured timeout if higher.
+
+
 ### Usage
 <<< @/cli/help-messages/reptor{txt}

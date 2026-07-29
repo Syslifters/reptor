@@ -16,6 +16,7 @@ class TestConf(object):
         os.environ["REPTOR_SERVER"] = "https://demo1234.sysre.pt"
         os.environ["REPTOR_TOKEN"] = "sysreptor_abcdef"
         os.environ["REPTOR_PROJECT_ID"] = "2b5de38d-2932-4112-b0f7-42c4889dd64d"
+        os.environ["REPTOR_API_TIMEOUT"] = "90"
         reptor_environ = Reptor(from_cli=True)
 
         assert (
@@ -36,10 +37,12 @@ class TestConf(object):
             reptor_environ._config._raw_config["project_id"]
             == "2b5de38d-2932-4112-b0f7-42c4889dd64d"
         )
+        assert reptor_environ.get_config().get_api_timeout() == 90
 
         del os.environ["REPTOR_SERVER"]
         del os.environ["REPTOR_TOKEN"]
         del os.environ["REPTOR_PROJECT_ID"]
+        del os.environ["REPTOR_API_TIMEOUT"]
 
 
 class TestProjectsAPI:
@@ -98,6 +101,8 @@ class TestProjectsAPI:
         self.project.render()
         self.project.check_report.assert_called_once()
         self.project.post.assert_called_once()
+        _, kwargs = self.project.post.call_args
+        assert kwargs.get("timeout") == self.reptor.get_config().get_api_timeout_long()
         self.project.log.warning.assert_called_once_with(
             'Report Check Warning: "Unresolved TODO" (x2)'
         )

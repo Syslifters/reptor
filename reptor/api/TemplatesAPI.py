@@ -152,7 +152,7 @@ class TemplatesAPI(APIClient):
             ```
         """
         url = urljoin(self.base_endpoint, f"{template_id}/export/")
-        return self.post(url).content
+        return self.post(url, timeout=self.reptor.get_config().get_api_timeout_long()).content
 
     def get_templates_by_tag(self, tag: str) -> typing.List[FindingTemplate]:
         """Retrieves templates that contain a specific tag.
