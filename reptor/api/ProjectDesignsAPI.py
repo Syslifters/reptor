@@ -5,7 +5,12 @@ import typing
 from reptor.models.Finding import FindingDataRaw
 from reptor.models.Section import SectionDataRaw
 from reptor.api.APIClient import APIClient
-from reptor.models.ProjectDesign import ProjectDesign, ProjectDesignField, ProjectDesignOverview
+from reptor.models.ProjectDesign import (
+    ProjectDesign,
+    ProjectDesignField,
+    ProjectDesignOverview,
+    merge_report_fields_into_sections,
+)
 
 
 class ProjectDesignsAPI(APIClient):
@@ -62,6 +67,7 @@ class ProjectDesignsAPI(APIClient):
             preview_report: typing.Optional[SectionDataRaw] = None,
             finding_fields: typing.Optional[typing.List[ProjectDesignField]] = None,
             report_fields: typing.Optional[typing.List[ProjectDesignField]] = None,
+            report_sections: typing.Optional[typing.List[dict]] = None,
         ) -> ProjectDesign:
         """Updates the project design with the given id.
 
@@ -72,7 +78,10 @@ class ProjectDesignsAPI(APIClient):
                 preview_findings (List[FindingDataRaw], optional): Preview findings to update. Defaults to None.
                 preview_report (SectionDataRaw, optional): Preview report sections to update. Defaults to None.
                 finding_fields (List[ProjectDesignField], optional): Finding field definitions to update. Defaults to None.
-                report_fields (List[ProjectDesignField], optional): Report field definitions to update. Defaults to None.
+                report_fields (List[ProjectDesignField], optional): Report field definitions to update. Merged into
+                    ``report_sections`` because the SysReptor API stores report fields inside section definitions.
+                    Requires the current design to be fetchable when ``report_sections`` is not provided. Defaults to None.
+                report_sections (List[dict], optional): Full report section definitions to update. Defaults to None.
             Returns:
                 The updated ProjectDesign object.
         """
@@ -81,15 +90,22 @@ class ProjectDesignsAPI(APIClient):
             payload["report_template"] = report_template
         if report_styles is not None:
             payload["report_styles"] = report_styles
-        payload["report_preview_data"] = dict()
-        if preview_findings is not None:
-            payload["report_preview_data"]["findings"] = [finding.to_dict() for finding in preview_findings]
-        if preview_report is not None:
-            payload["report_preview_data"]["report"] = preview_report.to_dict()
+        if preview_findings is not None or preview_report is not None:
+            payload["report_preview_data"] = dict()
+            if preview_findings is not None:
+                payload["report_preview_data"]["findings"] = [finding.to_dict() for finding in preview_findings]
+            if preview_report is not None:
+                payload["report_preview_data"]["report"] = preview_report.to_dict()
         if finding_fields is not None:
-            payload["finding_fields"] = [f.to_dict() for f in finding_fields]
-        if report_fields is not None:
-            payload["report_fields"] = [f.to_dict() for f in report_fields]
+            payload["finding_fields"] = [field.to_api_dict() for field in finding_fields]
+        if report_sections is not None:
+            payload["report_sections"] = report_sections
+        elif report_fields is not None:
+            current_design = self.get_project_design(project_design_id=project_design_id)
+            payload["report_sections"] = merge_report_fields_into_sections(
+                current_design.report_sections,
+                report_fields,
+            )
         response = self.patch(urljoin(self.base_endpoint, project_design_id), json=payload)
         return ProjectDesign(response.json())
 
