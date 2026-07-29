@@ -46,6 +46,15 @@ class TestProjectDesignsAPI:
             ProjectDesignField({"id": "cvss", "type": "cvss", "label": "CVSS", "origin": "core", "default": "n/a", "required": True}),
             ProjectDesignField({"id": "title", "type": "string", "label": "Title", "origin": "core", "required": True, "spellcheck": True}),
         ]
+        get_response = MagicMock()
+        get_response.json.return_value = {
+            "id": "test-id",
+            "name": "Test",
+            "finding_fields": [
+                {"id": "title", "type": "string", "label": "Title", "origin": "core", "required": True, "spellcheck": True},
+            ],
+        }
+        self.api.get.return_value = get_response
         self._mock_patch_response()
 
         self.api.update_project_design(
@@ -53,6 +62,7 @@ class TestProjectDesignsAPI:
             finding_fields=fields,
         )
 
+        self.api.get.assert_called_once()
         self.api.patch.assert_called_once()
         call_args = self.api.patch.call_args
         assert call_args[0][0] == "https://demo.sysre.pt/api/v1/projecttypes/test-id"
@@ -65,6 +75,31 @@ class TestProjectDesignsAPI:
         assert payload["finding_fields"][1]["type"] == "string"
         assert "choices" not in payload["finding_fields"][0]
         assert "items" not in payload["finding_fields"][0]
+
+    def test_update_with_finding_fields_preserves_title_when_omitted(self):
+        finding_fields = [
+            ProjectDesignField({"id": "cvss", "type": "cvss", "label": "CVSS", "origin": "core", "default": "n/a", "required": True}),
+        ]
+        get_response = MagicMock()
+        get_response.json.return_value = {
+            "id": "test-id",
+            "name": "Test",
+            "finding_fields": [
+                {"id": "title", "type": "string", "label": "Title", "origin": "core", "required": True, "spellcheck": True},
+                {"id": "summary", "type": "markdown", "label": "Summary", "origin": "predefined", "required": True},
+            ],
+        }
+        self.api.get.return_value = get_response
+        self._mock_patch_response()
+
+        self.api.update_project_design(
+            project_design_id="test-id",
+            finding_fields=finding_fields,
+        )
+
+        payload = self.api.patch.call_args[1]["json"]
+        field_ids = [field["id"] for field in payload["finding_fields"]]
+        assert field_ids == ["title", "cvss"]
 
     def test_update_with_report_fields(self):
         fields = [
@@ -108,6 +143,9 @@ class TestProjectDesignsAPI:
         get_response.json.return_value = {
             "id": "test-id",
             "name": "Test",
+            "finding_fields": [
+                {"id": "title", "type": "string", "label": "Title", "origin": "core", "required": True, "spellcheck": True},
+            ],
             "report_sections": [
                 {"id": "other", "label": "Other", "fields": [
                     {"id": "title", "type": "string", "label": "Title", "origin": "core", "required": True, "spellcheck": True},
@@ -127,8 +165,9 @@ class TestProjectDesignsAPI:
         assert "finding_fields" in payload
         assert "report_sections" in payload
         assert "report_fields" not in payload
-        assert len(payload["finding_fields"]) == 1
-        assert payload["finding_fields"][0]["type"] == "cvss"
+        assert len(payload["finding_fields"]) == 2
+        assert payload["finding_fields"][0]["id"] == "title"
+        assert payload["finding_fields"][1]["type"] == "cvss"
 
     def test_update_with_report_sections_directly(self):
         report_sections = [

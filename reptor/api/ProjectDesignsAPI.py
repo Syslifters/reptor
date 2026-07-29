@@ -77,7 +77,8 @@ class ProjectDesignsAPI(APIClient):
                 report_styles (str, optional): Report CSS styles to update. None value means no update. Defaults to None.
                 preview_findings (List[FindingDataRaw], optional): Preview findings to update. Defaults to None.
                 preview_report (SectionDataRaw, optional): Preview report sections to update. Defaults to None.
-                finding_fields (List[ProjectDesignField], optional): Finding field definitions to update. Defaults to None.
+                finding_fields (List[ProjectDesignField], optional): Finding field definitions to update.
+                    The required ``title`` field is preserved automatically when omitted. Defaults to None.
                 report_fields (List[ProjectDesignField], optional): Report field definitions to update. Merged into
                     ``report_sections`` because the SysReptor API stores report fields inside section definitions.
                     Requires the current design to be fetchable when ``report_sections`` is not provided. Defaults to None.
@@ -86,6 +87,15 @@ class ProjectDesignsAPI(APIClient):
                 The updated ProjectDesign object.
         """
         payload = {}
+        needs_current_design = finding_fields is not None or (
+            report_fields is not None and report_sections is None
+        )
+        current_design = (
+            self.get_project_design(project_design_id=project_design_id)
+            if needs_current_design
+            else None
+        )
+
         if report_template is not None:
             payload["report_template"] = report_template
         if report_styles is not None:
@@ -97,13 +107,20 @@ class ProjectDesignsAPI(APIClient):
             if preview_report is not None:
                 payload["report_preview_data"]["report"] = preview_report.to_dict()
         if finding_fields is not None:
-            payload["finding_fields"] = [field.to_api_dict() for field in finding_fields]
+            # The API requires a "title" finding field; re-include it when omitted.
+            caller_ids = {f.id for f in finding_fields}
+            title_fields = [
+                f for f in current_design.finding_fields  # type: ignore[union-attr]
+                if f.id == "title" and "title" not in caller_ids
+            ]
+            payload["finding_fields"] = [
+                f.to_api_dict() for f in title_fields + list(finding_fields)
+            ]
         if report_sections is not None:
             payload["report_sections"] = report_sections
         elif report_fields is not None:
-            current_design = self.get_project_design(project_design_id=project_design_id)
             payload["report_sections"] = merge_report_fields_into_sections(
-                current_design.report_sections,
+                current_design.report_sections,  # type: ignore[union-attr]
                 report_fields,
             )
         response = self.patch(urljoin(self.base_endpoint, project_design_id), json=payload)

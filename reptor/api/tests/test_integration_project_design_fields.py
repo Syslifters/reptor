@@ -80,17 +80,6 @@ def project_design_api(reptor):
     return reptor.api.project_designs
 
 
-_TITLE_FIELD = ProjectDesignField(
-    {
-        "id": "title",
-        "type": "string",
-        "label": "Title",
-        "required": True,
-        "default": "",
-        "spellcheck": True,
-    }
-)
-
 _SEVERITY_FIELD = ProjectDesignField(
     {
         "id": "severity",
@@ -150,7 +139,7 @@ def private_design(project_design_api):
     try:
         design = project_design_api.update_project_design(
             project_design_id=design.id,
-            finding_fields=[_TITLE_FIELD, _SEVERITY_FIELD, _LIST_FIELD],
+            finding_fields=[_SEVERITY_FIELD, _LIST_FIELD],
             report_sections=_REPORT_SECTIONS,
         )
         yield design
