@@ -59,5 +59,9 @@ reptor = 'reptor.__main__:run'
 "Bug Tracker" = "https://github.com/Syslifters/reptor/issues"
 "Source" = "https://github.com/syslifters/reptor"
 
+[tool.setuptools.packages.find]
+include = ["reptor*"]
+exclude = ["test_fixtures*"]
+
 [tool.setuptools.package-data]
 "*" = ["**/*.md", "**/*.toml"]
