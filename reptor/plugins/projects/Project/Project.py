@@ -206,6 +206,14 @@ class Project(Base):
         )
 
     def run(self):
+        # Commands that need a project ID
+        if self.export or self.render or self.duplicate or self.finish is not None:
+            if not self.reptor.get_active_project_id():
+                self.error(
+                    "No project ID configured. Use --project-id or run 'reptor conf' to set one."
+                )
+                return
+
         if self.export:
             self._export_project(self.export, filename=self.output, upload=self.upload)
         elif self.render:
