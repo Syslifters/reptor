@@ -169,3 +169,147 @@ class TestProjectDesignModelParsing:
             name in property_field_names for name in ["date", "version", "description"]
         )
         assert isinstance(loc.items.properties[0], ProjectDesignField)
+
+
+class TestProjectDesignFieldToApiDict:
+    def test_string_field_serialization(self):
+        field = ProjectDesignField({
+            "id": "title",
+            "type": "string",
+            "label": "Title",
+            "origin": "core",
+            "default": "TODO",
+            "required": True,
+            "spellcheck": True,
+        })
+        result = field.to_api_dict()
+        assert result["type"] == "string"
+        assert isinstance(result["type"], str)
+        assert result["spellcheck"] is True
+        assert "choices" not in result
+        assert "items" not in result
+        assert "properties" not in result
+
+    def test_enum_field_serialization(self):
+        field = ProjectDesignField({
+            "id": "severity",
+            "type": "enum",
+            "label": "Severity",
+            "origin": "predefined",
+            "choices": [{"label": "High", "value": "high"}],
+            "default": None,
+            "required": True,
+        })
+        result = field.to_api_dict()
+        assert result["type"] == "enum"
+        assert result["default"] is None
+        assert result["choices"] == [{"label": "High", "value": "high"}]
+
+    def test_list_field_nested_items(self):
+        field = ProjectDesignField({
+            "id": "references",
+            "type": "list",
+            "label": "References",
+            "origin": "predefined",
+            "required": False,
+            "items": {
+                "type": "string",
+                "label": "Reference",
+                "origin": "predefined",
+                "default": None,
+                "required": True,
+                "spellcheck": False,
+            },
+        })
+        result = field.to_api_dict()
+        assert result["type"] == "list"
+        assert result["items"]["type"] == "string"
+        assert "id" not in result["items"]
+
+    def test_object_field_nested_properties(self):
+        field = ProjectDesignField({
+            "id": "address",
+            "type": "object",
+            "label": "Address",
+            "origin": "custom",
+            "required": True,
+            "properties": [
+                {"id": "city", "type": "string", "label": "City", "origin": "custom", "required": True},
+            ],
+        })
+        result = field.to_api_dict()
+        assert result["properties"][0]["id"] == "city"
+        assert result["properties"][0]["type"] == "string"
+
+    def test_number_field_constraints(self):
+        field = ProjectDesignField({
+            "id": "score",
+            "type": "number",
+            "label": "Score",
+            "origin": "custom",
+            "default": None,
+            "minimum": 0,
+            "maximum": 100,
+            "required": False,
+        })
+        result = field.to_api_dict()
+        assert result["minimum"] == 0
+        assert result["maximum"] == 100
+        assert result["default"] is None
+
+    def test_boolean_field_default(self):
+        field = ProjectDesignField({
+            "id": "draft",
+            "type": "boolean",
+            "label": "Draft",
+            "origin": "custom",
+            "default": False,
+            "required": False,
+        })
+        result = field.to_api_dict()
+        assert result["default"] is False
+        assert result["type"] == "boolean"
+
+    def test_cvss_field_with_version(self):
+        field = ProjectDesignField({
+            "id": "cvss",
+            "type": "cvss",
+            "label": "CVSS",
+            "origin": "predefined",
+            "default": "n/a",
+            "cvss_version": "CVSS:3.1",
+            "required": True,
+        })
+        result = field.to_api_dict()
+        assert result["type"] == "cvss"
+        assert result["cvss_version"] == "CVSS:3.1"
+
+    def test_user_field_minimal(self):
+        field = ProjectDesignField({
+            "id": "assignee",
+            "type": "user",
+            "label": "Assignee",
+            "origin": "custom",
+            "required": True,
+        })
+        result = field.to_api_dict()
+        assert result == {
+            "type": "user",
+            "id": "assignee",
+            "label": "Assignee",
+            "origin": "custom",
+            "required": True,
+        }
+
+    def test_null_default_preserved(self):
+        field = ProjectDesignField({
+            "id": "precondition",
+            "type": "string",
+            "label": "Precondition",
+            "origin": "predefined",
+            "default": None,
+            "required": True,
+            "spellcheck": True,
+        })
+        result = field.to_api_dict()
+        assert result["default"] is None
