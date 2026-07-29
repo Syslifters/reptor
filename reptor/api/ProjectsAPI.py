@@ -10,6 +10,7 @@ from reptor.models.Finding import FindingRaw
 from reptor.models.Project import Project, ProjectOverview
 from reptor.models.ProjectDesign import ProjectDesign
 from reptor.models.Section import Section, SectionRaw
+import reptor.settings as settings
 
 
 class ProjectsAPI(APIClient):
@@ -410,7 +411,7 @@ class ProjectsAPI(APIClient):
         if project_id is None:
             project_id = self.project_id
         url = urljoin(self.base_endpoint, f"{project_id}/export/")
-        return self.post(url, json={"export_all": True}).content
+        return self.post(url, json={"export_all": True}, timeout=settings.API_TIMEOUT_LONG).content
 
     def render(self, project_id: typing.Optional[str] = None) -> bytes:
         """Renders project to PDF.
@@ -445,7 +446,7 @@ class ProjectsAPI(APIClient):
         # Render report
         url = urljoin(self.base_endpoint, f"{project_id}/generate/")
         try:
-            return self.post(url).content
+            return self.post(url, timeout=settings.API_TIMEOUT_LONG).content
         except HTTPError as e:
             try:
                 for msg in e.response.json().get("messages", []):

@@ -3,6 +3,7 @@ from posixpath import join as urljoin
 
 from reptor.api.APIClient import APIClient
 from reptor.models.FindingTemplate import FindingTemplate
+import reptor.settings as settings
 
 
 class TemplatesAPI(APIClient):
@@ -152,7 +153,7 @@ class TemplatesAPI(APIClient):
             ```
         """
         url = urljoin(self.base_endpoint, f"{template_id}/export/")
-        return self.post(url).content
+        return self.post(url, timeout=settings.API_TIMEOUT_LONG).content
 
     def get_templates_by_tag(self, tag: str) -> typing.List[FindingTemplate]:
         """Retrieves templates that contain a specific tag.

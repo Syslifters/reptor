@@ -10,6 +10,7 @@ from reptor.models.Note import Note
 from reptor.utils.file_operations import guess_filetype
 
 from reptor.models.Note import NoteTemplate
+import reptor.settings as settings
 
 
 class NotesAPI(APIClient):
@@ -455,7 +456,7 @@ class NotesAPI(APIClient):
             raise ValueError("note_id parameter is required")
         
         url = urljoin(self.base_endpoint, f"{note_id}/export-pdf/")
-        response = self.post(url)
+        response = self.post(url, timeout=settings.API_TIMEOUT_LONG)
         response.raise_for_status()
         return response.content
 

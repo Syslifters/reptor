@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+import reptor.settings as settings
 from reptor.lib.reptor import Reptor
 
 from ..ProjectsAPI import ProjectsAPI
@@ -98,6 +99,8 @@ class TestProjectsAPI:
         self.project.render()
         self.project.check_report.assert_called_once()
         self.project.post.assert_called_once()
+        _, kwargs = self.project.post.call_args
+        assert kwargs.get("timeout") == settings.API_TIMEOUT_LONG
         self.project.log.warning.assert_called_once_with(
             'Report Check Warning: "Unresolved TODO" (x2)'
         )
