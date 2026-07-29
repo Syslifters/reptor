@@ -98,6 +98,8 @@ class Config:
             config["server"] = os.environ.get("REPTOR_SERVER", config.get("server"))
             config["token"] = os.environ.get("REPTOR_TOKEN", config.get("token"))
             config["project_id"] = os.environ.get("REPTOR_PROJECT_ID", config.get("project_id"))
+            if (api_timeout := os.environ.get("REPTOR_API_TIMEOUT")) is not None:
+                config["api_timeout"] = api_timeout
         config["personal_note"] = personal_note
         if server:
             config["server"] = server
@@ -250,3 +252,28 @@ class Config:
             bool: True to keep logs in a file
         """
         return self.get("log_file", False)
+
+    def get_api_timeout(self) -> int:
+        """Per-request HTTP timeout in seconds.
+
+        Resolved from CLI ``--timeout``, ``REPTOR_API_TIMEOUT``, or ``api_timeout``
+        in the config file; falls back to ``settings.API_TIMEOUT``.
+        """
+        value = self.get("api_timeout", settings.API_TIMEOUT)
+        if value is None or value == "":
+            return settings.API_TIMEOUT
+        try:
+            timeout = int(value)
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"Invalid api_timeout '{value}'; must be a positive integer."
+            ) from e
+        if timeout <= 0:
+            raise ValueError(
+                f"Invalid api_timeout '{value}'; must be a positive integer."
+            )
+        return timeout
+
+    def get_api_timeout_long(self) -> int:
+        """Timeout for long-running API ops; never below ``get_api_timeout()``."""
+        return max(300, self.get_api_timeout())

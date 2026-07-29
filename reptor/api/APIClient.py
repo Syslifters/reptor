@@ -89,7 +89,7 @@ class APIClient:
         return kwargs | {
             'headers': kwargs.get('headers', {}) | self._get_headers(json_content=json_content),
             'verify': kwargs.get('verify', self.verify),
-            'timeout': kwargs.get('timeout', settings.API_TIMEOUT),
+            'timeout': kwargs.get('timeout', self.reptor.get_config().get_api_timeout()),
             'allow_redirects': False,
         }
 

@@ -39,6 +39,8 @@ NEWLINE = "\n"
 USER_AGENT = "reptor CLI v0.1.0"  # TODO dynamic version
 
 # HTTP client defaults (see reptor/api/APIClient.py)
+# Defaults for HTTP timeouts; overridable via config (api_timeout), CLI (--timeout),
+# or REPTOR_API_TIMEOUT. See Config.get_api_timeout() / get_api_timeout_long().
 API_TIMEOUT = 30  # per-request (connect, read) timeout in seconds; prevents indefinite hangs
 # Long-running ops (report render, project/template export); never below API_TIMEOUT
 API_TIMEOUT_LONG = max(300, API_TIMEOUT)

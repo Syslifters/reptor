@@ -44,6 +44,17 @@ class TestAPIClientSession:
         assert prepared["timeout"] == 5
         assert prepared["verify"] is False
 
+    def test_api_timeout_from_config(self):
+        self.reptor._config._raw_config["api_timeout"] = 90
+        client = APIClient(reptor=self.reptor, require_project_id=False)
+        assert client._prepare_kwargs({})["timeout"] == 90
+        assert self.reptor.get_config().get_api_timeout_long() == 300
+
+    def test_api_timeout_long_scales_with_config(self):
+        self.reptor._config._raw_config["api_timeout"] = 600
+        assert self.reptor.get_config().get_api_timeout() == 600
+        assert self.reptor.get_config().get_api_timeout_long() == 600
+
     def test_insecure_config_disables_verify(self):
         self.reptor._config._raw_config["insecure"] = True
         client = APIClient(reptor=self.reptor, require_project_id=False)

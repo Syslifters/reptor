@@ -208,6 +208,13 @@ class Reptor:
         )
         config_parser.add_argument("-p", "--project-id", help="SysReptor project ID")
         config_parser.add_argument(
+            "--timeout",
+            dest="api_timeout",
+            type=int,
+            metavar="SECONDS",
+            help=f"HTTP request timeout in seconds (default: {settings.API_TIMEOUT})",
+        )
+        config_parser.add_argument(
             "--private-note", dest="private_note", help=argparse.SUPPRESS, action="store_true"
         )
         config_parser.add_argument(
@@ -280,6 +287,8 @@ class Reptor:
         config = Config()
         for k in ["server", "project_id", "token", "insecure"]:
             config.set(k, args_dict.get(k) or config.get(k, ""))
+        if args_dict.get("api_timeout") is not None:
+            config.set("api_timeout", args_dict["api_timeout"])
         # Add cli options to config/cli
         config.set("cli", args_dict)
 
