@@ -1,21 +1,77 @@
 import copy
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Set, Tuple, Union
+
+DEFAULT_OBJECT_TYPE = "finding"
+OBJECT_TYPES = ("finding", "note", "section")
+
+
+def parse_remove_fields(fields_string: str) -> Tuple[Dict[str, List[str]], List[str]]:
+    """Parse comma-separated field specs into a dict keyed by object type.
+
+    Each entry is ``[type:]field``. Unprefixed names and ``:field`` both default
+    to ``finding``. Split on the first colon so dotted paths work
+    (e.g. ``finding:data.cvss``).
+
+    Returns:
+        A tuple of ``(exclude_by_type, warnings)``.
+    """
+    if not fields_string:
+        return {}, []
+
+    exclude_by_type: Dict[str, List[str]] = {}
+    warnings: List[str] = []
+
+    for raw in fields_string.split(","):
+        spec = raw.strip()
+        if not spec:
+            warnings.append("Ignoring empty field name")
+            continue
+
+        if ":" in spec:
+            object_type, _, field = spec.partition(":")
+            object_type = object_type.strip() or DEFAULT_OBJECT_TYPE
+            field = field.strip()
+        else:
+            object_type = DEFAULT_OBJECT_TYPE
+            field = spec
+
+        if not field:
+            warnings.append(f"Ignoring empty field name for type '{object_type}'")
+            continue
+
+        if object_type not in OBJECT_TYPES:
+            warnings.append(
+                f"Ignoring unknown object type '{object_type}' in '{spec}'"
+            )
+            continue
+
+        exclude_by_type.setdefault(object_type, []).append(field)
+
+    return exclude_by_type, warnings
+
+
+def format_remove_fields(exclude_by_type: Dict[str, List[str]]) -> str:
+    """Format scoped exclude fields for logging."""
+    parts: List[str] = []
+    for object_type in OBJECT_TYPES:
+        for field in exclude_by_type.get(object_type, []):
+            parts.append(f"{object_type}:{field}")
+    return ", ".join(parts)
 
 
 class FieldExcluder:
     """Remove specified fields from finding/section/note data structures.
 
-    This class provides functionality to exclude specific fields from data before
-    sending it to an LLM. Fields can be specified in two ways, with different scopes:
+    Field lists are scoped per object type (``finding``, ``note``, ``section``).
+    Call ``remove_fields(data, object_type=...)`` to apply only that type's list.
+
+    Within a type, fields can be specified in two ways:
 
     - **Bare field name** (e.g. ``"cvss"``): removed *recursively* at every nesting
-      level and inside every list item. This is a blunt instrument: excluding
-      ``"title"`` strips ``title`` from the top-level object *and* from any nested
-      object field that happens to have a ``title`` sub-key. Prefer a dotted path
-      when you only mean a specific location.
+      level and inside every list item.
     - **Dotted path** (e.g. ``"data.cvss"``): removes the field only where that exact
-      parent/child path exists, leaving identically-named keys elsewhere untouched.
-      Dotted paths are also applied to objects nested inside list items.
+      parent/child path exists. Dotted paths are also applied to objects nested inside
+      list items.
 
     The original input is never mutated; a deep copy is returned.
 
@@ -24,37 +80,58 @@ class FieldExcluder:
         that may pass ``None`` (e.g. a missing ``data`` field) should guard accordingly.
     """
 
-    def __init__(self, exclude_fields: List[str]):
-        self._exclude_fields: Set[str] = exclude_fields
+    def __init__(
+        self, exclude_fields: Union[List[str], Dict[str, List[str]]]
+    ) -> None:
+        if isinstance(exclude_fields, dict):
+            self._exclude_by_type: Dict[str, Set[str]] = {
+                object_type: set(fields)
+                for object_type, fields in exclude_fields.items()
+                if fields
+            }
+        else:
+            self._exclude_by_type = (
+                {DEFAULT_OBJECT_TYPE: set(exclude_fields)}
+                if exclude_fields
+                else {}
+            )
 
-    def remove_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Remove the configured fields from a data structure.
+    def remove_fields(
+        self,
+        data: Dict[str, Any],
+        object_type: str = DEFAULT_OBJECT_TYPE,
+    ) -> Dict[str, Any]:
+        """Remove the configured fields for ``object_type`` from a data structure.
 
         Bare field names are removed recursively at every nesting level; dotted
         paths (e.g. ``"data.cvss"``) are removed only at their exact location. See
         the class docstring for the full semantics. Returns a deep copy; the input
-        is not modified. ``None`` input yields ``{}``.
+        is not modified. ``None`` input yields ``{}``. If the type has no configured
+        fields, returns a deep copy unchanged.
         """
         if data is None:
             return {}
 
+        exclude_fields = self._exclude_by_type.get(object_type, set())
         result = copy.deepcopy(data)
-        self._remove_fields_from_dict(result)
+        if not exclude_fields:
+            return result
 
+        self._remove_fields_from_dict(result, exclude_fields)
         return result
 
-    def _remove_fields_from_dict(self, data: Dict[str, Any]) -> None:
+    def _remove_fields_from_dict(
+        self, data: Dict[str, Any], exclude_fields: Set[str]
+    ) -> None:
         if not isinstance(data, dict):
             return
 
-        keys_to_remove = self._get_nested_keys_to_remove(data)
+        keys_to_remove = self._get_nested_keys_to_remove(data, exclude_fields)
 
-        # Remove top-level fields first
         for key in keys_to_remove:
             if key in data:
                 del data[key]
 
-        # Remove nested paths
         for dot_key in keys_to_remove:
             if "." in dot_key:
                 parts = dot_key.split(".")
@@ -62,9 +139,9 @@ class FieldExcluder:
 
         for key, value in list(data.items()):
             if isinstance(value, dict):
-                self._remove_fields_from_dict(value)
+                self._remove_fields_from_dict(value, exclude_fields)
             elif isinstance(value, list):
-                self._process_array(value)
+                self._process_array(value, exclude_fields)
 
     def _remove_from_nested_path(self, data: Dict[str, Any], parts: List[str]) -> None:
         """Remove a field from a nested path.
@@ -85,36 +162,27 @@ class FieldExcluder:
             return
 
         if len(remaining_parts) == 0:
-            # This is the final part - the field to remove
             if key in data:
                 del data[key]
         else:
-            # Continue traversing to the parent
             self._remove_from_nested_path(data[key], remaining_parts)
 
-    def _get_nested_keys_to_remove(self, data: Dict[str, Any]) -> List[str]:
-        """Get all keys (including nested paths) that should be removed.
+    def _get_nested_keys_to_remove(
+        self, data: Dict[str, Any], exclude_fields: Set[str]
+    ) -> List[str]:
+        """Get all keys (including nested paths) that should be removed."""
+        keys_to_remove: List[str] = []
 
-        This method collects:
-        - Top-level keys to remove
-        - Nested paths to remove (e.g., "data.cvss")
-        """
-
-        keys_to_remove = []
-
-        # Check for direct matches at this level
-        for key in self._exclude_fields:
+        for key in exclude_fields:
             if key in data:
                 keys_to_remove.append(key)
 
-        # Also check for nested paths by splitting on dots
-        for dot_key in self._exclude_fields:
+        for dot_key in exclude_fields:
             if "." in dot_key:
                 parts = dot_key.split(".")
                 current = data
                 found = True
 
-                # Navigate to the parent of the nested field
                 for part in parts[:-1]:
                     if isinstance(current, dict) and part in current:
                         current = current[part]
@@ -123,23 +191,20 @@ class FieldExcluder:
                         break
 
                 if found:
-                    # We're at the parent, check if the last part exists as a key
                     last_part = parts[-1]
                     if isinstance(current, dict) and last_part in current:
-                        # Need to add the full path, not just the last part
                         if dot_key not in keys_to_remove:
                             keys_to_remove.append(dot_key)
 
         return keys_to_remove
 
-    def _process_array(self, array: List[Any]) -> None:
-        """Process an array by removing fields from each element if it's an object.
-        """
+    def _process_array(self, array: List[Any], exclude_fields: Set[str]) -> None:
+        """Process an array by removing fields from each element if it's an object."""
         if not isinstance(array, list):
             return
 
         for item in array:
             if isinstance(item, dict):
-                self._remove_fields_from_dict(item)
+                self._remove_fields_from_dict(item, exclude_fields)
             elif isinstance(item, list):
-                self._process_array(item)
+                self._process_array(item, exclude_fields)

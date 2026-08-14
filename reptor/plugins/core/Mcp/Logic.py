@@ -146,7 +146,7 @@ class McpLogic:
                 finding_dict = f.to_dict()
                 if self.field_excluder:
                     finding_dict["data"] = self.field_excluder.remove_fields(
-                        finding_dict.get("data") or {}
+                        finding_dict.get("data") or {}, object_type="finding"
                     )
                 results.append(finding_dict)
                 continue
@@ -163,7 +163,9 @@ class McpLogic:
 
             # Apply field exclusion to summary if configured
             if self.field_excluder:
-                finding_summary = self.field_excluder.remove_fields(finding_summary)
+                finding_summary = self.field_excluder.remove_fields(
+                    finding_summary, object_type="finding"
+                )
 
             results.append(finding_summary)
 
@@ -213,7 +215,7 @@ class McpLogic:
 
         if self.field_excluder:
             finding_dict["data"] = self.field_excluder.remove_fields(
-                finding_dict["data"]
+                finding_dict["data"], object_type="finding"
             )
         self._log(f"get_finding returning: {finding_dict}")
 
@@ -247,7 +249,9 @@ class McpLogic:
 
         # Remove excluded fields from data being written
         if self.field_excluder:
-            vulnerability_data = self.field_excluder.remove_fields(vulnerability_data)
+            vulnerability_data = self.field_excluder.remove_fields(
+                vulnerability_data, object_type="finding"
+            )
 
         payload["data"] = vulnerability_data
 
@@ -257,7 +261,9 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(result["data"])
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"], object_type="finding"
+            )
         self._log(f"create_finding returning: {result}")
 
         return result
@@ -323,7 +329,9 @@ class McpLogic:
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(result["data"])
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"], object_type="finding"
+            )
 
         self._log(f"patch_finding returning: {result}")
         return result
@@ -395,7 +403,9 @@ class McpLogic:
                 "icon_emoji": getattr(n, "icon_emoji", None),
             }
             if self.field_excluder:
-                note_summary = self.field_excluder.remove_fields(note_summary)
+                note_summary = self.field_excluder.remove_fields(
+                    note_summary, object_type="note"
+                )
             results.append(note_summary)
 
         results = self._apply_limit(results, limit)
@@ -429,7 +439,7 @@ class McpLogic:
 
         result = note.to_dict()
         if self.field_excluder:
-            result = self.field_excluder.remove_fields(result)
+            result = self.field_excluder.remove_fields(result, object_type="note")
         self._log(f"get_note returning: {result}")
         return result
 
@@ -481,7 +491,7 @@ class McpLogic:
             return {"status": "written", "note_id": note_id, "title": title}
         result = written.to_dict()
         if self.field_excluder:
-            result = self.field_excluder.remove_fields(result)
+            result = self.field_excluder.remove_fields(result, object_type="note")
         self._log(f"write_note returning: {result}")
         return result
 
@@ -598,7 +608,9 @@ class McpLogic:
 
             # Apply field exclusion if configured
             if self.field_excluder:
-                section_info = self.field_excluder.remove_fields(section_info)
+                section_info = self.field_excluder.remove_fields(
+                    section_info, object_type="section"
+                )
 
             results.append(section_info)
 
@@ -638,7 +650,7 @@ class McpLogic:
         # Apply field exclusion to section data if configured
         if self.field_excluder and "data" in section_dict:
             section_dict["data"] = self.field_excluder.remove_fields(
-                section_dict["data"]
+                section_dict["data"], object_type="section"
             )
 
         self._log(f"get_section returning: {section_dict}")
@@ -684,7 +696,7 @@ class McpLogic:
         updated_section = updated_section_raw.to_dict()
         if self.field_excluder and "data" in updated_section:
             updated_section["data"] = self.field_excluder.remove_fields(
-                updated_section["data"]
+                updated_section["data"], object_type="section"
             )
 
         self._log(f"patch_project_data returning: {updated_section}")

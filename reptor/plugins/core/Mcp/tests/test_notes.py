@@ -90,13 +90,25 @@ class TestMCPNotesRead:
         assert results[0]["id"] == "root-a"
 
     def test_list_notes_field_exclusion(self, mock_reptor, sample_notes):
-        excluder = FieldExcluder(exclude_fields=["icon_emoji"])
+        excluder = FieldExcluder({"note": ["icon_emoji"]})
         logic = McpLogic(reptor_instance=mock_reptor, field_excluder=excluder)
         mock_reptor.api.notes.get_notes.return_value = sample_notes
 
         results = logic.list_notes()
 
         assert "icon_emoji" not in results[0]
+        assert results[0]["title"] == "Recon"
+
+    def test_list_notes_finding_exclusion_does_not_strip_note_fields(
+        self, mock_reptor, sample_notes
+    ):
+        excluder = FieldExcluder(exclude_fields=["title", "id", "text"])
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=excluder)
+        mock_reptor.api.notes.get_notes.return_value = sample_notes
+
+        results = logic.list_notes()
+
+        assert results[0]["id"] == "n1"
         assert results[0]["title"] == "Recon"
 
     def test_list_notes_empty(self, mock_reptor):
@@ -125,7 +137,7 @@ class TestMCPNotesRead:
         mock_reptor.api.notes.get_note.assert_called_once_with(id=None, title="Recon")
 
     def test_get_note_field_exclusion(self, mock_reptor, sample_note):
-        excluder = FieldExcluder(exclude_fields=["icon_emoji"])
+        excluder = FieldExcluder({"note": ["icon_emoji"]})
         logic = McpLogic(reptor_instance=mock_reptor, field_excluder=excluder)
         mock_reptor.api.notes.get_note.return_value = sample_note
 

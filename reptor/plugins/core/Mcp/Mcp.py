@@ -1,6 +1,10 @@
 from reptor.lib.plugins.Base import Base
 from reptor.plugins.core.Mcp.Server import MCPServer
-from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
+from reptor.plugins.core.Mcp.FieldExcluder import (
+    FieldExcluder,
+    format_remove_fields,
+    parse_remove_fields,
+)
 
 
 class Mcp(Base):
@@ -19,21 +23,11 @@ class Mcp(Base):
         self.read_only = kwargs.get("read_only", False)
 
     def _parse_remove_fields(self, fields_string):
-        """Parse comma-separated field names into a list with validation."""
-        if not fields_string:
-            return []
-
-        # Split by comma and strip whitespace
-        fields = [f.strip() for f in fields_string.split(",")]
-
-        # Validate that we have non-empty field names
-        valid_fields = [f for f in fields if f]
-        invalid_fields = [f for f in fields if not f]
-
-        if invalid_fields:
-            self.warning(f"Ignoring {len(invalid_fields)} empty field name(s)")
-
-        return valid_fields
+        """Parse comma-separated scoped field specs into a dict by object type."""
+        exclude_by_type, warnings = parse_remove_fields(fields_string or "")
+        for warning in warnings:
+            self.warning(warning)
+        return exclude_by_type
 
     @classmethod
     def add_arguments(cls, parser, plugin_filepath=None):
@@ -41,7 +35,9 @@ class Mcp(Base):
         parser.add_argument(
             "--remove-fields",
             dest="remove_fields",
-            help="Comma-separated list of field names to remove from findings before sending to LLM (e.g., 'affected_components,internal_notes')",
+            help="Comma-separated fields to strip before sending to the LLM. "
+            "Prefix with finding:, note:, or section:; unprefixed names default to "
+            "finding (e.g. 'affected_components,note:icon_emoji,section:label')",
         )
         parser.add_argument(
             "--transport",
@@ -103,7 +99,9 @@ class Mcp(Base):
     def run(self):
         self.info("Starting MCP Server...")
         if self.remove_fields:
-            self.info(f"Field exclusion enabled: {', '.join(self.remove_fields)}")
+            self.info(
+                f"Field exclusion enabled: {format_remove_fields(self.remove_fields)}"
+            )
         if self.read_only:
             self.info("Read-only mode enabled: write/destructive tools are disabled")
         if self.transport != "stdio":
