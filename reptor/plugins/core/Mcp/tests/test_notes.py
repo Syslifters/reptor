@@ -1,7 +1,10 @@
+import inspect
+
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from reptor.plugins.core.Mcp.Logic import McpLogic
 from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
+from reptor.plugins.core.Mcp.Server import MCPServer
 
 
 class TestMCPNotesRead:
@@ -121,6 +124,7 @@ class TestMCPNotesWrite:
             text="more text",
             parent_title=None,
             timestamp=False,
+            overwrite=False,
         )
         assert result["id"] == "n1"
 
@@ -151,3 +155,50 @@ class TestMCPNotesWrite:
 
         with pytest.raises(ValueError, match="note_id or title"):
             logic.write_note(text="orphan")
+
+    def test_write_note_defaults_to_appending(self, mock_reptor, sample_note):
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.notes.get_note.return_value = sample_note
+
+        logic.write_note(title="Recon", text="more")
+
+        assert mock_reptor.api.notes.write_note.call_args.kwargs["overwrite"] is False
+
+    def test_write_note_forwards_overwrite(self, mock_reptor, sample_note):
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.notes.get_note.return_value = sample_note
+
+        logic.write_note(note_id="n1", text="- [x] Recon", overwrite=True)
+
+        assert mock_reptor.api.notes.write_note.call_args.kwargs["overwrite"] is True
+
+
+def _registered_tool(server, name):
+    """Pull a tool function out of the patched FastMCP registration calls."""
+    for call in server.mcp.tool.return_value.call_args_list:
+        fn = call.args[0]
+        if fn.__name__ == name:
+            return fn
+    raise AssertionError(f"tool {name!r} was not registered")
+
+
+class TestMCPWriteNoteTool:
+    """The MCP tool must expose overwrite so a model can replace note content."""
+
+    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
+    def test_tool_exposes_overwrite_defaulting_to_append(self, mock_fast_mcp):
+        server = MCPServer(name="ReptorMCP")
+
+        params = inspect.signature(_registered_tool(server, "reptor_write_note")).parameters
+        assert "overwrite" in params
+        assert params["overwrite"].default is False
+
+    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
+    def test_tool_forwards_overwrite_to_logic(self, mock_fast_mcp):
+        server = MCPServer(name="ReptorMCP")
+        write_note = _registered_tool(server, "reptor_write_note")
+        server.logic = MagicMock()
+
+        write_note(title="Checklist", text="- [x] Recon", overwrite=True)
+
+        assert server.logic.write_note.call_args.kwargs["overwrite"] is True

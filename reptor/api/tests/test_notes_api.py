@@ -4,7 +4,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from reptor.lib.reptor import reptor
-from reptor.models.Note import Note
+from reptor.models.Note import Note, NoteTemplate
 
 from ..NotesAPI import NotesAPI
 
@@ -41,6 +41,16 @@ class TestNotesAPI:
         reptor._config._raw_config["server"] = "https://demo.sysre.pt"
         reptor._config._raw_config["personal_note"] = True
         self.notes = NotesAPI(reptor=reptor)
+        self.uploaded = []
+        self.notes._upload_note = MagicMock(
+            side_effect=lambda note, **kwargs: self.uploaded.append(note)
+        )
+
+    def _existing_note(self, text) -> Note:
+        """Make get_note() return a stored note with the given text."""
+        note = Note(dict(self.test_note, text=text))
+        self.notes.get_note = MagicMock(return_value=note)
+        return note
 
     def _mock_methods(self):
         self.notes.get_or_create_note_by_title = MagicMock(
@@ -48,6 +58,62 @@ class TestNotesAPI:
         )
         self.notes.create_note = MagicMock(return_value=Note(self.test_note))
         self.notes.put = MagicMock(return_value=self.MockResponse("", 201))
+
+    def test_write_note_appends_by_default(self):
+        note = self._existing_note("Existing")
+        self.notes.write_note(id=note.id, text="New", timestamp=False)
+
+        assert self.uploaded[0].text == "Existing\n\nNew"
+
+    def test_write_note_overwrite_replaces_text(self):
+        note = self._existing_note("Existing")
+        self.notes.write_note(id=note.id, text="New", timestamp=False, overwrite=True)
+
+        assert self.uploaded[0].text == "New"
+
+    def test_write_note_overwrite_expresses_checklist_state_change(self):
+        note = self._existing_note("- [ ] Recon\n- [ ] Exploit")
+        self.notes.write_note(
+            id=note.id,
+            text="- [x] Recon\n- [ ] Exploit",
+            timestamp=False,
+            overwrite=True,
+        )
+
+        # The flipped checklist replaces the old one instead of accumulating
+        # a second copy showing the previous state.
+        assert self.uploaded[0].text == "- [x] Recon\n- [ ] Exploit"
+        assert self.uploaded[0].text.count("Recon") == 1
+
+    def test_write_note_overwrite_with_timestamp_drops_old_text(self):
+        note = self._existing_note("Old")
+        self.notes.write_note(id=note.id, text="New", timestamp=True, overwrite=True)
+
+        text = self.uploaded[0].text
+        assert "Old" not in text
+        assert text.startswith("[")
+        assert text.endswith("New")
+
+    def test_write_note_overwrite_on_empty_note_is_unchanged(self):
+        note = self._existing_note("")
+        self.notes.write_note(id=note.id, text="New", timestamp=False, overwrite=True)
+
+        assert self.uploaded[0].text == "New"
+
+    def test_write_note_templates_overwrite_propagates_to_children(self):
+        parent = Note(dict(self.test_note, text="Parent old"))
+        child = Note(dict(self.test_note, id="child-id", text="Child old"))
+        self.notes.get_note = MagicMock(
+            side_effect=lambda id=None, title=None: (
+                child if id == "child-id" else parent
+            )
+        )
+
+        template = NoteTemplate.from_kwargs(id=parent.id, text="Parent new")
+        template.children = [NoteTemplate.from_kwargs(id="child-id", text="Child new")]
+        self.notes.write_note_templates(template, timestamp=False, overwrite=True)
+
+        assert [n.text for n in self.uploaded] == ["Parent new", "Child new"]
 
     def test_notes_api_init(self):
         # Test valid personal note

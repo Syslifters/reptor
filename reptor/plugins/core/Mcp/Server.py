@@ -368,18 +368,27 @@ class MCPServer:
             note_id: Optional[str] = None,
             parent_title: Optional[str] = None,
             timestamp: bool = False,
+            overwrite: bool = False,
         ) -> Dict[str, Any]:
-            """Creates a note or appends text to an existing one.
+            """Creates a note, or appends to / replaces an existing one.
 
-            If 'note_id' is given, 'text' is appended to that note. Otherwise the note
-            is looked up (or created) by 'title' and 'text' is appended.
+            If 'note_id' is given, 'text' is written to that note. Otherwise the note
+            is looked up (or created) by 'title'.
+
+            By default 'text' is appended, which suits running logs (recon output,
+            evidence as you collect it). Set overwrite=True when 'text' is the note's
+            full new content rather than an addition — e.g. a checklist whose rows
+            change from [ ] to [x]. Appending such a note would grow it without bound
+            and leave every historical state visible at once. When overwriting, send
+            the complete note text, since anything omitted is lost.
 
             Args:
                 title: Title of the note to write to / create (required if no note_id).
-                text: Markdown text to append to the note.
-                note_id: ID of an existing note to append to.
+                text: Markdown text to write to the note.
+                note_id: ID of an existing note to write to.
                 parent_title: Title of a parent note to nest a newly created note under.
                 timestamp: Prepend a timestamp to the inserted text.
+                overwrite: Replace the note's existing text instead of appending to it.
 
             Returns the resulting note object.
             """
@@ -389,6 +398,7 @@ class MCPServer:
                 note_id=note_id,
                 parent_title=parent_title,
                 timestamp=timestamp,
+                overwrite=overwrite,
             )
 
     def run(self, transport: str = "stdio"):

@@ -407,24 +407,28 @@ class McpLogic:
         note_id: Optional[str] = None,
         parent_title: Optional[str] = None,
         timestamp: bool = False,
+        overwrite: bool = False,
     ) -> Dict[str, Any]:
-        """Creates a note or appends text to an existing one.
+        """Creates a note, or appends to / replaces an existing one.
 
-        If ``note_id`` is given, ``text`` is appended to that note. Otherwise the
-        note is looked up (or created) by ``title`` and ``text`` is appended.
+        If ``note_id`` is given, ``text`` is written to that note. Otherwise the
+        note is looked up (or created) by ``title``. ``text`` is appended by
+        default; pass ``overwrite=True`` to replace the note's content instead.
 
         Args:
             title: Title of the note to write to / create (required if no note_id).
-            text: Markdown text to append to the note.
-            note_id: ID of an existing note to append to.
+            text: Markdown text to write to the note.
+            note_id: ID of an existing note to write to.
             parent_title: Title of a parent note to nest a newly created note under.
             timestamp: Prepend a timestamp to the inserted text.
+            overwrite: Replace the note's existing text instead of appending.
 
         Raises:
             ValueError: If neither note_id nor title is provided.
         """
         self._log(
-            f"write_note called for id: {note_id}, title: {title}, parent: {parent_title}"
+            f"write_note called for id: {note_id}, title: {title}, "
+            f"parent: {parent_title}, overwrite: {overwrite}"
         )
         if not note_id and not title:
             raise ValueError("Either note_id or title must be provided.")
@@ -437,6 +441,7 @@ class McpLogic:
                 text=text,
                 parent_title=parent_title,
                 timestamp=timestamp,
+                overwrite=overwrite,
             )
             # write_note() returns None; fetch the note back so the caller can
             # verify the result (mirrors the patch_finding return contract).
