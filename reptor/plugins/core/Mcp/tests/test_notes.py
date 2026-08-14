@@ -113,8 +113,7 @@ class TestMCPNotesWrite:
 
     def test_write_note_create_by_title(self, mock_reptor, sample_note):
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.notes.write_note.return_value = None
-        mock_reptor.api.notes.get_note.return_value = sample_note
+        mock_reptor.api.notes.write_note.return_value = sample_note
 
         result = logic.write_note(title="Recon", text="more text")
 
@@ -127,11 +126,11 @@ class TestMCPNotesWrite:
             overwrite=False,
         )
         assert result["id"] == "n1"
+        mock_reptor.api.notes.get_note.assert_not_called()
 
     def test_write_note_append_by_id(self, mock_reptor, sample_note):
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.notes.write_note.return_value = None
-        mock_reptor.api.notes.get_note.return_value = sample_note
+        mock_reptor.api.notes.write_note.return_value = sample_note
 
         result = logic.write_note(note_id="n1", text="appended")
 
@@ -139,16 +138,17 @@ class TestMCPNotesWrite:
         assert call_kwargs["id"] == "n1"
         assert call_kwargs["text"] == "appended"
         assert result["id"] == "n1"
+        mock_reptor.api.notes.get_note.assert_not_called()
 
-    def test_write_note_returns_status_when_not_refetchable(self, mock_reptor):
+    def test_write_note_returns_status_when_write_returns_none(self, mock_reptor):
         logic = McpLogic(reptor_instance=mock_reptor)
         mock_reptor.api.notes.write_note.return_value = None
-        mock_reptor.api.notes.get_note.return_value = None
 
         result = logic.write_note(title="New", text="hi")
 
         assert result["status"] == "written"
         assert result["title"] == "New"
+        mock_reptor.api.notes.get_note.assert_not_called()
 
     def test_write_note_requires_argument(self, mock_reptor):
         logic = McpLogic(reptor_instance=mock_reptor)
@@ -158,7 +158,7 @@ class TestMCPNotesWrite:
 
     def test_write_note_defaults_to_appending(self, mock_reptor, sample_note):
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.notes.get_note.return_value = sample_note
+        mock_reptor.api.notes.write_note.return_value = sample_note
 
         logic.write_note(title="Recon", text="more")
 
@@ -166,7 +166,7 @@ class TestMCPNotesWrite:
 
     def test_write_note_forwards_overwrite(self, mock_reptor, sample_note):
         logic = McpLogic(reptor_instance=mock_reptor)
-        mock_reptor.api.notes.get_note.return_value = sample_note
+        mock_reptor.api.notes.write_note.return_value = sample_note
 
         logic.write_note(note_id="n1", text="- [x] Recon", overwrite=True)
 

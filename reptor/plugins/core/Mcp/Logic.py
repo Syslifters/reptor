@@ -435,7 +435,7 @@ class McpLogic:
 
         self._ensure_project()
         with self._wrap_api_errors():
-            self.reptor.api.notes.write_note(
+            written = self.reptor.api.notes.write_note(
                 id=note_id,
                 title=title,
                 text=text,
@@ -443,13 +443,10 @@ class McpLogic:
                 timestamp=timestamp,
                 overwrite=overwrite,
             )
-            # write_note() returns None; fetch the note back so the caller can
-            # verify the result (mirrors the patch_finding return contract).
-            note = self.reptor.api.notes.get_note(id=note_id, title=title)
 
-        if note is None:
+        if written is None:
             return {"status": "written", "note_id": note_id, "title": title}
-        result = note.to_dict()
+        result = written.to_dict()
         if self.field_excluder:
             result = self.field_excluder.remove_fields(result)
         self._log(f"write_note returning: {result}")

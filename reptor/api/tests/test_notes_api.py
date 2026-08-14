@@ -61,9 +61,11 @@ class TestNotesAPI:
 
     def test_write_note_appends_by_default(self):
         note = self._existing_note("Existing")
-        self.notes.write_note(id=note.id, text="New", timestamp=False)
+        result = self.notes.write_note(id=note.id, text="New", timestamp=False)
 
         assert self.uploaded[0].text == "Existing\n\nNew"
+        assert result is self.uploaded[0]
+        assert result.text == "Existing\n\nNew"
 
     def test_write_note_overwrite_replaces_text(self):
         note = self._existing_note("Existing")
@@ -111,9 +113,13 @@ class TestNotesAPI:
 
         template = NoteTemplate.from_kwargs(id=parent.id, text="Parent new")
         template.children = [NoteTemplate.from_kwargs(id="child-id", text="Child new")]
-        self.notes.write_note_templates(template, timestamp=False, overwrite=True)
+        result = self.notes.write_note_templates(
+            template, timestamp=False, overwrite=True
+        )
 
         assert [n.text for n in self.uploaded] == ["Parent new", "Child new"]
+        assert result is self.uploaded[0]
+        assert result.text == "Parent new"
 
     def test_notes_api_init(self):
         # Test valid personal note

@@ -158,7 +158,7 @@ class NotesAPI(APIClient):
         timestamp: bool = False,
         overwrite: bool = False,
         **kwargs,
-    ):
+    ) -> Note:
         """Updates notes, appends text to a note (or replaces it).
 
         Args:
@@ -172,6 +172,9 @@ class NotesAPI(APIClient):
             checked (bool, optional): Checkbox state for checklist notes.
             icon_emoji (str, optional): Emoji icon for the note.
             order (int, optional): Sort order for the note. Defaults to 0.
+
+        Returns:
+            The uploaded note after a successful PUT.
 
         Example:
             ```python
@@ -198,7 +201,7 @@ class NotesAPI(APIClient):
             order=order,
             **kwargs
         )
-        self.write_note_templates(
+        return self.write_note_templates(
             note_template, timestamp=timestamp, overwrite=overwrite
         )
 
@@ -208,7 +211,7 @@ class NotesAPI(APIClient):
         timestamp: bool = True,
         overwrite: bool = False,
         **kwargs,
-    ):
+    ) -> typing.Optional[Note]:
         """Writes note templates, appending to existing notes by default.
 
         Args:
@@ -216,9 +219,14 @@ class NotesAPI(APIClient):
             timestamp (bool, optional): Prepend timestamp to newly inserted text. Defaults to True.
             overwrite (bool, optional): Replace the existing note text instead of
                 appending to it. Applies to child notes as well. Defaults to False.
+
+        Returns:
+            The last root note uploaded in this call (children are written
+            recursively and are not returned).
         """
         if not isinstance(note_templates, list):
             note_templates = [note_templates]
+        written = None
         for note_template in note_templates:
             if note_template.id:
                 new_note = False
@@ -279,11 +287,13 @@ class NotesAPI(APIClient):
 
             # Upload note and children recursively
             self._upload_note(upload_note, **kwargs)
+            written = upload_note
             for child in note_template.children:
                 child.parent = note.id
                 self.write_note_templates(
                     child, timestamp=timestamp, overwrite=overwrite, **kwargs
                 )
+        return written
 
     def set_icon(self, note_id: str = None, icon: str = None, id: str = None):
         """Sets an emoji icon for a note.
