@@ -1,5 +1,6 @@
 usage: reptor mcp [-h] [--remove-fields REMOVE_FIELDS]
-                  [--transport {stdio,sse}] [--mcp-debug MCP_DEBUG]
+                  [--transport {stdio,sse,streamable-http}] [--read-only]
+                  [--mcp-debug MCP_DEBUG]
 
 Starts the Model Context Protocol (MCP) server
 
@@ -7,7 +8,8 @@ options:
   -h, --help            show this help message and exit
   --remove-fields REMOVE_FIELDS
                         Comma-separated list of field names to remove from findings before sending to LLM (e.g., 'affected_components,internal_notes')
-  --transport {stdio,sse}
-                        Transport mode for MCP server (default: stdio)
+  --transport {stdio,sse,streamable-http}
+                        Transport mode for MCP server (default: stdio). 'sse' is deprecated; prefer 'streamable-http' for remote access.
+  --read-only           Expose only read tools; do not register write/destructive tools (create/patch/delete findings, patch report data, write notes)
   --mcp-debug MCP_DEBUG
                         Path to log file for debugging MCP communication

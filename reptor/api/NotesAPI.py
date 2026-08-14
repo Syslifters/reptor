@@ -156,18 +156,27 @@ class NotesAPI(APIClient):
         icon_emoji: str = None,
         order: int = 0,
         timestamp: bool = False,
+        overwrite: bool = False,
         **kwargs,
-    ):
-        """Updates notes, appends text to a note.
+    ) -> Note:
+        """Updates notes, appends text to a note (or replaces it).
 
         Args:
             id (str, optional): Note ID to update
-            title (str, optional): Note title.
+            title (str, optional): Note title for lookup or creation when ``id`` is
+                omitted. Ignored when ``id`` is provided; use ``rename_note`` to
+                change a note's title.
             text (str, optional): Append text to the note. Defaults to empty string.
             timestamp (bool, optional): Prepend timestamp to newly inserted text. Defaults to False.
+            overwrite (bool, optional): Replace the note's existing text with `text`
+                instead of appending. Use for content that represents a current state
+                rather than a running log, e.g. a checklist whose rows change. Defaults to False.
             checked (bool, optional): Checkbox state for checklist notes.
             icon_emoji (str, optional): Emoji icon for the note.
             order (int, optional): Sort order for the note. Defaults to 0.
+
+        Returns:
+            The uploaded note after a successful PUT.
 
         Example:
             ```python
@@ -176,29 +185,52 @@ class NotesAPI(APIClient):
                 text="Found vulnerability in authentication",
                 timestamp=True
             )
+
+            # Replace the note content instead of appending
+            reptor.api.notes.write_note(
+                title="Checklist",
+                text="- [x] Recon\\n- [ ] Exploit",
+                overwrite=True,
+            )
             ```
         """
+        if id:
+            title = None
         note_template = NoteTemplate.from_kwargs(
-            id=id, 
-            title=title, 
-            text=text, 
+            id=id,
+            title=title,
+            text=text,
             checked=checked, 
             icon_emoji=icon_emoji, 
             order=order,
             **kwargs
         )
-        self.write_note_templates(
-            note_template, timestamp=timestamp
+        return self.write_note_templates(
+            note_template, timestamp=timestamp, overwrite=overwrite
         )
 
     def write_note_templates(
         self,
         note_templates: typing.Union[NoteTemplate, typing.List[NoteTemplate]],
         timestamp: bool = True,
+        overwrite: bool = False,
         **kwargs,
-    ):
+    ) -> typing.Optional[Note]:
+        """Writes note templates, appending to existing notes by default.
+
+        Args:
+            note_templates: A single note template or a list of them.
+            timestamp (bool, optional): Prepend timestamp to newly inserted text. Defaults to True.
+            overwrite (bool, optional): Replace the existing note text instead of
+                appending to it. Applies to child notes as well. Defaults to False.
+
+        Returns:
+            The last root note uploaded in this call (children are written
+            recursively and are not returned).
+        """
         if not isinstance(note_templates, list):
             note_templates = [note_templates]
+        written = None
         for note_template in note_templates:
             if note_template.id:
                 new_note = False
@@ -227,8 +259,8 @@ class NotesAPI(APIClient):
                     new_note = False
             self.debug(f"Got note from server {note.title} ({note.id})")
 
-            # Prepare note (append content to existing note, etc)
-            note_text = note.text + "\n\n" if note.text else ""
+            # Prepare note (append content to existing note, or replace it)
+            note_text = "" if overwrite else (note.text + "\n\n" if note.text else "")
             if (
                 timestamp and note_template.text
             ):  # Only add timestamp if there is content
@@ -247,8 +279,6 @@ class NotesAPI(APIClient):
                 upload_note.text = note_text
             else:
                 upload_note = note
-                if note_template.title:
-                    upload_note.title = note_template.title
                 if note_template.checked is not None:
                     upload_note.checked = note_template.checked
                 if note_template.icon_emoji:
@@ -259,9 +289,42 @@ class NotesAPI(APIClient):
 
             # Upload note and children recursively
             self._upload_note(upload_note, **kwargs)
+            written = upload_note
             for child in note_template.children:
                 child.parent = note.id
-                self.write_note_templates(child, timestamp=timestamp, **kwargs)
+                self.write_note_templates(
+                    child, timestamp=timestamp, overwrite=overwrite, **kwargs
+                )
+        return written
+
+    def rename_note(self, note_id: str, title: str) -> Note:
+        """Renames a note by ID.
+
+        Args:
+            note_id (str): Note ID to rename
+            title (str): New title for the note
+
+        Returns:
+            The updated note object
+
+        Example:
+            ```python
+            reptor.api.notes.rename_note(
+                note_id="983a7e95-b2d9-4d57-984e-08496264cce8",
+                title="Updated Title",
+            )
+            ```
+        """
+        if not note_id:
+            raise ValueError("note_id parameter is required")
+        if not title:
+            raise ValueError("Note title must not be null.")
+        note = self.get_note(id=note_id)
+        if not note:
+            raise ValueError(f'Note with ID "{note_id}" does not exist.')
+        note.title = title
+        self._upload_note(note)
+        return note
 
     def set_icon(self, note_id: str = None, icon: str = None, id: str = None):
         """Sets an emoji icon for a note.

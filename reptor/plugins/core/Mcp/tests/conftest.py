@@ -110,6 +110,45 @@ def sample_project_design():
 
 
 @pytest.fixture
+def sample_note_data():
+    """Standard note data for testing."""
+    return {
+        "id": "n1",
+        "title": "Recon",
+        "text": "Nmap shows 22/tcp and 443/tcp open.",
+        "parent": None,
+        "order": 1,
+        "checked": None,
+        "icon_emoji": "📝",
+    }
+
+
+@pytest.fixture
+def sample_note(sample_note_data):
+    """Note instance with sample data."""
+    from reptor.models.Note import Note
+
+    return Note(sample_note_data)
+
+
+@pytest.fixture
+def sample_notes(sample_note_data):
+    """A small list of Note instances for testing."""
+    from reptor.models.Note import Note
+
+    second = {
+        "id": "n2",
+        "title": "Credentials",
+        "text": "admin:hunter2 found in backup.zip",
+        "parent": "n1",
+        "order": 2,
+        "checked": None,
+        "icon_emoji": "🔑",
+    }
+    return [Note(sample_note_data), Note(second)]
+
+
+@pytest.fixture
 def sample_section_data():
     """Standard section data for testing."""
     return {

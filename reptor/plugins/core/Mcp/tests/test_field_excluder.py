@@ -1,4 +1,8 @@
-from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
+from reptor.plugins.core.Mcp.FieldExcluder import (
+    FieldExcluder,
+    format_remove_fields,
+    parse_remove_fields,
+)
 
 class TestFieldExcluderBasic:
     """Test basic field removal functionality."""
@@ -287,3 +291,89 @@ class TestFieldExcluderOriginalDataNotModified:
         # Result should be modified - cvss removed, parent and sibling preserved
         assert "cvss" not in result["data"]
         assert result["data"]["nested"]["deep"] == "value"
+
+
+class TestParseRemoveFields:
+    """Test scoped --remove-fields parsing."""
+
+    def test_bare_name_defaults_to_finding(self):
+        result, warnings = parse_remove_fields("affected_components,cvss")
+        assert result == {"finding": ["affected_components", "cvss"]}
+        assert warnings == []
+
+    def test_empty_prefix_defaults_to_finding(self):
+        result, warnings = parse_remove_fields(":cvss")
+        assert result == {"finding": ["cvss"]}
+        assert warnings == []
+
+    def test_typed_specs(self):
+        result, warnings = parse_remove_fields(
+            "finding:cvss,note:icon_emoji,section:label"
+        )
+        assert result == {
+            "finding": ["cvss"],
+            "note": ["icon_emoji"],
+            "section": ["label"],
+        }
+        assert warnings == []
+
+    def test_dotted_path_after_colon(self):
+        result, warnings = parse_remove_fields("finding:data.cvss")
+        assert result == {"finding": ["data.cvss"]}
+        assert warnings == []
+
+    def test_unknown_type_warns_and_skips(self):
+        result, warnings = parse_remove_fields("template:title,cvss")
+        assert result == {"finding": ["cvss"]}
+        assert len(warnings) == 1
+        assert "unknown object type" in warnings[0]
+
+    def test_empty_field_warns_and_skips(self):
+        result, warnings = parse_remove_fields("note:")
+        assert result == {}
+        assert len(warnings) == 1
+        assert "empty field name" in warnings[0]
+
+    def test_format_remove_fields(self):
+        formatted = format_remove_fields(
+            {
+                "finding": ["cvss", "affected_components"],
+                "note": ["icon_emoji"],
+            }
+        )
+        assert formatted == (
+            "finding:cvss, finding:affected_components, note:icon_emoji"
+        )
+
+
+class TestFieldExcluderScoped:
+    """Test object-type scoping."""
+
+    def test_finding_exclusion_does_not_affect_notes(self):
+        excluder = FieldExcluder(exclude_fields=["title", "id", "text"])
+        note = {"id": "n1", "title": "Recon", "text": "body"}
+        result = excluder.remove_fields(note, object_type="note")
+        assert result == note
+
+    def test_note_exclusion_only_applies_to_notes(self):
+        excluder = FieldExcluder({"note": ["icon_emoji"]})
+        note = {"id": "n1", "title": "Recon", "icon_emoji": "📝"}
+        finding = {"id": "f1", "title": "X", "icon_emoji": "📝"}
+
+        assert excluder.remove_fields(note, object_type="note") == {
+            "id": "n1",
+            "title": "Recon",
+        }
+        assert excluder.remove_fields(finding, object_type="finding") == finding
+
+    def test_section_exclusion_only_applies_to_sections(self):
+        excluder = FieldExcluder({"section": ["label"]})
+        section = {"id": "exec", "label": "Executive Summary"}
+        assert excluder.remove_fields(section, object_type="section") == {"id": "exec"}
+        assert excluder.remove_fields(section, object_type="finding") == section
+
+    def test_list_constructor_still_means_finding(self):
+        excluder = FieldExcluder(exclude_fields=["affected_components"])
+        data = {"title": "X", "affected_components": ["1.1.1.1"]}
+        assert excluder.remove_fields(data) == {"title": "X"}
+        assert excluder.remove_fields(data, object_type="note") == data

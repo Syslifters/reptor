@@ -921,7 +921,7 @@ class TestMCPProjectDataOperations:
         # Create field excluder that excludes 'label' field
         from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 
-        label_excluder = FieldExcluder(exclude_fields=["label"])
+        label_excluder = FieldExcluder({"section": ["label"]})
 
         logic = McpLogic(reptor_instance=mock_reptor, field_excluder=label_excluder)
 
@@ -967,11 +967,13 @@ class TestMCPProjectDataOperations:
         mock_reptor.api.projects.init_project.assert_called_once_with("test-project-id")
         mock_reptor.api.projects.get_sections.assert_called_once()
 
-    def test_get_section_with_field_exclusion(self, mock_reptor, field_excluder):
+    def test_get_section_with_field_exclusion(self, mock_reptor):
         """Test that FieldExcluder filters section.data."""
         from reptor.models.Section import SectionRaw
+        from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 
-        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+        section_excluder = FieldExcluder({"section": ["affected_components"]})
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=section_excluder)
 
         # Create section with excluded field
         section_data = {
@@ -1061,11 +1063,13 @@ class TestMCPProjectDataOperations:
         assert result["id"] == "executive_summary"
         assert result["data"]["executive_summary"] == "Updated summary text"
 
-    def test_patch_project_data_with_field_exclusion(self, mock_reptor, field_excluder):
+    def test_patch_project_data_with_field_exclusion(self, mock_reptor):
         """Test FieldExcluder is applied to returned data."""
         from reptor.models.Section import SectionRaw
+        from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 
-        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=field_excluder)
+        section_excluder = FieldExcluder({"section": ["affected_components"]})
+        logic = McpLogic(reptor_instance=mock_reptor, field_excluder=section_excluder)
 
         # Mock section with excluded field in response
         updated_section_data = {

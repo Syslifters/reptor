@@ -1,10 +1,27 @@
+from contextlib import contextmanager
 from typing import Optional, List, Any, Dict
+
+from requests import HTTPError
+
+
+# Finding fields that live at the top level of the API payload rather than
+# nested inside the "data" object. Shared by create_finding and patch_finding
+# to keep their classification in sync.
+TOP_LEVEL_FINDING_FIELDS = ["status", "assignee", "language", "template", "order"]
 
 
 class McpLogic:
     """
     Business logic for MCP operations, decoupling SysReptor API interactions
     from the MCP transport layer.
+
+    Note:
+        This class assumes a single, pre-configured project for the lifetime of the
+        instance (see ``_ensure_project``). It is not safe to share one instance
+        across concurrent requests that target different projects, because switching
+        projects mutates global reptor state (``reptor.api`` / active project id).
+        The stdio transport processes requests sequentially, so this is fine there;
+        be cautious if exposing the server over a multi-client transport.
     """
 
     def __init__(
@@ -16,10 +33,38 @@ class McpLogic:
         self.reptor = reptor_instance
         self.field_excluder = field_excluder
         self.logger = logger
+        # Tracks the project id we have already switched the reptor context to,
+        # so we only pay for init_project() once instead of on every tool call.
+        self._initialized_project_id: Optional[str] = None
 
     def _log(self, msg: str):
         if self.logger:
             self.logger.debug(f"{msg}")
+
+    @contextmanager
+    def _wrap_api_errors(self):
+        """Enrich SysReptor API errors with the response body.
+
+        ``requests`` raises ``HTTPError`` with a generic message (e.g.
+        "400 Client Error: Bad Request for url: ...") that omits the validation
+        detail the server returned in the response body. Without that body an LLM
+        cannot tell *why* a write was rejected and cannot self-correct. This wraps
+        the original error so the body (e.g. "severity: invalid choice") is visible,
+        while leaving errors without a response body untouched.
+        """
+        try:
+            yield
+        except HTTPError as e:
+            response = getattr(e, "response", None)
+            body = ""
+            if response is not None:
+                try:
+                    body = (response.text or "").strip()
+                except Exception:
+                    body = ""
+            if body:
+                raise HTTPError(f"{e}\nAPI response: {body}", response=response) from e
+            raise
 
     def _get_project_id(self) -> str:
         """Get the configured project ID"""
@@ -31,39 +76,113 @@ class McpLogic:
             )
         return project_id
 
-    def list_findings(self) -> List[Dict[str, Any]]:
-        """Lists all findings for the configured project (summary)."""
-        self._log("list_findings called")
+    def _ensure_project(self) -> str:
+        """Ensure the reptor context points at the configured project.
+
+        ``init_project`` resets the cached API manager and re-reads the project
+        design, so it is comparatively expensive. We only call it the first time a
+        given project id is seen for this logic instance.
+        """
         project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
-        findings_raw = self.reptor.api.projects.get_findings()
+        if self._initialized_project_id != project_id:
+            self.reptor.api.projects.init_project(project_id)
+            self._initialized_project_id = project_id
+        return project_id
+
+    def _apply_limit(self, results: List[Any], limit: Optional[int]) -> List[Any]:
+        if limit is None:
+            return results
+        if limit <= 0:
+            raise ValueError("limit must be a positive integer (or omit for no limit)")
+        return results[:limit]
+
+    @staticmethod
+    def _order_notes_tree(notes: List[Any]) -> List[Any]:
+        """Return notes in depth-first tree order (siblings sorted by order)."""
+        by_parent: Dict[str, List[Any]] = {}
+        for note in notes:
+            parent = getattr(note, "parent", None) or ""
+            by_parent.setdefault(parent, []).append(note)
+        for siblings in by_parent.values():
+            siblings.sort(key=lambda n: (getattr(n, "order", 0) or 0, n.id))
+
+        ordered: List[Any] = []
+
+        def walk(parent_id: str) -> None:
+            for note in by_parent.get(parent_id, []):
+                ordered.append(note)
+                walk(note.id)
+
+        walk("")
+        seen = {note.id for note in ordered}
+        orphans = [note for note in notes if note.id not in seen]
+        orphans.sort(key=lambda n: (getattr(n, "order", 0) or 0, n.id))
+        ordered.extend(orphans)
+        return ordered
+
+    def list_findings(
+        self, limit: Optional[int] = None, detailed: bool = False
+    ) -> List[Dict[str, Any]]:
+        """Lists findings for the configured project.
+
+        By default returns a compact summary per finding. The list endpoint already
+        returns full finding data in a single request, so ``detailed=True`` returns
+        the complete finding objects without any extra API calls — useful for
+        ingesting existing findings in one shot (e.g. to learn the author's style).
+
+        Args:
+            limit: Maximum number of findings to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
+            detailed: Return full finding objects instead of summaries.
+        """
+        self._log(f"list_findings called (detailed={detailed})")
+        self._ensure_project()
+        with self._wrap_api_errors():
+            findings_raw = self.reptor.api.projects.get_findings()
 
         results = []
         for f in findings_raw:
+            if detailed:
+                finding_dict = f.to_dict()
+                if self.field_excluder:
+                    finding_dict["data"] = self.field_excluder.remove_fields(
+                        finding_dict.get("data") or {}, object_type="finding"
+                    )
+                results.append(finding_dict)
+                continue
+
             finding_summary = {
                 "id": f.id,
                 "status": f.status,
             }
-            for field_name in ["title", "cvss"]:
+            # get_findings() returns FindingRaw objects whose data attributes are
+            # already raw scalars (str/list), so we read them directly.
+            for field_name in ["title", "cvss", "severity"]:
                 if hasattr(f.data, field_name):
-                    field_obj = getattr(f.data, field_name)
-                    if field_obj is not None and hasattr(field_obj, "value"):
-                        finding_summary[field_name] = field_obj.value
-                    else:
-                        finding_summary[field_name] = field_obj
+                    finding_summary[field_name] = getattr(f.data, field_name)
 
             # Apply field exclusion to summary if configured
             if self.field_excluder:
-                finding_summary = self.field_excluder.remove_fields(finding_summary)
+                finding_summary = self.field_excluder.remove_fields(
+                    finding_summary, object_type="finding"
+                )
 
             results.append(finding_summary)
-        self._log(f"list_findings returning {len(results)} findings summary")
+
+        results = self._apply_limit(results, limit)
+        self._log(f"list_findings returning {len(results)} findings")
         return results
 
-    def list_templates(self) -> List[Dict[str, Any]]:
-        """Lists all finding templates from the library (summary)."""
+    def list_templates(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Lists all finding templates from the library (summary).
+
+        Args:
+            limit: Maximum number of templates to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
+        """
         self._log("list_templates called")
-        templates = self.reptor.api.templates.search()
+        with self._wrap_api_errors():
+            templates = self.reptor.api.templates.search()
         results = []
         for t in templates:
             results.append(
@@ -76,6 +195,7 @@ class McpLogic:
                     "tags": t.tags,
                 }
             )
+        results = self._apply_limit(results, limit)
         self._log(f"list_templates returning {len(results)} templates summary")
         return results
 
@@ -87,15 +207,15 @@ class McpLogic:
         """
         self._log(f"get_finding called for id: {finding_id}")
 
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
+        self._ensure_project()
 
-        finding = self.reptor.api.projects.get_finding(finding_id)
+        with self._wrap_api_errors():
+            finding = self.reptor.api.projects.get_finding(finding_id)
         finding_dict = finding.to_dict()
 
         if self.field_excluder:
             finding_dict["data"] = self.field_excluder.remove_fields(
-                finding_dict["data"]
+                finding_dict["data"], object_type="finding"
             )
         self._log(f"get_finding returning: {finding_dict}")
 
@@ -115,34 +235,35 @@ class McpLogic:
                 Top-level finding fields (status, assignee, language) can also be provided.
         """
         self._log(f"create_finding called with data: {data}")
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
+        self._ensure_project()
 
         # Prepare API payload
         payload = {}
         vulnerability_data = {}
 
-        # Define fields that stay at the top level
-        top_level_fields = ["status", "assignee", "language", "template", "order"]
-
         for key, value in data.items():
-            if key in top_level_fields:
+            if key in TOP_LEVEL_FINDING_FIELDS:
                 payload[key] = value
             else:
                 vulnerability_data[key] = value
 
         # Remove excluded fields from data being written
         if self.field_excluder:
-            vulnerability_data = self.field_excluder.remove_fields(vulnerability_data)
+            vulnerability_data = self.field_excluder.remove_fields(
+                vulnerability_data, object_type="finding"
+            )
 
         payload["data"] = vulnerability_data
 
-        finding = self.reptor.api.projects.create_finding(payload)
+        with self._wrap_api_errors():
+            finding = self.reptor.api.projects.create_finding(payload)
         result = finding.to_dict()
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(result["data"])
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"], object_type="finding"
+            )
         self._log(f"create_finding returning: {result}")
 
         return result
@@ -155,10 +276,10 @@ class McpLogic:
         """
         self._log(f"delete_finding called for {finding_id}")
 
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
+        self._ensure_project()
 
-        self.reptor.api.projects.delete_finding(finding_id)
+        with self._wrap_api_errors():
+            self.reptor.api.projects.delete_finding(finding_id)
 
     def patch_finding(
         self, finding_id: str, field_name: str, field_value: Any
@@ -172,8 +293,9 @@ class McpLogic:
         4. API validates, merges, and returns updated finding
 
         Note: Field exclusion is NOT applied on write operations. The API
-        validates field types and ignores unknown fields per Decision 3.
-        API errors are propagated without modification per Decision 4.
+        validates field types and ignores unknown fields. API errors are
+        enriched with the server's response body (see ``_wrap_api_errors``) so
+        the caller can see *why* a write was rejected.
 
         Args:
             finding_id: The ID of the finding to update.
@@ -185,50 +307,48 @@ class McpLogic:
 
         Raises:
             ValueError: If no project is configured.
-            HTTPError: If the API returns an error (propagated without modification).
+            HTTPError: If the API returns an error (enriched with the response body).
         """
         self._log(
             f"patch_finding called for {finding_id}, field: {field_name}, value: {field_value}"
         )
 
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
-
-        # Field classification: top-level vs data fields (nested in "data")
-        top_level_fields = [
-            "status",
-            "assignee",
-            "language",
-            "template",
-            "order",
-        ]
+        self._ensure_project()
 
         # Construct partial payload based on field classification
-        if field_name in top_level_fields:
+        if field_name in TOP_LEVEL_FINDING_FIELDS:
             payload = {field_name: field_value}
         else:
             # Auto-nest data fields into "data" object
             payload = {"data": {field_name: field_value}}
 
         # Send partial payload to API (no fetching, no client-side validation)
-        finding = self.reptor.api.projects.update_finding(finding_id, payload)
+        with self._wrap_api_errors():
+            finding = self.reptor.api.projects.update_finding(finding_id, payload)
         result = finding.to_dict()
 
         # Apply field exclusion to result for consistency
         if self.field_excluder:
-            result["data"] = self.field_excluder.remove_fields(result["data"])
+            result["data"] = self.field_excluder.remove_fields(
+                result["data"], object_type="finding"
+            )
 
         self._log(f"patch_finding returning: {result}")
         return result
 
-    def search_templates(self, query: str = "") -> List[Dict[str, Any]]:
+    def search_templates(
+        self, query: str = "", limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """Searches finding templates (summary).
 
         Args:
             query: The search term to find templates.
+            limit: Maximum number of templates to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
         """
         self._log(f"search_templates called with query: '{query}'")
-        templates = self.reptor.api.templates.search(query)
+        with self._wrap_api_errors():
+            templates = self.reptor.api.templates.search(query)
         results = []
         for t in templates:
             results.append(
@@ -241,7 +361,7 @@ class McpLogic:
                     "tags": t.tags,
                 }
             )
-        return results
+        return self._apply_limit(results, limit)
 
     def get_template(self, template_id: str) -> Dict[str, Any]:
         """Gets a finding template by ID.
@@ -250,8 +370,154 @@ class McpLogic:
             template_id: The ID of the template to retrieve.
         """
         self._log(f"get_template called for {template_id}")
-        template = self.reptor.api.templates.get_template(template_id)
+        with self._wrap_api_errors():
+            template = self.reptor.api.templates.get_template(template_id)
         return template.to_dict()
+
+    def list_notes(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Lists notes for the configured project (summary).
+
+        Returns a navigational summary of each note (id, title, parent, order,
+        checked, icon) in tree order: siblings sorted by ``order``, children
+        grouped under their parents (depth-first). Use ``get_note`` to read the
+        full markdown ``text``.
+
+        Args:
+            limit: Maximum number of notes to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
+        """
+        self._log("list_notes called")
+        self._ensure_project()
+        with self._wrap_api_errors():
+            notes = self.reptor.api.notes.get_notes()
+
+        notes = self._order_notes_tree(notes)
+        results = []
+        for n in notes:
+            note_summary = {
+                "id": n.id,
+                "title": n.title,
+                "parent": getattr(n, "parent", None),
+                "order": getattr(n, "order", None),
+                "checked": getattr(n, "checked", None),
+                "icon_emoji": getattr(n, "icon_emoji", None),
+            }
+            if self.field_excluder:
+                note_summary = self.field_excluder.remove_fields(
+                    note_summary, object_type="note"
+                )
+            results.append(note_summary)
+
+        results = self._apply_limit(results, limit)
+        self._log(f"list_notes returning {len(results)} notes summary")
+        return results
+
+    def get_note(
+        self, note_id: Optional[str] = None, title: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Gets a single note by ID or title, including its full markdown text.
+
+        Args:
+            note_id: The ID of the note to retrieve (preferred over title).
+            title: The title of the note to retrieve (used if note_id is omitted).
+
+        Raises:
+            ValueError: If neither note_id nor title is provided, or no note matches.
+        """
+        self._log(f"get_note called for id: {note_id}, title: {title}")
+        if not note_id and not title:
+            raise ValueError("Either note_id or title must be provided.")
+
+        self._ensure_project()
+        with self._wrap_api_errors():
+            note = self.reptor.api.notes.get_note(id=note_id, title=title)
+
+        if note is None:
+            raise ValueError(
+                f"Note not found (note_id={note_id!r}, title={title!r})."
+            )
+
+        result = note.to_dict()
+        if self.field_excluder:
+            result = self.field_excluder.remove_fields(result, object_type="note")
+        self._log(f"get_note returning: {result}")
+        return result
+
+    def write_note(
+        self,
+        title: Optional[str] = None,
+        text: str = "",
+        note_id: Optional[str] = None,
+        parent_title: Optional[str] = None,
+        timestamp: bool = False,
+        overwrite: bool = False,
+    ) -> Dict[str, Any]:
+        """Creates a note, or appends to / replaces an existing one.
+
+        If ``note_id`` is given, ``text`` is written to that note and ``title`` is
+        ignored. Otherwise the note is looked up (or created) by ``title``.
+        ``text`` is appended by default; pass ``overwrite=True`` to replace the
+        note's content instead.
+
+        Args:
+            title: Title of the note to write to / create (required if no note_id).
+                Ignored when ``note_id`` is set; use ``rename_note`` to change a title.
+            text: Markdown text to write to the note.
+            note_id: ID of an existing note to write to.
+            parent_title: Title of a parent note to nest a newly created note under.
+            timestamp: Prepend a timestamp to the inserted text.
+            overwrite: Replace the note's existing text instead of appending.
+
+        Raises:
+            ValueError: If neither note_id nor title is provided.
+        """
+        self._log(
+            f"write_note called for id: {note_id}, title: {title}, "
+            f"parent: {parent_title}, overwrite: {overwrite}"
+        )
+        if not note_id and not title:
+            raise ValueError("Either note_id or title must be provided.")
+
+        self._ensure_project()
+        with self._wrap_api_errors():
+            written = self.reptor.api.notes.write_note(
+                id=note_id,
+                title=None if note_id else title,
+                text=text,
+                parent_title=parent_title,
+                timestamp=timestamp,
+                overwrite=overwrite,
+            )
+
+        if written is None:
+            return {"status": "written", "note_id": note_id, "title": title}
+        result = written.to_dict()
+        if self.field_excluder:
+            result = self.field_excluder.remove_fields(result, object_type="note")
+        self._log(f"write_note returning: {result}")
+        return result
+
+    def rename_note(self, note_id: str, title: str) -> Dict[str, Any]:
+        """Renames a note by ID.
+
+        Args:
+            note_id: ID of the note to rename.
+            title: New title for the note.
+
+        Raises:
+            ValueError: If the note does not exist or title is empty.
+        """
+        self._log(f"rename_note called for id: {note_id}, title: {title}")
+
+        self._ensure_project()
+        with self._wrap_api_errors():
+            note = self.reptor.api.notes.rename_note(note_id=note_id, title=title)
+
+        result = note.to_dict()
+        if self.field_excluder:
+            result = self.field_excluder.remove_fields(result, object_type="note")
+        self._log(f"rename_note returning: {result}")
+        return result
 
     def _simplify_field(self, field) -> Dict[str, Any]:
         """Convert a ProjectDesignField to a simplified dict."""
@@ -293,14 +559,14 @@ class McpLogic:
             A dict containing project_id, project_type, and finding_fields with
             simplified field definitions (id, type, label, required, choices, items, properties).
         """
-        project_id = self._get_project_id()
+        project_id = self._ensure_project()
         self._log(f"get_finding_schema called for project {project_id}")
-        self.reptor.api.projects.init_project(project_id)
 
-        project = self.reptor.api.projects.project
-        design = self.reptor.api.project_designs.get_project_design(
-            project.project_type
-        )
+        with self._wrap_api_errors():
+            project = self.reptor.api.projects.project
+            design = self.reptor.api.project_designs.get_project_design(
+                project.project_type
+            )
 
         return {
             "project_id": project_id,
@@ -319,14 +585,14 @@ class McpLogic:
             A dict containing project_id, project_type, and report_fields with
             simplified field definitions (id, type, label, required, choices, items, properties).
         """
-        project_id = self._get_project_id()
+        project_id = self._ensure_project()
         self._log(f"get_project_schema called for project {project_id}")
-        self.reptor.api.projects.init_project(project_id)
 
-        project = self.reptor.api.projects.project
-        design = self.reptor.api.project_designs.get_project_design(
-            project.project_type
-        )
+        with self._wrap_api_errors():
+            project = self.reptor.api.projects.project
+            design = self.reptor.api.project_designs.get_project_design(
+                project.project_type
+            )
 
         return {
             "project_id": project_id,
@@ -334,12 +600,16 @@ class McpLogic:
             "report_fields": [self._simplify_field(f) for f in design.report_fields],
         }
 
-    def list_sections(self) -> List[Dict[str, Any]]:
+    def list_sections(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Lists all report sections for the configured project.
 
         Returns a simplified list of sections with metadata (id, type, label)
         for each section. This provides a high-level overview without sensitive
         section data content.
+
+        Args:
+            limit: Maximum number of sections to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
 
         Returns:
             List of section metadata dictionaries containing:
@@ -348,9 +618,9 @@ class McpLogic:
             - label: Human-readable label (e.g., "Executive Summary")
         """
         self._log("list_sections called")
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
-        sections = self.reptor.api.projects.get_sections()
+        self._ensure_project()
+        with self._wrap_api_errors():
+            sections = self.reptor.api.projects.get_sections()
 
         results = []
         for section in sections:
@@ -362,10 +632,13 @@ class McpLogic:
 
             # Apply field exclusion if configured
             if self.field_excluder:
-                section_info = self.field_excluder.remove_fields(section_info)
+                section_info = self.field_excluder.remove_fields(
+                    section_info, object_type="section"
+                )
 
             results.append(section_info)
 
+        results = self._apply_limit(results, limit)
         self._log(f"list_sections returning {len(results)} sections")
         return results
 
@@ -380,10 +653,10 @@ class McpLogic:
         """
         self._log(f"get_section called for id: {section_id}")
 
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
+        self._ensure_project()
 
-        sections = self.reptor.api.projects.get_sections()
+        with self._wrap_api_errors():
+            sections = self.reptor.api.projects.get_sections()
 
         # Find the section with matching ID
         section = None
@@ -401,7 +674,7 @@ class McpLogic:
         # Apply field exclusion to section data if configured
         if self.field_excluder and "data" in section_dict:
             section_dict["data"] = self.field_excluder.remove_fields(
-                section_dict["data"]
+                section_dict["data"], object_type="section"
             )
 
         self._log(f"get_section returning: {section_dict}")
@@ -428,26 +701,26 @@ class McpLogic:
 
         Raises:
             ValueError: If no project is configured.
-            HTTPError: If the API returns an error (propagated without modification).
+            HTTPError: If the API returns an error (enriched with the response body).
         """
         self._log(
             f"patch_project_data called for section: {section_id}, field: {field_id}, value: {value}"
         )
 
-        project_id = self._get_project_id()
-        self.reptor.api.projects.init_project(project_id)
+        self._ensure_project()
 
         # Send partial update (consistent with patch_finding pattern)
         section_data = {"data": {field_id: value}}
-        updated_section_raw = self.reptor.api.projects.update_section(
-            section_id, section_data
-        )
+        with self._wrap_api_errors():
+            updated_section_raw = self.reptor.api.projects.update_section(
+                section_id, section_data
+            )
 
         # Convert to dict and apply FieldExcluder filtering
         updated_section = updated_section_raw.to_dict()
         if self.field_excluder and "data" in updated_section:
             updated_section["data"] = self.field_excluder.remove_fields(
-                updated_section["data"]
+                updated_section["data"], object_type="section"
             )
 
         self._log(f"patch_project_data returning: {updated_section}")
