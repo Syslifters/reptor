@@ -24,13 +24,14 @@ MCP_SERVER_INSTRUCTIONS = (
     "- CLI flag `--project-id`\n\n"
     "**Read-only mode:**\n"
     "If the server was started with `--read-only`, the write tools (create_finding, "
-    "patch_finding, delete_finding, reptor_patch_project_data, reptor_write_note) are "
+    "patch_finding, delete_finding, reptor_patch_project_data, reptor_write_note, "
+    "reptor_rename_note) are "
     "NOT registered. Only read tools are available.\n\n"
     "**Key Workflows:**\n"
     "1. Findings: get_finding_schema → list_findings/get_finding → create_finding/patch_finding\n"
     "2. Templates: search_templates → get_template\n"
     "3. Report: reptor_get_project_schema → reptor_list_sections/reptor_get_section → reptor_patch_project_data\n"
-    "4. Notes: reptor_list_notes → reptor_get_note (read recon/scratch notes, e.g. to learn writing style)\n\n"
+    "4. Notes: reptor_list_notes → reptor_get_note → reptor_write_note / reptor_rename_note\n\n"
     "**Creating Findings (MANDATORY 3-Step Process)**\n"
     "1. Call get_finding_schema() to discover available fields, types, and requirements\n"
     "2. Build data dict with required fields (at minimum: title), matching schema exactly\n"
@@ -382,8 +383,9 @@ class MCPServer:
         ) -> Dict[str, Any]:
             """Creates a note, or appends to / replaces an existing one.
 
-            If 'note_id' is given, 'text' is written to that note. Otherwise the note
-            is looked up (or created) by 'title'.
+            If 'note_id' is given, 'text' is written to that note and 'title' is
+            ignored. Otherwise the note is looked up (or created) by 'title'. Use
+            reptor_rename_note to change a note's title.
 
             By default 'text' is appended, which suits running logs (recon output,
             evidence as you collect it). Set overwrite=True when 'text' is the note's
@@ -394,6 +396,7 @@ class MCPServer:
 
             Args:
                 title: Title of the note to write to / create (required if no note_id).
+                    Ignored when note_id is set.
                 text: Markdown text to write to the note.
                 note_id: ID of an existing note to write to.
                 parent_title: Title of a parent note to nest a newly created note under.
@@ -410,6 +413,18 @@ class MCPServer:
                 timestamp=timestamp,
                 overwrite=overwrite,
             )
+
+        @tool(write=True)
+        def reptor_rename_note(note_id: str, title: str) -> Dict[str, Any]:
+            """Renames a note by ID.
+
+            Args:
+                note_id: ID of the note to rename.
+                title: New title for the note.
+
+            Returns the updated note object.
+            """
+            return self.logic.rename_note(note_id=note_id, title=title)
 
     def run(self, transport: str = "stdio"):
         """

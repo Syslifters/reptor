@@ -8,6 +8,7 @@ WRITE_TOOLS = {
     "delete_finding",
     "reptor_patch_project_data",
     "reptor_write_note",
+    "reptor_rename_note",
 }
 
 READ_TOOLS = {
