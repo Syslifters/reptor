@@ -13,6 +13,23 @@ class TestMCPServer:
         mock_fast_mcp.assert_called_once_with(
             "ReptorMCP",
             instructions=MCP_SERVER_INSTRUCTIONS,
+            host="127.0.0.1",
+            port=8000,
+        )
+        assert server.mcp == mock_instance
+
+    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
+    def test_custom_host_and_port_forwarded_to_fastmcp(self, mock_fast_mcp):
+        mock_instance = MagicMock()
+        mock_fast_mcp.return_value = mock_instance
+
+        server = MCPServer(name="ReptorMCP", host="0.0.0.0", port=9000)
+
+        mock_fast_mcp.assert_called_once_with(
+            "ReptorMCP",
+            instructions=MCP_SERVER_INSTRUCTIONS,
+            host="0.0.0.0",
+            port=9000,
         )
         assert server.mcp == mock_instance
 

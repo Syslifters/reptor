@@ -13,6 +13,8 @@ class Mcp(Base):
         super().__init__(**kwargs)
         self.remove_fields = self._parse_remove_fields(kwargs.get("remove_fields"))
         self.transport = kwargs.get("transport", "stdio")
+        self.host = kwargs.get("host", "127.0.0.1")
+        self.port = kwargs.get("port", 8000)
         self.mcp_debug = kwargs.get("mcp_debug")
         self.read_only = kwargs.get("read_only", False)
 
@@ -47,6 +49,17 @@ class Mcp(Base):
             choices=["stdio", "sse", "streamable-http"],
             help="Transport mode for MCP server (default: stdio). "
             "'sse' is deprecated; prefer 'streamable-http' for remote access.",
+        )
+        parser.add_argument(
+            "--host",
+            default="127.0.0.1",
+            help="Bind address for sse/streamable-http (default: 127.0.0.1). Ignored for stdio.",
+        )
+        parser.add_argument(
+            "--port",
+            type=int,
+            default=8000,
+            help="Bind port for sse/streamable-http (default: 8000). Ignored for stdio.",
         )
         parser.add_argument(
             "--read-only",
@@ -93,6 +106,8 @@ class Mcp(Base):
             self.info(f"Field exclusion enabled: {', '.join(self.remove_fields)}")
         if self.read_only:
             self.info("Read-only mode enabled: write/destructive tools are disabled")
+        if self.transport != "stdio":
+            self.info(f"Listening on {self.host}:{self.port}")
 
         try:
             logger = self._file_logger()
@@ -106,6 +121,8 @@ class Mcp(Base):
                 field_excluder=field_excluder,
                 logger=logger,
                 read_only=self.read_only,
+                host=self.host,
+                port=self.port,
             )
 
             server.run(transport=self.transport)

@@ -63,6 +63,8 @@ class MCPServer:
         field_excluder: Optional[FieldExcluder] = None,
         logger: Optional[Any] = None,
         read_only: bool = False,
+        host: str = "127.0.0.1",
+        port: int = 8000,
     ):
         if not FastMCP:
             raise ImportError(
@@ -75,7 +77,9 @@ class MCPServer:
         self.tool_names: List[str] = []
         self.resource_names: List[str] = []
 
-        self.mcp = FastMCP(name, instructions=MCP_SERVER_INSTRUCTIONS)
+        self.mcp = FastMCP(
+            name, instructions=MCP_SERVER_INSTRUCTIONS, host=host, port=port
+        )
 
         self.logic = McpLogic(reptor_instance, field_excluder, logger=logger)
 
