@@ -179,3 +179,57 @@ class TestResultLimits:
         results = logic.list_sections(limit=2)
 
         assert len(results) == 2
+
+    @pytest.mark.parametrize(
+        "method_name,setup",
+        [
+            (
+                "list_findings",
+                lambda mock: setattr(
+                    mock.api.projects,
+                    "get_findings",
+                    MagicMock(
+                        return_value=[
+                            FindingRaw({"id": "f1", "data": {"title": "T1"}})
+                        ]
+                    ),
+                ),
+            ),
+            (
+                "search_templates",
+                lambda mock: setattr(
+                    mock.api.templates,
+                    "search",
+                    MagicMock(return_value=[_template_mock("t1")]),
+                ),
+            ),
+            (
+                "list_templates",
+                lambda mock: setattr(
+                    mock.api.templates,
+                    "search",
+                    MagicMock(return_value=[_template_mock("t1")]),
+                ),
+            ),
+            (
+                "list_sections",
+                lambda mock: setattr(
+                    mock.api.projects,
+                    "get_sections",
+                    MagicMock(return_value=[]),
+                ),
+            ),
+        ],
+    )
+    @pytest.mark.parametrize("invalid_limit", [0, -1])
+    def test_non_positive_limit_raises(self, mock_reptor, method_name, setup, invalid_limit):
+        logic = McpLogic(reptor_instance=mock_reptor)
+        setup(mock_reptor)
+
+        method = getattr(logic, method_name)
+        kwargs = {"limit": invalid_limit}
+        if method_name == "search_templates":
+            kwargs["query"] = "web"
+
+        with pytest.raises(ValueError, match="limit must be a positive integer"):
+            method(**kwargs)

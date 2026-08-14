@@ -41,6 +41,54 @@ class TestMCPNotesRead:
         assert len(results) == 1
         assert results[0]["id"] == "n1"
 
+    @pytest.mark.parametrize("invalid_limit", [0, -1])
+    def test_list_notes_invalid_limit_raises(self, mock_reptor, sample_notes, invalid_limit):
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.notes.get_notes.return_value = sample_notes
+
+        with pytest.raises(ValueError, match="limit must be a positive integer"):
+            logic.list_notes(limit=invalid_limit)
+
+    def test_list_notes_tree_order(self, mock_reptor):
+        from reptor.models.Note import Note
+
+        notes = [
+            Note({"id": "child-b2", "title": "Child B2", "parent": "root-b", "order": 2}),
+            Note({"id": "root-b", "title": "Root B", "parent": None, "order": 2}),
+            Note({"id": "child-a1", "title": "Child A1", "parent": "root-a", "order": 1}),
+            Note({"id": "root-a", "title": "Root A", "parent": None, "order": 1}),
+            Note({"id": "child-b1", "title": "Child B1", "parent": "root-b", "order": 1}),
+            Note({"id": "child-a2", "title": "Child A2", "parent": "root-a", "order": 2}),
+        ]
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.notes.get_notes.return_value = notes
+
+        results = logic.list_notes()
+
+        assert [note["id"] for note in results] == [
+            "root-a",
+            "child-a1",
+            "child-a2",
+            "root-b",
+            "child-b1",
+            "child-b2",
+        ]
+
+    def test_list_notes_limit_respects_tree_order(self, mock_reptor):
+        from reptor.models.Note import Note
+
+        notes = [
+            Note({"id": "root-b", "title": "Root B", "parent": None, "order": 2}),
+            Note({"id": "root-a", "title": "Root A", "parent": None, "order": 1}),
+        ]
+        logic = McpLogic(reptor_instance=mock_reptor)
+        mock_reptor.api.notes.get_notes.return_value = notes
+
+        results = logic.list_notes(limit=1)
+
+        assert len(results) == 1
+        assert results[0]["id"] == "root-a"
+
     def test_list_notes_field_exclusion(self, mock_reptor, sample_notes):
         excluder = FieldExcluder(exclude_fields=["icon_emoji"])
         logic = McpLogic(reptor_instance=mock_reptor, field_excluder=excluder)

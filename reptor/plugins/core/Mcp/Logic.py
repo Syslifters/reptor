@@ -89,6 +89,37 @@ class McpLogic:
             self._initialized_project_id = project_id
         return project_id
 
+    def _apply_limit(self, results: List[Any], limit: Optional[int]) -> List[Any]:
+        if limit is None:
+            return results
+        if limit <= 0:
+            raise ValueError("limit must be a positive integer (or omit for no limit)")
+        return results[:limit]
+
+    @staticmethod
+    def _order_notes_tree(notes: List[Any]) -> List[Any]:
+        """Return notes in depth-first tree order (siblings sorted by order)."""
+        by_parent: Dict[str, List[Any]] = {}
+        for note in notes:
+            parent = getattr(note, "parent", None) or ""
+            by_parent.setdefault(parent, []).append(note)
+        for siblings in by_parent.values():
+            siblings.sort(key=lambda n: (getattr(n, "order", 0) or 0, n.id))
+
+        ordered: List[Any] = []
+
+        def walk(parent_id: str) -> None:
+            for note in by_parent.get(parent_id, []):
+                ordered.append(note)
+                walk(note.id)
+
+        walk("")
+        seen = {note.id for note in ordered}
+        orphans = [note for note in notes if note.id not in seen]
+        orphans.sort(key=lambda n: (getattr(n, "order", 0) or 0, n.id))
+        ordered.extend(orphans)
+        return ordered
+
     def list_findings(
         self, limit: Optional[int] = None, detailed: bool = False
     ) -> List[Dict[str, Any]]:
@@ -101,6 +132,7 @@ class McpLogic:
 
         Args:
             limit: Maximum number of findings to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
             detailed: Return full finding objects instead of summaries.
         """
         self._log(f"list_findings called (detailed={detailed})")
@@ -135,8 +167,7 @@ class McpLogic:
 
             results.append(finding_summary)
 
-        if limit is not None:
-            results = results[:limit]
+        results = self._apply_limit(results, limit)
         self._log(f"list_findings returning {len(results)} findings")
         return results
 
@@ -145,6 +176,7 @@ class McpLogic:
 
         Args:
             limit: Maximum number of templates to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
         """
         self._log("list_templates called")
         with self._wrap_api_errors():
@@ -161,8 +193,7 @@ class McpLogic:
                     "tags": t.tags,
                 }
             )
-        if limit is not None:
-            results = results[:limit]
+        results = self._apply_limit(results, limit)
         self._log(f"list_templates returning {len(results)} templates summary")
         return results
 
@@ -305,6 +336,7 @@ class McpLogic:
         Args:
             query: The search term to find templates.
             limit: Maximum number of templates to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
         """
         self._log(f"search_templates called with query: '{query}'")
         with self._wrap_api_errors():
@@ -321,9 +353,7 @@ class McpLogic:
                     "tags": t.tags,
                 }
             )
-        if limit is not None:
-            results = results[:limit]
-        return results
+        return self._apply_limit(results, limit)
 
     def get_template(self, template_id: str) -> Dict[str, Any]:
         """Gets a finding template by ID.
@@ -340,16 +370,20 @@ class McpLogic:
         """Lists notes for the configured project (summary).
 
         Returns a navigational summary of each note (id, title, parent, order,
-        checked, icon). Use ``get_note`` to read the full markdown ``text``.
+        checked, icon) in tree order: siblings sorted by ``order``, children
+        grouped under their parents (depth-first). Use ``get_note`` to read the
+        full markdown ``text``.
 
         Args:
             limit: Maximum number of notes to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
         """
         self._log("list_notes called")
         self._ensure_project()
         with self._wrap_api_errors():
             notes = self.reptor.api.notes.get_notes()
 
+        notes = self._order_notes_tree(notes)
         results = []
         for n in notes:
             note_summary = {
@@ -364,8 +398,7 @@ class McpLogic:
                 note_summary = self.field_excluder.remove_fields(note_summary)
             results.append(note_summary)
 
-        if limit is not None:
-            results = results[:limit]
+        results = self._apply_limit(results, limit)
         self._log(f"list_notes returning {len(results)} notes summary")
         return results
 
@@ -542,6 +575,7 @@ class McpLogic:
 
         Args:
             limit: Maximum number of sections to return. ``None`` returns all.
+                Must be a positive integer; non-positive values raise ``ValueError``.
 
         Returns:
             List of section metadata dictionaries containing:
@@ -568,8 +602,7 @@ class McpLogic:
 
             results.append(section_info)
 
-        if limit is not None:
-            results = results[:limit]
+        results = self._apply_limit(results, limit)
         self._log(f"list_sections returning {len(results)} sections")
         return results
 

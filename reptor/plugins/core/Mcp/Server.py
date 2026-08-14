@@ -135,6 +135,7 @@ class MCPServer:
 
             Args:
                 limit: Maximum number of findings to return (default: all).
+                    Must be a positive integer; non-positive values raise ValueError.
                 detailed: Return full finding objects instead of summaries.
             """
             return self.logic.list_findings(limit=limit, detailed=detailed)
@@ -213,6 +214,7 @@ class MCPServer:
             Args:
                 query: Search term for finding templates.
                 limit: Maximum number of templates to return (default: all).
+                    Must be a positive integer; non-positive values raise ValueError.
 
             Returns a summary list of template objects (id, title, source, tags).
             Use 'get_template' for full details.
@@ -285,6 +287,7 @@ class MCPServer:
 
             Args:
                 limit: Maximum number of sections to return (default: all).
+                    Must be a positive integer; non-positive values raise ValueError.
             """
             return self.logic.list_sections(limit=limit)
 
@@ -342,12 +345,15 @@ class MCPServer:
             """Lists notes for the configured project.
 
             Returns a navigational summary of each note (id, title, parent, order,
-            checked, icon_emoji). Use 'reptor_get_note' to read the full markdown text.
+            checked, icon_emoji) in tree order: siblings sorted by order, children
+            grouped under their parents (depth-first). Use 'reptor_get_note' to read
+            the full markdown text.
             Notes hold recon data and scratch writing — useful for drafting findings
             from evidence and for learning the author's writing style.
 
             Args:
                 limit: Maximum number of notes to return (default: all).
+                    Must be a positive integer; non-positive values raise ValueError.
             """
             return self.logic.list_notes(limit=limit)
 
