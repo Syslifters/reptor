@@ -3,21 +3,37 @@ from typing import Any, Dict, List, Set
 
 
 class FieldExcluder:
-    """Remove specified fields from finding data structures.
+    """Remove specified fields from finding/section/note data structures.
 
     This class provides functionality to exclude specific fields from data before
-    sending it to an LLM. Fields can be specified by their top-level keys or by
-    nested paths (e.g., "data.cvss" to remove the cvss field from data objects).
+    sending it to an LLM. Fields can be specified in two ways, with different scopes:
+
+    - **Bare field name** (e.g. ``"cvss"``): removed *recursively* at every nesting
+      level and inside every list item. This is a blunt instrument: excluding
+      ``"title"`` strips ``title`` from the top-level object *and* from any nested
+      object field that happens to have a ``title`` sub-key. Prefer a dotted path
+      when you only mean a specific location.
+    - **Dotted path** (e.g. ``"data.cvss"``): removes the field only where that exact
+      parent/child path exists, leaving identically-named keys elsewhere untouched.
+      Dotted paths are also applied to objects nested inside list items.
+
+    The original input is never mutated; a deep copy is returned.
+
+    Note:
+        ``remove_fields(None)`` returns an empty dict (``{}``), not ``None``. Callers
+        that may pass ``None`` (e.g. a missing ``data`` field) should guard accordingly.
     """
 
     def __init__(self, exclude_fields: List[str]):
         self._exclude_fields: Set[str] = exclude_fields
 
     def remove_fields(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Remove specified fields from data structure recursively.
+        """Remove the configured fields from a data structure.
 
-        This method removes fields from the data dictionary and all nested structures.
-        Field names can be top-level keys or nested paths (e.g., "data.cvss").
+        Bare field names are removed recursively at every nesting level; dotted
+        paths (e.g. ``"data.cvss"``) are removed only at their exact location. See
+        the class docstring for the full semantics. Returns a deep copy; the input
+        is not modified. ``None`` input yields ``{}``.
         """
         if data is None:
             return {}

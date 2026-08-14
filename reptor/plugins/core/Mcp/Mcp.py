@@ -14,6 +14,7 @@ class Mcp(Base):
         self.remove_fields = self._parse_remove_fields(kwargs.get("remove_fields"))
         self.transport = kwargs.get("transport", "stdio")
         self.mcp_debug = kwargs.get("mcp_debug")
+        self.read_only = kwargs.get("read_only", False)
 
     def _parse_remove_fields(self, fields_string):
         """Parse comma-separated field names into a list with validation."""
@@ -43,8 +44,16 @@ class Mcp(Base):
         parser.add_argument(
             "--transport",
             default="stdio",
-            choices=["stdio", "sse"],
-            help="Transport mode for MCP server (default: stdio)",
+            choices=["stdio", "sse", "streamable-http"],
+            help="Transport mode for MCP server (default: stdio). "
+            "'sse' is deprecated; prefer 'streamable-http' for remote access.",
+        )
+        parser.add_argument(
+            "--read-only",
+            dest="read_only",
+            action="store_true",
+            help="Expose only read tools; do not register write/destructive tools "
+            "(create/patch/delete findings, patch report data, write notes)",
         )
         parser.add_argument(
             "--mcp-debug",
@@ -82,6 +91,8 @@ class Mcp(Base):
         self.info("Starting MCP Server...")
         if self.remove_fields:
             self.info(f"Field exclusion enabled: {', '.join(self.remove_fields)}")
+        if self.read_only:
+            self.info("Read-only mode enabled: write/destructive tools are disabled")
 
         try:
             logger = self._file_logger()
@@ -94,6 +105,7 @@ class Mcp(Base):
                 reptor_instance=self.reptor,
                 field_excluder=field_excluder,
                 logger=logger,
+                read_only=self.read_only,
             )
 
             server.run(transport=self.transport)
