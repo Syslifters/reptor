@@ -1,7 +1,7 @@
 # 0.36
-* Allow adding report sections, report fields, finding fields to project designs
-* Restore missing "parent" and "checked" fields in packarchive
-* Perform connections with Session object and timeouts
+* Add notes and further improvements to MCP plugin
+* Introduce `rename_note` method in API and remove (sometimes accidential) renaming via `write_note`
+
 
 # 0.35
 This is a security release.
