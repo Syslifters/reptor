@@ -102,7 +102,7 @@ class TestNotesAPI:
 
         assert self.uploaded[0].text == "New"
 
-    def test_write_note_by_id_ignores_title(self):
+    def test_write_note_by_id_renames_when_title_is_provided(self):
         note = self._existing_note("Existing")
         self.notes.write_note(
             id=note.id,
@@ -111,22 +111,16 @@ class TestNotesAPI:
             timestamp=False,
         )
 
-        assert self.uploaded[0].title == "My Note"
+        assert self.uploaded[0].title == "Different Title"
         assert self.uploaded[0].text == "Existing\n\nNew"
 
-    def test_rename_note(self):
+    def test_write_note_by_id_keeps_title_when_title_is_omitted(self):
         note = self._existing_note("Existing content")
-        result = self.notes.rename_note(note_id=note.id, title="Renamed")
+        result = self.notes.write_note(id=note.id, text="New", timestamp=False)
 
-        assert self.uploaded[0].title == "Renamed"
-        assert self.uploaded[0].text == "Existing content"
+        assert self.uploaded[0].title == "My Note"
+        assert self.uploaded[0].text == "Existing content\n\nNew"
         assert result is self.uploaded[0]
-
-    def test_rename_note_not_found(self):
-        self.notes.get_note = MagicMock(return_value=None)
-
-        with pytest.raises(ValueError, match="does not exist"):
-            self.notes.rename_note(note_id="missing", title="New Title")
 
     def test_write_note_templates_overwrite_propagates_to_children(self):
         parent = Note(dict(self.test_note, text="Parent old"))

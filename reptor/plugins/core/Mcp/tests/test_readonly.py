@@ -9,7 +9,6 @@ WRITE_TOOLS = {
     "delete_finding",
     "reptor_patch_project_data",
     "reptor_write_note",
-    "reptor_rename_note",
 }
 
 READ_TOOLS = {
@@ -70,8 +69,10 @@ class TestInstructionStructure:
             assert header in instructions
         assert "Read:" in instructions
         assert instructions.count("Write:") == 3  # Findings, Report, Notes
-        assert "reptor_write_note / reptor_rename_note" in instructions
+        assert "reptor_write_note" in instructions
+        assert "reptor_rename_note" not in instructions
         assert "overwrite=True" in instructions
+        assert "note_id + title: update that note and rename it" in instructions
         assert "reptor_get_project_schema" in instructions
         assert "this server is not running in read-only mode" in instructions
         assert "this server is running in read-only mode" not in instructions
@@ -87,6 +88,7 @@ class TestInstructionStructure:
         assert "→ create_finding" not in key_workflows
         assert "→ reptor_patch_project_data" not in key_workflows
         assert "→ reptor_write_note" not in key_workflows
+        assert "reptor_rename_note" not in instructions
         assert "this server is running in read-only mode" in instructions
         assert "this server is not running in read-only mode" not in instructions
 
@@ -108,6 +110,7 @@ class TestInstructionStructure:
         assert "**Findings:**" in instructions.split("Common Mistakes")[-1]
         assert "**Report:**" in instructions.split("Common Mistakes")[-1]
         assert "**Notes:**" in instructions.split("Common Mistakes")[-1]
+        assert "that combination also renames the note" in instructions
 
     def test_read_only_common_mistakes_omit_write_domains(self):
         instructions = build_mcp_server_instructions(read_only=True)

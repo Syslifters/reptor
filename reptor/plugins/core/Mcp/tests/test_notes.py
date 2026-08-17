@@ -232,30 +232,16 @@ class TestMCPNotesWrite:
 
         assert mock_reptor.api.notes.write_note.call_args.kwargs["overwrite"] is True
 
-    def test_write_note_by_id_does_not_forward_title(self, mock_reptor, sample_note):
+    def test_write_note_by_id_forwards_title_for_rename(self, mock_reptor, sample_note):
         logic = McpLogic(reptor_instance=mock_reptor)
         mock_reptor.api.notes.write_note.return_value = sample_note
 
-        logic.write_note(note_id="n1", title="Wrong Title", text="appended")
+        logic.write_note(note_id="n1", title="Renamed", text="appended")
 
         call_kwargs = mock_reptor.api.notes.write_note.call_args.kwargs
         assert call_kwargs["id"] == "n1"
-        assert call_kwargs["title"] is None
+        assert call_kwargs["title"] == "Renamed"
         assert call_kwargs["text"] == "appended"
-
-    def test_rename_note(self, mock_reptor, sample_note):
-        logic = McpLogic(reptor_instance=mock_reptor)
-        renamed = sample_note
-        renamed.title = "Renamed"
-        mock_reptor.api.notes.rename_note.return_value = renamed
-
-        result = logic.rename_note(note_id="n1", title="Renamed")
-
-        mock_reptor.api.notes.rename_note.assert_called_once_with(
-            note_id="n1", title="Renamed"
-        )
-        assert result["title"] == "Renamed"
-        assert result["id"] == "n1"
 
 
 def _registered_tool(server, name):
@@ -287,17 +273,3 @@ class TestMCPWriteNoteTool:
         write_note(title="Checklist", text="- [x] Recon", overwrite=True)
 
         assert server.logic.write_note.call_args.kwargs["overwrite"] is True
-
-
-class TestMCPRenameNoteTool:
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_rename_note_tool_registered(self, mock_fast_mcp):
-        server = MCPServer(name="ReptorMCP")
-        rename_note = _registered_tool(server, "reptor_rename_note")
-        server.logic = MagicMock()
-
-        rename_note(note_id="n1", title="Renamed")
-
-        server.logic.rename_note.assert_called_once_with(
-            note_id="n1", title="Renamed"
-        )

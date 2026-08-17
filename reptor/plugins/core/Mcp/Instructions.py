@@ -38,7 +38,7 @@ WORKFLOWS = (
     Workflow(
         name="Notes",
         read_chain="reptor_list_notes → reptor_get_note",
-        write_chain="reptor_write_note / reptor_rename_note",
+        write_chain="reptor_write_note",
     ),
 )
 
@@ -117,15 +117,16 @@ def _notes_details(read_only: bool) -> str:
         return f"**Notes:**\n{read}\n"
 
     write = (
-        "Write: reptor_write_note to create or update notes; reptor_rename_note to change "
-        "a title without touching text.\n"
+        "Write: reptor_write_note to create, update, and rename notes.\n"
         "1. reptor_list_notes / reptor_get_note to find or read the target note\n"
-        "2. reptor_write_note with note_id (preferred) or title\n"
+        "2. reptor_write_note with note_id (preferred for updates) or title\n"
+        "   • note_id only: update that existing note\n"
+        "   • note_id + title: update that note and rename it\n"
+        "   • title only: look up an existing note by title or create it\n"
         "3. Choose append vs overwrite:\n"
         "   • Default (append): recon logs, evidence dumps, incremental scratch text\n"
         "   • overwrite=True: checklists, status boards, or any content that represents "
         "the full current state (send complete text; omitted content is lost)\n"
-        "4. reptor_rename_note(note_id, title) to rename without changing text\n"
     )
     return f"**Notes:**\n{read}{write}\n"
 
@@ -155,6 +156,8 @@ def build_common_mistakes(read_only: bool) -> str:
     notes = [
         "Appending to a checklist or state note instead of overwrite=True "
         "(appending keeps every historical version and the note grows without bound)",
+        "Passing title together with note_id when you only meant to add text "
+        "(that combination also renames the note)",
     ]
 
     lines = ["**Common Mistakes to Avoid:**\n", "**Findings:**\n"]
@@ -185,8 +188,8 @@ def build_mcp_server_instructions(read_only: bool = False) -> str:
     read_only_notice = (
         "**Read-only mode:**\n"
         "If the server was started with `--read-only`, the write tools (create_finding, "
-        "patch_finding, delete_finding, reptor_patch_project_data, reptor_write_note, "
-        "reptor_rename_note) are NOT registered. Only read tools are available. "
+        "patch_finding, delete_finding, reptor_patch_project_data, reptor_write_note) "
+        "are NOT registered. Only read tools are available. "
         "The Key Workflows and Workflow Details below reflect the tools actually registered"
         + (
             " (this server is running in read-only mode)."

@@ -454,14 +454,14 @@ class McpLogic:
     ) -> Dict[str, Any]:
         """Creates a note, or appends to / replaces an existing one.
 
-        If ``note_id`` is given, ``text`` is written to that note and ``title`` is
-        ignored. Otherwise the note is looked up (or created) by ``title``.
-        ``text`` is appended by default; pass ``overwrite=True`` to replace the
-        note's content instead.
+        If ``note_id`` is given, ``text`` is written to that note. If ``title`` is
+        also provided, the note is renamed as part of the same write. Otherwise
+        the note is looked up (or created) by ``title``. ``text`` is appended by
+        default; pass ``overwrite=True`` to replace the note's content instead.
 
         Args:
             title: Title of the note to write to / create (required if no note_id).
-                Ignored when ``note_id`` is set; use ``rename_note`` to change a title.
+                When ``note_id`` is set, this becomes the note's new title.
             text: Markdown text to write to the note.
             note_id: ID of an existing note to write to.
             parent_title: Title of a parent note to nest a newly created note under.
@@ -482,7 +482,7 @@ class McpLogic:
         with self._wrap_api_errors():
             written = self.reptor.api.notes.write_note(
                 id=note_id,
-                title=None if note_id else title,
+                title=title,
                 text=text,
                 parent_title=parent_title,
                 timestamp=timestamp,
@@ -495,28 +495,6 @@ class McpLogic:
         if self.field_excluder:
             result = self.field_excluder.remove_fields(result, object_type="note")
         self._log(f"write_note returning: {result}")
-        return result
-
-    def rename_note(self, note_id: str, title: str) -> Dict[str, Any]:
-        """Renames a note by ID.
-
-        Args:
-            note_id: ID of the note to rename.
-            title: New title for the note.
-
-        Raises:
-            ValueError: If the note does not exist or title is empty.
-        """
-        self._log(f"rename_note called for id: {note_id}, title: {title}")
-
-        self._ensure_project()
-        with self._wrap_api_errors():
-            note = self.reptor.api.notes.rename_note(note_id=note_id, title=title)
-
-        result = note.to_dict()
-        if self.field_excluder:
-            result = self.field_excluder.remove_fields(result, object_type="note")
-        self._log(f"rename_note returning: {result}")
         return result
 
     def _simplify_field(self, field) -> Dict[str, Any]:

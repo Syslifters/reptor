@@ -340,9 +340,9 @@ class MCPServer:
         ) -> Dict[str, Any]:
             """Creates a note, or appends to / replaces an existing one.
 
-            If 'note_id' is given, 'text' is written to that note and 'title' is
-            ignored. Otherwise the note is looked up (or created) by 'title'. Use
-            reptor_rename_note to change a note's title.
+            If 'note_id' is given, 'text' is written to that note. If 'title' is
+            also provided, the note is renamed as part of the same write.
+            Otherwise the note is looked up (or created) by 'title'.
 
             By default 'text' is appended, which suits running logs (recon output,
             evidence as you collect it). Set overwrite=True when 'text' is the note's
@@ -353,7 +353,8 @@ class MCPServer:
 
             Args:
                 title: Title of the note to write to / create (required if no note_id).
-                    Ignored when note_id is set.
+                    When note_id is set, this becomes the note's new title. Do not
+                    pass it with note_id unless you intend to rename the note.
                 text: Markdown text to write to the note.
                 note_id: ID of an existing note to write to.
                 parent_title: Title of a parent note to nest a newly created note under.
@@ -370,18 +371,6 @@ class MCPServer:
                 timestamp=timestamp,
                 overwrite=overwrite,
             )
-
-        @tool(write=True)
-        def reptor_rename_note(note_id: str, title: str) -> Dict[str, Any]:
-            """Renames a note by ID.
-
-            Args:
-                note_id: ID of the note to rename.
-                title: New title for the note.
-
-            Returns the updated note object.
-            """
-            return self.logic.rename_note(note_id=note_id, title=title)
 
     def run(self, transport: str = "stdio"):
         """

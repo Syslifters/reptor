@@ -1,6 +1,5 @@
 # 0.36
 * Add notes and further improvements to MCP plugin
-* Introduce `rename_note` method in API and remove (sometimes accidential) renaming via `write_note`
 
 
 # 0.35

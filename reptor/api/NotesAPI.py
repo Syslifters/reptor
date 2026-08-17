@@ -161,11 +161,15 @@ class NotesAPI(APIClient):
     ) -> Note:
         """Updates notes, appends text to a note (or replaces it).
 
+        When ``id`` is provided, the existing note with that ID is updated. If
+        ``title`` is also provided, the note is renamed as part of the same
+        update. When ``id`` is omitted, ``title`` is used to look up an
+        existing note or create a new one.
+
         Args:
             id (str, optional): Note ID to update
             title (str, optional): Note title for lookup or creation when ``id`` is
-                omitted. Ignored when ``id`` is provided; use ``rename_note`` to
-                change a note's title.
+                omitted. When ``id`` is provided, this becomes the note's new title.
             text (str, optional): Append text to the note. Defaults to empty string.
             timestamp (bool, optional): Prepend timestamp to newly inserted text. Defaults to False.
             overwrite (bool, optional): Replace the note's existing text with `text`
@@ -192,10 +196,15 @@ class NotesAPI(APIClient):
                 text="- [x] Recon\\n- [ ] Exploit",
                 overwrite=True,
             )
+
+            # Update a note by ID and rename it in the same call
+            reptor.api.notes.write_note(
+                id="983a7e95-b2d9-4d57-984e-08496264cce8",
+                title="Updated Title",
+                text="Renamed while appending new content",
+            )
             ```
         """
-        if id:
-            title = None
         note_template = NoteTemplate.from_kwargs(
             id=id,
             title=title,
@@ -279,6 +288,8 @@ class NotesAPI(APIClient):
                 upload_note.text = note_text
             else:
                 upload_note = note
+                if note_template.title:
+                    upload_note.title = note_template.title
                 if note_template.checked is not None:
                     upload_note.checked = note_template.checked
                 if note_template.icon_emoji:
@@ -296,35 +307,6 @@ class NotesAPI(APIClient):
                     child, timestamp=timestamp, overwrite=overwrite, **kwargs
                 )
         return written
-
-    def rename_note(self, note_id: str, title: str) -> Note:
-        """Renames a note by ID.
-
-        Args:
-            note_id (str): Note ID to rename
-            title (str): New title for the note
-
-        Returns:
-            The updated note object
-
-        Example:
-            ```python
-            reptor.api.notes.rename_note(
-                note_id="983a7e95-b2d9-4d57-984e-08496264cce8",
-                title="Updated Title",
-            )
-            ```
-        """
-        if not note_id:
-            raise ValueError("note_id parameter is required")
-        if not title:
-            raise ValueError("Note title must not be null.")
-        note = self.get_note(id=note_id)
-        if not note:
-            raise ValueError(f'Note with ID "{note_id}" does not exist.')
-        note.title = title
-        self._upload_note(note)
-        return note
 
     def set_icon(self, note_id: str = None, icon: str = None, id: str = None):
         """Sets an emoji icon for a note.
