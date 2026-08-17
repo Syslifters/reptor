@@ -1,6 +1,10 @@
-# 0.36
+# 0.37
 * Add notes and further improvements to MCP plugin
 
+# 0.36
+* Allow adding report sections, report fields, finding fields to project designs
+* Restore missing "parent" and "checked" fields in packarchive
+* Perform connections with Session object and timeouts
 
 # 0.35
 This is a security release.
