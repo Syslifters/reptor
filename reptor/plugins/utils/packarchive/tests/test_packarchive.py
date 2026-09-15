@@ -162,6 +162,67 @@ class TestResolveNoteIncludes:
                     {"notes": [{"file": "missing.toml"}]}, "notes", Path(tmpdir)
                 )
 
+    def test_resolve_nested_includes(self):
+        parent_id = str(uuid.uuid4())
+        with mock_files(
+            {
+                "notes1.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [
+                        {"file": "notes2.toml"},
+                        {"title": "From1"},
+                    ],
+                },
+                "notes2.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [
+                        {"file": "notes3.toml"},
+                        {"id": parent_id, "title": "From2", "order": 9},
+                        {"title": "From2 child", "parent": parent_id, "order": 2},
+                    ],
+                },
+                "notes3.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [{"title": "From3", "order": 5}],
+                },
+            }
+        ) as d:
+            data = {"notes": [{"file": "notes1.toml"}, {"title": "Inline"}]}
+            included = self.packer.resolve_note_includes(data, "notes", d)
+
+        assert len(included) == 3
+        titles = [n["title"] for n in data["notes"]]
+        assert titles == ["From3", "From2", "From2 child", "From1", "Inline"]
+        by_title = {n["title"]: n for n in data["notes"]}
+        assert [by_title[t]["order"] for t in ("From3", "From2", "From1", "Inline")] == [
+            1, 2, 3, 4
+        ]
+        assert by_title["From2 child"]["parent"] == parent_id
+        assert by_title["From2 child"]["order"] == 2
+
+    def test_rejects_circular_includes(self):
+        with mock_files(
+            {
+                "a.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [{"file": "b.toml"}],
+                },
+                "b.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [{"file": "a.toml"}],
+                },
+            }
+        ) as d:
+            with pytest.raises(ValueError, match="Circular notes include"):
+                self.packer.resolve_note_includes(
+                    {"notes": [{"file": "a.toml"}]}, "notes", d
+                )
+
 
 class TestPackExport:
     def pack(self, files, format, entry=None):
@@ -318,6 +379,58 @@ class TestPackExport:
         assert by_title["A1 child"]["order"] == 3
         assert {f["name"] for f in data["images"]} >= {"note_img.png", "project_img.png"}
         assert "note_file.txt" in {f["name"] for f in data["files"]}
+
+    def test_pack_nested_notes_includes_and_sidecars(self):
+        project_id, design_id = str(uuid.uuid4()), str(uuid.uuid4())
+        notes1_id, notes2_id, notes3_id = (
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+        )
+        tar = self.pack(
+            files={
+                "project1.toml": {
+                    "id": project_id,
+                    "format": "projects/v1",
+                    "project_type": {
+                        "id": design_id,
+                        "format": "projecttypes/v1",
+                    },
+                    "notes": [{"file": "notes1.toml"}, {"title": "Inline"}],
+                },
+                "notes1.toml": {
+                    "format": "notes/v1",
+                    "id": notes1_id,
+                    "notes": [{"file": "notes2.toml"}, {"title": "From1"}],
+                },
+                "notes2.toml": {
+                    "format": "notes/v1",
+                    "id": notes2_id,
+                    "notes": [{"file": "notes3.toml"}, {"title": "From2"}],
+                },
+                "notes3.toml": {
+                    "format": "notes/v1",
+                    "id": notes3_id,
+                    "notes": [{"title": "From3"}],
+                },
+                "notes3-images/nested_img.png": create_png_file(),
+                "notes3-files/nested_file.txt": b"nested",
+            },
+            format="toml",
+            entry="project1.toml",
+        )
+        names = set(tar.getnames())
+        assert f"{project_id}-images/nested_img.png" in names
+        assert f"{project_id}-files/nested_file.txt" in names
+        assert not any(n.startswith(f"{notes3_id}-") for n in names)
+
+        data = self._read_packed_json(tar, project_id)
+        assert [n["title"] for n in data["notes"]] == [
+            "From3", "From2", "From1", "Inline"
+        ]
+        assert [n["order"] for n in data["notes"]] == [1, 2, 3, 4]
+        assert "nested_img.png" in {f["name"] for f in data["images"]}
+        assert "nested_file.txt" in {f["name"] for f in data["files"]}
 
     def test_pack_project_type_default_notes_includes(self):
         project_id, design_id, notes_id = (

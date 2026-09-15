@@ -82,18 +82,25 @@ class PackArchive(Base):
                 order += 1
 
     def resolve_note_includes(
-        self, data_dict: dict, key: str, base_dir: Path
+        self,
+        data_dict: dict,
+        key: str,
+        base_dir: Path,
+        _stack: set[Path] | None = None,
     ) -> list[tuple[Path, dict]]:
-        """Expand file references in a notes list. Returns included (path, data) pairs."""
+        """Expand file references in a notes list (recursively). Returns included pairs."""
         notes_list = data_dict.get(key)
         if not isinstance(notes_list, list):
             return []
 
+        stack = _stack if _stack is not None else set()
         merged = []
         included: list[tuple[Path, dict]] = []
         for item in notes_list:
             if isinstance(item, dict) and item.get("file"):
-                notes_path = base_dir / item["file"]
+                notes_path = (base_dir / item["file"]).resolve()
+                if notes_path in stack:
+                    raise ValueError(f"Circular notes include: {notes_path}")
                 loaded = self.load_file(notes_path)
                 if not loaded:
                     raise ValueError(f"Invalid reference to notes file: {notes_path}")
@@ -101,9 +108,17 @@ class PackArchive(Base):
                     raise ValueError(
                         f'Notes file must have format "notes/v1": {notes_path}'
                     )
+                stack.add(notes_path)
+                try:
+                    nested = self.resolve_note_includes(
+                        loaded, "notes", notes_path.parent, stack
+                    )
+                finally:
+                    stack.discard(notes_path)
                 if isinstance(loaded.get("notes"), list):
                     merged.extend(loaded["notes"])
                 included.append((notes_path, loaded))
+                included.extend(nested)
             else:
                 merged.append(item)
 
