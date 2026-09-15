@@ -59,10 +59,14 @@ class TestToolbase(TestCaseToolPlugin):
         self.sql_tool.input_format = "json"
         self.sql_tool.raw_input = "{}"
 
-    def test_get_plugin_dir_paths(self):
+    def test_get_plugin_dir_paths(self, monkeypatch):
         # Mock user plugins
-        settings.PLUGIN_DIRS_USER = pathlib.Path("C:\\99\\Users\\user\\.sysreptor")
-        os.path.isdir = MagicMock(return_value=True)
+        monkeypatch.setattr(
+            settings,
+            "PLUGIN_DIRS_USER",
+            pathlib.Path("C:\\99\\Users\\user\\.sysreptor"),
+        )
+        monkeypatch.setattr(os.path, "isdir", lambda path: True)
         paths = self.sql_tool.get_plugin_dir_paths(
             pathlib.Path("C:\\11\\installation\\reptor\\plugins\\sql_tool"),
             "findings",

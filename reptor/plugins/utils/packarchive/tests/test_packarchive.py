@@ -51,61 +51,32 @@ class TestNormalizeNotes:
     def setup_method(self):
         self.packer = PackArchive(directories=[], output=io.BytesIO())
 
-    def test_adds_null_parent_and_checked_to_notes(self):
-        data = {"notes": [{"title": "Note 1"}]}
-        self.packer.normalize_notes(data)
-        assert data["notes"][0]["parent"] is None
-        assert data["notes"][0]["checked"] is None
-
-    def test_adds_null_parent_and_checked_to_default_notes(self):
-        data = {"default_notes": [{"title": "Default"}]}
-        self.packer.normalize_notes(data)
-        assert data["default_notes"][0]["parent"] is None
-        assert data["default_notes"][0]["checked"] is None
-
-    def test_adds_null_parent_and_checked_to_project_type_default_notes(self):
-        data = {
-            "project_type": {
-                "default_notes": [{"title": "Design note"}],
-            },
-        }
-        self.packer.normalize_notes(data)
-        note = data["project_type"]["default_notes"][0]
-        assert note["parent"] is None
-        assert note["checked"] is None
-
-    def test_preserves_existing_parent_and_checked(self):
+    def test_fills_missing_parent_and_checked(self):
         parent_id = str(uuid.uuid4())
         data = {
             "notes": [
-                {"title": "Child", "parent": parent_id, "checked": True},
-                {"title": "Unchecked", "parent": None, "checked": False},
+                {"title": "Missing both"},
+                {"title": "Has parent", "parent": parent_id},
+                {"title": "Has checked", "checked": True},
+                {"title": "Child", "parent": parent_id, "checked": False},
+                {"file": "notes.toml"},
+                "skip-me",
             ],
+            "default_notes": [{"title": "Default"}],
+            "project_type": {"default_notes": [{"title": "Design"}]},
         }
         self.packer.normalize_notes(data)
-        assert data["notes"][0]["parent"] == parent_id
-        assert data["notes"][0]["checked"] is True
-        assert data["notes"][1]["parent"] is None
-        assert data["notes"][1]["checked"] is False
 
-    def test_normalizes_all_note_collections(self):
-        data = {
-            "notes": [{"title": "Project note"}],
-            "default_notes": [{"title": "Default note"}],
-            "project_type": {
-                "default_notes": [{"title": "Design note"}],
-            },
-        }
-        self.packer.normalize_notes(data)
-        for note in (
-            data["notes"][0],
-            data["default_notes"][0],
-            data["project_type"]["default_notes"][0],
-        ):
-            assert note["parent"] is None
-            assert note["checked"] is None
+        assert data["notes"][0]["parent"] is None and data["notes"][0]["checked"] is None
+        assert data["notes"][1]["parent"] == parent_id and data["notes"][1]["checked"] is None
+        assert data["notes"][2]["parent"] is None and data["notes"][2]["checked"] is True
+        assert data["notes"][3]["parent"] == parent_id and data["notes"][3]["checked"] is False
+        assert data["notes"][4] == {"file": "notes.toml"}
+        assert data["notes"][5] == "skip-me"
+        assert data["default_notes"][0]["parent"] is None
+        assert data["project_type"]["default_notes"][0]["checked"] is None
 
-    def test_skips_non_list_note_collections(self):
+    def test_skips_invalid_collections(self):
         data = {
             "notes": {"title": "not a list"},
             "default_notes": "also not a list",
@@ -116,57 +87,97 @@ class TestNormalizeNotes:
         assert data["default_notes"] == "also not a list"
         assert data["project_type"]["default_notes"] is None
 
-    def test_skips_non_dict_note_items(self):
-        data = {"notes": ["string note", 42, None, {"title": "Real note"}]}
-        self.packer.normalize_notes(data)
-        assert data["notes"][0] == "string note"
-        assert data["notes"][1] == 42
-        assert data["notes"][2] is None
-        assert data["notes"][3]["parent"] is None
-        assert data["notes"][3]["checked"] is None
 
-    def test_noop_when_no_notes(self):
-        data = {"format": "projects/v1", "id": str(uuid.uuid4())}
-        self.packer.normalize_notes(data)
-        assert data == {"format": "projects/v1", "id": data["id"]}
+class TestResolveNoteIncludes:
+    def setup_method(self):
+        self.packer = PackArchive(directories=[], output=io.BytesIO())
 
-    def test_handles_missing_project_type(self):
-        data = {"notes": [{"title": "Only notes"}]}
-        self.packer.normalize_notes(data)
-        assert data["notes"][0]["parent"] is None
-        assert data["notes"][0]["checked"] is None
+    def test_reassign_toplevel_note_order(self):
+        parent_id = str(uuid.uuid4())
+        notes = [
+            {"title": "A", "parent": None, "order": 99},
+            {"title": "Child", "parent": parent_id, "order": 5},
+            {"title": "B", "parent": None, "order": 1},
+            {"title": "C", "parent": "", "order": 0},
+        ]
+        self.packer.reassign_toplevel_note_order(notes)
+        assert [n["order"] for n in notes] == [1, 5, 2, 3]
 
-    def test_fills_only_missing_fields(self):
-        data = {
-            "notes": [
-                {"title": "Has parent", "parent": "p1"},
-                {"title": "Has checked", "checked": True},
-            ],
-        }
-        self.packer.normalize_notes(data)
-        assert data["notes"][0]["parent"] == "p1"
-        assert data["notes"][0]["checked"] is None
-        assert data["notes"][1]["parent"] is None
-        assert data["notes"][1]["checked"] is True
+    def test_resolve_mixes_files_and_inline(self):
+        parent_id = str(uuid.uuid4())
+        with mock_files(
+            {
+                "notes1.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [
+                        {"id": parent_id, "title": "N1", "order": 10},
+                        {"title": "N1 child", "parent": parent_id, "order": 1},
+                        {"title": "N2", "order": 20},
+                    ],
+                },
+                "notes2.toml": {
+                    "format": "notes/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [{"title": "N3"}, {"title": "N4"}],
+                },
+            }
+        ) as d:
+            data = {
+                "notes": [
+                    {"file": "notes1.toml"},
+                    {"file": "notes2.toml"},
+                    {"title": "Inline"},
+                ],
+            }
+            included = self.packer.resolve_note_includes(data, "notes", d)
+
+        assert len(included) == 2
+        titles = [n["title"] for n in data["notes"]]
+        assert titles == ["N1", "N1 child", "N2", "N3", "N4", "Inline"]
+        by_title = {n["title"]: n for n in data["notes"]}
+        assert [by_title[t]["order"] for t in ("N1", "N2", "N3", "N4", "Inline")] == list(
+            range(1, 6)
+        )
+        assert by_title["N1 child"]["parent"] == parent_id
+        assert by_title["N1 child"]["order"] == 1
+
+    def test_rejects_invalid_includes(self):
+        with mock_files(
+            {
+                "bad.toml": {
+                    "format": "projects/v1",
+                    "id": str(uuid.uuid4()),
+                    "notes": [{"title": "Nope"}],
+                },
+            }
+        ) as d:
+            with pytest.raises(ValueError, match='format "notes/v1"'):
+                self.packer.resolve_note_includes(
+                    {"notes": [{"file": "bad.toml"}]}, "notes", d
+                )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with pytest.raises(ValueError, match="Invalid reference"):
+                self.packer.resolve_note_includes(
+                    {"notes": [{"file": "missing.toml"}]}, "notes", Path(tmpdir)
+                )
 
 
 class TestPackExport:
-    def pack(self, files, format):
+    def pack(self, files, format, entry=None):
         with mock_files(
             files=files, format=format
         ) as d, tempfile.TemporaryFile() as output:
-            PackArchive(directories=[d], output=output).run()
+            target = (d / entry) if entry else d
+            PackArchive(directories=[target], output=output).run()
             output.flush()
             output.seek(0)
             return tarfile.open(fileobj=io.BytesIO(output.read()), mode="r:gz")
 
-    @pytest.mark.parametrize(
-        ["format"],
-        [
-            ("toml",),
-            ("json",),
-        ],
-    )
+    def _read_packed_json(self, tar, resource_id):
+        return json.loads(tar.extractfile(f"{resource_id}.json").read())
+
+    @pytest.mark.parametrize("format", ["toml", "json"])
     def test_pack_project_name(self, format):
         project_id = str(uuid.uuid4())
         design_id = str(uuid.uuid4())
@@ -196,13 +207,7 @@ class TestPackExport:
             f"{design_id}-assets/file2.txt",
         }
 
-    @pytest.mark.parametrize(
-        ["format"],
-        [
-            ("toml",),
-            ("json",),
-        ],
-    )
+    @pytest.mark.parametrize("format", ["toml", "json"])
     def test_pack_project_id(self, format):
         project_id = str(uuid.uuid4())
         design_id = str(uuid.uuid4())
@@ -232,13 +237,7 @@ class TestPackExport:
             f"{design_id}-assets/file2.txt",
         }
 
-    @pytest.mark.parametrize(
-        ["format"],
-        [
-            ("toml",),
-            ("json",),
-        ],
-    )
+    @pytest.mark.parametrize("format", ["toml", "json"])
     def test_pack_template_name(self, format):
         template_id = str(uuid.uuid4())
         tar = self.pack(
@@ -256,3 +255,149 @@ class TestPackExport:
             f"{template_id}-images",
             f"{template_id}-images/img1.png",
         }
+
+    def test_pack_project_notes_includes_order_and_sidecars(self):
+        project_id, design_id = str(uuid.uuid4()), str(uuid.uuid4())
+        notes1_id, notes2_id, parent_id = (
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+        )
+        tar = self.pack(
+            files={
+                "project1.toml": {
+                    "id": project_id,
+                    "format": "projects/v1",
+                    "project_type": {
+                        "id": design_id,
+                        "format": "projecttypes/v1",
+                    },
+                    "notes": [
+                        {"file": "notes1.toml"},
+                        {"file": "notes2.toml"},
+                        {"title": "Inline1"},
+                        {"title": "Inline2"},
+                    ],
+                },
+                "notes1.toml": {
+                    "format": "notes/v1",
+                    "id": notes1_id,
+                    "notes": [
+                        {"id": parent_id, "title": "A1", "order": 50},
+                        {"title": "A1 child", "parent": parent_id, "order": 3},
+                        {"title": "A2", "order": 60},
+                        {"title": "A3", "order": 70},
+                    ],
+                },
+                "notes2.toml": {
+                    "format": "notes/v1",
+                    "id": notes2_id,
+                    "notes": [{"title": "B1"}, {"title": "B2"}],
+                },
+                "notes1-images/note_img.png": create_png_file(),
+                "notes1-files/note_file.txt": b"from notes",
+                "project1-images/project_img.png": create_png_file(),
+            },
+            format="toml",
+            entry="project1.toml",
+        )
+        names = set(tar.getnames())
+        assert f"{project_id}-images/note_img.png" in names
+        assert f"{project_id}-files/note_file.txt" in names
+        assert f"{project_id}-images/project_img.png" in names
+        assert not any(n.startswith(f"{notes1_id}-") for n in names)
+
+        data = self._read_packed_json(tar, project_id)
+        titles = [n["title"] for n in data["notes"]]
+        assert titles == ["A1", "A1 child", "A2", "A3", "B1", "B2", "Inline1", "Inline2"]
+        by_title = {n["title"]: n for n in data["notes"]}
+        assert [by_title[t]["order"] for t in (
+            "A1", "A2", "A3", "B1", "B2", "Inline1", "Inline2"
+        )] == list(range(1, 8))
+        assert by_title["A1 child"]["parent"] == parent_id
+        assert by_title["A1 child"]["order"] == 3
+        assert {f["name"] for f in data["images"]} >= {"note_img.png", "project_img.png"}
+        assert "note_file.txt" in {f["name"] for f in data["files"]}
+
+    def test_pack_project_type_default_notes_includes(self):
+        project_id, design_id, notes_id = (
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+        )
+        tar = self.pack(
+            files={
+                "project1.toml": {
+                    "id": project_id,
+                    "format": "projects/v1",
+                    "project_type": {"file": "design.toml"},
+                },
+                "design.toml": {
+                    "id": design_id,
+                    "format": "projecttypes/v1",
+                    "default_notes": [
+                        {"file": "defaults.toml"},
+                        {"title": "Inline default"},
+                    ],
+                },
+                "defaults.toml": {
+                    "format": "notes/v1",
+                    "id": notes_id,
+                    "notes": [
+                        {"title": "Default A", "order": 9},
+                        {"title": "Default B", "order": 8},
+                    ],
+                },
+                "defaults-images/default_img.png": create_png_file(),
+                "defaults-files/default_file.txt": b"asset from notes",
+                "design-assets/logo.png": create_png_file(),
+            },
+            format="toml",
+            entry="project1.toml",
+        )
+        names = set(tar.getnames())
+        assert {f"{design_id}-assets/{n}" for n in (
+            "default_img.png", "default_file.txt", "logo.png"
+        )} <= names
+        assert not any(n.startswith(f"{notes_id}-") for n in names)
+
+        data = self._read_packed_json(tar, project_id)
+        default_notes = data["project_type"]["default_notes"]
+        assert [n["title"] for n in default_notes] == [
+            "Default A", "Default B", "Inline default"
+        ]
+        assert [n["order"] for n in default_notes] == [1, 2, 3]
+        assert {f["name"] for f in data["project_type"]["assets"]} >= {
+            "default_img.png", "default_file.txt", "logo.png"
+        }
+
+    def test_pack_inline_project_type_default_notes_includes(self):
+        project_id, design_id, notes_id = (
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+            str(uuid.uuid4()),
+        )
+        tar = self.pack(
+            files={
+                "project1.toml": {
+                    "id": project_id,
+                    "format": "projects/v1",
+                    "project_type": {
+                        "id": design_id,
+                        "format": "projecttypes/v1",
+                        "default_notes": [{"file": "defaults.toml"}],
+                    },
+                },
+                "defaults.toml": {
+                    "format": "notes/v1",
+                    "id": notes_id,
+                    "notes": [{"title": "From file"}],
+                },
+            },
+            format="toml",
+            entry="project1.toml",
+        )
+        data = self._read_packed_json(tar, project_id)
+        notes = data["project_type"]["default_notes"]
+        assert [n["title"] for n in notes] == ["From file"]
+        assert notes[0]["order"] == 1
