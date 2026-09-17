@@ -29,35 +29,37 @@ READ_ONLY_SUFFIX = "write tools unavailable in read-only mode"
 
 
 class TestReadOnlyMode:
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_default_registers_write_tools(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_default_registers_write_tools(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP")
 
         registered = set(server.tool_names)
         assert WRITE_TOOLS.issubset(registered)
         assert READ_TOOLS.issubset(registered)
 
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_read_only_hides_write_tools(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_read_only_hides_write_tools(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP", read_only=True)
 
         registered = set(server.tool_names)
         assert registered.isdisjoint(WRITE_TOOLS)
         assert READ_TOOLS.issubset(registered)
 
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_resources_always_registered(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_resources_always_registered(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP", read_only=True)
 
         assert "sysreptor://findings" in server.resource_names
         assert "sysreptor://templates" in server.resource_names
         assert "sysreptor://notes" in server.resource_names
 
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_run_streamable_http(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_run_streamable_http(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP")
         server.run(transport="streamable-http")
-        server.mcp.run.assert_called_once_with(transport="streamable-http")
+        server.mcp.run.assert_called_once_with(
+            transport="streamable-http", host="127.0.0.1", port=8000
+        )
 
 
 class TestInstructionStructure:

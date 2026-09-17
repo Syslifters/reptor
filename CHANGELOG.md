@@ -1,3 +1,6 @@
+# 0.38
+* Update mcp dependency
+
 # 0.37
 * Add notes and further improvements to MCP plugin
 
