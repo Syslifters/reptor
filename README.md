@@ -40,30 +40,58 @@ You can use it to:
 ## Prerequisites
 
 * Python 3.10-3.14
-* pip3
+* pipx
+
+Install pipx ([guide](https://pipx.pypa.io/stable/how-to/install-pipx.html)). Open a new shell after `pipx ensurepath`.
+
+```shell
+# macOS
+brew install pipx
+pipx ensurepath
+
+# Ubuntu/Debian
+sudo apt update && sudo apt install pipx
+pipx ensurepath
+
+# Fedora
+sudo dnf install pipx
+pipx ensurepath
+
+# Windows (pip)
+py -m pip install --user pipx
+py -m pipx ensurepath
+```
 
 ## Installation
 ### From pypi
 ```shell
-pip3 install reptor
+pipx install reptor
 ```
 
 #### Optional dependencies
 * translate (requires deepl)
 * ghostwriter (requires gql)
+* ai (requires openai)
+* mcp (requires mcp)
 * dev (requires pytest)
 
-Install by `pip3 install reptor[translate]`.  
-Install all optional dependencies using `pip3 install reptor[all]`
+Inject extras into an existing install (`--force` is required because pipx otherwise skips `reptor`, which is already installed):
+
+```shell
+pipx inject --force reptor 'reptor[translate]'
+pipx inject --force reptor 'reptor[all]'
+```
+
+Or install with extras from the start: `pipx install 'reptor[translate]'` or `pipx install 'reptor[all]'`.
 
 ### From source
 ```shell
 git clone https://github.com/Syslifters/reptor.git
 cd reptor
-pip3 install .
+pipx install .
 ```
 
-Install [optional dependencies](#optional-dependencies) by `pip3 install .[all]`.
+Install [optional dependencies](#optional-dependencies) by `pipx install '.[all]'` or `pipx inject --force reptor 'reptor[all]'`.
 
 ### From BlackArch
 

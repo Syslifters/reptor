@@ -23,7 +23,9 @@ class MCPServer:
     ):
         if not SdkMCPServer:
             raise ImportError(
-                "mcp library is not installed. Please install reptor[mcp]."
+                "mcp library is not installed. Install the optional mcp extra:\n"
+                "  pip:  pip install 'reptor[mcp]'\n"
+                "  pipx: pipx inject --force reptor 'reptor[mcp]'"
             )
 
         self.read_only = read_only

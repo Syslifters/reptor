@@ -245,7 +245,9 @@ class OpenAIProcessor:
         """
         if not OpenAI:
             raise ImportError(
-                "OpenAI library not found. Install with: pip install openai"
+                "openai library is not installed. Install the optional ai extra:\n"
+                "  pip:  pip install 'reptor[ai]'\n"
+                "  pipx: pipx inject --force reptor 'reptor[ai]'"
             )
         
         if not 0 <= temperature <= 2:

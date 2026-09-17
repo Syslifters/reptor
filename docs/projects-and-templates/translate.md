@@ -10,7 +10,7 @@ reptor translate -to DE --skip-fields recommendation,summary
 ```
 
 ## Installation
-Make sure you installed required dependencies by using `pip install reptor[translate]` or `pip install reptor[all]`.
+Make sure you installed required dependencies by using `pipx inject --force reptor 'reptor[translate]'` or `pipx inject --force reptor 'reptor[all]'`.
 
 ## Configuration
 The translate module needs additional configurations, which you can add to `~/.sysreptor/config.yaml`:

@@ -51,7 +51,9 @@ class GhostWriter(BaseImporter):
 
         if gql is None:
             raise ImportError(
-                "Error importing gql. Install with 'pip install reptor{self.log.escape('[ghostwriter]')}'."
+                "gql library is not installed. Install the optional ghostwriter extra:\n"
+                "  pip:  pip install 'reptor[ghostwriter]'\n"
+                "  pipx: pipx inject --force reptor 'reptor[ghostwriter]'"
             )
 
         self.ghostwriter_url = kwargs.get("url", "")
