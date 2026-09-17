@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reptor"
-version = "0.37"
+version = "0.38"
 authors = [
   { name="Richard Schwabe" },
   { name="Aron Molnar", email="aron@syslifters.com" }
@@ -47,7 +47,7 @@ ai = ['openai >= 1.0.0']
 translate = ['deepl >= 1.15.0']
 ghostwriter = ['gql[aiohttp] >= 3.4.1',]
 dev = ['pytest >= 7.4.0',]
-mcp = ['mcp >= 1.25.0']
+mcp = ['mcp >= 2']
 all = ['reptor[ai,translate,ghostwriter,dev,mcp]']
 
 [project.scripts]

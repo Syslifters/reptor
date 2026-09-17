@@ -8,9 +8,7 @@ reptor ai --task "Translate to Italian" --model gpt-5.4-mini --duplicate
 ```
 
 ## Installation
-Make sure you installed required dependencies by using `pip install reptor[ai]` or `pip install reptor[all]`.
-
-For OpenAI support, also install: `pip install openai`
+Make sure you installed required dependencies by using `pipx inject --force reptor 'reptor[ai]'` or `pipx inject --force reptor 'reptor[all]'`.
 
 ## Configuration
 The Ai module needs additional configurations, which you can add to `~/.sysreptor/config.yaml`:

@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional
 
 try:
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.mcpserver import MCPServer as SdkMCPServer
 except ImportError:
-    FastMCP = None
+    SdkMCPServer = None
 
 from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 from reptor.plugins.core.Mcp.Instructions import build_mcp_server_instructions
@@ -21,22 +21,24 @@ class MCPServer:
         host: str = "127.0.0.1",
         port: int = 8000,
     ):
-        if not FastMCP:
+        if not SdkMCPServer:
             raise ImportError(
-                "mcp library is not installed. Please install reptor[mcp]."
+                "mcp library is not installed. Install the optional mcp extra:\n"
+                "  pip:  pip install 'reptor[mcp]'\n"
+                "  pipx: pipx inject --force reptor 'reptor[mcp]'"
             )
 
         self.read_only = read_only
+        self.host = host
+        self.port = port
         # Names of the tools/resources actually registered (useful for tests and
         # introspection; respects read-only gating).
         self.tool_names: List[str] = []
         self.resource_names: List[str] = []
 
-        self.mcp = FastMCP(
+        self.mcp = SdkMCPServer(
             name,
             instructions=build_mcp_server_instructions(read_only=self.read_only),
-            host=host,
-            port=port,
         )
 
         self.logic = McpLogic(reptor_instance, field_excluder, logger=logger)
@@ -376,4 +378,7 @@ class MCPServer:
         """
         Starts the MCP server.
         """
-        self.mcp.run(transport=transport)
+        if transport == "stdio":
+            self.mcp.run(transport=transport)
+        else:
+            self.mcp.run(transport=transport, host=self.host, port=self.port)

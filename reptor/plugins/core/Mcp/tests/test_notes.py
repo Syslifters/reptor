@@ -245,7 +245,7 @@ class TestMCPNotesWrite:
 
 
 def _registered_tool(server, name):
-    """Pull a tool function out of the patched FastMCP registration calls."""
+    """Pull a tool function out of the patched SdkMCPServer registration calls."""
     for call in server.mcp.tool.return_value.call_args_list:
         fn = call.args[0]
         if fn.__name__ == name:
@@ -256,16 +256,16 @@ def _registered_tool(server, name):
 class TestMCPWriteNoteTool:
     """The MCP tool must expose overwrite so a model can replace note content."""
 
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_tool_exposes_overwrite_defaulting_to_append(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_tool_exposes_overwrite_defaulting_to_append(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP")
 
         params = inspect.signature(_registered_tool(server, "reptor_write_note")).parameters
         assert "overwrite" in params
         assert params["overwrite"].default is False
 
-    @patch("reptor.plugins.core.Mcp.Server.FastMCP")
-    def test_tool_forwards_overwrite_to_logic(self, mock_fast_mcp):
+    @patch("reptor.plugins.core.Mcp.Server.SdkMCPServer")
+    def test_tool_forwards_overwrite_to_logic(self, mock_sdk_mcp):
         server = MCPServer(name="ReptorMCP")
         write_note = _registered_tool(server, "reptor_write_note")
         server.logic = MagicMock()

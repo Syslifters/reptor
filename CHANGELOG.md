@@ -1,3 +1,8 @@
+# 0.38
+* Pack and unpack notes
+* Update mcp dependency
+* Document installation with pipx
+
 # 0.37
 * Add notes and further improvements to MCP plugin
 

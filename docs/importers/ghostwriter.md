@@ -9,7 +9,7 @@ reptor ghostwriter --url http://localhost/ghostwriter
 ```
 
 ## Installation
-Make sure you installed required dependencies by using `pip install reptor[ghostwriter]` or `pip install reptor[all]`.
+Make sure you installed required dependencies by using `pipx inject --force reptor 'reptor[ghostwriter]'` or `pipx inject --force reptor 'reptor[all]'`.
 
 ## Configuration
 This module needs additional configurations, which you can add to your config file by running:

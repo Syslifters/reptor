@@ -124,7 +124,9 @@ class Translate(Base):
                 raise AttributeError("No Deepl API token found. Try --conf.")
             if not deepl:
                 raise ModuleNotFoundError(
-                    'deepl library not found. Install plugin requirements with "pip3 install reptor[translate]'
+                    "deepl library is not installed. Install the optional translate extra:\n"
+                    "  pip:  pip install 'reptor[translate]'\n"
+                    "  pipx: pipx inject --force reptor 'reptor[translate]'"
                 )
             self.deepl_translator = deepl.Translator(self.deepl_api_token)
         except (AttributeError, ModuleNotFoundError) as e:
