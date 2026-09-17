@@ -68,31 +68,108 @@ class PackArchive(Base):
             if not isinstance(notes, list):
                 continue
             for note in notes:
-                if not isinstance(note, dict):
+                if not isinstance(note, dict) or note.get("file"):
                     continue
-                if "parent" not in note:
-                    note["parent"] = None
-                if "checked" not in note:
-                    note["checked"] = None
+                note.setdefault("parent", None)
+                note.setdefault("checked", None)
+
+    def reassign_toplevel_note_order(self, notes_list: list):
+        """Set consecutive order values on top-level notes based on list order."""
+        order = 1
+        for note in notes_list:
+            if isinstance(note, dict) and not note.get("parent"):
+                note["order"] = order
+                order += 1
+
+    def resolve_note_includes(
+        self,
+        data_dict: dict,
+        key: str,
+        base_dir: Path,
+        _stack: set[Path] | None = None,
+    ) -> list[tuple[Path, dict]]:
+        """Expand file references in a notes list (recursively). Returns included pairs."""
+        notes_list = data_dict.get(key)
+        if not isinstance(notes_list, list):
+            return []
+
+        stack = _stack if _stack is not None else set()
+        merged = []
+        included: list[tuple[Path, dict]] = []
+        for item in notes_list:
+            if isinstance(item, dict) and item.get("file"):
+                notes_path = (base_dir / item["file"]).resolve()
+                if notes_path in stack:
+                    raise ValueError(f"Circular notes include: {notes_path}")
+                loaded = self.load_file(notes_path)
+                if not loaded:
+                    raise ValueError(f"Invalid reference to notes file: {notes_path}")
+                if loaded.get("format") != "notes/v1":
+                    raise ValueError(
+                        f'Notes file must have format "notes/v1": {notes_path}'
+                    )
+                stack.add(notes_path)
+                try:
+                    nested = self.resolve_note_includes(
+                        loaded, "notes", notes_path.parent, stack
+                    )
+                finally:
+                    stack.discard(notes_path)
+                if isinstance(loaded.get("notes"), list):
+                    merged.extend(loaded["notes"])
+                included.append((notes_path, loaded))
+                included.extend(nested)
+            else:
+                merged.append(item)
+
+        data_dict[key] = merged
+        if included:
+            self.reassign_toplevel_note_order(merged)
+        return included
+
+    def _sidecar_sources(
+        self,
+        included: list[tuple[Path, dict]],
+        dest_images: str,
+        dest_files: str,
+    ) -> list[tuple[Path, str]]:
+        sources = []
+        for notes_path, notes_data in included:
+            prefixes = {notes_path.stem}
+            if notes_data.get("id"):
+                prefixes.add(str(notes_data["id"]))
+            for prefix in prefixes:
+                sources.append((notes_path.parent / f"{prefix}-images", dest_images))
+                sources.append((notes_path.parent / f"{prefix}-files", dest_files))
+        return sources
+
+    def _id_stem_sources(
+        self, path_input: Path, resource_id: str, kinds: tuple[str, ...]
+    ) -> list[tuple[Path, str]]:
+        parent, stem = path_input.parent, path_input.stem
+        sources = []
+        for kind in kinds:
+            dest = f"{resource_id}-{kind}"
+            sources.append((parent / f"{resource_id}-{kind}", dest))
+            sources.append((parent / f"{stem}-{kind}", dest))
+        return sources
 
     def add_to_archive(self, tar: tarfile.TarFile, path_input: Path, data_dict: dict, is_subresource=False):
         if not data_dict.get("id"):
             data_dict["id"] = str(uuid.uuid4())
 
-        self.normalize_notes(data_dict)
+        included = self.resolve_note_includes(
+            data_dict, "notes", path_input.parent
+        ) + self.resolve_note_includes(data_dict, "default_notes", path_input.parent)
 
-        # Include file directories
-        file_dirs = {}
+        file_sources: list[tuple[Path, str]] = []
         format = data_dict.get('format', '')
+        rid = data_dict["id"]
         if format.startswith("projects/"):
-            file_dirs |= {
-                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
-                f"{data_dict['id']}-files": f"{data_dict['id']}-files",
-                f"{path_input.stem}-images": f"{data_dict['id']}-images",
-                f"{path_input.stem}-files": f"{data_dict['id']}-files",
-            }
+            dest_images, dest_files = f"{rid}-images", f"{rid}-files"
+            file_sources += self._id_stem_sources(path_input, rid, ("images", "files"))
+            file_sources += self._sidecar_sources(included, dest_images, dest_files)
 
-            # Add project type
             project_type = data_dict.get("project_type")
             projecttype_path_input = path_input
             if not project_type:
@@ -105,32 +182,26 @@ class PackArchive(Base):
                 data_dict['project_type'] = project_type
             self.add_to_archive(tar=tar, path_input=projecttype_path_input, data_dict=project_type, is_subresource=True)
         elif format.startswith("projecttypes/"):
-            file_dirs |= {
-                f"{data_dict['id']}-assets": f"{data_dict['id']}-assets",
-                f"{path_input.stem}-assets": f"{data_dict['id']}-assets",
-            }
+            dest_assets = f"{rid}-assets"
+            file_sources += self._id_stem_sources(path_input, rid, ("assets",))
+            file_sources += self._sidecar_sources(included, dest_assets, dest_assets)
         elif format.startswith("templates/"):
-            file_dirs |= {
-                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
-                f"{path_input.stem}-images": f"{data_dict['id']}-images",
-            }
+            file_sources += self._id_stem_sources(path_input, rid, ("images",))
         elif format.startswith("notes/"):
-            file_dirs |= {
-                f"{data_dict['id']}-images": f"{data_dict['id']}-images",
-                f"{data_dict['id']}-files": f"{data_dict['id']}-files",
-                f"{path_input.stem}-images": f"{data_dict['id']}-images",
-                f"{path_input.stem}-files": f"{data_dict['id']}-files",
-            }
+            dest_images, dest_files = f"{rid}-images", f"{rid}-files"
+            file_sources += self._id_stem_sources(path_input, rid, ("images", "files"))
+            file_sources += self._sidecar_sources(included, dest_images, dest_files)
+
+        self.normalize_notes(data_dict)
 
         # Add files to archive
         # Translate human-friendly names to archive names based on IDs
-        for ds, dd in file_dirs.items():
+        for d_dir, dd in file_sources:
             # Always add file list to data_dict
             data_key = dd.split("-")[-1]
             data_dict.setdefault(data_key, [])
 
             # Add directory contents to archive
-            d_dir = Path(path_input).parent / ds
             if d_dir.exists() and d_dir.is_dir():
                 tar.add(d_dir, arcname=dd, recursive=True)
                 for path_file in d_dir.glob("*"):

@@ -15,19 +15,86 @@ from reptor.lib.plugins.Base import Base
 from reptor.utils.file_operations import safe_extractall
 
 
-def to_toml(data: Any):
+def _note_sort_key(note: dict):
+    return (note.get("order") or 0, note.get("id") or "")
+
+
+def order_notes_tree(notes: list) -> list:
+    """Return notes in depth-first tree order (siblings sorted by order)."""
+    by_parent: dict[str, list] = {}
+    for note in notes:
+        if isinstance(note, dict):
+            by_parent.setdefault(note.get("parent") or "", []).append(note)
+    for siblings in by_parent.values():
+        siblings.sort(key=_note_sort_key)
+
+    ordered: list = []
+
+    def walk(parent_id: str) -> None:
+        for note in by_parent.get(parent_id, []):
+            ordered.append(note)
+            walk(note.get("id") or "")
+
+    walk("")
+    seen = {n.get("id") for n in ordered}
+    orphans = [n for n in notes if isinstance(n, dict) and n.get("id") not in seen]
+    orphans.sort(key=_note_sort_key)
+    ordered.extend(orphans)
+    return ordered
+
+
+def format_notes(data: dict) -> None:
+    """DFS-order notes lists on archive documents that contain notes."""
+    if not isinstance(data, dict):
+        return
+    fmt = data.get("format") or ""
+    if not isinstance(fmt, str):
+        return
+
+    def reorder(obj: dict, key: str) -> None:
+        if isinstance(obj.get(key), list):
+            obj[key] = order_notes_tree(obj[key])
+
+    if fmt.startswith("notes/"):
+        reorder(data, "notes")
+    elif fmt.startswith("projects/"):
+        reorder(data, "notes")
+        if isinstance(data.get("project_type"), dict):
+            reorder(data["project_type"], "default_notes")
+    elif fmt.startswith("projecttypes/"):
+        reorder(data, "default_notes")
+
+
+def to_toml(data: Any, is_note: bool = False):
     if isinstance(data, dict):
         table = tomlkit.table()
-        keys_prepend = [
-            "title",
-            "cvss",
-            "severity",
-            "summary",
-            "impact",
-            "description",
-            "recommendation",
-        ]
-        keys_append = ["report_data", "findings", "project_type", "translations"]
+        if is_note:
+            keys_prepend = [
+                "title",
+                "id",
+                "type",
+                "parent",
+                "order",
+                "created",
+                "updated",
+                "assignee",
+                "checked",
+                "icon_emoji",
+                "text",
+                "excalidraw_data",
+            ]
+            keys_append: list[str] = []
+        else:
+            keys_prepend = [
+                "title",
+                "cvss",
+                "severity",
+                "summary",
+                "impact",
+                "description",
+                "recommendation",
+            ]
+            keys_append = ["report_data", "findings", "project_type", "translations"]
 
         ordered_keys = list(data.keys())
         for k in keys_prepend + keys_append:
@@ -42,7 +109,10 @@ def to_toml(data: Any):
 
         for k in ordered_keys:
             if data[k] is not None:
-                table.append(k, to_toml(data[k]))
+                child_is_note = k in ("notes", "default_notes") and isinstance(
+                    data[k], list
+                )
+                table.append(k, to_toml(data[k], is_note=child_is_note))
         return table
     elif isinstance(data, list):
         array = (
@@ -54,7 +124,7 @@ def to_toml(data: Any):
         )
         for v in data:
             if v is not None:
-                array.append(to_toml(v))
+                array.append(to_toml(v, is_note=is_note))
         return array
     elif isinstance(data, bool):
         return tomlkit.items.Bool(data, trivia=tomlkit.items.Trivia())
@@ -102,6 +172,7 @@ class UnpackArchive(Base):
                     if not path_json.exists() or not path_json.is_file():
                         continue
                     data_dict = json.loads(path_json.read_text())
+                    format_notes(data_dict)
                     if self.format == "json":
                         data_output = json.dumps(data_dict, indent=2)
                     elif self.format == "toml":
