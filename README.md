@@ -78,7 +78,7 @@ pipx install reptor
 Inject extras into an existing install (`--force` is required because pipx otherwise skips `reptor`, which is already installed):
 
 ```shell
-pipx inject --force reptor 'reptor[translate]'
+pipx inject --force reptor 'reptor[mcp]'
 pipx inject --force reptor 'reptor[all]'
 ```
 
