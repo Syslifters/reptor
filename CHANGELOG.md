@@ -1,3 +1,6 @@
+# 0.39
+* Allow rich 14 and 15
+
 # 0.38
 * Pack and unpack notes
 * Update mcp dependency
