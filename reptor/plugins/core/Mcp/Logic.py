@@ -16,12 +16,13 @@ class McpLogic:
     from the MCP transport layer.
 
     Note:
-        This class assumes a single, pre-configured project for the lifetime of the
-        instance (see ``_ensure_project``). It is not safe to share one instance
-        across concurrent requests that target different projects, because switching
-        projects mutates global reptor state (``reptor.api`` / active project id).
-        The stdio transport processes requests sequentially, so this is fine there;
-        be cautious if exposing the server over a multi-client transport.
+        Project-scoped methods accept an optional ``project_id``. When omitted, the
+        project configured at startup (``reptor conf``, ``REPTOR_PROJECT_ID`` or
+        ``--project-id``) is used. Switching projects mutates global reptor state
+        (``reptor.api`` / active project id), so one instance is not safe to share
+        across concurrent requests that target different projects. The stdio
+        transport processes requests sequentially, so this is fine there; be
+        cautious if exposing the server over a multi-client transport.
     """
 
     def __init__(
@@ -36,6 +37,10 @@ class McpLogic:
         # Tracks the project id we have already switched the reptor context to,
         # so we only pay for init_project() once instead of on every tool call.
         self._initialized_project_id: Optional[str] = None
+        # Snapshot of the project configured at startup. ``init_project`` overwrites
+        # the active project id in reptor's config, so once a call has targeted a
+        # different project we can no longer read the default from there.
+        self._configured_project_id: Optional[str] = None
 
     def _log(self, msg: str):
         if self.logger:
@@ -66,28 +71,73 @@ class McpLogic:
                 raise HTTPError(f"{e}\nAPI response: {body}", response=response) from e
             raise
 
-    def _get_project_id(self) -> str:
-        """Get the configured project ID"""
-        project_id = self.reptor.get_active_project_id()
-        if not project_id:
-            raise ValueError(
-                "No project configured. Set project_id via 'reptor conf', "
-                "environment variable REPTOR_PROJECT_ID, or --project-id flag."
-            )
-        return project_id
+    def _get_project_id(self, project_id: Optional[str] = None) -> str:
+        """Resolve the project to operate on.
 
-    def _ensure_project(self) -> str:
-        """Ensure the reptor context points at the configured project.
+        An explicit ``project_id`` wins; otherwise the project configured at
+        startup is used.
+        """
+        if project_id:
+            return project_id
+        if self._configured_project_id is None:
+            self._configured_project_id = self.reptor.get_active_project_id() or ""
+        if not self._configured_project_id:
+            raise ValueError(
+                "No project configured. Pass project_id (use list_projects to find "
+                "one), or set a default via 'reptor conf', environment variable "
+                "REPTOR_PROJECT_ID, or --project-id flag."
+            )
+        return self._configured_project_id
+
+    def _ensure_project(self, project_id: Optional[str] = None) -> str:
+        """Ensure the reptor context points at the requested project.
 
         ``init_project`` resets the cached API manager and re-reads the project
-        design, so it is comparatively expensive. We only call it the first time a
-        given project id is seen for this logic instance.
+        design, so it is comparatively expensive. We only call it when the target
+        project differs from the one the context currently points at.
         """
-        project_id = self._get_project_id()
-        if self._initialized_project_id != project_id:
-            self.reptor.api.projects.init_project(project_id)
-            self._initialized_project_id = project_id
-        return project_id
+        if self._configured_project_id is None:
+            # Take the snapshot before init_project() can overwrite the config.
+            self._configured_project_id = self.reptor.get_active_project_id() or ""
+        target = self._get_project_id(project_id)
+        if self._initialized_project_id != target:
+            self.reptor.api.projects.init_project(target)
+            self._initialized_project_id = target
+        return target
+
+    def list_projects(
+        self,
+        search: str = "",
+        finished: Optional[bool] = None,
+        limit: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Lists projects accessible to the configured user (summary).
+
+        Args:
+            search: Optional search term (matches project name, tags, etc.).
+            finished: Filter by finished (read-only) state. ``None`` returns both.
+            limit: Maximum number of projects to return. ``None`` returns all.
+        """
+        self._log(f"list_projects called (search={search!r}, finished={finished})")
+        with self._wrap_api_errors():
+            projects = self.reptor.api.projects.search(search, finished=finished)
+        default = self._configured_project_id
+        if default is None:
+            default = self.reptor.get_active_project_id() or ""
+        results = [
+            {
+                "id": p.id,
+                "name": p.name,
+                "tags": p.tags,
+                "language": p.language,
+                "finished": p.readonly,
+                "is_default": bool(default) and p.id == default,
+            }
+            for p in projects
+        ]
+        results = self._apply_limit(results, limit)
+        self._log(f"list_projects returning {len(results)} projects")
+        return results
 
     def _apply_limit(self, results: List[Any], limit: Optional[int]) -> List[Any]:
         if limit is None:
@@ -121,7 +171,10 @@ class McpLogic:
         return ordered
 
     def list_findings(
-        self, limit: Optional[int] = None, detailed: bool = False
+        self,
+        limit: Optional[int] = None,
+        detailed: bool = False,
+        project_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Lists findings for the configured project.
 
@@ -136,7 +189,7 @@ class McpLogic:
             detailed: Return full finding objects instead of summaries.
         """
         self._log(f"list_findings called (detailed={detailed})")
-        self._ensure_project()
+        self._ensure_project(project_id)
         with self._wrap_api_errors():
             findings_raw = self.reptor.api.projects.get_findings()
 
@@ -199,7 +252,9 @@ class McpLogic:
         self._log(f"list_templates returning {len(results)} templates summary")
         return results
 
-    def get_finding(self, finding_id: str) -> Dict[str, Any]:
+    def get_finding(
+        self, finding_id: str, project_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Retrieves a single finding with field exclusion.
 
         Args:
@@ -207,7 +262,7 @@ class McpLogic:
         """
         self._log(f"get_finding called for id: {finding_id}")
 
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         with self._wrap_api_errors():
             finding = self.reptor.api.projects.get_finding(finding_id)
@@ -221,7 +276,9 @@ class McpLogic:
 
         return finding_dict
 
-    def create_finding(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_finding(
+        self, data: Dict[str, Any], project_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Creates a new finding.
 
         Note: Field exclusion is NOT applied on write operations. Excluded fields
@@ -235,7 +292,7 @@ class McpLogic:
                 Top-level finding fields (status, assignee, language) can also be provided.
         """
         self._log(f"create_finding called with data: {data}")
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         # Prepare API payload
         payload = {}
@@ -268,7 +325,7 @@ class McpLogic:
 
         return result
 
-    def delete_finding(self, finding_id: str):
+    def delete_finding(self, finding_id: str, project_id: Optional[str] = None):
         """Deletes a finding.
 
         Args:
@@ -276,13 +333,17 @@ class McpLogic:
         """
         self._log(f"delete_finding called for {finding_id}")
 
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         with self._wrap_api_errors():
             self.reptor.api.projects.delete_finding(finding_id)
 
     def patch_finding(
-        self, finding_id: str, field_name: str, field_value: Any
+        self,
+        finding_id: str,
+        field_name: str,
+        field_value: Any,
+        project_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Patches a single field on a finding.
 
@@ -313,7 +374,7 @@ class McpLogic:
             f"patch_finding called for {finding_id}, field: {field_name}, value: {field_value}"
         )
 
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         # Construct partial payload based on field classification
         if field_name in TOP_LEVEL_FINDING_FIELDS:
@@ -374,7 +435,9 @@ class McpLogic:
             template = self.reptor.api.templates.get_template(template_id)
         return template.to_dict()
 
-    def list_notes(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def list_notes(
+        self, limit: Optional[int] = None, project_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Lists notes for the configured project (summary).
 
         Returns a navigational summary of each note (id, title, parent, order,
@@ -387,7 +450,7 @@ class McpLogic:
                 Must be a positive integer; non-positive values raise ``ValueError``.
         """
         self._log("list_notes called")
-        self._ensure_project()
+        self._ensure_project(project_id)
         with self._wrap_api_errors():
             notes = self.reptor.api.notes.get_notes()
 
@@ -413,7 +476,10 @@ class McpLogic:
         return results
 
     def get_note(
-        self, note_id: Optional[str] = None, title: Optional[str] = None
+        self,
+        note_id: Optional[str] = None,
+        title: Optional[str] = None,
+        project_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Gets a single note by ID or title, including its full markdown text.
 
@@ -428,7 +494,7 @@ class McpLogic:
         if not note_id and not title:
             raise ValueError("Either note_id or title must be provided.")
 
-        self._ensure_project()
+        self._ensure_project(project_id)
         with self._wrap_api_errors():
             note = self.reptor.api.notes.get_note(id=note_id, title=title)
 
@@ -451,6 +517,7 @@ class McpLogic:
         parent_title: Optional[str] = None,
         timestamp: bool = False,
         overwrite: bool = False,
+        project_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Creates a note, or appends to / replaces an existing one.
 
@@ -478,7 +545,7 @@ class McpLogic:
         if not note_id and not title:
             raise ValueError("Either note_id or title must be provided.")
 
-        self._ensure_project()
+        self._ensure_project(project_id)
         with self._wrap_api_errors():
             written = self.reptor.api.notes.write_note(
                 id=note_id,
@@ -526,7 +593,7 @@ class McpLogic:
             ]
         return field_info
 
-    def get_finding_schema(self) -> Dict[str, Any]:
+    def get_finding_schema(self, project_id: Optional[str] = None) -> Dict[str, Any]:
         """Gets the finding field schema for the configured project.
 
         This is a convenience method that fetches the project's design and returns
@@ -537,7 +604,7 @@ class McpLogic:
             A dict containing project_id, project_type, and finding_fields with
             simplified field definitions (id, type, label, required, choices, items, properties).
         """
-        project_id = self._ensure_project()
+        project_id = self._ensure_project(project_id)
         self._log(f"get_finding_schema called for project {project_id}")
 
         with self._wrap_api_errors():
@@ -552,7 +619,7 @@ class McpLogic:
             "finding_fields": [self._simplify_field(f) for f in design.finding_fields],
         }
 
-    def get_project_schema(self) -> Dict[str, Any]:
+    def get_project_schema(self, project_id: Optional[str] = None) -> Dict[str, Any]:
         """Gets the report field schema for the configured project.
 
         This is a convenience method that fetches the project's design and returns
@@ -563,7 +630,7 @@ class McpLogic:
             A dict containing project_id, project_type, and report_fields with
             simplified field definitions (id, type, label, required, choices, items, properties).
         """
-        project_id = self._ensure_project()
+        project_id = self._ensure_project(project_id)
         self._log(f"get_project_schema called for project {project_id}")
 
         with self._wrap_api_errors():
@@ -578,7 +645,9 @@ class McpLogic:
             "report_fields": [self._simplify_field(f) for f in design.report_fields],
         }
 
-    def list_sections(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def list_sections(
+        self, limit: Optional[int] = None, project_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Lists all report sections for the configured project.
 
         Returns a simplified list of sections with metadata (id, type, label)
@@ -596,7 +665,7 @@ class McpLogic:
             - label: Human-readable label (e.g., "Executive Summary")
         """
         self._log("list_sections called")
-        self._ensure_project()
+        self._ensure_project(project_id)
         with self._wrap_api_errors():
             sections = self.reptor.api.projects.get_sections()
 
@@ -620,7 +689,9 @@ class McpLogic:
         self._log(f"list_sections returning {len(results)} sections")
         return results
 
-    def get_section(self, section_id: str) -> Dict[str, Any]:
+    def get_section(
+        self, section_id: str, project_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Retrieves a single section by ID with field exclusion.
 
         Args:
@@ -631,7 +702,7 @@ class McpLogic:
         """
         self._log(f"get_section called for id: {section_id}")
 
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         with self._wrap_api_errors():
             sections = self.reptor.api.projects.get_sections()
@@ -659,7 +730,11 @@ class McpLogic:
         return section_dict
 
     def patch_project_data(
-        self, section_id: str, field_id: str, value: Any
+        self,
+        section_id: str,
+        field_id: str,
+        value: Any,
+        project_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Patches a single field in a section's data.
 
@@ -685,7 +760,7 @@ class McpLogic:
             f"patch_project_data called for section: {section_id}, field: {field_id}, value: {value}"
         )
 
-        self._ensure_project()
+        self._ensure_project(project_id)
 
         # Send partial update (consistent with patch_finding pattern)
         section_data = {"data": {field_id: value}}
