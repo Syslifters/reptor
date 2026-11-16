@@ -205,10 +205,13 @@ def build_mcp_server_instructions(read_only: bool = False) -> str:
         + "---\n\n"
         "This server allows AI agents to manage penetration testing projects and findings in SysReptor.\n\n"
         "**Project Context:**\n"
-        "This server operates on the pre-configured project. The project is set via:\n"
+        "Project-scoped tools default to the project configured at startup, set via:\n"
         "- `reptor conf` command\n"
         "- Environment variable `REPTOR_PROJECT_ID`\n"
-        "- CLI flag `--project-id`\n\n"
+        "- CLI flag `--project-id`\n"
+        "To work on another project, call list_projects to find its ID and pass it as "
+        "`project_id` to any project-scoped tool. Pass the same project_id consistently "
+        "across a schema → read → write chain, since field schemas differ between projects.\n\n"
         + read_only_notice
         + build_key_workflows(read_only)
         + build_workflow_details(read_only)

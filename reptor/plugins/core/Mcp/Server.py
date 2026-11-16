@@ -1,3 +1,4 @@
+import inspect
 from typing import Any, Dict, List, Optional
 
 try:
@@ -8,6 +9,20 @@ except ImportError:
 from reptor.plugins.core.Mcp.FieldExcluder import FieldExcluder
 from reptor.plugins.core.Mcp.Instructions import build_mcp_server_instructions
 from reptor.plugins.core.Mcp.Logic import McpLogic
+
+PROJECT_ID_DOC = (
+    "    project_id: Optional SysReptor project ID to operate on. Omit to use\n"
+    "        the default project the server was started with. Use\n"
+    "        'list_projects' to discover project IDs."
+)
+
+
+def _with_project_id_doc(doc: Optional[str]) -> str:
+    """Append the shared ``project_id`` argument doc to a tool docstring."""
+    doc = inspect.cleandoc(doc or "")
+    if "Args:" not in doc:
+        doc += "\n\nArgs:"
+    return f"{doc}\n{PROJECT_ID_DOC}"
 
 
 class MCPServer:
@@ -75,16 +90,43 @@ class MCPServer:
             def decorator(fn):
                 if write and self.read_only:
                     return fn  # not registered
+                if "project_id" in inspect.signature(fn).parameters:
+                    fn.__doc__ = _with_project_id_doc(fn.__doc__)
                 self.mcp.tool()(fn)
                 self.tool_names.append(fn.__name__)
                 return fn
 
             return decorator
 
+        # ----- Projects -----
+        @tool()
+        def list_projects(
+            search: str = "",
+            finished: Optional[bool] = None,
+            limit: Optional[int] = None,
+        ) -> List[Dict[str, Any]]:
+            """Lists SysReptor projects accessible to the configured user.
+
+            Returns a summary per project (id, name, tags, language, finished,
+            is_default). Pass a project's id as 'project_id' to any project-scoped
+            tool to work on it instead of the default project.
+
+            Args:
+                search: Optional search term to filter projects.
+                finished: Filter by finished state (True/False). Omit for both.
+                limit: Maximum number of projects to return (default: all).
+                    Must be a positive integer; non-positive values raise ValueError.
+            """
+            return self.logic.list_projects(
+                search=search, finished=finished, limit=limit
+            )
+
         # ----- Findings -----
         @tool()
         def list_findings(
-            limit: Optional[int] = None, detailed: bool = False
+            limit: Optional[int] = None,
+            detailed: bool = False,
+            project_id: Optional[str] = None,
         ) -> List[Dict[str, Any]]:
             """Lists findings for the configured project.
 
@@ -98,18 +140,24 @@ class MCPServer:
                     Must be a positive integer; non-positive values raise ValueError.
                 detailed: Return full finding objects instead of summaries.
             """
-            return self.logic.list_findings(limit=limit, detailed=detailed)
+            return self.logic.list_findings(
+                limit=limit, detailed=detailed, project_id=project_id
+            )
 
         @tool()
-        def get_finding(finding_id: str) -> Dict[str, Any]:
+        def get_finding(
+            finding_id: str, project_id: Optional[str] = None
+        ) -> Dict[str, Any]:
             """Gets a single finding by ID.
 
             Returns the full finding object including vulnerability details.
             """
-            return self.logic.get_finding(finding_id)
+            return self.logic.get_finding(finding_id, project_id=project_id)
 
         @tool(write=True)
-        def create_finding(data: Dict[str, Any]) -> Dict[str, Any]:
+        def create_finding(
+            data: Dict[str, Any], project_id: Optional[str] = None
+        ) -> Dict[str, Any]:
             """Creates a new finding in SysReptor.
 
             ⚠️ WARNING: You MUST call get_finding_schema() BEFORE using this tool.
@@ -126,11 +174,14 @@ class MCPServer:
 
             Returns the created finding object.
             """
-            return self.logic.create_finding(data)
+            return self.logic.create_finding(data, project_id=project_id)
 
         @tool(write=True)
         def patch_finding(
-            finding_id: str, field_name: str, field_value: Any
+            finding_id: str,
+            field_name: str,
+            field_value: Any,
+            project_id: Optional[str] = None,
         ) -> Dict[str, Any]:
             """Updates a single field on an existing finding in SysReptor.
 
@@ -156,12 +207,14 @@ class MCPServer:
             so you can see why it was rejected). Unknown fields are silently ignored (check the
             response to verify the field was actually updated).
             """
-            return self.logic.patch_finding(finding_id, field_name, field_value)
+            return self.logic.patch_finding(
+                finding_id, field_name, field_value, project_id=project_id
+            )
 
         @tool(write=True)
-        def delete_finding(finding_id: str) -> str:
+        def delete_finding(finding_id: str, project_id: Optional[str] = None) -> str:
             """Deletes a finding in SysReptor."""
-            self.logic.delete_finding(finding_id)
+            self.logic.delete_finding(finding_id, project_id=project_id)
             return f"Finding {finding_id} deleted."
 
         # ----- Templates -----
@@ -194,7 +247,7 @@ class MCPServer:
 
         # ----- Schemas -----
         @tool()
-        def get_finding_schema() -> Dict[str, Any]:
+        def get_finding_schema(project_id: Optional[str] = None) -> Dict[str, Any]:
             """Gets the finding field schema for the configured project.
 
             **Call this before create_finding or patch_finding** to discover:
@@ -213,10 +266,12 @@ class MCPServer:
                 - items: Item definition for list fields
                 - properties: Nested field definitions for object fields
             """
-            return self.logic.get_finding_schema()
+            return self.logic.get_finding_schema(project_id=project_id)
 
         @tool()
-        def reptor_get_project_schema() -> Dict[str, Any]:
+        def reptor_get_project_schema(
+            project_id: Optional[str] = None,
+        ) -> Dict[str, Any]:
             """Gets the report field schema for the configured project.
 
             **Call this before reptor_patch_project_data** to discover:
@@ -235,11 +290,13 @@ class MCPServer:
                 - items: Item definition for list fields
                 - properties: Nested field definitions for object fields
             """
-            return self.logic.get_project_schema()
+            return self.logic.get_project_schema(project_id=project_id)
 
         # ----- Report sections -----
         @tool()
-        def reptor_list_sections(limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        def reptor_list_sections(
+            limit: Optional[int] = None, project_id: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
             """Lists all report sections for the configured project.
 
             Returns a summary list of section objects (id, type, label).
@@ -249,10 +306,12 @@ class MCPServer:
                 limit: Maximum number of sections to return (default: all).
                     Must be a positive integer; non-positive values raise ValueError.
             """
-            return self.logic.list_sections(limit=limit)
+            return self.logic.list_sections(limit=limit, project_id=project_id)
 
         @tool()
-        def reptor_get_section(section_id: str) -> Dict[str, Any]:
+        def reptor_get_section(
+            section_id: str, project_id: Optional[str] = None
+        ) -> Dict[str, Any]:
             """Gets a single report section by ID.
 
             Args:
@@ -260,11 +319,14 @@ class MCPServer:
 
             Returns the full section object including section data fields.
             """
-            return self.logic.get_section(section_id)
+            return self.logic.get_section(section_id, project_id=project_id)
 
         @tool(write=True)
         def reptor_patch_project_data(
-            section_id: str, field_id: str, value: Any
+            section_id: str,
+            field_id: str,
+            value: Any,
+            project_id: Optional[str] = None,
         ) -> Dict[str, Any]:
             """Updates a single field in a report section's data.
 
@@ -297,11 +359,15 @@ class MCPServer:
             so you can see why it was rejected). Unknown fields are silently ignored (check the
             response to verify the field was actually updated).
             """
-            return self.logic.patch_project_data(section_id, field_id, value)
+            return self.logic.patch_project_data(
+                section_id, field_id, value, project_id=project_id
+            )
 
         # ----- Notes -----
         @tool()
-        def reptor_list_notes(limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        def reptor_list_notes(
+            limit: Optional[int] = None, project_id: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
             """Lists notes for the configured project.
 
             Returns a navigational summary of each note (id, title, parent, order,
@@ -315,11 +381,13 @@ class MCPServer:
                 limit: Maximum number of notes to return (default: all).
                     Must be a positive integer; non-positive values raise ValueError.
             """
-            return self.logic.list_notes(limit=limit)
+            return self.logic.list_notes(limit=limit, project_id=project_id)
 
         @tool()
         def reptor_get_note(
-            note_id: Optional[str] = None, title: Optional[str] = None
+            note_id: Optional[str] = None,
+            title: Optional[str] = None,
+            project_id: Optional[str] = None,
         ) -> Dict[str, Any]:
             """Gets a single note by ID or title, including its full markdown text.
 
@@ -329,7 +397,9 @@ class MCPServer:
 
             Returns the full note object including its markdown 'text'.
             """
-            return self.logic.get_note(note_id=note_id, title=title)
+            return self.logic.get_note(
+                note_id=note_id, title=title, project_id=project_id
+            )
 
         @tool(write=True)
         def reptor_write_note(
@@ -339,6 +409,7 @@ class MCPServer:
             parent_title: Optional[str] = None,
             timestamp: bool = False,
             overwrite: bool = False,
+            project_id: Optional[str] = None,
         ) -> Dict[str, Any]:
             """Creates a note, or appends to / replaces an existing one.
 
@@ -372,6 +443,7 @@ class MCPServer:
                 parent_title=parent_title,
                 timestamp=timestamp,
                 overwrite=overwrite,
+                project_id=project_id,
             )
 
     def run(self, transport: str = "stdio"):
